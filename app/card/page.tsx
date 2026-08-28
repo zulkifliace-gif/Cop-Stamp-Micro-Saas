@@ -11,6 +11,11 @@ interface RewardItem {
   description?: string
 }
 
+interface SocialLinkItem {
+  platform: string
+  url: string
+}
+
 interface CustomerStoreCard {
   storeId: string
   storeName: string
@@ -20,7 +25,29 @@ interface CustomerStoreCard {
   logoUrl: string
   rewardImageUrl: string
   rewards: RewardItem[]
+  stampIcon?: string
+  socialLinks?: SocialLinkItem[]
   updatedAt?: string | null
+}
+
+function getSocialIcon(platform: string) {
+  switch (platform) {
+    case 'instagram':
+      return '/sosial media/instagram-white-icon.svg'
+    case 'tiktok':
+      return '/sosial media/tiktok-circle-icon.svg'
+    case 'facebook':
+      return '/sosial media/facebook-app-round-white-icon.svg'
+    case 'telegram':
+      return '/sosial media/telegram-white-icon.svg'
+    case 'threads':
+      return '/sosial media/threads-app-icon.svg'
+    case 'youtube':
+      return '/sosial media/youtube-color-icon.svg'
+    case 'website':
+    default:
+      return '/sosial media/registration-web-icon.svg'
+  }
 }
 
 export default function CustomerCardPage() {
@@ -44,6 +71,8 @@ export default function CustomerCardPage() {
   const [logoUrl, setLogoUrl] = useState('')
   const [rewardImageUrl, setRewardImageUrl] = useState('')
   const [rewardsList, setRewardsList] = useState<RewardItem[]>([])
+  const [stampIcon, setStampIcon] = useState('/Icon multi card/Makan.svg')
+  const [socialLinks, setSocialLinks] = useState<SocialLinkItem[]>([])
   const [totalStamps, setTotalStamps] = useState(0)
   const [stampsRequired, setStampsRequired] = useState(10)
   const [rewardDesc, setRewardDesc] = useState('')
@@ -111,6 +140,8 @@ export default function CustomerCardPage() {
         setLogoUrl(data.logoUrl || '')
         setRewardImageUrl(data.rewardImageUrl || '')
         setRewardsList(Array.isArray(data.rewards) ? data.rewards : [])
+        setStampIcon(data.stampIcon || '/Icon multi card/Makan.svg')
+        setSocialLinks(Array.isArray(data.socialLinks) ? data.socialLinks : [])
         setUpdatedAt(data.updatedAt || null)
 
         // Automatically focus on the latest active card
@@ -198,7 +229,7 @@ export default function CustomerCardPage() {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 font-jakarta text-[#F7EEDA] bg-dot-pattern">
         <div className="w-full max-w-[380px] mx-auto flex flex-col items-center justify-center">
-          <div className="w-full bg-[#FAF2E2]/[0.07] border border-[#FAF2E2]/15 rounded-[24px] p-6 sm:p-7 shadow-2xl animate-pulse flex flex-col items-center">
+          <div className="w-full bg-[#FAF2E2]/[0.07] border border-[#FAF2E2]/15 rounded-[26px] p-6 sm:p-7 shadow-2xl animate-pulse flex flex-col items-center">
             <div className="w-14 h-14 rounded-full bg-[#E5A43B]/20 mb-3" />
             <div className="w-28 h-5 bg-[#FAF2E2]/20 rounded-full mb-2" />
             <div className="w-20 h-2.5 bg-[#FAF2E2]/10 rounded-full mb-6" />
@@ -302,7 +333,7 @@ export default function CustomerCardPage() {
 
         {/* IF NOT LOGGED IN: CLEAN LOGIN */}
         {!user ? (
-          <div className="w-full bg-[#FAF2E2] rounded-[24px] p-6 sm:p-7 shadow-[0_24px_50px_rgba(0,0,0,0.5),0_0_0_1px_rgba(229,164,59,0.2)] text-[#1C2624] anim-result">
+          <div className="w-full bg-[#FAF2E2] rounded-[26px] p-6 sm:p-7 shadow-[0_24px_50px_rgba(0,0,0,0.5),0_0_0_1px_rgba(229,164,59,0.2)] text-[#1C2624] anim-result">
             <div className="text-center mb-5">
               <div className="w-14 h-14 rounded-full bg-[#E5A43B] mx-auto mb-3 shadow-md flex items-center justify-center">
                 <img src="/logo.svg" alt="LajuS" className="w-8 h-8 object-contain" />
@@ -414,7 +445,7 @@ export default function CustomerCardPage() {
               </div>
             )}
 
-            {/* STORE NAME & LOGO CENTERED */}
+            {/* STORE NAME WITH VERIFIED CHECKMARK & SOCIAL LINKS */}
             <div className="flex flex-col items-center text-center mb-3 w-full">
               <div className="w-13 h-13 rounded-full bg-[#E7A33E] text-[#1C2624] font-fraunces font-bold flex items-center justify-center text-xl shrink-0 shadow-md mb-1.5 overflow-hidden border border-[#FAF2E2]/20">
                 {logoUrl ? (
@@ -423,12 +454,38 @@ export default function CustomerCardPage() {
                   (storeName || 'K').charAt(0).toUpperCase()
                 )}
               </div>
-              <div className="font-fraunces text-xl font-bold text-[#F7EEDA] leading-tight">
-                {storeName}
+
+              {/* STORE NAME WITH GREEN VERIFIED CHECKMARK SVG */}
+              <div className="flex items-center justify-center gap-1.5 font-fraunces text-xl font-bold text-[#F7EEDA] leading-tight">
+                <span>{storeName}</span>
+                <img
+                  src="/green-checkmark-line-icon.svg"
+                  alt="Disahkan"
+                  className="w-4 h-4 object-contain inline-block shrink-0"
+                />
               </div>
-              <div className="font-space text-[10px] text-[#5B6B64] tracking-[0.08em] uppercase mt-0.5">
-                {totalStamps} COP TERKUMPUL
-              </div>
+
+              {/* SOCIAL MEDIA / WEBSITE ICONS (BELOW STORE NAME) */}
+              {socialLinks.length > 0 && (
+                <div className="flex items-center justify-center gap-2 mt-1.5 flex-wrap">
+                  {socialLinks.map((s, idx) => (
+                    <a
+                      key={idx}
+                      href={s.url.startsWith('http') ? s.url : `https://${s.url}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-6.5 h-6.5 rounded-full bg-[#FAF2E2]/10 hover:bg-[#FAF2E2]/25 border border-[#FAF2E2]/15 flex items-center justify-center p-1.5 transition active:scale-95 shadow-xs"
+                      title={s.platform}
+                    >
+                      <img
+                        src={getSocialIcon(s.platform)}
+                        alt={s.platform}
+                        className="w-full h-full object-contain"
+                      />
+                    </a>
+                  ))}
+                </div>
+              )}
 
               {/* ACTION PILLS: INFO 'i' AND REWARDS */}
               <div className="flex items-center justify-center gap-2 mt-2">
@@ -509,15 +566,12 @@ export default function CustomerCardPage() {
               </div>
             )}
 
-            {/* STAMP CARD CONTAINER */}
+            {/* STAMP CARD CONTAINER (RICH PARCHMENT TEXTURE - NO PERFORATIONS/BIG BLACK HOLES) */}
             <div
-              className={`relative w-full bg-[#FAF2E2] rounded-[24px] px-5 sm:px-6 pt-6 pb-5 shadow-[0_24px_50px_rgba(0,0,0,0.5),0_2px_0_rgba(255,255,255,0.4)_inset,0_0_0_1px_rgba(229,164,59,0.15)] text-[#1C2624] ${
+              className={`relative w-full bg-gradient-to-b from-[#FFFDF9] via-[#FAF3E3] to-[#F2E5C9] rounded-[26px] px-5 sm:px-6 pt-6 pb-5 shadow-[0_20px_45px_rgba(0,0,0,0.55),0_1px_0_rgba(255,255,255,0.9)_inset,0_0_0_1px_rgba(229,164,59,0.3)] text-[#1C2624] ${
                 cardImpact ? 'anim-card-impact' : ''
               }`}
             >
-              {/* PERFORATION TOP */}
-              <div className="absolute left-3 right-3 top-0 h-0 border-t-2 border-dashed border-[#E2CE9E] before:content-[''] before:absolute before:-top-[9px] before:-left-[21px] before:w-[18px] before:h-[18px] before:rounded-full before:bg-[#120E0B] after:content-[''] after:absolute after:-top-[9px] after:-right-[21px] after:w-[18px] after:h-[18px] after:rounded-full after:bg-[#120E0B]" />
-
               <div className="text-center mb-4">
                 <div className="font-space text-[10px] tracking-[0.14em] uppercase text-[#1E5E53] mb-0.5 font-semibold">
                   Kad #{selectedCardIdx + 1} {isViewingFullCard && '• Sedia Ditebus'}
@@ -530,7 +584,7 @@ export default function CustomerCardPage() {
                 </div>
               </div>
 
-              {/* STAMP GRID */}
+              {/* STAMP GRID (RENDER SELECTED STAMP ICON) */}
               <div className="grid grid-cols-5 gap-2.5 my-2 mb-4">
                 {Array.from({ length: TOTAL }).map((_, i) => {
                   const slotNum = i + 1
@@ -541,8 +595,8 @@ export default function CustomerCardPage() {
                       key={slotNum}
                       className={`aspect-square rounded-full flex items-center justify-center relative ${
                         isFilled
-                          ? 'bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,0.18),transparent_55%),#B53629] shadow-[0_4px_8px_rgba(181,54,41,0.38)]'
-                          : 'border-2 border-dashed border-[#E2CE9E]'
+                          ? 'bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,0.22),transparent_55%),#B53629] shadow-[0_4px_10px_rgba(181,54,41,0.45)]'
+                          : 'border-2 border-dashed border-[#E2CE9E] bg-[#FAF2E2]/50'
                       }`}
                       style={{
                         transform:
@@ -556,18 +610,11 @@ export default function CustomerCardPage() {
                       }}
                     >
                       {isFilled && (
-                        <svg className="w-[54%] h-[54%]" viewBox="0 0 24 24" fill="none">
-                          <path
-                            d="M12 2C7 2 3 6.5 3 12s4 10 9 10 9-4.5 9-10S17 2 12 2Z"
-                            fill="#FAF2E2"
-                          />
-                          <path
-                            d="M12 3.3C13.6 6.2 12 9 10.3 11.5S8.2 17 12 20.6"
-                            stroke="#B53629"
-                            strokeWidth="1.6"
-                            strokeLinecap="round"
-                          />
-                        </svg>
+                        <img
+                          src={stampIcon || '/Icon multi card/Makan.svg'}
+                          alt="Stamp"
+                          className="w-[56%] h-[56%] object-contain filter invert brightness-200"
+                        />
                       )}
                     </div>
                   )
@@ -599,9 +646,6 @@ export default function CustomerCardPage() {
                   </>
                 )}
               </div>
-
-              {/* PERFORATION BOTTOM */}
-              <div className="absolute left-3 right-3 bottom-0 h-0 border-t-2 border-dashed border-[#E2CE9E] before:content-[''] before:absolute before:-top-[9px] before:-left-[21px] before:w-[18px] before:h-[18px] before:rounded-full before:bg-[#120E0B] after:content-[''] after:absolute after:-top-[9px] after:-right-[21px] after:w-[18px] after:h-[18px] after:rounded-full after:bg-[#120E0B]" />
             </div>
 
             <div className="w-full text-center mt-3 text-[11px] text-[#5B6B64] font-space">

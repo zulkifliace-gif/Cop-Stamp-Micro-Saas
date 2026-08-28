@@ -74,6 +74,19 @@ export async function GET(req: NextRequest) {
       )
     }
 
+    const rawRewards = store.rewards
+    const parsedRewards = Array.isArray(rawRewards)
+      ? rawRewards
+      : Array.isArray(rawRewards?.list)
+      ? rawRewards.list
+      : []
+    const parsedStampIcon =
+      (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && rawRewards?.stampIcon) ||
+      '/Icon multi card/Makan.svg'
+    const parsedSocialLinks =
+      (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && Array.isArray(rawRewards?.socialLinks) && rawRewards.socialLinks) ||
+      []
+
     return NextResponse.json({
       needsRegistration: false,
       storeId: store.id,
@@ -82,7 +95,9 @@ export async function GET(req: NextRequest) {
       rewardDescription: store.reward_description,
       logoUrl: store.logo_url || '',
       rewardImageUrl: store.reward_image_url || '',
-      rewards: Array.isArray(store.rewards) ? store.rewards : [],
+      rewards: parsedRewards,
+      stampIcon: parsedStampIcon,
+      socialLinks: parsedSocialLinks,
       role: activeRole,
     })
   } catch (err: unknown) {
@@ -234,6 +249,8 @@ export async function PUT(req: NextRequest) {
       logoUrl,
       rewardImageUrl,
       rewards,
+      stampIcon,
+      socialLinks,
     } = body
 
     // Check staff role
@@ -286,6 +303,10 @@ export async function PUT(req: NextRequest) {
       )
     }
 
+    const cleanRewards = Array.isArray(rewards) ? rewards : []
+    const cleanStampIcon = typeof stampIcon === 'string' && stampIcon.trim() ? stampIcon.trim() : '/Icon multi card/Makan.svg'
+    const cleanSocialLinks = Array.isArray(socialLinks) ? socialLinks : []
+
     const updates: {
       name?: string
       stamps_required?: number
@@ -293,7 +314,13 @@ export async function PUT(req: NextRequest) {
       logo_url?: string | null
       reward_image_url?: string | null
       rewards?: any
-    } = {}
+    } = {
+      rewards: {
+        list: cleanRewards,
+        stampIcon: cleanStampIcon,
+        socialLinks: cleanSocialLinks,
+      },
+    }
 
     if (typeof name === 'string' && name.trim()) {
       updates.name = name.trim()
@@ -309,9 +336,6 @@ export async function PUT(req: NextRequest) {
     }
     if (typeof rewardImageUrl === 'string') {
       updates.reward_image_url = rewardImageUrl.trim() || null
-    }
-    if (Array.isArray(rewards)) {
-      updates.rewards = rewards
     }
 
     const { data: updatedStore, error: updateError } = await admin
@@ -329,6 +353,19 @@ export async function PUT(req: NextRequest) {
       )
     }
 
+    const rawUpdatedRewards = updatedStore.rewards
+    const finalRewards = Array.isArray(rawUpdatedRewards)
+      ? rawUpdatedRewards
+      : Array.isArray(rawUpdatedRewards?.list)
+      ? rawUpdatedRewards.list
+      : cleanRewards
+    const finalStampIcon =
+      (typeof rawUpdatedRewards === 'object' && !Array.isArray(rawUpdatedRewards) && rawUpdatedRewards?.stampIcon) ||
+      cleanStampIcon
+    const finalSocialLinks =
+      (typeof rawUpdatedRewards === 'object' && !Array.isArray(rawUpdatedRewards) && Array.isArray(rawUpdatedRewards?.socialLinks) && rawUpdatedRewards.socialLinks) ||
+      cleanSocialLinks
+
     return NextResponse.json({
       success: true,
       storeId: updatedStore.id,
@@ -337,7 +374,9 @@ export async function PUT(req: NextRequest) {
       rewardDescription: updatedStore.reward_description,
       logoUrl: updatedStore.logo_url || '',
       rewardImageUrl: updatedStore.reward_image_url || '',
-      rewards: updatedStore.rewards || [],
+      rewards: finalRewards,
+      stampIcon: finalStampIcon,
+      socialLinks: finalSocialLinks,
     })
   } catch (err: unknown) {
     console.error('Error updating settings:', err)

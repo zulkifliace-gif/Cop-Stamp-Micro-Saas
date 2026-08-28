@@ -38,6 +38,19 @@ export async function GET(req: NextRequest) {
 
     const allStores = (allLoyalties || []).map((item) => {
       const storeObj = Array.isArray(item.stores) ? item.stores[0] : item.stores
+      const rawRewards = storeObj?.rewards
+      const parsedRewards = Array.isArray(rawRewards)
+        ? rawRewards
+        : Array.isArray(rawRewards?.list)
+        ? rawRewards.list
+        : []
+      const parsedStampIcon =
+        (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && rawRewards?.stampIcon) ||
+        '/Icon multi card/Makan.svg'
+      const parsedSocialLinks =
+        (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && Array.isArray(rawRewards?.socialLinks) && rawRewards.socialLinks) ||
+        []
+
       return {
         storeId: item.store_id,
         storeName: storeObj?.name || 'Kedai Tanpa Nama',
@@ -46,7 +59,9 @@ export async function GET(req: NextRequest) {
         rewardDescription: storeObj?.reward_description || '1 minuman percuma',
         logoUrl: storeObj?.logo_url || '',
         rewardImageUrl: storeObj?.reward_image_url || '',
-        rewards: Array.isArray(storeObj?.rewards) ? storeObj.rewards : [],
+        rewards: parsedRewards,
+        stampIcon: parsedStampIcon,
+        socialLinks: parsedSocialLinks,
         updatedAt: item.updated_at,
       }
     })
@@ -60,6 +75,8 @@ export async function GET(req: NextRequest) {
       let defaultLogoUrl = ''
       let defaultRewardImageUrl = ''
       let defaultRewards: any[] = []
+      let defaultStampIcon = '/Icon multi card/Makan.svg'
+      let defaultSocialLinks: any[] = []
 
       if (storeIdParam) {
         const { data: st } = await admin
@@ -74,7 +91,18 @@ export async function GET(req: NextRequest) {
           defaultRewardDescription = st.reward_description
           defaultLogoUrl = st.logo_url || ''
           defaultRewardImageUrl = st.reward_image_url || ''
-          defaultRewards = Array.isArray(st.rewards) ? st.rewards : []
+          const rawStRewards = st.rewards
+          defaultRewards = Array.isArray(rawStRewards)
+            ? rawStRewards
+            : Array.isArray(rawStRewards?.list)
+            ? rawStRewards.list
+            : []
+          defaultStampIcon =
+            (typeof rawStRewards === 'object' && !Array.isArray(rawStRewards) && rawStRewards?.stampIcon) ||
+            '/Icon multi card/Makan.svg'
+          defaultSocialLinks =
+            (typeof rawStRewards === 'object' && !Array.isArray(rawStRewards) && Array.isArray(rawStRewards?.socialLinks) && rawStRewards.socialLinks) ||
+            []
         }
       }
 
@@ -88,6 +116,8 @@ export async function GET(req: NextRequest) {
         logoUrl: defaultLogoUrl,
         rewardImageUrl: defaultRewardImageUrl,
         rewards: defaultRewards,
+        stampIcon: defaultStampIcon,
+        socialLinks: defaultSocialLinks,
         updatedAt: null,
       })
     }
@@ -105,6 +135,8 @@ export async function GET(req: NextRequest) {
       logoUrl: activeStore.logoUrl,
       rewardImageUrl: activeStore.rewardImageUrl,
       rewards: activeStore.rewards,
+      stampIcon: activeStore.stampIcon,
+      socialLinks: activeStore.socialLinks,
       updatedAt: activeStore.updatedAt,
     })
   } catch (err: unknown) {

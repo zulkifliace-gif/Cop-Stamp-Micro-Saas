@@ -52,6 +52,36 @@ interface RewardItem {
   description?: string
 }
 
+interface SocialLinkItem {
+  platform: string
+  url: string
+}
+
+const STAMP_ICON_OPTIONS = [
+  { label: 'Makanan / Kafe', icon: '/Icon multi card/Makan.svg' },
+  { label: 'Pastri / Bakeri', icon: '/Icon multi card/croissant.svg' },
+  { label: 'Pizza / Makanan', icon: '/Icon multi card/pizza.svg' },
+  { label: 'Kek / Dessert', icon: '/Icon multi card/cake-slice.svg' },
+  { label: 'Barber / Salun', icon: '/Icon multi card/Gunting Rambut.svg' },
+  { label: 'Car Wash / Dobi', icon: '/Icon multi card/bubbles.svg' },
+  { label: 'Servis / Cleaning', icon: '/Icon multi card/mop-sparkles.svg' },
+  { label: 'Spa / Urutan', icon: '/Icon multi card/massage.svg' },
+  { label: 'Retail / Butik', icon: '/Icon multi card/paper-bag.svg' },
+  { label: 'Pet Shop', icon: '/Icon multi card/bone.svg' },
+  { label: 'Veterinar', icon: '/Icon multi card/vet-icon.svg' },
+  { label: 'Klinik / Farmasi', icon: '/Icon multi card/vaccine.svg' },
+]
+
+const SOCIAL_PLATFORMS = [
+  { id: 'instagram', label: 'Instagram', icon: '/sosial media/instagram-white-icon.svg', placeholder: 'https://instagram.com/namakedai' },
+  { id: 'tiktok', label: 'TikTok', icon: '/sosial media/tiktok-circle-icon.svg', placeholder: 'https://tiktok.com/@namakedai' },
+  { id: 'facebook', label: 'Facebook', icon: '/sosial media/facebook-app-round-white-icon.svg', placeholder: 'https://facebook.com/namakedai' },
+  { id: 'telegram', label: 'Telegram / WhatsApp', icon: '/sosial media/telegram-white-icon.svg', placeholder: 'https://t.me/namakedai atau https://wa.me/60123456789' },
+  { id: 'threads', label: 'Threads', icon: '/sosial media/threads-app-icon.svg', placeholder: 'https://threads.net/@namakedai' },
+  { id: 'youtube', label: 'YouTube', icon: '/sosial media/youtube-color-icon.svg', placeholder: 'https://youtube.com/@namakedai' },
+  { id: 'website', label: 'Laman Web / Menu', icon: '/sosial media/registration-web-icon.svg', placeholder: 'https://kedaisaya.com' },
+]
+
 export default function CashierDashboard() {
   const supabase = createClient()
 
@@ -100,6 +130,11 @@ export default function CashierDashboard() {
   const [logoUrl, setLogoUrl] = useState<string>('')
   const [rewardImageUrl, setRewardImageUrl] = useState<string>('')
   const [rewardsList, setRewardsList] = useState<RewardItem[]>([])
+  const [stampIcon, setStampIcon] = useState<string>('/Icon multi card/Makan.svg')
+  const [socialLinks, setSocialLinks] = useState<SocialLinkItem[]>([])
+  const [showSocialModal, setShowSocialModal] = useState<boolean>(false)
+  const [newSocialPlatform, setNewSocialPlatform] = useState<string>('instagram')
+  const [newSocialUrl, setNewSocialUrl] = useState<string>('')
   const [stampsRequired, setStampsRequired] = useState<number>(10)
   const [rewardDesc, setRewardDesc] = useState<string>(
     '1 minuman panas percuma (saiz regular)'
@@ -187,6 +222,8 @@ export default function CashierDashboard() {
           if (data.logoUrl) setLogoUrl(data.logoUrl)
           if (data.rewardImageUrl) setRewardImageUrl(data.rewardImageUrl)
           if (Array.isArray(data.rewards)) setRewardsList(data.rewards)
+          if (data.stampIcon) setStampIcon(data.stampIcon)
+          if (Array.isArray(data.socialLinks)) setSocialLinks(data.socialLinks)
           if (data.role) setStaffRole(data.role)
         }
       }
@@ -651,6 +688,18 @@ export default function CashierDashboard() {
     setRewardsList((prev) => prev.filter((_, i) => i !== idx))
   }
 
+  function handleAddSocialLink() {
+    if (!newSocialUrl.trim()) return
+    const formattedUrl = newSocialUrl.trim()
+    setSocialLinks((prev) => [...prev, { platform: newSocialPlatform, url: formattedUrl }])
+    setNewSocialUrl('')
+    setShowSocialModal(false)
+  }
+
+  function handleDeleteSocialLink(idx: number) {
+    setSocialLinks((prev) => prev.filter((_, i) => i !== idx))
+  }
+
   // 13. Save Store Settings
   async function handleSaveSettings() {
     setIsSavingSettings(true)
@@ -668,6 +717,8 @@ export default function CashierDashboard() {
           rewardDescription: rewardDesc.trim(),
           rewardImageUrl: rewardImageUrl.trim(),
           rewards: rewardsList,
+          stampIcon,
+          socialLinks,
         }),
       })
 
@@ -1409,6 +1460,51 @@ export default function CashierDashboard() {
                   )}
                 </div>
 
+                {/* STAMP ICON SELECTOR (MULTI-CATEGORY) */}
+                <div className="mb-4 border-t border-[#E4D9BE] pt-3.5">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-[#0A1716]">
+                      Ikon Cop Stamp (Kategori Kedai)
+                    </label>
+                    <span className="text-[10.5px] text-[#1E5E53] font-semibold bg-[#1E5E53]/10 px-2 py-0.5 rounded-full">
+                      Pilihan Tersedia
+                    </span>
+                  </div>
+                  <div className="text-xs text-[#5E6F68] mb-2.5">
+                    Pilih ikon cop yang akan dipaparkan di bulatan cop kad pelanggan anda.
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {STAMP_ICON_OPTIONS.map((opt) => {
+                      const isSelected = stampIcon === opt.icon
+                      return (
+                        <button
+                          key={opt.icon}
+                          type="button"
+                          onClick={() => staffRole === 'owner' && setStampIcon(opt.icon)}
+                          disabled={staffRole !== 'owner'}
+                          title={opt.label}
+                          className={`flex flex-col items-center justify-center p-2.5 rounded-xl border transition cursor-pointer text-center ${
+                            isSelected
+                              ? 'border-[#E5A43B] bg-[#E5A43B]/20 shadow-sm ring-2 ring-[#E5A43B]'
+                              : 'border-[#E4D9BE] bg-white hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="w-9 h-9 rounded-full bg-[#B53629] flex items-center justify-center mb-1 shadow-sm">
+                            <img
+                              src={opt.icon}
+                              alt={opt.label}
+                              className="w-5 h-5 object-contain filter invert brightness-200"
+                            />
+                          </div>
+                          <span className="text-[10px] font-bold text-[#1A2422] truncate w-full">
+                            {opt.label.split('/')[0]}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
                 <div className="mb-3.5">
                   <label className="block text-xs font-semibold text-[#5E6F68] mb-1.5">
                     Cop Diperlukan untuk Ganjaran Utama
@@ -1549,6 +1645,67 @@ export default function CashierDashboard() {
                     >
                       <span>+ Tambah Hadiah Baharu</span>
                     </button>
+                  )}
+                </div>
+
+                {/* SOCIAL MEDIA & WEBSITE LINKS */}
+                <div className="border-t border-[#E4D9BE] pt-4 mt-4 mb-4">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="font-bold text-sm text-[#0A1716]">
+                      Pautan Media Sosial &amp; Laman Web
+                    </div>
+                    {staffRole === 'owner' && (
+                      <button
+                        type="button"
+                        onClick={() => setShowSocialModal(true)}
+                        className="text-xs font-bold text-[#1E5E53] hover:text-[#E5A43B] underline cursor-pointer"
+                      >
+                        + Tambah Pautan
+                      </button>
+                    )}
+                  </div>
+                  <div className="text-xs text-[#5E6F68] mb-3">
+                    Pautan ini akan dipaparkan sebagai ikon di bawah nama kedai di kad pelanggan.
+                  </div>
+
+                  {socialLinks.length === 0 ? (
+                    <div className="bg-white/60 p-3 rounded-xl border border-dashed border-[#E4D9BE] text-center text-xs text-[#5E6F68]">
+                      Belum ada pautan media sosial. Tekan &quot;+ Tambah Pautan&quot; untuk masukkan Instagram, TikTok, WhatsApp, dll.
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {socialLinks.map((link, sIdx) => {
+                        const platformInfo = SOCIAL_PLATFORMS.find((p) => p.id === link.platform) || {
+                          label: link.platform,
+                          icon: '/sosial media/registration-web-icon.svg',
+                        }
+                        return (
+                          <div
+                            key={sIdx}
+                            className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-[#E4D9BE] gap-2"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                              <div className="w-7 h-7 rounded-full bg-[#1A2422] flex items-center justify-center p-1.5 shrink-0 shadow-xs">
+                                <img src={platformInfo.icon} alt={platformInfo.label} className="w-full h-full object-contain" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="text-xs font-bold text-[#1A2422]">{platformInfo.label}</div>
+                                <div className="text-[11px] text-[#5E6F68] truncate">{link.url}</div>
+                              </div>
+                            </div>
+                            {staffRole === 'owner' && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteSocialLink(sIdx)}
+                                className="text-xs text-red-600 hover:text-red-800 font-semibold p-1 cursor-pointer shrink-0"
+                              >
+                                Padam
+                              </button>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
                   )}
                 </div>
 
@@ -1706,6 +1863,89 @@ export default function CashierDashboard() {
               </svg>
             )}
             <span>{btToast.msg}</span>
+          </div>
+        </div>
+      )}
+
+      {/* POPUP MODAL: TAMBAH MEDIA SOSIAL / WEB */}
+      {showSocialModal && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-5 shadow-2xl border border-[#E5A43B]/30 anim-popup">
+            <div className="flex items-center justify-between mb-3.5">
+              <div className="font-fraunces font-bold text-base text-[#0A1716]">
+                🔗 Tambah Media Sosial / Web
+              </div>
+              <button
+                onClick={() => setShowSocialModal(false)}
+                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-gray-500 hover:text-gray-800 text-lg font-bold transition cursor-pointer"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="space-y-3 mb-4">
+              <div>
+                <label className="block text-xs font-bold text-[#1A2422] mb-1.5">
+                  Pilih Platform
+                </label>
+                <div className="grid grid-cols-2 gap-1.5 max-h-[160px] overflow-y-auto pr-1">
+                  {SOCIAL_PLATFORMS.map((plat) => {
+                    const isSel = newSocialPlatform === plat.id
+                    return (
+                      <button
+                        key={plat.id}
+                        type="button"
+                        onClick={() => setNewSocialPlatform(plat.id)}
+                        className={`flex items-center gap-2 p-2 rounded-xl border text-xs font-semibold transition cursor-pointer text-left ${
+                          isSel
+                            ? 'border-[#E5A43B] bg-[#E5A43B]/20 text-[#0A1716] shadow-xs ring-1 ring-[#E5A43B]'
+                            : 'border-[#E4D9BE] bg-white text-[#5E6F68] hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="w-5 h-5 rounded-full bg-[#1A2422] flex items-center justify-center p-1 shrink-0">
+                          <img src={plat.icon} alt={plat.label} className="w-full h-full object-contain" />
+                        </div>
+                        <span className="truncate">{plat.label.split('/')[0]}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#1A2422] mb-1">
+                  Pautan URL / Nombor Akaun
+                </label>
+                <input
+                  type="text"
+                  value={newSocialUrl}
+                  onChange={(e) => setNewSocialUrl(e.target.value)}
+                  placeholder={
+                    SOCIAL_PLATFORMS.find((p) => p.id === newSocialPlatform)?.placeholder ||
+                    'https://...'
+                  }
+                  className="w-full border border-[#E4D9BE] rounded-[10px] p-2.5 font-jakarta text-xs text-[#1A2422] bg-white outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowSocialModal(false)}
+                className="flex-1 py-2.5 rounded-xl border border-[#E4D9BE] bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleAddSocialLink}
+                disabled={!newSocialUrl.trim()}
+                className="flex-1 py-2.5 rounded-xl bg-[#1E5E53] hover:bg-[#2D786B] text-white text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-sm"
+              >
+                Simpan Pautan
+              </button>
+            </div>
           </div>
         </div>
       )}
