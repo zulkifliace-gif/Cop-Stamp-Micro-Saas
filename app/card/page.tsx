@@ -30,23 +30,41 @@ interface CustomerStoreCard {
   updatedAt?: string | null
 }
 
+function normalizeStampIcon(path?: string) {
+  if (!path) return '/icons/stamps/makan.svg'
+  const lower = path.toLowerCase()
+  if (lower.includes('gunting') || lower.includes('rambut')) return '/icons/stamps/gunting-rambut.svg'
+  if (lower.includes('croissant')) return '/icons/stamps/croissant.svg'
+  if (lower.includes('pizza')) return '/icons/stamps/pizza.svg'
+  if (lower.includes('cake') || lower.includes('kek')) return '/icons/stamps/cake-slice.svg'
+  if (lower.includes('bubble') || lower.includes('buih')) return '/icons/stamps/bubbles.svg'
+  if (lower.includes('mop') || lower.includes('sparkle') || lower.includes('bersih')) return '/icons/stamps/mop-sparkles.svg'
+  if (lower.includes('massage') || lower.includes('urut')) return '/icons/stamps/massage.svg'
+  if (lower.includes('paper') || lower.includes('bag') || lower.includes('beg')) return '/icons/stamps/paper-bag.svg'
+  if (lower.includes('bone') || lower.includes('tulang')) return '/icons/stamps/bone.svg'
+  if (lower.includes('vet') || lower.includes('haiwan')) return '/icons/stamps/vet-icon.svg'
+  if (lower.includes('vaccine') || lower.includes('vaksin')) return '/icons/stamps/vaccine.svg'
+  if (lower.includes('makan') || lower.includes('food') || lower.includes('utensil')) return '/icons/stamps/makan.svg'
+  return path.startsWith('/') ? path : `/${path}`
+}
+
 function getSocialIcon(platform: string) {
-  switch (platform) {
+  switch (platform.toLowerCase()) {
     case 'instagram':
-      return '/sosial media/instagram-white-icon.svg'
+      return '/icons/social/instagram.svg'
     case 'tiktok':
-      return '/sosial media/tiktok-circle-icon.svg'
+      return '/icons/social/tiktok.svg'
     case 'facebook':
-      return '/sosial media/facebook-app-round-white-icon.svg'
+      return '/icons/social/facebook.svg'
     case 'telegram':
-      return '/sosial media/telegram-white-icon.svg'
+      return '/icons/social/telegram.svg'
     case 'threads':
-      return '/sosial media/threads-app-icon.svg'
+      return '/icons/social/threads.svg'
     case 'youtube':
-      return '/sosial media/youtube-color-icon.svg'
+      return '/icons/social/youtube.svg'
     case 'website':
     default:
-      return '/sosial media/registration-web-icon.svg'
+      return '/icons/social/website.svg'
   }
 }
 
@@ -71,7 +89,7 @@ export default function CustomerCardPage() {
   const [logoUrl, setLogoUrl] = useState('')
   const [rewardImageUrl, setRewardImageUrl] = useState('')
   const [rewardsList, setRewardsList] = useState<RewardItem[]>([])
-  const [stampIcon, setStampIcon] = useState('/Icon multi card/Makan.svg')
+  const [stampIcon, setStampIcon] = useState('/icons/stamps/makan.svg')
   const [socialLinks, setSocialLinks] = useState<SocialLinkItem[]>([])
   const [totalStamps, setTotalStamps] = useState(0)
   const [stampsRequired, setStampsRequired] = useState(10)
@@ -140,7 +158,7 @@ export default function CustomerCardPage() {
         setLogoUrl(data.logoUrl || '')
         setRewardImageUrl(data.rewardImageUrl || '')
         setRewardsList(Array.isArray(data.rewards) ? data.rewards : [])
-        setStampIcon(data.stampIcon || '/Icon multi card/Makan.svg')
+        setStampIcon(normalizeStampIcon(data.stampIcon))
         setSocialLinks(Array.isArray(data.socialLinks) ? data.socialLinks : [])
         setUpdatedAt(data.updatedAt || null)
 
@@ -611,9 +629,9 @@ export default function CustomerCardPage() {
                     >
                       {isFilled && (
                         <img
-                          src={stampIcon || '/Icon multi card/Makan.svg'}
+                          src={normalizeStampIcon(stampIcon)}
                           alt="Stamp"
-                          className="w-[56%] h-[56%] object-contain filter invert brightness-200"
+                          className="w-[58%] h-[58%] object-contain"
                         />
                       )}
                     </div>

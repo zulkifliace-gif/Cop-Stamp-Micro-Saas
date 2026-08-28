@@ -58,28 +58,28 @@ interface SocialLinkItem {
 }
 
 const STAMP_ICON_OPTIONS = [
-  { label: 'Makanan / Kafe', icon: '/Icon multi card/Makan.svg' },
-  { label: 'Pastri / Bakeri', icon: '/Icon multi card/croissant.svg' },
-  { label: 'Pizza / Makanan', icon: '/Icon multi card/pizza.svg' },
-  { label: 'Kek / Dessert', icon: '/Icon multi card/cake-slice.svg' },
-  { label: 'Barber / Salun', icon: '/Icon multi card/Gunting Rambut.svg' },
-  { label: 'Car Wash / Dobi', icon: '/Icon multi card/bubbles.svg' },
-  { label: 'Servis / Cleaning', icon: '/Icon multi card/mop-sparkles.svg' },
-  { label: 'Spa / Urutan', icon: '/Icon multi card/massage.svg' },
-  { label: 'Retail / Butik', icon: '/Icon multi card/paper-bag.svg' },
-  { label: 'Pet Shop', icon: '/Icon multi card/bone.svg' },
-  { label: 'Veterinar', icon: '/Icon multi card/vet-icon.svg' },
-  { label: 'Klinik / Farmasi', icon: '/Icon multi card/vaccine.svg' },
+  { label: 'Makanan / Kafe', icon: '/icons/stamps/makan.svg' },
+  { label: 'Pastri / Bakeri', icon: '/icons/stamps/croissant.svg' },
+  { label: 'Pizza / Makanan', icon: '/icons/stamps/pizza.svg' },
+  { label: 'Kek / Dessert', icon: '/icons/stamps/cake-slice.svg' },
+  { label: 'Barber / Salun', icon: '/icons/stamps/gunting-rambut.svg' },
+  { label: 'Car Wash / Dobi', icon: '/icons/stamps/bubbles.svg' },
+  { label: 'Servis / Cleaning', icon: '/icons/stamps/mop-sparkles.svg' },
+  { label: 'Spa / Urutan', icon: '/icons/stamps/massage.svg' },
+  { label: 'Retail / Butik', icon: '/icons/stamps/paper-bag.svg' },
+  { label: 'Pet Shop', icon: '/icons/stamps/bone.svg' },
+  { label: 'Veterinar', icon: '/icons/stamps/vet-icon.svg' },
+  { label: 'Klinik / Farmasi', icon: '/icons/stamps/vaccine.svg' },
 ]
 
 const SOCIAL_PLATFORMS = [
-  { id: 'instagram', label: 'Instagram', icon: '/sosial media/instagram-white-icon.svg', placeholder: 'https://instagram.com/namakedai' },
-  { id: 'tiktok', label: 'TikTok', icon: '/sosial media/tiktok-circle-icon.svg', placeholder: 'https://tiktok.com/@namakedai' },
-  { id: 'facebook', label: 'Facebook', icon: '/sosial media/facebook-app-round-white-icon.svg', placeholder: 'https://facebook.com/namakedai' },
-  { id: 'telegram', label: 'Telegram / WhatsApp', icon: '/sosial media/telegram-white-icon.svg', placeholder: 'https://t.me/namakedai atau https://wa.me/60123456789' },
-  { id: 'threads', label: 'Threads', icon: '/sosial media/threads-app-icon.svg', placeholder: 'https://threads.net/@namakedai' },
-  { id: 'youtube', label: 'YouTube', icon: '/sosial media/youtube-color-icon.svg', placeholder: 'https://youtube.com/@namakedai' },
-  { id: 'website', label: 'Laman Web / Menu', icon: '/sosial media/registration-web-icon.svg', placeholder: 'https://kedaisaya.com' },
+  { id: 'instagram', label: 'Instagram', icon: '/icons/social/instagram.svg', placeholder: 'https://instagram.com/namakedai' },
+  { id: 'tiktok', label: 'TikTok', icon: '/icons/social/tiktok.svg', placeholder: 'https://tiktok.com/@namakedai' },
+  { id: 'facebook', label: 'Facebook', icon: '/icons/social/facebook.svg', placeholder: 'https://facebook.com/namakedai' },
+  { id: 'telegram', label: 'Telegram / WhatsApp', icon: '/icons/social/telegram.svg', placeholder: 'https://t.me/namakedai atau https://wa.me/60123456789' },
+  { id: 'threads', label: 'Threads', icon: '/icons/social/threads.svg', placeholder: 'https://threads.net/@namakedai' },
+  { id: 'youtube', label: 'YouTube', icon: '/icons/social/youtube.svg', placeholder: 'https://youtube.com/@namakedai' },
+  { id: 'website', label: 'Laman Web / Menu', icon: '/icons/social/website.svg', placeholder: 'https://kedaisaya.com' },
 ]
 
 export default function CashierDashboard() {
@@ -130,7 +130,7 @@ export default function CashierDashboard() {
   const [logoUrl, setLogoUrl] = useState<string>('')
   const [rewardImageUrl, setRewardImageUrl] = useState<string>('')
   const [rewardsList, setRewardsList] = useState<RewardItem[]>([])
-  const [stampIcon, setStampIcon] = useState<string>('/Icon multi card/Makan.svg')
+  const [stampIcon, setStampIcon] = useState<string>('/icons/stamps/makan.svg')
   const [socialLinks, setSocialLinks] = useState<SocialLinkItem[]>([])
   const [showSocialModal, setShowSocialModal] = useState<boolean>(false)
   const [newSocialPlatform, setNewSocialPlatform] = useState<string>('instagram')

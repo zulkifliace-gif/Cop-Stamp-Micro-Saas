@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
         : []
       const parsedStampIcon =
         (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && rawRewards?.stampIcon) ||
-        '/Icon multi card/Makan.svg'
+        '/icons/stamps/makan.svg'
       const parsedSocialLinks =
         (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && Array.isArray(rawRewards?.socialLinks) && rawRewards.socialLinks) ||
         []
@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
       let defaultLogoUrl = ''
       let defaultRewardImageUrl = ''
       let defaultRewards: any[] = []
-      let defaultStampIcon = '/Icon multi card/Makan.svg'
+      let defaultStampIcon = '/icons/stamps/makan.svg'
       let defaultSocialLinks: any[] = []
 
       if (storeIdParam) {
@@ -99,7 +99,7 @@ export async function GET(req: NextRequest) {
             : []
           defaultStampIcon =
             (typeof rawStRewards === 'object' && !Array.isArray(rawStRewards) && rawStRewards?.stampIcon) ||
-            '/Icon multi card/Makan.svg'
+            '/icons/stamps/makan.svg'
           defaultSocialLinks =
             (typeof rawStRewards === 'object' && !Array.isArray(rawStRewards) && Array.isArray(rawStRewards?.socialLinks) && rawStRewards.socialLinks) ||
             []
