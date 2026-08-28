@@ -19,7 +19,7 @@ export async function sendStampEmail(
   const resend = new Resend(apiKey)
 
   const { data, error } = await resend.emails.send({
-    from: process.env.EMAIL_FROM || 'Cop Stamp <stamp@send.lajuq.my>',
+    from: process.env.EMAIL_FROM || 'Cop Stamp <noreply@lajuq.my>',
     to,
     subject: `+${stampCount} cop baharu dari ${storeName}`,
     text: `Anda menerima ${stampCount} cop dari ${storeName}.\n\nTuntut cop anda di sini: ${claimUrl}\n\nPautan ini sah selama ${expiryMinutes} minit sahaja.`,
