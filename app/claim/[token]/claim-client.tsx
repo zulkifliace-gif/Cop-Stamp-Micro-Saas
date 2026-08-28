@@ -121,9 +121,8 @@ export default function ClaimClient({
   function playDialog(index: number) {
     if (index >= MESSAGES.length) {
       setTimeout(() => {
-        setScene('reveal')
-        setTimeout(() => setCardImpact(true), 300)
-      }, 500)
+        window.location.href = '/card'
+      }, 400)
       return
     }
 
