@@ -88,16 +88,15 @@ export default function CashierDashboard() {
   // Auth State
   const [user, setUser] = useState<any>(null)
   const [authLoading, setAuthLoading] = useState(true)
+  const [settingsLoading, setSettingsLoading] = useState(true)
   const [loginError, setLoginError] = useState('')
   const [isLoggingIn, setIsLoggingIn] = useState(false)
 
   // Store Registration State (Onboarding for new owners)
   const [needsRegistration, setNeedsRegistration] = useState<boolean>(false)
-  const [regStoreName, setRegStoreName] = useState<string>('Kopi & Kawan')
+  const [regStoreName, setRegStoreName] = useState<string>('')
   const [regStampsRequired, setRegStampsRequired] = useState<number>(10)
-  const [regRewardDesc, setRegRewardDesc] = useState<string>(
-    '1 minuman panas percuma (saiz regular)'
-  )
+  const [regRewardDesc, setRegRewardDesc] = useState<string>('')
   const [isRegisteringStore, setIsRegisteringStore] = useState<boolean>(false)
   const [regError, setRegError] = useState<string>('')
 
@@ -126,7 +125,7 @@ export default function CashierDashboard() {
   // Settings State
   const [showSettings, setShowSettings] = useState<boolean>(false)
   const [storeId, setStoreId] = useState<string>('')
-  const [storeName, setStoreName] = useState<string>('Kopi & Kawan')
+  const [storeName, setStoreName] = useState<string>('')
   const [logoUrl, setLogoUrl] = useState<string>('')
   const [rewardImageUrl, setRewardImageUrl] = useState<string>('')
   const [rewardsList, setRewardsList] = useState<RewardItem[]>([])
@@ -136,9 +135,7 @@ export default function CashierDashboard() {
   const [newSocialPlatform, setNewSocialPlatform] = useState<string>('instagram')
   const [newSocialUrl, setNewSocialUrl] = useState<string>('')
   const [stampsRequired, setStampsRequired] = useState<number>(10)
-  const [rewardDesc, setRewardDesc] = useState<string>(
-    '1 minuman panas percuma (saiz regular)'
-  )
+  const [rewardDesc, setRewardDesc] = useState<string>('')
   const [staffRole, setStaffRole] = useState<string>('cashier')
   const [isSavingSettings, setIsSavingSettings] = useState<boolean>(false)
   const [saveToast, setSaveToast] = useState<boolean>(false)
@@ -204,6 +201,7 @@ export default function CashierDashboard() {
 
   // 2. Fetch Store Settings & Check Registration Status
   async function loadSettings() {
+    setSettingsLoading(true)
     try {
       const res = await fetch('/api/store/settings')
       if (res.ok) {
@@ -229,6 +227,8 @@ export default function CashierDashboard() {
       }
     } catch (e) {
       console.error('Failed to load settings:', e)
+    } finally {
+      setSettingsLoading(false)
     }
   }
 
@@ -736,15 +736,35 @@ export default function CashierDashboard() {
     }
   }
 
-  if (authLoading) {
+  if (authLoading || (user && settingsLoading && !storeName && !needsRegistration)) {
     return (
-      <div className="flex min-h-screen items-center justify-center font-jakarta text-[#FAF2E2]">
-        <div className="text-center">
-          <img src="/logo.svg" alt="LajuS" className="w-14 h-14 mx-auto mb-3 rounded-full" />
-          <div className="font-fraunces text-2xl mb-2">LajuS</div>
-          <div className="font-space text-xs text-[#5E6F68]">Memuatkan kaunter kasir...</div>
+      <main className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 font-jakarta text-[#FAF2E2] bg-dot-pattern">
+        <div className="w-full max-w-[440px] mx-auto flex flex-col items-center">
+          <div className="w-full bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/15 rounded-[26px] p-6 sm:p-7 shadow-2xl animate-pulse flex flex-col items-center">
+            {/* Logo Glow */}
+            <div className="w-13 h-13 rounded-full bg-[#E5A43B]/20 mb-3 flex items-center justify-center border border-[#E5A43B]/30">
+              <img src="/logo.svg" alt="LajuS" className="w-7 h-7 object-contain opacity-85" />
+            </div>
+
+            {/* Store Name Skeleton */}
+            <div className="w-36 h-5 bg-[#FAF2E2]/20 rounded-full mb-1.5" />
+            <div className="w-24 h-2.5 bg-[#FAF2E2]/10 rounded-full mb-6" />
+
+            {/* Dashboard Card Skeleton */}
+            <div className="w-full space-y-3">
+              <div className="w-full h-14 rounded-2xl bg-[#FAF2E2]/10 border border-[#FAF2E2]/5" />
+              <div className="w-full h-32 rounded-2xl bg-[#FAF2E2]/10 border border-[#FAF2E2]/5" />
+              <div className="w-full h-12 rounded-xl bg-[#E5A43B]/20 border border-[#E5A43B]/30" />
+            </div>
+
+            {/* Micro Caption */}
+            <div className="w-full text-center mt-5 flex items-center justify-center gap-1.5 opacity-40 text-[11px] font-space text-[#FAF2E2]">
+              <img src="/logo.svg" alt="LajuS" className="w-3 h-3 object-contain" />
+              <span>Memuatkan Kaunter Kasir...</span>
+            </div>
+          </div>
         </div>
-      </div>
+      </main>
     )
   }
 
@@ -755,14 +775,14 @@ export default function CashierDashboard() {
         <div className="flex items-center gap-[11px]">
           <div className="w-[38px] h-[38px] rounded-full overflow-hidden bg-[#E5A43B] flex items-center justify-center shadow-sm border border-[#FAF2E2]/20">
             {logoUrl ? (
-              <img src={logoUrl} alt={storeName} className="w-full h-full object-cover" />
+              <img src={logoUrl} alt={storeName || 'Kedai'} className="w-full h-full object-cover" />
             ) : (
               <img src="/logo.svg" alt="LajuS" className="w-full h-full object-cover" />
             )}
           </div>
           <div>
             <div className="font-fraunces font-semibold text-[18px] leading-tight">
-              {storeName}
+              {storeName || 'Kedai Anda'}
             </div>
             <div className="font-space text-[9.5px] tracking-[0.1em] text-[#5E6F68]">
               KAUNTER KASIR{' '}
