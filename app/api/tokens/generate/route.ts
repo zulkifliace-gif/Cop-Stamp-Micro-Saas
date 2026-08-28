@@ -56,14 +56,35 @@ export async function POST(req: NextRequest) {
 
     // Pengesahan staf & kedai
     if (!storeId) {
-      const { data: staffData, error: staffError } = await admin
+      const { data: staffData } = await admin
         .from('store_staff')
         .select('store_id, role')
         .eq('user_id', user.id)
         .limit(1)
         .maybeSingle()
 
-      if (staffError || !staffData) {
+      if (staffData?.store_id) {
+        storeId = staffData.store_id
+      } else {
+        // Fallback: Semak jika user adalah owner_id dalam stores
+        const { data: ownedStore } = await admin
+          .from('stores')
+          .select('id')
+          .eq('owner_id', user.id)
+          .limit(1)
+          .maybeSingle()
+
+        if (ownedStore) {
+          storeId = ownedStore.id
+          await admin.from('store_staff').upsert({
+            store_id: ownedStore.id,
+            user_id: user.id,
+            role: 'owner',
+          })
+        }
+      }
+
+      if (!storeId) {
         return NextResponse.json(
           {
             error:
@@ -72,8 +93,6 @@ export async function POST(req: NextRequest) {
           { status: 403 }
         )
       }
-
-      storeId = staffData.store_id
     } else {
       const { data: isStaff } = await admin
         .from('store_staff')
@@ -83,10 +102,26 @@ export async function POST(req: NextRequest) {
         .maybeSingle()
 
       if (!isStaff) {
-        return NextResponse.json(
-          { error: 'Akses dinafikan untuk kedai ini.' },
-          { status: 403 }
-        )
+        // Fallback: Semak jika user adalah owner_id kedai ini
+        const { data: ownedStore } = await admin
+          .from('stores')
+          .select('id')
+          .eq('id', storeId)
+          .eq('owner_id', user.id)
+          .maybeSingle()
+
+        if (ownedStore) {
+          await admin.from('store_staff').upsert({
+            store_id: storeId,
+            user_id: user.id,
+            role: 'owner',
+          })
+        } else {
+          return NextResponse.json(
+            { error: 'Akses dinafikan untuk kedai ini.' },
+            { status: 403 }
+          )
+        }
       }
     }
 
@@ -95,7 +130,7 @@ export async function POST(req: NextRequest) {
       .from('stores')
       .select('name')
       .eq('id', storeId)
-      .single()
+      .maybeSingle()
 
     const storeName = store?.name || 'Kedai'
 
@@ -116,12 +151,12 @@ export async function POST(req: NextRequest) {
         expires_at: expiresAt,
       })
       .select()
-      .single()
+      .maybeSingle()
 
     if (insertError || !tokenRecord) {
       console.error('Failed to create stamp token:', insertError)
       return NextResponse.json(
-        { error: 'Gagal menjana token cop.' },
+        { error: insertError?.message || 'Gagal menjana token cop.' },
         { status: 500 }
       )
     }
