@@ -1,9 +1,12 @@
 import Stripe from 'stripe'
 
-// Stripe client singleton
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-08-26.dahlia',
-})
+// Stripe client singleton with build-time safe fallback
+export const stripe = new Stripe(
+  process.env.STRIPE_SECRET_KEY || 'sk_live_placeholder_for_build',
+  {
+    apiVersion: '2026-08-26.dahlia',
+  }
+)
 
 /**
  * Auto-creates LajuS Pro products & prices in Stripe if they do not exist yet.
