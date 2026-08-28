@@ -728,7 +728,10 @@ export default function CashierDashboard() {
       }
 
       setSaveToast(true)
-      setTimeout(() => setSaveToast(false), 2500)
+      setTimeout(() => {
+        setSaveToast(false)
+        setShowSettings(false)
+      }, 800)
     } catch (err: any) {
       setSettingsError(err.message || 'Ralat menyimpan tetapan.')
     } finally {
@@ -841,10 +844,11 @@ export default function CashierDashboard() {
           {user && !needsRegistration && (
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className={`w-[38px] h-[38px] rounded-[12px] border transition-colors flex items-center justify-center cursor-pointer ${
+              title={showSettings ? 'Tutup Tetapan' : 'Tetapan Kedai'}
+              className={`w-[38px] h-[38px] rounded-[12px] border transition-all flex items-center justify-center cursor-pointer shadow-sm active:scale-95 ${
                 showSettings
-                  ? 'bg-[#E5A43B] border-[#E5A43B] text-[#1A2422]'
-                  : 'bg-[#FAF2E2]/[0.06] border-[#FAF2E2]/15 text-[#FAF2E2]'
+                  ? 'bg-[#E5A43B] border-[#E5A43B] text-[#1A2422] shadow-[0_0_12px_rgba(229,164,59,0.35)]'
+                  : 'bg-[#FAF2E2]/[0.06] border-[#FAF2E2]/15 text-[#FAF2E2] hover:bg-[#FAF2E2]/15 hover:border-[#E5A43B]/40'
               }`}
               aria-label="Tetapan"
             >
@@ -867,9 +871,22 @@ export default function CashierDashboard() {
             <button
               onClick={handleLogout}
               title="Log keluar"
-              className="text-xs px-2.5 py-1.5 rounded-lg border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.05] text-[#5E6F68] hover:text-[#FAF2E2] transition cursor-pointer"
+              className="w-[38px] h-[38px] rounded-[12px] border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.06] text-[#5E6F68] hover:text-[#FAF2E2] hover:bg-[#FAF2E2]/15 transition flex items-center justify-center cursor-pointer shadow-sm active:scale-95"
+              aria-label="Log keluar"
             >
-              Keluar
+              <svg
+                className="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
             </button>
           )}
         </div>
@@ -1427,8 +1444,18 @@ export default function CashierDashboard() {
           ) : (
             /* SETTINGS PANEL (WITH LOGO URL & REWARDS REPEATER) */
             <div id="settingsPanel" className="mb-6 anim-result">
-              <div className="font-space text-[10.5px] tracking-[0.14em] uppercase text-[#E5A43B] mb-2.5 opacity-90 font-semibold">
-                Tetapan Kedai
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="font-space text-[10.5px] tracking-[0.14em] uppercase text-[#E5A43B] opacity-90 font-semibold">
+                  Tetapan Kedai
+                </div>
+                <button
+                  onClick={() => setShowSettings(false)}
+                  title="Tutup Tetapan"
+                  className="text-xs text-[#FAF2E2]/70 hover:text-[#FAF2E2] font-semibold flex items-center gap-1 cursor-pointer transition"
+                >
+                  <span>Tutup</span>
+                  <span className="text-sm leading-none font-bold">✕</span>
+                </button>
               </div>
               <div className="bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-[24px] shadow-[0_24px_50px_rgba(0,0,0,0.45),0_0_0_1px_rgba(229,164,59,0.15)]">
                 {settingsError && (
