@@ -21,15 +21,38 @@ export async function GET(req: NextRequest) {
     const admin = createAdminClient()
 
     // Cari rekod staf dalam table store_staff
-    const { data: staff, error: staffError } = await admin
+    const { data: staff } = await admin
       .from('store_staff')
       .select('store_id, role')
       .eq('user_id', user.id)
       .limit(1)
       .maybeSingle()
 
+    let activeStoreId = staff?.store_id
+    let activeRole = staff?.role || 'cashier'
+
+    // Jika tiada rekod dalam store_staff, semak jika user adalah owner_id dalam stores
+    if (!activeStoreId) {
+      const { data: ownedStore } = await admin
+        .from('stores')
+        .select('id')
+        .eq('owner_id', user.id)
+        .limit(1)
+        .maybeSingle()
+
+      if (ownedStore) {
+        activeStoreId = ownedStore.id
+        activeRole = 'owner'
+        await admin.from('store_staff').upsert({
+          store_id: ownedStore.id,
+          user_id: user.id,
+          role: 'owner',
+        })
+      }
+    }
+
     // Jika pengguna belum mempunyai kedai berdaftar, pulangkan status needsRegistration
-    if (staffError || !staff) {
+    if (!activeStoreId) {
       return NextResponse.json({
         needsRegistration: true,
         userId: user.id,
@@ -38,12 +61,10 @@ export async function GET(req: NextRequest) {
       })
     }
 
-    const storeId = staff.store_id
-
     const { data: store, error: storeError } = await admin
       .from('stores')
       .select('id, name, stamps_required, reward_description, logo_url, reward_image_url, rewards')
-      .eq('id', storeId)
+      .eq('id', activeStoreId)
       .single()
 
     if (storeError || !store) {
@@ -62,7 +83,7 @@ export async function GET(req: NextRequest) {
       logoUrl: store.logo_url || '',
       rewardImageUrl: store.reward_image_url || '',
       rewards: Array.isArray(store.rewards) ? store.rewards : [],
-      role: staff.role || 'cashier',
+      role: activeRole,
     })
   } catch (err: unknown) {
     console.error('Error fetching settings:', err)
@@ -225,23 +246,45 @@ export async function PUT(req: NextRequest) {
       staffQuery = staffQuery.eq('store_id', reqStoreId)
     }
 
-    const { data: staff } = await staffQuery.limit(1).single()
+    const { data: staff } = await staffQuery.maybeSingle()
 
-    if (!staff) {
+    let storeId = staff?.store_id
+    let isOwner = staff?.role === 'owner'
+
+    // Fallback: jika store_staff tiada, semak owner_id dalam stores
+    if (!storeId) {
+      let storeLookup = admin.from('stores').select('id, owner_id')
+      if (reqStoreId) {
+        storeLookup = storeLookup.eq('id', reqStoreId)
+      } else {
+        storeLookup = storeLookup.eq('owner_id', user.id)
+      }
+      const { data: directStore } = await storeLookup.maybeSingle()
+
+      if (directStore) {
+        storeId = directStore.id
+        isOwner = directStore.owner_id === user.id || !directStore.owner_id
+        await admin.from('store_staff').upsert({
+          store_id: directStore.id,
+          user_id: user.id,
+          role: 'owner',
+        })
+      }
+    }
+
+    if (!storeId) {
       return NextResponse.json(
-        { error: 'Anda bukan staf bagi kedai ini.' },
-        { status: 403 }
+        { error: 'Maklumat kedai tidak dijumpai.' },
+        { status: 404 }
       )
     }
 
-    if (staff.role !== 'owner') {
+    if (!isOwner) {
       return NextResponse.json(
         { error: 'Hanya pemilik kedai (owner) dibenarkan menukar tetapan.' },
         { status: 403 }
       )
     }
-
-    const storeId = staff.store_id
 
     const updates: {
       name?: string
@@ -279,12 +322,12 @@ export async function PUT(req: NextRequest) {
       .update(updates)
       .eq('id', storeId)
       .select()
-      .single()
+      .maybeSingle()
 
     if (updateError || !updatedStore) {
       console.error('Error updating store settings:', updateError)
       return NextResponse.json(
-        { error: 'Gagal mengemaskini tetapan kedai.' },
+        { error: updateError?.message || 'Gagal mengemaskini tetapan kedai.' },
         { status: 500 }
       )
     }
