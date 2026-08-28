@@ -128,13 +128,13 @@ export async function GET(req: NextRequest) {
     const currentCardStamps = totalStamps % stampsRequired
     const isEligibleForReward = totalStamps >= stampsRequired
 
-    // 5. Fetch recent redemptions
+    // 5. Fetch recent redemptions (actual schema: id, stamps_used, redeemed_at, redeemed_by_staff)
     const { data: redemptions } = await admin
       .from('stamp_redemptions')
-      .select('id, stamps_used, reward_details, created_at')
+      .select('id, stamps_used, redeemed_at')
       .eq('customer_id', customerUserId)
       .eq('store_id', storeId)
-      .order('created_at', { ascending: false })
+      .order('redeemed_at', { ascending: false })
       .limit(5)
 
     return NextResponse.json({

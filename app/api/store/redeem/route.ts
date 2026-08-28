@@ -97,7 +97,6 @@ export async function POST(req: NextRequest) {
       .from('customer_loyalty')
       .update({
         total_stamps: newTotalStamps,
-        updated_at: new Date().toISOString(),
       })
       .eq('customer_id', customerId)
       .eq('store_id', storeId)
@@ -115,19 +114,18 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
 
     // 6. Record redemption in stamp_redemptions
+    // Actual schema: id, customer_id, store_id, stamps_used, redeemed_at, redeemed_by_staff
     const { error: redemptionError } = await admin
       .from('stamp_redemptions')
       .insert({
         customer_id: customerId,
-        customer_email: profile?.email || null,
         store_id: storeId,
         stamps_used: stampsNeeded,
-        reward_details: store.reward_description || '1 ganjaran percuma',
-        redeemed_by: user.id,
+        redeemed_by_staff: user.id,
       })
 
     if (redemptionError) {
-      console.warn('Warning: Redemption inserted with note:', redemptionError)
+      console.warn('Warning: Redemption record failed:', redemptionError)
     }
 
     return NextResponse.json({
