@@ -293,10 +293,7 @@ export async function PUT(req: NextRequest) {
       logo_url?: string | null
       reward_image_url?: string | null
       rewards?: any
-      updated_at: string
-    } = {
-      updated_at: new Date().toISOString(),
-    }
+    } = {}
 
     if (typeof name === 'string' && name.trim()) {
       updates.name = name.trim()
