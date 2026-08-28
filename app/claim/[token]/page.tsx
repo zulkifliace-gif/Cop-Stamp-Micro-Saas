@@ -65,11 +65,22 @@ export default async function ClaimPage({ params }: PageProps) {
               {initialError}
             </p>
             <a
-              href="/"
-              className="inline-block w-full py-3 px-5 rounded-[12px] bg-[#1F5C52] text-[#F7EEDA] font-bold text-sm hover:bg-[#2E7568] transition"
+              href="/card"
+              className="inline-block w-full py-3 px-5 rounded-[12px] bg-[#1F5C52] text-[#F7EEDA] font-bold text-sm hover:bg-[#2E7568] transition cursor-pointer"
             >
-              Kembali ke Laman Utama
+              Lihat Kad Cop Saya
             </a>
+            <div className="mt-4 pt-3.5 border-t border-[#E2CE9E]/60 text-xs text-[#5B6B64]">
+              <a
+                href="https://lajus.lajuq.my/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#1F5C52] hover:text-[#2E7568] font-semibold underline underline-offset-2 inline-flex items-center gap-1 transition"
+              >
+                <span>Guna sistem cop di kedai anda</span>
+                <span className="text-[10px]">↗</span>
+              </a>
+            </div>
           </div>
         ) : (
           <ClaimClient

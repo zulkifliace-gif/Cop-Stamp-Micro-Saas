@@ -158,6 +158,7 @@ export default function CashierDashboard() {
   const [isRedeeming, setIsRedeeming] = useState<boolean>(false)
   const [lastClaimReceipt, setLastClaimReceipt] = useState<ClaimReceiptData | null>(null)
   const [isPrintingClaim, setIsPrintingClaim] = useState<boolean>(false)
+  const [redeemCount, setRedeemCount] = useState<number>(1)
 
   // Activity Feed (Paginated 10 per request)
   const [activities, setActivities] = useState<ActivityItem[]>([])
@@ -555,6 +556,7 @@ export default function CashierDashboard() {
         setSearchError(data.message || 'Pelanggan tidak dijumpai.')
       } else {
         setSearchResult(data.customer)
+        setRedeemCount(1) // reset redeem count for each new customer
       }
     } catch (err: any) {
       setSearchError(err.message || 'Ralat carian pelanggan.')
@@ -575,7 +577,7 @@ export default function CashierDashboard() {
         body: JSON.stringify({
           customerId: searchResult.id,
           storeId,
-          rewardCount: 1,
+          rewardCount: redeemCount,
         }),
       })
 
@@ -1112,18 +1114,59 @@ export default function CashierDashboard() {
                     </div>
                   </div>
 
-                  {/* DONE CLAIM BUTTON */}
+                  {/* DONE CLAIM BUTTON — with reward count selector */}
                   {searchResult.isEligibleForReward ? (
-                    <button
-                      onClick={handleRedeemReward}
-                      disabled={isRedeeming}
-                      className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold text-sm rounded-[12px] shadow-md shadow-emerald-600/30 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
-                    >
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path d="M20 6 9 17l-5-5" />
-                      </svg>
-                      <span>{isRedeeming ? 'Memproses Penebusan...' : 'Sahkan Penebusan Ganjaran (Done Claim)'}</span>
-                    </button>
+                    <div className="space-y-2.5">
+                      {/* Reward count selector (only show if >1 full cards available) */}
+                      {searchResult.fullCardsCount > 1 && (
+                        <div className="flex items-center gap-2.5 bg-[#EFE3C4] rounded-xl p-2.5">
+                          <span className="text-xs font-semibold text-[#1A2422] flex-1">
+                            Tebus berapa ganjaran?
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => setRedeemCount((c) => Math.max(1, c - 1))}
+                              disabled={redeemCount <= 1}
+                              className="w-7 h-7 rounded-full bg-white border border-[#E4D9BE] font-bold text-sm flex items-center justify-center cursor-pointer disabled:opacity-40 hover:bg-gray-100 transition"
+                            >
+                              −
+                            </button>
+                            <span className="w-8 text-center font-bold text-sm text-[#B53629]">
+                              {redeemCount}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setRedeemCount((c) => Math.min(searchResult.fullCardsCount, c + 1))}
+                              disabled={redeemCount >= searchResult.fullCardsCount}
+                              className="w-7 h-7 rounded-full bg-white border border-[#E4D9BE] font-bold text-sm flex items-center justify-center cursor-pointer disabled:opacity-40 hover:bg-gray-100 transition"
+                            >
+                              +
+                            </button>
+                          </div>
+                          <span className="text-[10.5px] text-[#5E6F68] font-semibold">
+                            / {searchResult.fullCardsCount} maks
+                          </span>
+                        </div>
+                      )}
+
+                      <button
+                        onClick={handleRedeemReward}
+                        disabled={isRedeeming}
+                        className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold text-sm rounded-[12px] shadow-md shadow-emerald-600/30 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path d="M20 6 9 17l-5-5" />
+                        </svg>
+                        <span>
+                          {isRedeeming
+                            ? 'Memproses Penebusan...'
+                            : redeemCount > 1
+                            ? `Sahkan Penebusan ${redeemCount} Ganjaran`
+                            : 'Sahkan Penebusan 1 Ganjaran (Done Claim)'}
+                        </span>
+                      </button>
+                    </div>
                   ) : (
                     <div className="text-center py-2 px-3 bg-gray-200/70 text-gray-500 rounded-xl text-xs font-semibold">
                       Pelanggan memerlukan sekurang-kurangnya {searchResult.stampsRequired} cop untuk menebus.

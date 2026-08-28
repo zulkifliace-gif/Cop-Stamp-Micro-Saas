@@ -264,8 +264,19 @@ export default function ClaimClient({
           href="/card"
           className="inline-block w-full py-3 px-4 bg-[#1F5C52] text-[#F7EEDA] rounded-[12px] font-jakarta font-bold text-sm hover:bg-[#2E7568] transition text-center cursor-pointer"
         >
-          Lihat Baki Kad Cop Saya
+          Lihat Kad Cop Saya
         </a>
+        <div className="mt-4 pt-3.5 border-t border-[#E2CE9E]/60 text-xs text-[#5B6B64] text-center">
+          <a
+            href="https://lajus.lajuq.my/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#1F5C52] hover:text-[#2E7568] font-semibold underline underline-offset-2 inline-flex items-center gap-1 transition"
+          >
+            <span>Guna sistem cop di kedai anda</span>
+            <span className="text-[10px]">↗</span>
+          </a>
+        </div>
       </div>
     )
   }
@@ -564,9 +575,6 @@ export default function ClaimClient({
           cardImpact ? 'anim-card-impact' : ''
         }`}
       >
-        {/* PERFORATION TOP */}
-        <div className="absolute left-3 right-3 top-0 h-0 border-t-2 border-dashed border-[#E2CE9E] before:content-[''] before:absolute before:-top-[9px] before:-left-[21px] before:w-[18px] before:h-[18px] before:rounded-full before:bg-[#0A1716] after:content-[''] after:absolute after:-top-[9px] after:-right-[21px] after:w-[18px] after:h-[18px] after:rounded-full after:bg-[#0A1716]" />
-
         <div className="text-center mb-5">
           <div className="font-space text-[10.5px] tracking-[0.14em] uppercase text-[#1E5E53] mb-1 font-semibold flex items-center justify-center gap-1.5">
             <span>Kad #{selectedCardIdx + 1}</span>
@@ -651,11 +659,9 @@ export default function ClaimClient({
             </>
           )}
         </div>
-
-        {/* PERFORATION BOTTOM */}
-        <div className="absolute left-3 right-3 bottom-0 h-0 border-t-2 border-dashed border-[#E2CE9E] before:content-[''] before:absolute before:-top-[9px] before:-left-[21px] before:w-[18px] before:h-[18px] before:rounded-full before:bg-[#0A1716] after:content-[''] after:absolute after:-top-[9px] after:-right-[21px] after:w-[18px] after:h-[18px] after:rounded-full after:bg-[#0A1716]" />
       </div>
 
+      {/* BOTTOM ACTIONS */}
       <div className="flex items-center justify-between w-full mt-4 px-1">
         <a
           href="/card"
@@ -672,6 +678,19 @@ export default function ClaimClient({
         >
           ▶ animasi getaran
         </button>
+      </div>
+
+      {/* PROMO LINK */}
+      <div className="mt-3 text-center text-xs text-[#5B6B64]/70">
+        <a
+          href="https://lajus.lajuq.my/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#E7A33E]/70 hover:text-[#E7A33E] font-semibold underline underline-offset-2 inline-flex items-center gap-1 transition"
+        >
+          <span>Guna sistem cop di kedai anda</span>
+          <span className="text-[10px]">↗</span>
+        </a>
       </div>
 
       {/* 1. POPUP MODAL: CARA CLAIM GANJARAN (INFO 'i') */}
