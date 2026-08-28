@@ -279,6 +279,20 @@ export default function CustomerCardPage() {
   const remainderStamps = totalStamps % TOTAL
   const totalCardsCount = Math.max(1, fullCardsCount + (remainderStamps > 0 ? 1 : 0))
 
+  // Store verification check:
+  // Verified checkmark ONLY displays if:
+  // 1. Logo URL is provided
+  // 2. Main Reward Image URL is provided
+  // 3. At least 1 Social Media / Website link is provided
+  const isStoreVerified = Boolean(
+    logoUrl &&
+    logoUrl.trim().length > 0 &&
+    rewardImageUrl &&
+    rewardImageUrl.trim().length > 0 &&
+    Array.isArray(socialLinks) &&
+    socialLinks.some((s) => s.url && s.url.trim().length > 0)
+  )
+
   // Determine current viewing card stamps
   const isViewingFullCard = selectedCardIdx < fullCardsCount
   const cardStamps = isViewingFullCard
@@ -473,14 +487,17 @@ export default function CustomerCardPage() {
                 )}
               </div>
 
-              {/* STORE NAME WITH GREEN VERIFIED CHECKMARK SVG */}
+              {/* STORE NAME WITH GREEN VERIFIED CHECKMARK SVG (ONLY WHEN FULLY CONFIGURED) */}
               <div className="flex items-center justify-center gap-1.5 font-fraunces text-xl font-bold text-[#F7EEDA] leading-tight">
                 <span>{storeName}</span>
-                <img
-                  src="/green-checkmark-line-icon.svg"
-                  alt="Disahkan"
-                  className="w-4 h-4 object-contain inline-block shrink-0"
-                />
+                {isStoreVerified && (
+                  <img
+                    src="/green-checkmark-line-icon.svg"
+                    alt="Disahkan"
+                    title="Kedai Disahkan (Profil Lengkap)"
+                    className="w-4 h-4 object-contain inline-block shrink-0"
+                  />
+                )}
               </div>
 
               {/* SOCIAL MEDIA / WEBSITE ICONS (BELOW STORE NAME) */}
