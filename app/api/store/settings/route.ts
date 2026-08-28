@@ -122,11 +122,20 @@ export async function POST(req: NextRequest) {
     const cleanRewardImageUrl = typeof rewardImageUrl === 'string' ? rewardImageUrl.trim() : ''
     const cleanRewards = Array.isArray(rewards) ? rewards : []
 
+    // Jana slug yang unik dan selamat (cth: "kopi-kawan-a1b2c")
+    const baseSlug = cleanName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'kedai'
+    const randomSuffix = Math.random().toString(36).substring(2, 7)
+    const generatedSlug = `${baseSlug}-${randomSuffix}`
+
     // 1. Cipta row baharu dalam stores (menjana Store UUID)
     const { data: newStore, error: storeCreateError } = await admin
       .from('stores')
       .insert({
         name: cleanName,
+        slug: generatedSlug,
         owner_id: user.id,
         stamps_required: cleanStampsReq,
         reward_description: cleanRewardDesc,
