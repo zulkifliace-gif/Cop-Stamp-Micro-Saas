@@ -18,32 +18,46 @@ export async function sendStampEmail(
 
   const resend = new Resend(apiKey)
 
+  const stampText = stampCount > 1 ? `${stampCount} new stamps` : '1 new stamp'
+
   const { data, error } = await resend.emails.send({
     from: process.env.EMAIL_FROM || 'Cop Stamp <noreply@lajuq.my>',
     to,
-    subject: `+${stampCount} cop baharu dari ${storeName}`,
-    text: `Anda menerima ${stampCount} cop dari ${storeName}.\n\nTuntut cop anda di sini: ${claimUrl}\n\nPautan ini sah selama ${expiryMinutes} minit sahaja.`,
+    subject: `+${stampCount} stamp from ${storeName}`,
+    text: `You received ${stampText} from ${storeName}.\n\nClaim your stamp here: ${claimUrl}\n\nExpires in: ${expiryMinutes}m`,
     html: `
-      <div style="font-family: -apple-system, 'Segoe UI', Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 36px; background: #F7EEDA; color: #1C2624; border-radius: 20px;">
-        <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(180deg, #E7A33E, #C97F1F); display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
-        </div>
-        <p style="font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; color: #8A7A55; margin: 0 0 8px;">
-          ${storeName}
-        </p>
-        <h1 style="font-size: 22px; color: #0F2B2A; margin: 0 0 16px; line-height: 1.3;">
-          Anda menerima ${stampCount} cop baharu
-        </h1>
-        <p style="font-size: 15px; line-height: 1.6; color: #445048; margin: 0 0 32px;">
-          Tekan butang di bawah untuk terus menuntut cop anda. Tiada log masuk atau kod diperlukan.
-        </p>
-        <div style="text-align: center; margin-bottom: 28px;">
-          <a href="${claimUrl}" style="background: linear-gradient(180deg, #E7A33E, #C97F1F); color: #1C2624; text-decoration: none; padding: 15px 36px; font-weight: 700; border-radius: 12px; display: inline-block; font-size: 15px; box-shadow: 0 4px 14px rgba(201, 127, 31, 0.35);">
-            Terima Cop Sekarang
-          </a>
-        </div>
-        <p style="font-size: 12px; color: #8A7A55; text-align: center; margin: 0;">
-          Pautan ini sah selama ${expiryMinutes} minit sahaja
-        </p>
+      <div style="background-color: #F8FAFC; padding: 40px 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 440px; background-color: #FFFFFF; border-radius: 16px; border: 1px solid #E2E8F0; padding: 36px 28px; text-align: center;">
+          <tr>
+            <td>
+              <p style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #64748B; margin: 0 0 10px 0;">
+                ${storeName}
+              </p>
+              
+              <h1 style="font-size: 24px; font-weight: 700; color: #0F172A; margin: 0 0 12px 0; letter-spacing: -0.02em;">
+                You've received ${stampText}
+              </h1>
+              
+              <p style="font-size: 14px; line-height: 1.5; color: #475569; margin: 0 0 28px 0;">
+                Click below to add it directly to your card. No password or code required.
+              </p>
+              
+              <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto 24px auto;">
+                <tr>
+                  <td align="center" style="border-radius: 10px; background-color: #0F172A;">
+                    <a href="${claimUrl}" target="_blank" style="font-size: 14px; font-weight: 600; color: #FFFFFF; text-decoration: none; padding: 13px 28px; display: inline-block; border-radius: 10px;">
+                      Claim Stamp Now
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              
+              <p style="font-size: 12px; color: #94A3B8; margin: 0;">
+                Expires in: ${expiryMinutes}m
+              </p>
+            </td>
+          </tr>
+        </table>
       </div>
     `,
   })
