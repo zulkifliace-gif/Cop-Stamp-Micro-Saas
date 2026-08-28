@@ -336,6 +336,14 @@ export default function CashierDashboard() {
     setRegError('')
 
     try {
+      const seedReward = {
+        id: 'rw_' + Date.now(),
+        name: regRewardDesc.trim() || '1 minuman percuma',
+        stampsRequired: Number(regStampsRequired) || 10,
+        imageUrl: '',
+        description: 'Tebus di kaunter',
+      }
+
       const res = await fetch('/api/store/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -343,6 +351,7 @@ export default function CashierDashboard() {
           name: regStoreName.trim(),
           stampsRequired: Number(regStampsRequired) || 10,
           rewardDescription: regRewardDesc.trim() || '1 minuman percuma',
+          rewards: [seedReward],
         }),
       })
 
@@ -355,6 +364,7 @@ export default function CashierDashboard() {
       setStoreName(data.name)
       setStampsRequired(data.stampsRequired)
       setRewardDesc(data.rewardDescription)
+      setRewardsList(Array.isArray(data.rewards) && data.rewards.length > 0 ? data.rewards : [seedReward])
       setStaffRole('owner')
       setNeedsRegistration(false)
 
@@ -733,7 +743,7 @@ export default function CashierDashboard() {
           logoUrl: logoUrl.trim(),
           stampsRequired: Number(stampsRequired),
           rewardDescription: rewardDesc.trim(),
-          rewardImageUrl: rewardImageUrl.trim(),
+          rewardImageUrl: (rewardsList[0]?.imageUrl || rewardImageUrl).trim(),
           rewards: rewardsList,
           stampIcon,
           socialLinks,
@@ -1681,36 +1691,6 @@ export default function CashierDashboard() {
                   />
                 </div>
 
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-xs font-semibold text-[#5E6F68]">
-                      URL Gambar Hadiah Utama
-                    </label>
-                    <a
-                      href="https://www.imghippo.com/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[11px] font-semibold text-[#1E5E53] hover:text-[#E5A43B] underline flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>Dapatkan Direct URL di ImgHippo ↗</span>
-                    </a>
-                  </div>
-                  <input
-                    type="url"
-                    value={rewardImageUrl}
-                    onChange={(e) => setRewardImageUrl(e.target.value)}
-                    placeholder="https://contoh.com/hadiah.jpg"
-                    disabled={staffRole !== 'owner'}
-                    className="w-full border border-[#E4D9BE] rounded-[10px] p-2.5 font-jakarta text-sm text-[#1A2422] bg-white outline-none disabled:bg-gray-100"
-                  />
-                  {rewardImageUrl && (
-                    <div className="mt-2 flex items-center gap-2 bg-white p-2 rounded-lg border border-[#E4D9BE]">
-                      <img src={rewardImageUrl} alt="Hadiah Preview" className="w-10 h-10 rounded-lg object-cover border" />
-                      <span className="text-[11px] text-[#5E6F68]">Pratonton Hadiah Utama</span>
-                    </div>
-                  )}
-                </div>
-
                 {/* DYNAMIC REWARDS LIST (BOLEH TAMBAH HADIAH) */}
                 <div className="border-t border-[#E4D9BE] pt-4 mt-4 mb-4">
                   <div className="flex items-center justify-between mb-1">
@@ -1781,6 +1761,15 @@ export default function CashierDashboard() {
                             className="flex-1 border border-[#E4D9BE] rounded-lg p-2 text-xs text-[#1A2422] outline-none"
                           />
                         </div>
+
+                        <textarea
+                          value={item.description || ''}
+                          onChange={(e) => handleUpdateRewardItem(idx, 'description', e.target.value)}
+                          placeholder="Penerangan hadiah (cth: Tebus di kaunter, terhad 1 unit sehari)"
+                          disabled={staffRole !== 'owner'}
+                          rows={2}
+                          className="w-full border border-[#E4D9BE] rounded-lg p-2 text-xs text-[#1A2422] outline-none resize-y min-h-[44px] disabled:bg-gray-100"
+                        />
                       </div>
                     ))}
                   </div>
