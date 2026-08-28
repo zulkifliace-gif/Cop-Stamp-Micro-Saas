@@ -22,18 +22,11 @@ export async function GET(req: NextRequest) {
 
     const admin = createAdminClient()
 
-    let query = admin
+    // Query all loyalty records for this customer across all stores
+    const { data: allLoyalties, error: loyaltyError } = await admin
       .from('customer_loyalty')
-      .select('total_stamps, store_id, updated_at, stores(name, stamps_required, reward_description, logo_url, reward_image_url, rewards)')
+      .select('store_id, total_stamps, updated_at, stores(id, name, stamps_required, reward_description, logo_url, reward_image_url, rewards)')
       .eq('customer_id', user.id)
-
-    if (storeIdParam) {
-      query = query.eq('store_id', storeIdParam)
-    }
-
-    const { data: loyaltyList, error: loyaltyError } = await query
-      .order('updated_at', { ascending: false })
-      .limit(1)
 
     if (loyaltyError) {
       console.error('Error fetching customer loyalty:', loyaltyError)
@@ -43,8 +36,24 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    if (!loyaltyList || loyaltyList.length === 0) {
-      // Return zero balance with default store info if customer has no stamps yet
+    const allStores = (allLoyalties || []).map((item) => {
+      const storeObj = Array.isArray(item.stores) ? item.stores[0] : item.stores
+      return {
+        storeId: item.store_id,
+        storeName: storeObj?.name || 'Kedai Tanpa Nama',
+        totalStamps: item.total_stamps || 0,
+        stampsRequired: storeObj?.stamps_required || 10,
+        rewardDescription: storeObj?.reward_description || '1 minuman percuma',
+        logoUrl: storeObj?.logo_url || '',
+        rewardImageUrl: storeObj?.reward_image_url || '',
+        rewards: Array.isArray(storeObj?.rewards) ? storeObj.rewards : [],
+        updatedAt: item.updated_at,
+      }
+    })
+
+    if (allStores.length === 0) {
+      // Customer has no loyalty cards yet — check if viewing a specific store
+      let defaultStoreId = storeIdParam || ''
       let defaultStoreName = 'Kopi & Kawan'
       let defaultStampsRequired = 10
       let defaultRewardDescription = '1 minuman panas percuma (saiz regular)'
@@ -55,10 +64,11 @@ export async function GET(req: NextRequest) {
       if (storeIdParam) {
         const { data: st } = await admin
           .from('stores')
-          .select('name, stamps_required, reward_description, logo_url, reward_image_url, rewards')
+          .select('id, name, stamps_required, reward_description, logo_url, reward_image_url, rewards')
           .eq('id', storeIdParam)
           .single()
         if (st) {
+          defaultStoreId = st.id
           defaultStoreName = st.name
           defaultStampsRequired = st.stamps_required
           defaultRewardDescription = st.reward_description
@@ -69,6 +79,8 @@ export async function GET(req: NextRequest) {
       }
 
       return NextResponse.json({
+        allStores: [],
+        activeStoreId: defaultStoreId,
         totalStamps: 0,
         stampsRequired: defaultStampsRequired,
         rewardDescription: defaultRewardDescription,
@@ -76,23 +88,24 @@ export async function GET(req: NextRequest) {
         logoUrl: defaultLogoUrl,
         rewardImageUrl: defaultRewardImageUrl,
         rewards: defaultRewards,
+        updatedAt: null,
       })
     }
 
-    const item = loyaltyList[0]
-    // Supabase returns foreign key relations as single object or array depending on mapping
-    const storeObj = Array.isArray(item.stores) ? item.stores[0] : item.stores
+    // Determine active store (either matching storeIdParam or the first/most recent one)
+    const activeStore = (storeIdParam ? allStores.find((s) => s.storeId === storeIdParam) : null) || allStores[0]
 
     return NextResponse.json({
-      totalStamps: item.total_stamps || 0,
-      stampsRequired: storeObj?.stamps_required || 10,
-      rewardDescription:
-        storeObj?.reward_description || '1 minuman percuma',
-      storeName: storeObj?.name || 'Kopi & Kawan',
-      logoUrl: storeObj?.logo_url || '',
-      rewardImageUrl: storeObj?.reward_image_url || '',
-      rewards: Array.isArray(storeObj?.rewards) ? storeObj.rewards : [],
-      updatedAt: item.updated_at,
+      allStores,
+      activeStoreId: activeStore.storeId,
+      totalStamps: activeStore.totalStamps,
+      stampsRequired: activeStore.stampsRequired,
+      rewardDescription: activeStore.rewardDescription,
+      storeName: activeStore.storeName,
+      logoUrl: activeStore.logoUrl,
+      rewardImageUrl: activeStore.rewardImageUrl,
+      rewards: activeStore.rewards,
+      updatedAt: activeStore.updatedAt,
     })
   } catch (err: unknown) {
     console.error('Error fetching loyalty:', err)
@@ -100,3 +113,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }
+

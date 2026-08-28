@@ -12,6 +12,18 @@ interface RewardItem {
   description?: string
 }
 
+interface CustomerStoreCard {
+  storeId: string
+  storeName: string
+  totalStamps: number
+  stampsRequired: number
+  rewardDescription: string
+  logoUrl: string
+  rewardImageUrl: string
+  rewards: RewardItem[]
+  updatedAt?: string | null
+}
+
 export default function CustomerCardPage() {
   const supabase = createClient()
 
@@ -26,7 +38,9 @@ export default function CustomerCardPage() {
   const [authError, setAuthError] = useState('')
   const [isAuthenticating, setIsAuthenticating] = useState(false)
 
-  // Loyalty Data (Live)
+  // Multi-Store Loyalty Data (Live)
+  const [allStores, setAllStores] = useState<CustomerStoreCard[]>([])
+  const [activeStoreId, setActiveStoreId] = useState<string>('')
   const [storeName, setStoreName] = useState('Kopi & Kawan')
   const [logoUrl, setLogoUrl] = useState('')
   const [rewardImageUrl, setRewardImageUrl] = useState('')
@@ -55,7 +69,10 @@ export default function CustomerCardPage() {
       setLoading(false)
 
       if (session?.user) {
-        fetchLoyalty()
+        // Check if there is a storeId in URL params
+        const params = new URLSearchParams(window.location.search)
+        const initialStoreId = params.get('storeId') || undefined
+        fetchLoyalty(initialStoreId)
       }
     }
     checkAuth()
@@ -65,19 +82,28 @@ export default function CustomerCardPage() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null)
       if (session?.user) {
-        fetchLoyalty()
+        const params = new URLSearchParams(window.location.search)
+        const initialStoreId = params.get('storeId') || undefined
+        fetchLoyalty(initialStoreId)
       }
     })
 
     return () => subscription.unsubscribe()
   }, [])
 
-  async function fetchLoyalty() {
+  async function fetchLoyalty(targetStoreId?: string) {
     setRefreshing(true)
     try {
-      const res = await fetch('/api/customer/loyalty')
+      const url = targetStoreId
+        ? `/api/customer/loyalty?storeId=${targetStoreId}`
+        : `/api/customer/loyalty`
+      const res = await fetch(url)
       if (res.ok) {
         const data = await res.json()
+        const stores = Array.isArray(data.allStores) ? data.allStores : []
+        setAllStores(stores)
+        setActiveStoreId(data.activeStoreId || (stores[0]?.storeId || ''))
+
         const stamps = data.totalStamps || 0
         const req = data.stampsRequired || 10
         setTotalStamps(stamps)
@@ -224,7 +250,7 @@ export default function CustomerCardPage() {
           {user && (
             <div className="flex items-center gap-2">
               <button
-                onClick={fetchLoyalty}
+                onClick={() => fetchLoyalty()}
                 disabled={refreshing}
                 title="Muat semula baki"
                 className="text-xs px-2.5 py-1 rounded-lg border border-[#F7EEDA]/15 bg-[#F7EEDA]/[0.05] text-[#F7EEDA] hover:bg-[#F7EEDA]/10 transition cursor-pointer"
@@ -336,6 +362,43 @@ export default function CustomerCardPage() {
         ) : (
           /* LOGGED IN: LIVE STAMP CARD */
           <div className="w-full flex flex-col items-center anim-result">
+            {/* MULTI-STORE SELECTOR / SWITCHER (If customer has cards from >1 store) */}
+            {allStores.length > 1 && (
+              <div className="w-full mb-4 bg-[#FAF2E2]/[0.07] border border-[#FAF2E2]/15 rounded-2xl p-2.5 shadow-inner">
+                <div className="text-[10px] font-space text-[#E5A43B] uppercase tracking-wider font-semibold px-1.5 mb-2 flex items-center justify-between">
+                  <span>🏪 Kad Cop Anda ({allStores.length} Kedai)</span>
+                  <span className="text-[#5B6B64] font-normal text-[9.5px]">Tekan untuk tukar kad</span>
+                </div>
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                  {allStores.map((st) => {
+                    const isActive = st.storeId === activeStoreId
+                    return (
+                      <button
+                        key={st.storeId}
+                        onClick={() => fetchLoyalty(st.storeId)}
+                        className={`py-1.5 px-3 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer flex items-center gap-2 shrink-0 ${
+                          isActive
+                            ? 'bg-[#E5A43B] text-[#1A2422] font-bold shadow-md ring-2 ring-[#E5A43B]/40'
+                            : 'bg-[#FAF2E2]/10 text-[#FAF2E2]/80 hover:bg-[#FAF2E2]/20 hover:text-white'
+                        }`}
+                      >
+                        <span className="truncate max-w-[130px]">{st.storeName}</span>
+                        <span
+                          className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                            isActive
+                              ? 'bg-[#1A2422] text-[#E5A43B]'
+                              : 'bg-[#E5A43B]/20 text-[#E5A43B]'
+                          }`}
+                        >
+                          {st.totalStamps} Cop
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* STORE NAME & LOGO CENTERED AT TOP */}
             <div className="flex flex-col items-center text-center mb-3.5 w-full">
               <div className="w-14 h-14 rounded-full bg-[#E7A33E] text-[#1C2624] font-fraunces font-bold flex items-center justify-center text-2xl shrink-0 shadow-lg mb-2 overflow-hidden border-2 border-[#FAF2E2]/20">
