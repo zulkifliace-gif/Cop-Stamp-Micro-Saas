@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { customerId, storeId: reqStoreId, rewardCount = 1 } = body
+    const { customerId, storeId: reqStoreId, rewardCount = 1, rewardId } = body
 
     if (!customerId) {
       return NextResponse.json({ error: 'Customer ID diperlukan.' }, { status: 400 })
@@ -53,10 +53,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 2. Get store settings
+    // 2. Get store settings — sekarang termasuk 'rewards' (katalog hadiah)
     const { data: store, error: storeError } = await admin
       .from('stores')
-      .select('name, stamps_required, reward_description')
+      .select('name, stamps_required, reward_description, rewards')
       .eq('id', storeId)
       .single()
 
@@ -64,8 +64,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Kedai tidak dijumpai.' }, { status: 404 })
     }
 
-    const stampsRequired = store.stamps_required || 10
-    const stampsNeeded = stampsRequired * Math.max(1, Number(rewardCount) || 1)
+    // Parse katalog hadiah (handle format array ATAU {list: [...]})
+    const rawRewards = store.rewards
+    const rewardsCatalog = Array.isArray(rawRewards)
+      ? rawRewards
+      : Array.isArray(rawRewards?.list)
+      ? rawRewards.list
+      : []
+
+    // Cari hadiah spesifik yang dipilih cashier (jika ada)
+    const selectedReward = rewardId
+      ? rewardsCatalog.find((r: any) => r.id === rewardId)
+      : null
+
+    const baseStampsRequired = selectedReward?.stampsRequired || store.stamps_required || 10
+    const stampsNeeded = baseStampsRequired * Math.max(1, Number(rewardCount) || 1)
 
     // 3. Get customer loyalty balance
     const { data: loyalty, error: loyaltyError } = await admin
@@ -114,7 +127,8 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
 
     // 6. Record redemption in stamp_redemptions
-    // Actual schema: id, customer_id, store_id, stamps_used, redeemed_at, redeemed_by_staff
+    // NOTA: reward_id & reward_name memerlukan lajur berkenaan wujud dalam table stamp_redemptions.
+    // Jika lajur belum wujud, buang 2 baris tu dulu ATAU tambah lajur di Supabase terlebih dahulu.
     const { error: redemptionError } = await admin
       .from('stamp_redemptions')
       .insert({
@@ -122,6 +136,8 @@ export async function POST(req: NextRequest) {
         store_id: storeId,
         stamps_used: stampsNeeded,
         redeemed_by_staff: user.id,
+        reward_id: selectedReward?.id || null,
+        reward_name: selectedReward?.name || store.reward_description,
       })
 
     if (redemptionError) {
@@ -134,7 +150,7 @@ export async function POST(req: NextRequest) {
       previousStamps: loyalty.total_stamps,
       stampsUsed: stampsNeeded,
       remainingStamps: newTotalStamps,
-      rewardDescription: store.reward_description,
+      rewardDescription: selectedReward?.name || store.reward_description,
       customerEmail: profile?.email || null,
       storeName: store.name,
       redeemedAt: new Date().toISOString(),

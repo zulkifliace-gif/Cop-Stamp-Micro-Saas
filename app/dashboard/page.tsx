@@ -33,6 +33,7 @@ interface CustomerSearchResult {
   totalStamps: number
   stampsRequired: number
   rewardDescription: string
+  rewardsCatalog?: RewardCatalogItem[]
   fullCardsCount: number
   currentCardStamps: number
   isEligibleForReward: boolean
@@ -42,6 +43,14 @@ interface CustomerSearchResult {
     reward_details: string
     created_at: string
   }>
+}
+
+interface RewardCatalogItem {
+  id: string
+  name: string
+  stampsRequired: number
+  imageUrl?: string
+  description?: string
 }
 
 interface RewardItem {
@@ -159,6 +168,7 @@ export default function CashierDashboard() {
   const [lastClaimReceipt, setLastClaimReceipt] = useState<ClaimReceiptData | null>(null)
   const [isPrintingClaim, setIsPrintingClaim] = useState<boolean>(false)
   const [redeemCount, setRedeemCount] = useState<number>(1)
+  const [selectedRewardId, setSelectedRewardId] = useState<string>('')
 
   // Activity Feed (Paginated 10 per request)
   const [activities, setActivities] = useState<ActivityItem[]>([])
@@ -557,6 +567,11 @@ export default function CashierDashboard() {
       } else {
         setSearchResult(data.customer)
         setRedeemCount(1) // reset redeem count for each new customer
+        // Auto-pilih hadiah pertama dalam katalog (jika ada)
+        const catalog = data.customer.rewardsCatalog
+        setSelectedRewardId(
+          Array.isArray(catalog) && catalog.length > 0 ? catalog[0].id : ''
+        )
       }
     } catch (err: any) {
       setSearchError(err.message || 'Ralat carian pelanggan.')
@@ -578,6 +593,7 @@ export default function CashierDashboard() {
           customerId: searchResult.id,
           storeId,
           rewardCount: redeemCount,
+          rewardId: selectedRewardId || undefined,
         }),
       })
 
@@ -1114,6 +1130,44 @@ export default function CashierDashboard() {
                     </div>
                   </div>
 
+                  {/* PEMILIH HADIAH — jika kedai ada lebih dari 1 hadiah dalam katalog */}
+                  {searchResult.isEligibleForReward &&
+                    Array.isArray(searchResult.rewardsCatalog) &&
+                    searchResult.rewardsCatalog.length > 0 && (
+                      <div className="mb-3.5">
+                        <div className="text-xs font-semibold text-[#1A2422] mb-1.5">
+                          Pilih hadiah untuk ditebus:
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          {searchResult.rewardsCatalog.map((rw) => {
+                            const affordable =
+                              searchResult.totalStamps >= rw.stampsRequired
+                            const isSelected = selectedRewardId === rw.id
+                            return (
+                              <button
+                                key={rw.id}
+                                type="button"
+                                disabled={!affordable}
+                                onClick={() => setSelectedRewardId(rw.id)}
+                                className={`flex items-center justify-between gap-2 p-2.5 rounded-xl border text-left transition cursor-pointer ${
+                                  isSelected
+                                    ? 'border-[#1E5E53] bg-[#1E5E53]/10 ring-1 ring-[#1E5E53]'
+                                    : 'border-[#E4D9BE] bg-white hover:bg-gray-50'
+                                } disabled:opacity-40 disabled:cursor-not-allowed`}
+                              >
+                                <span className="text-xs font-semibold text-[#1A2422]">
+                                  {rw.name || 'Hadiah'}
+                                </span>
+                                <span className="text-[10.5px] font-bold text-[#B53629] whitespace-nowrap">
+                                  {rw.stampsRequired} cop
+                                </span>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+
                   {/* DONE CLAIM BUTTON — with reward count selector */}
                   {searchResult.isEligibleForReward ? (
                     <div className="space-y-2.5">
@@ -1162,8 +1216,12 @@ export default function CashierDashboard() {
                           {isRedeeming
                             ? 'Memproses Penebusan...'
                             : redeemCount > 1
-                            ? `Sahkan Penebusan ${redeemCount} Ganjaran`
-                            : 'Sahkan Penebusan 1 Ganjaran (Done Claim)'}
+                            ? `Sahkan Penebusan ${redeemCount}x ${
+                                searchResult.rewardsCatalog?.find((r) => r.id === selectedRewardId)?.name || 'Ganjaran'
+                              }`
+                            : `Sahkan Penebusan: ${
+                                searchResult.rewardsCatalog?.find((r) => r.id === selectedRewardId)?.name || 'Ganjaran (Done Claim)'
+                              }`}
                         </span>
                       </button>
                     </div>

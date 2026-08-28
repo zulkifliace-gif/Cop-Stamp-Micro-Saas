@@ -54,15 +54,23 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 2. Get store settings (stamps_required & reward_description)
+    // 2. Get store settings — sekarang termasuk 'rewards' (katalog hadiah)
     const { data: store } = await admin
       .from('stores')
-      .select('id, name, stamps_required, reward_description')
+      .select('id, name, stamps_required, reward_description, rewards')
       .eq('id', storeId)
       .single()
 
     const stampsRequired = store?.stamps_required || 10
     const rewardDescription = store?.reward_description || '1 minuman percuma'
+
+    // Parse katalog hadiah (handle format array ATAU {list: [...]})
+    const rawRewards = store?.rewards
+    const rewardsCatalog = Array.isArray(rawRewards)
+      ? rawRewards
+      : Array.isArray(rawRewards?.list)
+      ? rawRewards.list
+      : []
 
     // 3. PDPA: Search is scoped ONLY to customers who have a loyalty record at THIS store.
     //    We first check customer_loyalty for this store, then resolve email → user ID.
@@ -146,6 +154,7 @@ export async function GET(req: NextRequest) {
         totalStamps,
         stampsRequired,
         rewardDescription,
+        rewardsCatalog,
         fullCardsCount,
         currentCardStamps,
         isEligibleForReward,
