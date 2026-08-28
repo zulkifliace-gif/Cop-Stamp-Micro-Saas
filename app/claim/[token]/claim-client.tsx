@@ -79,9 +79,10 @@ export default function ClaimClient({
   const [claimError, setClaimError] = useState<string | null>(null)
   const [cardImpact, setCardImpact] = useState(false)
 
-  // Modals state
+  // Modals & Card state
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [showRewardsModal, setShowRewardsModal] = useState(false)
+  const [selectedCardIdx, setSelectedCardIdx] = useState(0)
 
   const hasClaimedRef = useRef(false)
 
@@ -152,11 +153,18 @@ export default function ClaimClient({
         return
       }
 
+      const total = data.newTotal ?? initialStampCount
+      const req = data.stampsRequired ?? initialStampsRequired ?? 10
+      const fullCards = Math.floor(total / req)
+      const rem = total % req
+      const totalCards = Math.max(1, fullCards + (rem > 0 ? 1 : 0))
+      setSelectedCardIdx(totalCards - 1)
+
       setClaimData({
         previousStamps: data.previousStamps ?? 0,
-        newTotal: data.newTotal ?? initialStampCount,
+        newTotal: total,
         stampsAdded: data.stampsAdded ?? initialStampCount,
-        stampsRequired: data.stampsRequired ?? initialStampsRequired ?? 10,
+        stampsRequired: req,
         rewardDescription:
           data.rewardDescription ?? initialRewardDesc ?? '1 minuman percuma',
         storeName: data.storeName ?? initialStoreName ?? 'Kopi & Kawan',
@@ -430,13 +438,11 @@ export default function ClaimClient({
   const remainderStamps = claimData.newTotal % TOTAL
   const totalCardsCount = Math.max(1, fullCardsCount + (remainderStamps > 0 ? 1 : 0))
 
-  // State to toggle between cards
-  const [selectedCardIdx, setSelectedCardIdx] = useState(totalCardsCount - 1)
-
-  const isViewingFullCard = selectedCardIdx < fullCardsCount
+  const activeCardIdx = Math.min(selectedCardIdx, totalCardsCount - 1)
+  const isViewingFullCard = activeCardIdx < fullCardsCount
   const cardStamps = isViewingFullCard
     ? TOTAL
-    : remainderStamps === 0 && fullCardsCount > 0 && selectedCardIdx === fullCardsCount - 1
+    : remainderStamps === 0 && fullCardsCount > 0 && activeCardIdx === fullCardsCount - 1
     ? TOTAL
     : remainderStamps
 
@@ -526,7 +532,7 @@ export default function ClaimClient({
         <div className="w-full flex items-center gap-1.5 mb-3 overflow-x-auto pb-1">
           {Array.from({ length: totalCardsCount }).map((_, idx) => {
             const isFull = idx < fullCardsCount
-            const isActive = idx === selectedCardIdx
+            const isActive = idx === activeCardIdx
             return (
               <button
                 key={idx}
