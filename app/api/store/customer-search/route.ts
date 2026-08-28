@@ -64,50 +64,66 @@ export async function GET(req: NextRequest) {
     const stampsRequired = store?.stamps_required || 10
     const rewardDescription = store?.reward_description || '1 minuman percuma'
 
-    // 3. Find customer by email in customer_profiles
-    let { data: profile } = await admin
+    // 3. PDPA: Search is scoped ONLY to customers who have a loyalty record at THIS store.
+    //    We first check customer_loyalty for this store, then resolve email → user ID.
+    //    This prevents cross-store customer email discovery.
+
+    // 3a. Find matching users in auth who have a loyalty record at THIS store only.
+    const { data: loyaltyRows } = await admin
+      .from('customer_loyalty')
+      .select('customer_id, total_stamps, updated_at')
+      .eq('store_id', storeId)
+
+    if (!loyaltyRows || loyaltyRows.length === 0) {
+      return NextResponse.json({
+        found: false,
+        message: 'Tiada pelanggan berdaftar untuk kedai ini lagi.',
+      })
+    }
+
+    // 3b. Resolve the customer_ids to emails, then filter by email query
+    const customerIds = loyaltyRows.map((r) => r.customer_id)
+
+    // Try customer_profiles first (fast path)
+    const { data: profiles } = await admin
       .from('customer_profiles')
       .select('id, email, full_name')
+      .in('id', customerIds)
       .ilike('email', `%${emailQuery}%`)
-      .limit(1)
-      .maybeSingle()
+      .limit(5)
 
-    // Fallback: If not in customer_profiles, search via auth.admin.listUsers
-    let customerUserId = profile?.id
-    let customerEmail = profile?.email || emailQuery
-    let customerName = profile?.full_name || ''
+    let matchedProfile = profiles?.[0] || null
+    let customerUserId = matchedProfile?.id
+    let customerEmail = matchedProfile?.email || ''
+    let customerName = matchedProfile?.full_name || ''
 
+    // Fallback: resolve via auth.admin but ONLY for IDs in this store
     if (!customerUserId) {
-      const { data: userList } = await admin.auth.admin.listUsers({ perPage: 50 })
-      const matchedUser = userList?.users?.find(
-        (u) => u.email?.toLowerCase().includes(emailQuery)
-      )
-      if (matchedUser) {
-        customerUserId = matchedUser.id
-        customerEmail = matchedUser.email || emailQuery
-        customerName =
-          matchedUser.user_metadata?.full_name ||
-          matchedUser.user_metadata?.name ||
-          customerEmail.split('@')[0]
+      for (const cid of customerIds) {
+        const { data: authUser } = await admin.auth.admin.getUserById(cid)
+        if (authUser?.user?.email?.toLowerCase().includes(emailQuery)) {
+          customerUserId = authUser.user.id
+          customerEmail = authUser.user.email ?? ''
+          customerName =
+            authUser.user.user_metadata?.full_name ||
+            authUser.user.user_metadata?.name ||
+            customerEmail.split('@')[0]
+          break
+        }
       }
     }
 
     if (!customerUserId) {
+      // Customer not found IN THIS STORE — do not reveal whether they exist elsewhere
       return NextResponse.json({
         found: false,
-        message: 'Pelanggan dengan emel ini tidak dijumpai dalam sistem.',
+        message: 'Pelanggan dengan emel ini tidak dijumpai untuk kedai ini.',
       })
     }
 
-    // 4. Fetch customer loyalty balance in this store
-    const { data: loyalty } = await admin
-      .from('customer_loyalty')
-      .select('total_stamps, updated_at')
-      .eq('customer_id', customerUserId)
-      .eq('store_id', storeId)
-      .maybeSingle()
-
-    const totalStamps = loyalty?.total_stamps || 0
+    // 4. Get loyalty balance for the matched customer at this store
+    const loyaltyRecord = loyaltyRows.find((r) => r.customer_id === customerUserId)
+    const totalStamps = loyaltyRecord?.total_stamps || 0
     const fullCardsCount = Math.floor(totalStamps / stampsRequired)
     const currentCardStamps = totalStamps % stampsRequired
     const isEligibleForReward = totalStamps >= stampsRequired
