@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
     if (storeCreateError || !newStore) {
       console.error('Failed to create store:', storeCreateError)
       return NextResponse.json(
-        { error: 'Gagal mendaftarkan kedai baharu.' },
+        { error: storeCreateError?.message || 'Gagal mendaftarkan kedai baharu.' },
         { status: 500 }
       )
     }
@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
     if (staffLinkError) {
       console.error('Failed to link store staff:', staffLinkError)
       return NextResponse.json(
-        { error: 'Gagal memautkan akaun staf dengan kedai.' },
+        { error: staffLinkError?.message || 'Gagal memautkan akaun staf dengan kedai.' },
         { status: 500 }
       )
     }
