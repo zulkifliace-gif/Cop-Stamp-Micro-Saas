@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
       : []
     const parsedStampIcon =
       (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && rawRewards?.stampIcon) ||
-      '/icons/stamps/makan.svg'
+      '/icons/stamps/makanan.svg'
     const parsedSocialLinks =
       (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && Array.isArray(rawRewards?.socialLinks) && rawRewards.socialLinks) ||
       []
@@ -304,7 +304,7 @@ export async function PUT(req: NextRequest) {
     }
 
     const cleanRewards = Array.isArray(rewards) ? rewards : []
-    const cleanStampIcon = typeof stampIcon === 'string' && stampIcon.trim() ? stampIcon.trim() : '/icons/stamps/makan.svg'
+    const cleanStampIcon = typeof stampIcon === 'string' && stampIcon.trim() ? stampIcon.trim() : '/icons/stamps/makanan.svg'
     const cleanSocialLinks = Array.isArray(socialLinks) ? socialLinks : []
 
     const updates: {

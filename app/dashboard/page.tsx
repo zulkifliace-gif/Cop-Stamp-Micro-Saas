@@ -58,18 +58,18 @@ interface SocialLinkItem {
 }
 
 const STAMP_ICON_OPTIONS = [
-  { label: 'Makanan / Kafe', icon: '/icons/stamps/makan.svg' },
-  { label: 'Pastri / Bakeri', icon: '/icons/stamps/croissant.svg' },
-  { label: 'Pizza / Makanan', icon: '/icons/stamps/pizza.svg' },
-  { label: 'Kek / Dessert', icon: '/icons/stamps/cake-slice.svg' },
-  { label: 'Barber / Salun', icon: '/icons/stamps/gunting-rambut.svg' },
-  { label: 'Car Wash / Dobi', icon: '/icons/stamps/bubbles.svg' },
-  { label: 'Servis / Cleaning', icon: '/icons/stamps/mop-sparkles.svg' },
-  { label: 'Spa / Urutan', icon: '/icons/stamps/massage.svg' },
-  { label: 'Retail / Butik', icon: '/icons/stamps/paper-bag.svg' },
-  { label: 'Pet Shop', icon: '/icons/stamps/bone.svg' },
-  { label: 'Veterinar', icon: '/icons/stamps/vet-icon.svg' },
-  { label: 'Klinik / Farmasi', icon: '/icons/stamps/vaccine.svg' },
+  { label: 'Makanan / Kafe', icon: '/icons/stamps/makanan.svg' },
+  { label: 'Pastri / Bakeri', icon: '/icons/stamps/pastri.svg' },
+  { label: 'Pizza / Makanan Segera', icon: '/icons/stamps/pizza.svg' },
+  { label: 'Kek / Dessert', icon: '/icons/stamps/kek.svg' },
+  { label: 'Barber / Salun', icon: '/icons/stamps/barber.svg' },
+  { label: 'Car Wash / Dobi', icon: '/icons/stamps/car-wash.svg' },
+  { label: 'Servis / Cleaning', icon: '/icons/stamps/servis.svg' },
+  { label: 'Spa / Urutan', icon: '/icons/stamps/spa.svg' },
+  { label: 'Retail / Butik', icon: '/icons/stamps/retail.svg' },
+  { label: 'Pet Shop', icon: '/icons/stamps/pet-shop.svg' },
+  { label: 'Kopi / Kafe', icon: '/icons/stamps/coffee.svg' },
+  { label: 'Klinik / Farmasi', icon: '/icons/stamps/klinik.svg' },
 ]
 
 const SOCIAL_PLATFORMS = [
@@ -129,7 +129,7 @@ export default function CashierDashboard() {
   const [logoUrl, setLogoUrl] = useState<string>('')
   const [rewardImageUrl, setRewardImageUrl] = useState<string>('')
   const [rewardsList, setRewardsList] = useState<RewardItem[]>([])
-  const [stampIcon, setStampIcon] = useState<string>('/icons/stamps/makan.svg')
+  const [stampIcon, setStampIcon] = useState<string>('/icons/stamps/makanan.svg')
   const [socialLinks, setSocialLinks] = useState<SocialLinkItem[]>([])
   const [showSocialModal, setShowSocialModal] = useState<boolean>(false)
   const [newSocialPlatform, setNewSocialPlatform] = useState<string>('instagram')

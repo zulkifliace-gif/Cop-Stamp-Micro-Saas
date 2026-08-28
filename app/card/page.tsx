@@ -31,20 +31,20 @@ interface CustomerStoreCard {
 }
 
 function normalizeStampIcon(path?: string) {
-  if (!path) return '/icons/stamps/makan.svg'
+  if (!path) return '/icons/stamps/makanan.svg'
   const lower = path.toLowerCase()
-  if (lower.includes('gunting') || lower.includes('rambut')) return '/icons/stamps/gunting-rambut.svg'
-  if (lower.includes('croissant')) return '/icons/stamps/croissant.svg'
+  if (lower.includes('barber') || lower.includes('gunting') || lower.includes('rambut')) return '/icons/stamps/barber.svg'
+  if (lower.includes('pastri') || lower.includes('croissant') || lower.includes('bakeri')) return '/icons/stamps/pastri.svg'
   if (lower.includes('pizza')) return '/icons/stamps/pizza.svg'
-  if (lower.includes('cake') || lower.includes('kek')) return '/icons/stamps/cake-slice.svg'
-  if (lower.includes('bubble') || lower.includes('buih')) return '/icons/stamps/bubbles.svg'
-  if (lower.includes('mop') || lower.includes('sparkle') || lower.includes('bersih')) return '/icons/stamps/mop-sparkles.svg'
-  if (lower.includes('massage') || lower.includes('urut')) return '/icons/stamps/massage.svg'
-  if (lower.includes('paper') || lower.includes('bag') || lower.includes('beg')) return '/icons/stamps/paper-bag.svg'
-  if (lower.includes('bone') || lower.includes('tulang')) return '/icons/stamps/bone.svg'
-  if (lower.includes('vet') || lower.includes('haiwan')) return '/icons/stamps/vet-icon.svg'
-  if (lower.includes('vaccine') || lower.includes('vaksin')) return '/icons/stamps/vaccine.svg'
-  if (lower.includes('makan') || lower.includes('food') || lower.includes('utensil')) return '/icons/stamps/makan.svg'
+  if (lower.includes('kek') || lower.includes('cake') || lower.includes('dessert')) return '/icons/stamps/kek.svg'
+  if (lower.includes('car') || lower.includes('wash') || lower.includes('bubble') || lower.includes('buih') || lower.includes('dobi')) return '/icons/stamps/car-wash.svg'
+  if (lower.includes('servis') || lower.includes('mop') || lower.includes('sparkle') || lower.includes('clean') || lower.includes('bersih')) return '/icons/stamps/servis.svg'
+  if (lower.includes('spa') || lower.includes('massage') || lower.includes('urut')) return '/icons/stamps/spa.svg'
+  if (lower.includes('retail') || lower.includes('paper') || lower.includes('bag') || lower.includes('beg') || lower.includes('butik')) return '/icons/stamps/retail.svg'
+  if (lower.includes('pet') || lower.includes('shop') || lower.includes('bone') || lower.includes('tulang')) return '/icons/stamps/pet-shop.svg'
+  if (lower.includes('coffee') || lower.includes('kopi') || lower.includes('vet') || lower.includes('haiwan')) return '/icons/stamps/coffee.svg'
+  if (lower.includes('klinik') || lower.includes('vaccine') || lower.includes('vaksin') || lower.includes('farmasi')) return '/icons/stamps/klinik.svg'
+  if (lower.includes('makan') || lower.includes('food') || lower.includes('utensil')) return '/icons/stamps/makanan.svg'
   return path.startsWith('/') ? path : `/${path}`
 }
 
