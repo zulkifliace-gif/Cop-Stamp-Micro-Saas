@@ -127,6 +127,7 @@ export async function POST(req: NextRequest) {
       .from('stores')
       .insert({
         name: cleanName,
+        owner_id: user.id,
         stamps_required: cleanStampsReq,
         reward_description: cleanRewardDesc,
         logo_url: cleanLogoUrl || null,
