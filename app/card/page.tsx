@@ -96,6 +96,7 @@ export default function CustomerCardPage() {
   const [rewardDesc, setRewardDesc] = useState('')
   const [updatedAt, setUpdatedAt] = useState<string | null>(null)
   const [cardImpact, setCardImpact] = useState(false)
+  const [stampedSlots, setStampedSlots] = useState<Set<number>>(new Set())
 
   // Multi-card state
   const [selectedCardIdx, setSelectedCardIdx] = useState(0)
@@ -166,9 +167,30 @@ export default function CustomerCardPage() {
         const fullCards = Math.floor(stamps / req)
         const rem = stamps % req
         const totalCards = Math.max(1, fullCards + (rem > 0 ? 1 : 0))
-        setSelectedCardIdx(totalCards - 1)
+        const activeCard = totalCards - 1
+        setSelectedCardIdx(activeCard)
 
+        // Determine how many stamps are visible on the active card
+        const cardStampCount = (() => {
+          const isFullCard = activeCard < fullCards
+          if (isFullCard) return req
+          if (rem === 0 && fullCards > 0 && activeCard === fullCards - 1) return req
+          return rem
+        })()
+
+        // Reset animated slots then stagger-animate each filled stamp slot
+        setStampedSlots(new Set())
         setTimeout(() => setCardImpact(true), 150)
+        for (let i = 1; i <= cardStampCount; i++) {
+          const delay = 250 + (i - 1) * 60 // start at 250ms, 60ms apart per stamp
+          setTimeout(() => {
+            setStampedSlots((prev) => {
+              const next = new Set(prev)
+              next.add(i)
+              return next
+            })
+          }, delay)
+        }
       }
     } catch (e) {
       console.error('Failed to fetch live loyalty:', e)
@@ -624,31 +646,37 @@ export default function CustomerCardPage() {
                 {Array.from({ length: TOTAL }).map((_, i) => {
                   const slotNum = i + 1
                   const isFilled = slotNum <= cardStamps
+                  const isAnimated = stampedSlots.has(slotNum)
 
                   return (
                     <div
                       key={slotNum}
-                      className={`aspect-square rounded-full flex items-center justify-center relative ${
+                      className={`aspect-square rounded-full flex items-center justify-center relative overflow-hidden ${
                         isFilled
                           ? 'bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,0.22),transparent_55%),#B53629] shadow-[0_4px_10px_rgba(181,54,41,0.45)]'
                           : 'border-2 border-dashed border-[#E2CE9E] bg-[#FAF2E2]/50'
                       }`}
                       style={{
-                        transform:
-                          isFilled
-                            ? slotNum % 3 === 0
-                              ? 'rotate(-6deg)'
-                              : slotNum % 3 === 1
-                              ? 'rotate(4deg)'
-                              : 'rotate(-2deg)'
-                            : undefined,
+                        transform: isFilled
+                          ? slotNum % 3 === 0
+                            ? 'rotate(-6deg)'
+                            : slotNum % 3 === 1
+                            ? 'rotate(4deg)'
+                            : 'rotate(-2deg)'
+                          : undefined,
                       }}
                     >
+                      {/* Ink burst ring — appears only during stamp animation */}
+                      {isFilled && isAnimated && (
+                        <span
+                          className="absolute inset-0 rounded-full border-2 border-[#B53629]/60 anim-ink-burst pointer-events-none"
+                        />
+                      )}
                       {isFilled && (
                         <img
                           src={normalizeStampIcon(stampIcon)}
                           alt="Stamp"
-                          className="w-[58%] h-[58%] object-contain"
+                          className={`w-[58%] h-[58%] object-contain ${isAnimated ? 'anim-stamp-impact' : ''}`}
                         />
                       )}
                     </div>
