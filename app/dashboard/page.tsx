@@ -344,6 +344,13 @@ export default function CashierDashboard() {
       setBtPrinter(conn)
       showBtToast(`Printer disambung: ${conn.name}`, 'success')
 
+      // 🔔 Play notification sound on successful BT connection
+      try {
+        const audio = new Audio('/new notification.mp3')
+        audio.volume = 0.7
+        audio.play().catch(() => {/* autoplay policy — ignore silently */})
+      } catch (_e) { /* ignore */ }
+
       conn.device.addEventListener('gattserverdisconnected', () => {
         setBtPrinter(null)
         showBtToast('Printer Bluetooth terputus.', 'error')

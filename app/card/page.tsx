@@ -43,6 +43,7 @@ export default function CustomerCardPage() {
   // Modals state
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [showRewardsModal, setShowRewardsModal] = useState(false)
+  const [rewardSlideIdx, setRewardSlideIdx] = useState(0)
 
   useEffect(() => {
     async function checkAuth() {
@@ -606,65 +607,123 @@ export default function CustomerCardPage() {
         </div>
       )}
 
-      {/* 2. POPUP MODAL: KATALOG HADIAH & GANJARAN */}
-      {showRewardsModal && (
-        <div className="fixed inset-0 z-50 bg-[#0A1716]/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-6 shadow-2xl border border-[#E5A43B]/30 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="font-fraunces font-bold text-lg text-[#0A1716]">
+
+      {/* 2. POPUP MODAL: KATALOG HADIAH & GANJARAN — fullscreen carousel */}
+      {showRewardsModal && (() => {
+        const slide = effectiveRewards[rewardSlideIdx] ?? effectiveRewards[0]
+        const total = effectiveRewards.length
+        return (
+          <div
+            className="fixed inset-0 z-50 flex flex-col bg-[#0A1716]"
+            onContextMenu={(e) => e.preventDefault()}
+            style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+          >
+            {/* TOP BAR */}
+            <div className="flex items-center justify-between px-4 pt-5 pb-3 shrink-0">
+              <div
+                className="font-fraunces font-bold text-base text-[#F7EEDA]"
+                style={{ userSelect: 'none' }}
+              >
                 🎁 Hadiah &amp; Ganjaran
               </div>
               <button
                 onClick={() => setShowRewardsModal(false)}
-                className="text-gray-400 hover:text-gray-700 text-xl font-bold p-1 cursor-pointer"
+                className="w-9 h-9 rounded-full bg-[#FAF2E2]/10 flex items-center justify-center text-[#F7EEDA] hover:bg-[#FAF2E2]/20 transition cursor-pointer text-lg font-bold"
               >
-                &times;
+                ×
               </button>
             </div>
 
-            <div className="max-h-[340px] overflow-y-auto space-y-2.5 mb-5 pr-1">
-              {effectiveRewards.map((item, i) => (
-                <div
-                  key={item.id || i}
-                  className="flex items-center gap-3 bg-white p-3 rounded-2xl border border-[#E4D9BE] shadow-sm"
-                >
-                  {item.imageUrl ? (
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      className="w-14 h-14 rounded-xl object-cover border border-[#E2CE9E] shrink-0 bg-gray-100"
-                    />
-                  ) : (
-                    <div className="w-14 h-14 rounded-xl bg-[#FAF2E2] flex items-center justify-center text-2xl shrink-0 border border-[#E2CE9E]">
-                      🎁
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="font-bold text-sm text-[#0A1716] truncate">
-                      {item.name}
-                    </div>
-                    {item.description && (
-                      <div className="text-[11px] text-[#5E6F68] truncate mt-0.5">
-                        {item.description}
-                      </div>
-                    )}
-                    <div className="inline-block mt-1 font-space text-[10px] font-bold text-[#B53629] bg-red-100 px-2 py-0.5 rounded-md">
-                      ⚡ {item.stampsRequired || TOTAL} Cop Diperlukan
-                    </div>
-                  </div>
+            {/* IMAGE — fills remaining space */}
+            <div className="flex-1 relative overflow-hidden mx-0">
+              {slide?.imageUrl ? (
+                <img
+                  src={slide.imageUrl}
+                  alt={slide.name}
+                  draggable={false}
+                  className="w-full h-full object-cover"
+                  style={{ pointerEvents: 'none', userSelect: 'none' }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-8xl bg-[#1A2B29]">
+                  🎁
                 </div>
-              ))}
+              )}
+
+              {/* Dark gradient at bottom */}
+              <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#0A1716] to-transparent pointer-events-none" />
+
+              {/* Slide Arrows — only if multiple */}
+              {total > 1 && (
+                <>
+                  <button
+                    onClick={() => setRewardSlideIdx((rewardSlideIdx - 1 + total) % total)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 text-white flex items-center justify-center text-xl hover:bg-black/60 transition cursor-pointer"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    onClick={() => setRewardSlideIdx((rewardSlideIdx + 1) % total)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 text-white flex items-center justify-center text-xl hover:bg-black/60 transition cursor-pointer"
+                  >
+                    ›
+                  </button>
+                </>
+              )}
+
+              {/* Info overlay at bottom of image area */}
+              <div className="absolute inset-x-0 bottom-0 px-5 pb-4 pt-12">
+                <div
+                  className="font-fraunces font-bold text-[22px] text-[#FAF2E2] leading-tight mb-1"
+                  style={{ userSelect: 'none' }}
+                >
+                  {slide?.name}
+                </div>
+                {slide?.description && (
+                  <div
+                    className="text-[13px] text-[#C4B897] mb-2"
+                    style={{ userSelect: 'none' }}
+                  >
+                    {slide.description}
+                  </div>
+                )}
+                <div
+                  className="inline-flex items-center gap-1.5 font-space text-[11px] font-bold text-[#E5A43B] bg-[#E5A43B]/15 border border-[#E5A43B]/30 px-3 py-1 rounded-full"
+                  style={{ userSelect: 'none' }}
+                >
+                  ⚡ {slide?.stampsRequired || TOTAL} Cop Diperlukan
+                </div>
+              </div>
             </div>
 
-            <button
-              onClick={() => setShowRewardsModal(false)}
-              className="w-full py-2.5 bg-[#1E5E53] hover:bg-[#2D786B] text-white font-bold text-xs rounded-xl transition cursor-pointer"
-            >
-              Tutup
-            </button>
+            {/* DOTS + CLOSE BUTTON */}
+            <div className="shrink-0 px-5 pb-6 pt-3 flex flex-col items-center gap-3">
+              {/* Slide dots */}
+              {total > 1 && (
+                <div className="flex items-center gap-1.5">
+                  {Array.from({ length: total }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setRewardSlideIdx(i)}
+                      className={`rounded-full transition-all cursor-pointer ${
+                        i === rewardSlideIdx
+                          ? 'w-5 h-2 bg-[#E5A43B]'
+                          : 'w-2 h-2 bg-[#FAF2E2]/30 hover:bg-[#FAF2E2]/60'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+              <button
+                onClick={() => setShowRewardsModal(false)}
+                className="w-full py-3 bg-[#1E5E53] hover:bg-[#2D786B] text-white font-bold text-sm rounded-2xl transition cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
     </main>
   )
 }

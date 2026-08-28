@@ -86,11 +86,19 @@ export async function GET(req: NextRequest) {
       .eq('store_id', storeId)
       .eq('status', 'claimed')
 
-    // E. Total rewards redeemed
-    const { count: totalRedemptions } = await admin
-      .from('stamp_redemptions')
-      .select('id', { count: 'exact', head: true })
-      .eq('store_id', storeId)
+    // E. Total rewards redeemed (with fallback if stamp_redemptions table doesn't exist)
+    let totalRedemptions = 0
+    try {
+      const { count: redemptionCount, error: redemptionError } = await admin
+        .from('stamp_redemptions')
+        .select('id', { count: 'exact', head: true })
+        .eq('store_id', storeId)
+      if (!redemptionError) {
+        totalRedemptions = redemptionCount || 0
+      }
+    } catch (_e) {
+      // stamp_redemptions table may not exist yet — treat as 0
+    }
 
     // 3. Fetch Paginated Activity Logs (Tokens + Redemptions)
     const offset = (page - 1) * limit
