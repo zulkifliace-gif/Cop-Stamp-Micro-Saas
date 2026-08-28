@@ -106,12 +106,26 @@ export async function GET(req: NextRequest) {
     const hasMore = page < totalPages
 
     // Fetch this page's tokens
-    const { data: tokens, error: tokenError } = await admin
+    let tokens: any[] | null = null
+    let { data: rawTokens, error: tokenError } = await admin
       .from('stamp_tokens')
       .select('id, token, stamp_count, status, delivery_method, recipient_email, created_at, expires_at, claimed_at')
       .eq('store_id', storeId)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
+
+    tokens = rawTokens
+
+    if (tokenError && (tokenError.message.includes('delivery_method') || tokenError.message.includes('recipient_email'))) {
+      const fallback = await admin
+        .from('stamp_tokens')
+        .select('id, token, stamp_count, status, created_at, expires_at, claimed_at')
+        .eq('store_id', storeId)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1)
+      tokens = fallback.data
+      tokenError = fallback.error
+    }
 
     if (tokenError) {
       console.error('Error fetching activity:', tokenError)

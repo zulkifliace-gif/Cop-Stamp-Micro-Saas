@@ -138,20 +138,35 @@ export async function POST(req: NextRequest) {
     const tokenCode = generateSecureToken()
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString()
 
-    const { data: tokenRecord, error: insertError } = await admin
+    const insertPayload: any = {
+      token: tokenCode,
+      store_id: storeId,
+      stamp_count: count,
+      status: 'pending',
+      created_by: user.id,
+      expires_at: expiresAt,
+    }
+
+    let { data: tokenRecord, error: insertError } = await admin
       .from('stamp_tokens')
       .insert({
-        token: tokenCode,
-        store_id: storeId,
-        stamp_count: count,
-        status: 'pending',
+        ...insertPayload,
         delivery_method: deliveryMethod,
         recipient_email: customerEmail || null,
-        created_by: user.id,
-        expires_at: expiresAt,
       })
       .select()
       .maybeSingle()
+
+    // Fallback: jika lajur delivery_method tiada dalam DB, retry tanpa lajur tersebut
+    if (insertError && (insertError.message.includes('delivery_method') || insertError.message.includes('recipient_email'))) {
+      const retry = await admin
+        .from('stamp_tokens')
+        .insert(insertPayload)
+        .select()
+        .maybeSingle()
+      tokenRecord = retry.data
+      insertError = retry.error
+    }
 
     if (insertError || !tokenRecord) {
       console.error('Failed to create stamp token:', insertError)
