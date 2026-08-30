@@ -126,9 +126,11 @@ export async function POST(req: NextRequest) {
       .eq('id', customerId)
       .maybeSingle()
 
+    const countNum = Math.max(1, Number(rewardCount) || 1)
+    const baseRewardName = selectedReward?.name || store.reward_description || 'Ganjaran Percuma'
+    const fullRewardName = countNum > 1 ? `${baseRewardName} x${countNum}` : baseRewardName
+
     // 6. Record redemption in stamp_redemptions
-    // NOTA: reward_id & reward_name memerlukan lajur berkenaan wujud dalam table stamp_redemptions.
-    // Jika lajur belum wujud, buang 2 baris tu dulu ATAU tambah lajur di Supabase terlebih dahulu.
     const { error: redemptionError } = await admin
       .from('stamp_redemptions')
       .insert({
@@ -137,7 +139,7 @@ export async function POST(req: NextRequest) {
         stamps_used: stampsNeeded,
         redeemed_by_staff: user.id,
         reward_id: selectedReward?.id || null,
-        reward_name: selectedReward?.name || store.reward_description,
+        reward_name: fullRewardName,
       })
 
     if (redemptionError) {
@@ -150,7 +152,8 @@ export async function POST(req: NextRequest) {
       previousStamps: loyalty.total_stamps,
       stampsUsed: stampsNeeded,
       remainingStamps: newTotalStamps,
-      rewardDescription: selectedReward?.name || store.reward_description,
+      rewardDescription: baseRewardName,
+      rewardQuantity: countNum,
       customerEmail: profile?.email || null,
       storeName: store.name,
       redeemedAt: new Date().toISOString(),

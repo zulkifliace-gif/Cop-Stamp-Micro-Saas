@@ -808,7 +808,7 @@ export default function ClaimClient({
 
       {/* STORE NAME & LOGO CENTERED AT TOP */}
       <div className="flex flex-col items-center text-center mb-3.5 w-full">
-        <div className="w-14 h-14 rounded-full bg-[#E7A33E] text-[#1C2624] font-fraunces font-bold flex items-center justify-center text-2xl shrink-0 shadow-lg mb-2 overflow-hidden border-2 border-[#FAF2E2]/20">
+        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#E7A33E] text-[#1C2624] font-fraunces font-bold flex items-center justify-center text-3xl shrink-0 shadow-lg mb-2 overflow-hidden border-2 border-[#FAF2E2]/30 ring-2 ring-[#E5A43B]/20">
           {claimData.logoUrl ? (
             <img src={claimData.logoUrl} alt={claimData.storeName} className="w-full h-full object-cover" />
           ) : (

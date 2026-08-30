@@ -780,6 +780,7 @@ export default function CashierDashboard() {
         stampsUsed: data.stampsUsed,
         remainingStamps: data.remainingStamps,
         rewardName: data.rewardDescription || searchResult.rewardDescription || 'Ganjaran Percuma',
+        rewardQuantity: data.rewardQuantity || redeemCount || 1,
         redeemedAt: data.redeemedAt || new Date().toISOString(),
       }
 
@@ -1571,7 +1572,12 @@ export default function CashierDashboard() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-400">{t.searchSection.receiptReward}</span>
-                          <b className="text-emerald-700">{lastClaimReceipt.rewardName}</b>
+                          <b className="text-emerald-700">
+                            {lastClaimReceipt.rewardName}
+                            {lastClaimReceipt.rewardQuantity && lastClaimReceipt.rewardQuantity > 1
+                              ? ` x${lastClaimReceipt.rewardQuantity}`
+                              : ''}
+                          </b>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-400">{t.searchSection.receiptStampsUsed}</span>

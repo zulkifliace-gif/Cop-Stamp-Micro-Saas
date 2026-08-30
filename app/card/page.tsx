@@ -617,7 +617,7 @@ export default function CustomerCardPage() {
 
             {/* STORE NAME WITH VERIFIED CHECKMARK & SOCIAL LINKS */}
             <div className="flex flex-col items-center text-center mb-3 w-full">
-              <div className="w-13 h-13 rounded-full bg-[#E7A33E] text-[#1C2624] font-fraunces font-bold flex items-center justify-center text-xl shrink-0 shadow-md mb-1.5 overflow-hidden border border-[#FAF2E2]/20">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#E7A33E] text-[#1C2624] font-fraunces font-bold flex items-center justify-center text-3xl shrink-0 shadow-lg mb-2 overflow-hidden border-2 border-[#FAF2E2]/30 ring-2 ring-[#E5A43B]/20">
                 {logoUrl ? (
                   <img src={logoUrl} alt={storeName} className="w-full h-full object-cover" />
                 ) : (

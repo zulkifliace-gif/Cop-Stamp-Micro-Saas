@@ -51,6 +51,7 @@ export interface ClaimReceiptData {
   stampsUsed: number
   remainingStamps: number
   rewardName: string
+  rewardQuantity?: number
   redeemedAt?: string | Date
 }
 
@@ -315,6 +316,7 @@ export async function printClaimReceipt(
       stampsUsed,
       remainingStamps,
       rewardName,
+      rewardQuantity = 1,
       redeemedAt = new Date(),
     } = data
 
@@ -336,6 +338,8 @@ export async function printClaimReceipt(
       hour12: false,
     })
 
+    const qtySuffix = rewardQuantity > 1 ? ` x${rewardQuantity}` : ''
+
     // 1. Initialize
     append(ESC_POS.INIT)
     append(ESC_POS.ALIGN_CENTER)
@@ -353,7 +357,7 @@ export async function printClaimReceipt(
     append(ESC_POS.ALIGN_CENTER)
     append(ESC_POS.BOLD_ON)
     append(ESC_POS.DOUBLE_SIZE)
-    appendText('DONE CLAIM\n')
+    appendText(rewardQuantity > 1 ? `DONE CLAIM x${rewardQuantity}\n` : 'DONE CLAIM\n')
     append(ESC_POS.NORMAL_TEXT)
     append(ESC_POS.BOLD_OFF)
     appendText('--------------------------------\n')
@@ -362,7 +366,7 @@ export async function printClaimReceipt(
     append(ESC_POS.ALIGN_LEFT)
     appendText(`Store  : ${storeName}\n`)
     appendText(`Email  : ${customerEmail}\n`)
-    appendText(`Reward : ${rewardName}\n`)
+    appendText(`Reward : ${rewardName}${qtySuffix}\n`)
     appendText(`Used   : ${stampsUsed} Stamps\n`)
     appendText(`Balance: ${remainingStamps} Stamps\n`)
     appendText(`Date   : ${formattedDate} ${formattedTime}\n`)
