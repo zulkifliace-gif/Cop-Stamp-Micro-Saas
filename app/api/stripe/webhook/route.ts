@@ -24,20 +24,33 @@ export async function POST(req: NextRequest) {
 
   const admin = createAdminClient()
 
-  // #2 Webhook Idempotency Enforcement: Check if this event was already processed
-  try {
-    const { data: existingEvent } = await admin
-      .from('stripe_webhook_events')
-      .select('event_id')
-      .eq('event_id', event.id)
-      .maybeSingle()
+  // #2 Webhook Idempotency Enforcement (fixed): RESERVE the event_id atomically
+  // BEFORE any processing, instead of checking-then-inserting-after. This closes
+  // the race window where two concurrent deliveries of the same event.id could
+  // both pass a "not exists" check before either had written its row.
+  //
+  // event_id is the primary key on stripe_webhook_events, so this insert is the
+  // atomic compare-and-set: only one concurrent request can succeed. Whichever
+  // fails with a unique-violation is the duplicate and exits immediately without
+  // touching store data.
+  const { error: reserveError } = await admin
+    .from('stripe_webhook_events')
+    .insert({
+      event_id: event.id,
+      event_type: event.type,
+      store_id: null, // filled in later via update, once we know the store
+    })
 
-    if (existingEvent) {
+  if (reserveError) {
+    // Postgres unique_violation = 23505. Any other error we log and still bail,
+    // since without a reserved row we can't safely guarantee idempotency and
+    // Stripe will retry the delivery anyway.
+    if (reserveError.code === '23505') {
       console.log(`[Stripe Webhook] Duplicate event skipped (Idempotency): ${event.id}`)
       return NextResponse.json({ received: true, duplicate: true })
     }
-  } catch (idempErr: any) {
-    console.warn('[Stripe Webhook] Idempotency check warning:', idempErr.message)
+    console.error('[Stripe Webhook] Failed to reserve event ID:', reserveError.message)
+    return NextResponse.json({ error: 'Failed to reserve webhook event' }, { status: 500 })
   }
 
   let processedStoreId: string | null = null
@@ -59,7 +72,7 @@ export async function POST(req: NextRequest) {
               subscription_status: 'active',
               stripe_customer_id: session.customer || null,
               stripe_subscription_id: session.subscription || null,
-              plan_type: planType === 'yearly' ? 'pro' : 'pro',
+              plan_type: 'pro',
             })
             .eq('id', storeId)
         }
@@ -123,20 +136,24 @@ export async function POST(req: NextRequest) {
         console.log(`[Stripe Webhook] Ignored event: ${event.type}`)
     }
 
-    // Record processed event into idempotency table
-    try {
-      await admin.from('stripe_webhook_events').insert({
-        event_id: event.id,
-        event_type: event.type,
-        store_id: processedStoreId,
-      })
-    } catch (insertErr: any) {
-      console.warn('[Stripe Webhook] Failed to record event ID in idempotency log:', insertErr.message)
+    // Backfill store_id on the reservation row now that we know it (best-effort;
+    // the row already exists so this is just enrichment, not the idempotency gate).
+    if (processedStoreId) {
+      await admin
+        .from('stripe_webhook_events')
+        .update({ store_id: processedStoreId })
+        .eq('event_id', event.id)
     }
 
     return NextResponse.json({ received: true })
   } catch (err: any) {
     console.error('[Stripe Webhook Processing Error]:', err.message)
+    // NOTE: the reservation row is already committed at this point, so a
+    // retry of this same event.id from Stripe will be treated as a duplicate
+    // and skipped rather than reprocessed. If you need Stripe to retry this
+    // event's business logic on failure, delete the reservation row here
+    // before returning the error — but that reopens the original race window,
+    // so only do it if you also make the business logic itself idempotent.
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }
