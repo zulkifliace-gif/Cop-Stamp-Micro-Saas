@@ -30,6 +30,12 @@ alter table public.stores add column if not exists stripe_customer_id text;
 alter table public.stores add column if not exists stripe_subscription_id text;
 alter table public.stores add column if not exists subscription_end_date timestamptz;
 
+-- Ownership & routing columns (wujud dalam DB production sebelum schema.sql
+-- ni ditulis, jadi mesti dinyatakan di sini supaya fresh-install pun ada)
+alter table public.stores add column if not exists owner_id uuid references auth.users(id);
+alter table public.stores add column if not exists slug text;
+alter table public.stores add column if not exists updated_at timestamptz not null default now();
+
 
 -- 3. Store Staff Table (cashiers and owners)
 create table if not exists public.store_staff (
@@ -92,6 +98,22 @@ create table if not exists public.customer_loyalty (
 );
 
 create index if not exists idx_customer_loyalty_lookup on public.customer_loyalty(customer_id, store_id);
+
+-- Backward compatibility columns (DB production sebelum ni tiada id/created_at
+-- berasingan, dan ada total_redeemed yang tak dinyatakan dalam create table asal)
+alter table public.customer_loyalty add column if not exists id uuid default gen_random_uuid();
+alter table public.customer_loyalty add column if not exists created_at timestamptz not null default now();
+alter table public.customer_loyalty add column if not exists total_redeemed integer not null default 0;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'customer_loyalty_customer_store_unique'
+  ) then
+    alter table public.customer_loyalty
+      add constraint customer_loyalty_customer_store_unique unique (customer_id, store_id);
+  end if;
+end $$;
 
 -- 7. Stamp Redemptions Table (records when customer claims rewards)
 create table if not exists public.stamp_redemptions (
