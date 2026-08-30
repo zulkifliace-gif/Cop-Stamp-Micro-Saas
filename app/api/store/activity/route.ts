@@ -56,11 +56,18 @@ export async function GET(req: NextRequest) {
     }
 
     // 2. Compute Store Overview Stats
-    // A. Total distinct customers under store
-    const { count: customerCount } = await admin
-      .from('customer_loyalty')
-      .select('id', { count: 'exact', head: true })
+    // A. Total distinct customers — kira dari stamp_tokens (claimed_by) supaya
+    //    merangkumi semua pelanggan termasuk yang claim tanpa log masuk.
+    //    customer_loyalty hanya ada row untuk pelanggan yang log masuk.
+    const { data: claimedByRows } = await admin
+      .from('stamp_tokens')
+      .select('claimed_by')
       .eq('store_id', storeId)
+      .eq('status', 'claimed')
+      .not('claimed_by', 'is', null)
+
+    const uniqueCustomers = new Set((claimedByRows || []).map((r) => r.claimed_by))
+    const customerCount = uniqueCustomers.size
 
     // B. Total stamps in circulation (from customer_loyalty)
     const { data: loyaltyRows } = await admin
