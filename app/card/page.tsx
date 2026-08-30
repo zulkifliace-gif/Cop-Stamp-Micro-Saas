@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { Lang, I18N_CARD } from '@/lib/i18n/card'
 
 interface RewardItem {
   id?: string
@@ -70,6 +71,27 @@ function getSocialIcon(platform: string) {
 
 export default function CustomerCardPage() {
   const supabase = createClient()
+
+  // Language state (defaults to 'my', persists to localStorage)
+  const [lang, setLang] = useState<Lang>('my')
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('lajus_lang') as Lang | null
+      if (saved === 'my' || saved === 'en') {
+        setLang(saved)
+      }
+    } catch {}
+  }, [])
+
+  const switchLang = (newLang: Lang) => {
+    setLang(newLang)
+    try {
+      localStorage.setItem('lajus_lang', newLang)
+    } catch {}
+  }
+
+  const t = I18N_CARD[lang]
 
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -224,7 +246,7 @@ export default function CustomerCardPage() {
   async function handleEmailAuth(e: React.FormEvent) {
     e.preventDefault()
     if (!email || !password) {
-      setAuthError('Sila isi emel dan kata laluan.')
+      setAuthError(t.login.fillFieldsError)
       return
     }
 
@@ -256,7 +278,7 @@ export default function CustomerCardPage() {
         }
       }
     } catch (err: any) {
-      setAuthError(err.message || 'Gagal log masuk.')
+      setAuthError(err.message || t.login.authFailed)
     } finally {
       setIsAuthenticating(false)
     }
@@ -282,13 +304,13 @@ export default function CustomerCardPage() {
       })
       const data = await res.json()
       if (!res.ok || !data.success) {
-        setDeleteAccountError(data.error || 'Gagal memadam akaun.')
+        setDeleteAccountError(data.error || t.deleteModal.failedDelete)
         return
       }
       await supabase.auth.signOut()
       window.location.href = '/'
     } catch (err: any) {
-      setDeleteAccountError('Ralat sambungan. Sila cuba lagi.')
+      setDeleteAccountError(t.deleteModal.connError)
     } finally {
       setIsDeletingAccount(false)
     }
@@ -361,59 +383,86 @@ export default function CustomerCardPage() {
       ? rewardsList
       : [
           {
-            name: rewardDesc || 'Ganjaran Percuma',
+            name: rewardDesc || (lang === 'en' ? 'Free Reward' : 'Ganjaran Percuma'),
             stampsRequired: TOTAL,
             imageUrl: rewardImageUrl || '',
-            description: 'Ganjaran bagi kesetiaan pelanggan.',
+            description: lang === 'en' ? 'Reward for customer loyalty.' : 'Ganjaran bagi kesetiaan pelanggan.',
           },
         ]
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 font-jakarta text-[#F7EEDA] bg-dot-pattern">
       <div className="w-full max-w-[390px] mx-auto flex flex-col items-center justify-center z-10 relative">
-        {/* LOGGED IN TOP ACTIONS (ICON ONLY) */}
-        {user && (
-          <div className="w-full flex items-center justify-end gap-2 mb-3">
+        {/* TOP ACTIONS BAR (REFRESH, LOGOUT & MY/EN TOGGLE) */}
+        <div className="w-full flex items-center justify-between mb-3">
+          <div className="flex items-center gap-1 bg-[#FAF2E2]/[0.08] border border-[#FAF2E2]/15 rounded-full p-0.5 backdrop-blur-xs">
             <button
-              onClick={() => fetchLoyalty(activeStoreId)}
-              disabled={refreshing}
-              title="Muat semula"
-              className="w-8 h-8 rounded-full border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.06] text-[#FAF2E2] hover:bg-[#FAF2E2]/15 transition flex items-center justify-center cursor-pointer shadow-sm active:scale-95"
+              type="button"
+              onClick={() => switchLang('my')}
+              className={`px-2 py-0.5 text-[10.5px] font-bold rounded-full transition-all cursor-pointer font-space ${
+                lang === 'my'
+                  ? 'bg-[#E5A43B] text-[#1A2422] shadow-xs'
+                  : 'text-[#FAF2E2]/60 hover:text-[#FAF2E2]'
+              }`}
             >
-              <svg
-                className={`w-3.5 h-3.5 text-[#E5A43B] ${refreshing ? 'animate-spin' : ''}`}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
-              </svg>
+              MY
             </button>
-
             <button
-              onClick={handleLogout}
-              title="Log keluar"
-              className="w-8 h-8 rounded-full border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.06] text-[#5B6B64] hover:text-[#FAF2E2] hover:bg-[#FAF2E2]/15 transition flex items-center justify-center cursor-pointer shadow-sm active:scale-95"
+              type="button"
+              onClick={() => switchLang('en')}
+              className={`px-2 py-0.5 text-[10.5px] font-bold rounded-full transition-all cursor-pointer font-space ${
+                lang === 'en'
+                  ? 'bg-[#E5A43B] text-[#1A2422] shadow-xs'
+                  : 'text-[#FAF2E2]/60 hover:text-[#FAF2E2]'
+              }`}
             >
-              <svg
-                className="w-3.5 h-3.5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
+              EN
             </button>
           </div>
-        )}
+
+          {user && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => fetchLoyalty(activeStoreId)}
+                disabled={refreshing}
+                title={t.topbar.refreshTooltip}
+                className="w-8 h-8 rounded-full border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.06] text-[#FAF2E2] hover:bg-[#FAF2E2]/15 transition flex items-center justify-center cursor-pointer shadow-sm active:scale-95"
+              >
+                <svg
+                  className={`w-3.5 h-3.5 text-[#E5A43B] ${refreshing ? 'animate-spin' : ''}`}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                </svg>
+              </button>
+
+              <button
+                onClick={handleLogout}
+                title={t.topbar.logoutTooltip}
+                className="w-8 h-8 rounded-full border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.06] text-[#5B6B64] hover:text-[#FAF2E2] hover:bg-[#FAF2E2]/15 transition flex items-center justify-center cursor-pointer shadow-sm active:scale-95"
+              >
+                <svg
+                  className="w-3.5 h-3.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* IF NOT LOGGED IN: CLEAN LOGIN */}
         {!user ? (
@@ -423,10 +472,10 @@ export default function CustomerCardPage() {
                 <img src="/logo.svg" alt="LajuS" className="w-8 h-8 object-contain" />
               </div>
               <div className="font-fraunces font-bold text-xl text-[#0A1716] mb-0.5">
-                Kad Cop Digital
+                {t.login.digitalStampCard}
               </div>
               <div className="text-xs text-[#5E6F68]">
-                Semak baki cop &amp; ganjaran anda
+                {t.login.checkStampsSubtitle}
               </div>
             </div>
 
@@ -442,11 +491,11 @@ export default function CustomerCardPage() {
                 <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.98A9 9 0 0 0 0 9c0 1.45.35 2.83.98 4.03l2.97-2.33z" />
                 <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.9 11.42 0 9 0A9 9 0 0 0 .98 4.97l2.97 2.33C4.66 5.17 6.65 3.58 9 3.58z" />
               </svg>
-              Log masuk dengan Google
+              {t.login.loginWithGoogle}
             </button>
 
             <div className="flex items-center gap-2.5 my-3.5 text-[#5B6B64] font-space text-[9.5px] tracking-[0.1em] before:content-[''] before:flex-1 before:h-[1px] before:bg-[#E2CE9E] after:content-[''] after:flex-1 after:h-[1px] after:bg-[#E2CE9E]">
-              ATAU
+              {t.login.orDivider}
             </div>
 
             {authError && (
@@ -461,7 +510,7 @@ export default function CustomerCardPage() {
                   type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Emel / Username"
+                  placeholder={t.login.emailPlaceholder}
                   className="border-none outline-none flex-1 font-jakarta text-sm text-[#1C2624] bg-transparent"
                 />
               </div>
@@ -471,7 +520,7 @@ export default function CustomerCardPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Kata laluan"
+                  placeholder={t.login.passwordPlaceholder}
                   className="border-none outline-none flex-1 font-jakarta text-sm text-[#1C2624] bg-transparent"
                 />
               </div>
@@ -481,17 +530,17 @@ export default function CustomerCardPage() {
                 disabled={isAuthenticating}
                 className="w-full border-none rounded-[12px] py-3 px-4 bg-gradient-to-b from-[#E7A33E] to-[#C97F1F] text-[#1C2624] font-jakarta font-bold text-sm cursor-pointer active:scale-[0.98] transition disabled:opacity-60 shadow"
               >
-                {isAuthenticating ? 'Memproses...' : isSignup ? 'Daftar' : 'Log Masuk'}
+                {isAuthenticating ? t.login.processing : isSignup ? t.login.signupBtn : t.login.loginBtn}
               </button>
             </form>
 
             <div className="text-center mt-3.5 text-xs text-[#5B6B64]">
-              {isSignup ? 'Sudah ada akaun? ' : 'Akaun baru? '}
+              {isSignup ? t.login.alreadyHaveAccount : t.login.newAccount}
               <button
                 onClick={() => setIsSignup(!isSignup)}
                 className="text-[#1F5C52] font-semibold underline cursor-pointer hover:text-[#2E7568]"
               >
-                {isSignup ? 'Log masuk' : 'Daftar'}
+                {isSignup ? t.login.loginLink : t.login.signupLink}
               </button>
             </div>
           </div>
@@ -521,7 +570,7 @@ export default function CustomerCardPage() {
                             : 'bg-[#E5A43B]/20 text-[#E5A43B]'
                         }`}
                       >
-                        {st.totalStamps} Cop
+                        {st.totalStamps} {t.card.stampsUnit}
                       </span>
                     </button>
                   )
@@ -545,8 +594,8 @@ export default function CustomerCardPage() {
                 {isStoreVerified && (
                   <img
                     src="/green-checkmark-line-icon.svg"
-                    alt="Disahkan"
-                    title="Kedai Disahkan (Profil Lengkap)"
+                    alt={t.card.verifiedStoreTitle}
+                    title={t.card.verifiedStoreTitle}
                     className="w-4 h-4 object-contain inline-block shrink-0"
                   />
                 )}
@@ -578,7 +627,7 @@ export default function CustomerCardPage() {
               <div className="flex items-center justify-center gap-2 mt-2">
                 <button
                   onClick={() => setShowInfoModal(true)}
-                  title="Cara Penebusan"
+                  title={t.card.howToRedeemBtn}
                   className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full border border-[#F7EEDA]/15 bg-[#F7EEDA]/[0.07] text-[11px] font-semibold text-[#F7EEDA] hover:bg-[#F7EEDA]/15 transition cursor-pointer"
                 >
                   <svg className="w-3 h-3 text-[#E7A33E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -586,12 +635,12 @@ export default function CustomerCardPage() {
                     <line x1="12" y1="16" x2="12" y2="12" />
                     <line x1="12" y1="8" x2="12.01" y2="8" />
                   </svg>
-                  <span>Cara Tebus (i)</span>
+                  <span>{t.card.howToRedeemBtn}</span>
                 </button>
 
                 <button
                   onClick={() => setShowRewardsModal(true)}
-                  title="Hadiah"
+                  title={t.card.rewardsBtn}
                   className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full border border-[#F7EEDA]/15 bg-[#F7EEDA]/[0.07] text-[11px] font-semibold text-[#F7EEDA] hover:bg-[#F7EEDA]/15 transition cursor-pointer"
                 >
                   <svg className="w-3 h-3 text-[#E7A33E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -601,7 +650,7 @@ export default function CustomerCardPage() {
                     <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
                     <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
                   </svg>
-                  <span>Hadiah</span>
+                  <span>{t.card.rewardsBtn}</span>
                 </button>
               </div>
             </div>
@@ -623,10 +672,10 @@ export default function CustomerCardPage() {
                           : 'bg-[#FAF2E2]/10 text-[#FAF2E2]/70 hover:bg-[#FAF2E2]/20'
                       }`}
                     >
-                      <span>Kad #{idx + 1}</span>
+                      <span>{t.card.cardTab(idx + 1)}</span>
                       {isFull ? (
                         <span className="text-[9px] bg-emerald-600 text-white px-1.5 py-0.2 rounded-full">
-                          Penuh ✓
+                          {t.card.fullBadge}
                         </span>
                       ) : (
                         <span className="text-[9px] opacity-75">
@@ -647,7 +696,7 @@ export default function CustomerCardPage() {
             >
               <div className="text-center mb-4">
                 <div className="font-space text-[10px] tracking-[0.14em] uppercase text-[#1E5E53] mb-0.5 font-semibold">
-                  Kad #{selectedCardIdx + 1} {isViewingFullCard && '• Sedia Ditebus'}
+                  {t.card.cardHeader(selectedCardIdx + 1, isViewingFullCard)}
                 </div>
                 <div className="font-fraunces font-bold text-[30px] text-[#B53629] leading-none">
                   <span>{cardStamps}</span>
@@ -712,16 +761,23 @@ export default function CustomerCardPage() {
               <div className="text-center text-[12.5px] text-[#1E5E53] font-semibold">
                 {isViewingFullCard ? (
                   <span className="text-emerald-800 font-bold">
-                    🎉 Lengkap! Tebus: {rewardDesc}
+                    {t.card.completeRedeem(rewardDesc)}
                   </span>
                 ) : cardRemain > 0 ? (
                   <>
-                    Lagi <b className="text-[#B53629]">{cardRemain}</b> cop untuk:{' '}
-                    {rewardDesc}
+                    {lang === 'en' ? (
+                      <>
+                        <b className="text-[#B53629]">{cardRemain}</b> more stamp{cardRemain > 1 ? 's' : ''} for: {rewardDesc}
+                      </>
+                    ) : (
+                      <>
+                        Lagi <b className="text-[#B53629]">{cardRemain}</b> cop untuk: {rewardDesc}
+                      </>
+                    )}
                   </>
                 ) : (
                   <>
-                    <b className="text-[#B53629]">Tahniah!</b> Kad cop telah genap.
+                    <b className="text-[#B53629]">{lang === 'en' ? 'Congratulations!' : 'Tahniah!'}</b> {t.card.congratsFull}
                   </>
                 )}
               </div>
@@ -729,11 +785,13 @@ export default function CustomerCardPage() {
 
             <div className="w-full text-center mt-3 text-[11px] text-[#5B6B64] font-space">
               {updatedAt
-                ? `Kemaskini: ${new Date(updatedAt).toLocaleTimeString('ms-MY', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}`
-                : 'Imbas QR di kaunter untuk menambah cop'}
+                ? t.card.lastUpdated(
+                    new Date(updatedAt).toLocaleTimeString(lang === 'en' ? 'en-US' : 'ms-MY', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  )
+                : t.card.scanHint}
             </div>
           </div>
         )}
@@ -746,7 +804,7 @@ export default function CustomerCardPage() {
           </div>
           <div className="flex items-center gap-2 text-[10px]">
             <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#FAF2E2]/70 hover:text-[#E5A43B] underline">
-              Dasar Privasi
+              {t.footer.privacyPolicy}
             </a>
             {user && (
               <>
@@ -760,7 +818,7 @@ export default function CustomerCardPage() {
                   }}
                   className="text-red-400/80 hover:text-red-300 underline cursor-pointer"
                 >
-                  Padam Akaun
+                  {t.footer.deleteAccount}
                 </button>
               </>
             )}
@@ -774,7 +832,7 @@ export default function CustomerCardPage() {
           <div className="w-full max-w-sm bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-5 shadow-2xl border border-[#E5A43B]/30 anim-popup">
             <div className="flex items-center justify-between mb-3.5">
               <div className="font-fraunces font-bold text-base text-[#0A1716]">
-                💡 Cara Penebusan
+                {t.infoModal.title}
               </div>
               <button
                 onClick={() => setShowInfoModal(false)}
@@ -789,28 +847,28 @@ export default function CustomerCardPage() {
                 <div className="w-5 h-5 rounded-full bg-[#1E5E53] text-white font-bold text-[10px] flex items-center justify-center shrink-0">
                   1
                 </div>
-                <div>Kumpul cop sehingga genap 10 cop.</div>
+                <div>{t.infoModal.step1}</div>
               </div>
 
               <div className="flex items-center gap-2.5 bg-white p-2.5 rounded-xl border border-[#E4D9BE]">
                 <div className="w-5 h-5 rounded-full bg-[#1E5E53] text-white font-bold text-[10px] flex items-center justify-center shrink-0">
                   2
                 </div>
-                <div>Maklumkan staff ingin menebus ganjaran.</div>
+                <div>{t.infoModal.step2}</div>
               </div>
 
               <div className="flex items-center gap-2.5 bg-white p-2.5 rounded-xl border border-[#E4D9BE]">
                 <div className="w-5 h-5 rounded-full bg-[#1E5E53] text-white font-bold text-[10px] flex items-center justify-center shrink-0">
                   3
                 </div>
-                <div>Sebut emel akaun ({user?.email || 'emel anda'}).</div>
+                <div>{t.infoModal.step3(user?.email || (lang === 'en' ? 'your email' : 'emel anda'))}</div>
               </div>
 
               <div className="flex items-center gap-2.5 bg-white p-2.5 rounded-xl border border-[#E4D9BE]">
                 <div className="w-5 h-5 rounded-full bg-[#1E5E53] text-white font-bold text-[10px] flex items-center justify-center shrink-0">
                   4
                 </div>
-                <div>Staff sahkan &amp; serahkan ganjaran!</div>
+                <div>{t.infoModal.step4}</div>
               </div>
             </div>
 
@@ -818,7 +876,7 @@ export default function CustomerCardPage() {
               onClick={() => setShowInfoModal(false)}
               className="w-full py-2.5 bg-[#1E5E53] hover:bg-[#2D786B] text-white font-bold text-xs rounded-xl transition cursor-pointer"
             >
-              Faham
+              {t.infoModal.gotItBtn}
             </button>
           </div>
         </div>
@@ -840,7 +898,7 @@ export default function CustomerCardPage() {
                 className="font-fraunces font-bold text-base text-[#F7EEDA]"
                 style={{ userSelect: 'none' }}
               >
-                🎁 Hadiah &amp; Ganjaran
+                {t.rewardsModal.title}
               </div>
               <button
                 onClick={() => setShowRewardsModal(false)}
@@ -906,7 +964,7 @@ export default function CustomerCardPage() {
                   className="inline-flex items-center gap-1 font-space text-[10.5px] font-bold text-[#E5A43B] bg-[#E5A43B]/15 border border-[#E5A43B]/30 px-2.5 py-0.5 rounded-full"
                   style={{ userSelect: 'none' }}
                 >
-                  ⚡ {slide?.stampsRequired || TOTAL} Cop Diperlukan
+                  {t.rewardsModal.stampsRequiredBadge(slide?.stampsRequired || TOTAL)}
                 </div>
               </div>
             </div>
@@ -932,7 +990,7 @@ export default function CustomerCardPage() {
                 onClick={() => setShowRewardsModal(false)}
                 className="w-full py-2.5 bg-[#1E5E53] hover:bg-[#2D786B] text-white font-bold text-xs rounded-xl transition cursor-pointer"
               >
-                Tutup
+                {t.rewardsModal.closeBtn}
               </button>
             </div>
           </div>
@@ -945,7 +1003,7 @@ export default function CustomerCardPage() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 text-red-600 font-fraunces font-bold text-lg">
                 <span>⚠️</span>
-                <span>Padam Akaun</span>
+                <span>{t.deleteModal.title}</span>
               </div>
               <button
                 type="button"
@@ -959,10 +1017,10 @@ export default function CustomerCardPage() {
 
             <div className="text-xs text-slate-700 leading-relaxed mb-4 space-y-2">
               <p className="font-semibold text-red-700">
-                Tindakan ini kekal dan tidak boleh dibatalkan.
+                {t.deleteModal.warning1}
               </p>
               <p className="text-[#5E6F68]">
-                Semua data kad cop dan ganjaran anda akan dipadam secara kekal dari sistem.
+                {t.deleteModal.warning2}
               </p>
             </div>
 
@@ -974,7 +1032,7 @@ export default function CustomerCardPage() {
 
             <div className="mb-4">
               <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                Sila taip <span className="font-mono text-red-600 bg-red-100 px-1.5 py-0.5 rounded">PADAM</span> untuk mengesahkan:
+                {t.deleteModal.typeToConfirm.split('PADAM')[0]}<span className="font-mono text-red-600 bg-red-100 px-1.5 py-0.5 rounded">PADAM</span>{t.deleteModal.typeToConfirm.split('PADAM')[1]}
               </label>
               <input
                 type="text"
@@ -993,7 +1051,7 @@ export default function CustomerCardPage() {
                 onClick={() => setShowDeleteAccountModal(false)}
                 className="flex-1 py-2.5 rounded-xl border border-[#E4D9BE] bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
               >
-                Batal
+                {t.deleteModal.cancel}
               </button>
               <button
                 type="button"
@@ -1001,7 +1059,7 @@ export default function CustomerCardPage() {
                 onClick={handleDeleteAccount}
                 className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-sm active:scale-95"
               >
-                {isDeletingAccount ? 'Memadam...' : 'Sahkan Padam'}
+                {isDeletingAccount ? t.deleteModal.deleting : t.deleteModal.confirmDelete}
               </button>
             </div>
           </div>

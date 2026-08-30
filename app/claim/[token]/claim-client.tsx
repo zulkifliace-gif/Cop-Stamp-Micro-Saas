@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { Lang, I18N_CLAIM } from '@/lib/i18n/claim'
 
 interface RewardItem {
   id?: string
@@ -17,6 +18,8 @@ interface ClaimClientProps {
   storeName: string
   stampsRequired: number
   rewardDescription: string
+  initialError?: string | null
+  errorCode?: string | null
 }
 
 // Tempoh animasi maskot (satu kitaran penuh CSS animation ialah 6s — lihat
@@ -31,14 +34,39 @@ export default function ClaimClient({
   storeName: initialStoreName,
   stampsRequired: initialStampsRequired,
   rewardDescription: initialRewardDesc,
+  initialError = null,
+  errorCode: initialErrorCode = null,
 }: ClaimClientProps) {
   const supabase = createClient()
 
+  // Language state (persisted in localStorage)
+  const [lang, setLang] = useState<Lang>('my')
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('lajus_lang') as Lang | null
+      if (saved === 'my' || saved === 'en') {
+        setLang(saved)
+      }
+    } catch {}
+  }, [])
+
+  const switchLang = (newLang: Lang) => {
+    setLang(newLang)
+    try {
+      localStorage.setItem('lajus_lang', newLang)
+    } catch {}
+  }
+
+  const t = I18N_CLAIM[lang].client
+  const tServer = I18N_CLAIM[lang].server
+
   const [scene, setScene] = useState<'login' | 'loading' | 'reveal' | 'error'>(
-    'login'
+    initialError ? 'error' : 'login'
   )
   const [user, setUser] = useState<any>(null)
-  const [authChecking, setAuthChecking] = useState(true)
+  const [authChecking, setAuthChecking] = useState(!initialError)
+  const [errorCode, setErrorCode] = useState<string | null>(initialErrorCode)
 
   // Login form state
   const [email, setEmail] = useState('')
@@ -128,9 +156,9 @@ export default function ClaimClient({
       if (!res.ok) {
         // Friendly message for customer quota limit (Free Plan)
         if (data.code === 'customer_limit_reached') {
-          setClaimError('Kedai ini telah mencapai had maksimum pelanggan bagi Pelan Percuma. Sila maklumkan kepada pihak kedai untuk menaik taraf pelan mereka.')
+          setClaimError(t.errorScene.customerLimitReached)
         } else {
-          setClaimError(data.error || 'Gagal menebus cop.')
+          setClaimError(data.error || t.errorScene.defaultError)
         }
         setScene('error')
         return
@@ -151,7 +179,7 @@ export default function ClaimClient({
         stampsAdded: data.stampsAdded ?? initialStampCount,
         stampsRequired: req,
         rewardDescription:
-          data.rewardDescription ?? initialRewardDesc ?? '1 minuman percuma',
+          data.rewardDescription ?? initialRewardDesc ?? (lang === 'en' ? '1 free drink' : '1 minuman percuma'),
         storeName: data.storeName ?? initialStoreName ?? 'Kopi & Kawan',
         logoUrl: data.logoUrl || '',
         rewardImageUrl: data.rewardImageUrl || '',
@@ -159,7 +187,7 @@ export default function ClaimClient({
       })
     } catch (err: any) {
       console.error('Error claiming token:', err)
-      setClaimError('Ralat sambungan. Sila cuba lagi.')
+      setClaimError(t.errorScene.connError)
       setScene('error')
     }
   }
@@ -185,7 +213,7 @@ export default function ClaimClient({
   async function handleEmailAuth(e: React.FormEvent) {
     e.preventDefault()
     if (!email || !password) {
-      setAuthError('Sila isi emel/username dan kata laluan.')
+      setAuthError(t.loginScene.fillEmailPassword)
       return
     }
 
@@ -217,7 +245,7 @@ export default function ClaimClient({
         }
       }
     } catch (err: any) {
-      setAuthError(err.message || 'Gagal log masuk.')
+      setAuthError(err.message || t.loginScene.authFailed)
     } finally {
       setIsAuthenticating(false)
     }
@@ -226,7 +254,7 @@ export default function ClaimClient({
   if (authChecking) {
     return (
       <div className="font-space text-xs text-[#5B6B64] text-center">
-        Memeriksa sesi pengguna...
+        {t.authChecking}
       </div>
     )
   }
@@ -235,33 +263,77 @@ export default function ClaimClient({
   // ERROR SCENE
   // -------------------------------------------------------------
   if (scene === 'error') {
+    let errorTitle = t.errorScene.unsuccessfulTitle
+    let errorDesc = claimError || initialError || t.errorScene.defaultError
+
+    if (errorCode === 'already_claimed') {
+      errorTitle = tServer.alreadyClaimedTitle
+      errorDesc = tServer.alreadyClaimed
+    } else if (errorCode === 'expired') {
+      errorTitle = tServer.expiredTitle
+      errorDesc = tServer.expired
+    } else if (errorCode === 'not_found') {
+      errorTitle = tServer.notFoundTitle
+      errorDesc = tServer.notFound
+    }
+
     return (
-      <div className="w-full max-w-[360px] bg-[#F7EEDA] rounded-[22px] p-7 text-[#1C2624] text-center shadow-[0_20px_40px_rgba(0,0,0,0.4)] anim-result">
-        <div className="w-14 h-14 rounded-full bg-red-100 text-[#B23A2E] flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
-          !
+      <div className="w-full max-w-[360px] flex flex-col items-center anim-result">
+        {/* TOP TOGGLE */}
+        <div className="w-full flex items-center justify-end mb-3">
+          <div className="flex items-center gap-1 bg-[#FAF2E2]/[0.08] border border-[#FAF2E2]/15 rounded-full p-0.5 backdrop-blur-xs">
+            <button
+              type="button"
+              onClick={() => switchLang('my')}
+              className={`px-2 py-0.5 text-[10.5px] font-bold rounded-full transition-all cursor-pointer font-space ${
+                lang === 'my'
+                  ? 'bg-[#E5A43B] text-[#1A2422] shadow-xs'
+                  : 'text-[#FAF2E2]/60 hover:text-[#FAF2E2]'
+              }`}
+            >
+              MY
+            </button>
+            <button
+              type="button"
+              onClick={() => switchLang('en')}
+              className={`px-2 py-0.5 text-[10.5px] font-bold rounded-full transition-all cursor-pointer font-space ${
+                lang === 'en'
+                  ? 'bg-[#E5A43B] text-[#1A2422] shadow-xs'
+                  : 'text-[#FAF2E2]/60 hover:text-[#FAF2E2]'
+              }`}
+            >
+              EN
+            </button>
+          </div>
         </div>
-        <div className="font-fraunces font-bold text-xl text-[#0F2B2A] mb-2">
-          Penebusan Tidak Berjaya
-        </div>
-        <div className="text-[13.5px] text-[#5B6B64] mb-6 leading-relaxed">
-          {claimError || 'Token ini tidak sah atau telah tamat tempoh.'}
-        </div>
-        <a
-          href="/card"
-          className="inline-block w-full py-3 px-4 bg-[#1F5C52] text-[#F7EEDA] rounded-[12px] font-jakarta font-bold text-sm hover:bg-[#2E7568] transition text-center cursor-pointer"
-        >
-          Lihat Kad Cop Saya
-        </a>
-        <div className="mt-4 pt-3.5 border-t border-[#E2CE9E]/60 text-xs text-[#5B6B64] text-center">
+
+        <div className="w-full bg-[#F7EEDA] rounded-[22px] p-7 text-[#1C2624] text-center shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
+          <div className="w-14 h-14 rounded-full bg-red-100 text-[#B23A2E] flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+            !
+          </div>
+          <div className="font-fraunces font-bold text-xl text-[#0F2B2A] mb-2">
+            {errorTitle}
+          </div>
+          <div className="text-[13.5px] text-[#5B6B64] mb-6 leading-relaxed">
+            {errorDesc}
+          </div>
           <a
-            href="https://lajus.lajuq.my/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#1F5C52] hover:text-[#2E7568] font-semibold underline underline-offset-2 inline-flex items-center gap-1 transition"
+            href="/card"
+            className="inline-block w-full py-3 px-4 bg-[#1F5C52] text-[#F7EEDA] rounded-[12px] font-jakarta font-bold text-sm hover:bg-[#2E7568] transition text-center cursor-pointer"
           >
-            <span>Guna sistem cop di kedai anda</span>
-            <span className="text-[10px]">↗</span>
+            {t.errorScene.viewMyCard}
           </a>
+          <div className="mt-4 pt-3.5 border-t border-[#E2CE9E]/60 text-xs text-[#5B6B64] text-center">
+            <a
+              href="https://lajus.lajuq.my/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#1F5C52] hover:text-[#2E7568] font-semibold underline underline-offset-2 inline-flex items-center gap-1 transition"
+            >
+              <span>{t.errorScene.useAtYourStore}</span>
+              <span className="text-[10px]">↗</span>
+            </a>
+          </div>
         </div>
       </div>
     )
@@ -273,6 +345,34 @@ export default function ClaimClient({
   if (scene === 'login' && !user) {
     return (
       <div className="w-full max-w-[360px] flex flex-col items-center anim-result">
+        {/* TOP TOGGLE */}
+        <div className="w-full flex items-center justify-end mb-3">
+          <div className="flex items-center gap-1 bg-[#FAF2E2]/[0.08] border border-[#FAF2E2]/15 rounded-full p-0.5 backdrop-blur-xs">
+            <button
+              type="button"
+              onClick={() => switchLang('my')}
+              className={`px-2 py-0.5 text-[10.5px] font-bold rounded-full transition-all cursor-pointer font-space ${
+                lang === 'my'
+                  ? 'bg-[#E5A43B] text-[#1A2422] shadow-xs'
+                  : 'text-[#FAF2E2]/60 hover:text-[#FAF2E2]'
+              }`}
+            >
+              MY
+            </button>
+            <button
+              type="button"
+              onClick={() => switchLang('en')}
+              className={`px-2 py-0.5 text-[10.5px] font-bold rounded-full transition-all cursor-pointer font-space ${
+                lang === 'en'
+                  ? 'bg-[#E5A43B] text-[#1A2422] shadow-xs'
+                  : 'text-[#FAF2E2]/60 hover:text-[#FAF2E2]'
+              }`}
+            >
+              EN
+            </button>
+          </div>
+        </div>
+
         {/* BRAND ICON & HEADER (SAMA MACAM /CARD) */}
         <div className="text-center mb-6">
           <div className="w-14 h-14 rounded-full bg-[#E5A43B] mx-auto mb-3 shadow-lg flex items-center justify-center p-2.5">
@@ -282,7 +382,7 @@ export default function ClaimClient({
             Laju<span className="text-[#E5A43B]">S</span>
           </div>
           <div className="text-xs text-[#FAF2E2]/80 font-medium">
-            Tuntut <span className="text-[#E5A43B] font-bold">+{initialStampCount} Cop Stamp</span> dari <span className="font-bold text-white">{initialStoreName}</span>
+            {t.loginScene.claimHeaderPrefix} <span className="text-[#E5A43B] font-bold">+{initialStampCount} {lang === 'en' ? 'Stamps' : 'Cop Stamp'}</span> {t.loginScene.claimHeaderSuffix} <span className="font-bold text-white">{initialStoreName}</span>
           </div>
         </div>
 
@@ -304,7 +404,7 @@ export default function ClaimClient({
             <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.98A9 9 0 0 0 0 9c0 1.45.35 2.83.98 4.03l2.97-2.33z" />
             <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.9 11.42 0 9 0A9 9 0 0 0 .98 4.97l2.97 2.33C4.66 5.17 6.65 3.58 9 3.58z" />
           </svg>
-          <span>Log masuk dengan Google</span>
+          <span>{t.loginScene.loginWithGoogle}</span>
         </button>
 
         {/* DROPDOWN TOGGLE: ATAU EMAIL MANUAL */}
@@ -314,7 +414,7 @@ export default function ClaimClient({
             onClick={() => setShowManualEmail(!showManualEmail)}
             className="inline-flex items-center gap-1.5 text-xs text-[#FAF2E2]/75 hover:text-[#FAF2E2] font-semibold py-1.5 px-3 rounded-full hover:bg-white/10 transition cursor-pointer"
           >
-            <span>atau emel manual</span>
+            <span>{t.loginScene.orManualEmail}</span>
             <svg
               className={`w-3.5 h-3.5 transition-transform duration-200 ${showManualEmail ? 'rotate-180 text-[#E5A43B]' : ''}`}
               viewBox="0 0 24 24"
@@ -340,7 +440,7 @@ export default function ClaimClient({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 maxLength={100}
-                placeholder="Username atau Emel"
+                placeholder={t.loginScene.usernameOrEmail}
                 className="border-none outline-none flex-1 font-jakarta text-sm text-[#1C2624] bg-transparent placeholder:text-gray-400"
               />
             </div>
@@ -355,7 +455,7 @@ export default function ClaimClient({
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 maxLength={100}
-                placeholder="Kata laluan"
+                placeholder={t.loginScene.password}
                 className="border-none outline-none flex-1 font-jakarta text-sm text-[#1C2624] bg-transparent placeholder:text-gray-400"
               />
             </div>
@@ -366,20 +466,20 @@ export default function ClaimClient({
               className="w-full border-none rounded-2xl py-3.5 px-4 bg-gradient-to-b from-[#E7A33E] to-[#C97F1F] text-[#1C2624] font-jakarta font-bold text-[14px] cursor-pointer active:scale-[0.98] transition disabled:opacity-60 shadow-md"
             >
               {isAuthenticating
-                ? 'Memproses...'
+                ? t.loginScene.processing
                 : isSignup
-                ? 'Daftar Akaun'
-                : 'Log Masuk'}
+                ? t.loginScene.signupBtn
+                : t.loginScene.loginBtn}
             </button>
 
             <div className="text-center pt-1 text-xs text-[#FAF2E2]/70">
-              {isSignup ? 'Sudah ada akaun? ' : 'Akaun baru? '}
+              {isSignup ? t.loginScene.alreadyHaveAccount : t.loginScene.newAccount}
               <button
                 type="button"
                 onClick={() => setIsSignup(!isSignup)}
                 className="text-[#E5A43B] font-bold underline cursor-pointer hover:text-white"
               >
-                {isSignup ? 'Log masuk' : 'Daftar sini'}
+                {isSignup ? t.loginScene.loginLink : t.loginScene.signupLink}
               </button>
             </div>
           </form>
@@ -453,7 +553,7 @@ export default function ClaimClient({
         </div>
 
         <div className="font-space text-[11px] tracking-[0.14em] uppercase text-[#E7A33E] opacity-85 mb-3.5">
-          Memproses Cop
+          {t.loadingScene.processingStamp}
         </div>
 
         <style jsx>{`
@@ -643,6 +743,34 @@ export default function ClaimClient({
 
   return (
     <div className="w-full max-w-[380px] flex flex-col items-center anim-result">
+      {/* TOP TOGGLE */}
+      <div className="w-full flex items-center justify-end mb-2">
+        <div className="flex items-center gap-1 bg-[#FAF2E2]/[0.08] border border-[#FAF2E2]/15 rounded-full p-0.5 backdrop-blur-xs">
+          <button
+            type="button"
+            onClick={() => switchLang('my')}
+            className={`px-2 py-0.5 text-[10.5px] font-bold rounded-full transition-all cursor-pointer font-space ${
+              lang === 'my'
+                ? 'bg-[#E5A43B] text-[#1A2422] shadow-xs'
+                : 'text-[#FAF2E2]/60 hover:text-[#FAF2E2]'
+            }`}
+          >
+            MY
+          </button>
+          <button
+            type="button"
+            onClick={() => switchLang('en')}
+            className={`px-2 py-0.5 text-[10.5px] font-bold rounded-full transition-all cursor-pointer font-space ${
+              lang === 'en'
+                ? 'bg-[#E5A43B] text-[#1A2422] shadow-xs'
+                : 'text-[#FAF2E2]/60 hover:text-[#FAF2E2]'
+            }`}
+          >
+            EN
+          </button>
+        </div>
+      </div>
+
       {/* STORE NAME & LOGO CENTERED AT TOP */}
       <div className="flex flex-col items-center text-center mb-3.5 w-full">
         <div className="w-14 h-14 rounded-full bg-[#E7A33E] text-[#1C2624] font-fraunces font-bold flex items-center justify-center text-2xl shrink-0 shadow-lg mb-2 overflow-hidden border-2 border-[#FAF2E2]/20">
@@ -656,14 +784,14 @@ export default function ClaimClient({
           {claimData.storeName}
         </div>
         <div className="font-space text-[10px] text-[#5B6B64] tracking-[0.08em] uppercase mt-0.5">
-          KAD COP DIGITAL • TOTAL {claimData.newTotal} COP
+          {t.revealScene.digitalStampBadge(claimData.newTotal)}
         </div>
 
         {/* ACTION PILLS: INFO 'i' AND REWARD GIFT */}
         <div className="flex items-center justify-center gap-2 mt-2.5">
           <button
             onClick={() => setShowInfoModal(true)}
-            title="Cara Tebus Ganjaran"
+            title={t.revealScene.howToRedeem}
             className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-full border border-[#F7EEDA]/20 bg-[#F7EEDA]/10 text-xs font-semibold text-[#F7EEDA] hover:bg-[#F7EEDA]/20 hover:border-[#E7A33E] transition cursor-pointer"
           >
             <svg className="w-3.5 h-3.5 text-[#E7A33E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -671,12 +799,12 @@ export default function ClaimClient({
               <line x1="12" y1="16" x2="12" y2="12" />
               <line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
-            <span>Cara Tebus (i)</span>
+            <span>{t.revealScene.howToRedeem}</span>
           </button>
 
           <button
             onClick={() => setShowRewardsModal(true)}
-            title="Katalog Hadiah & Ganjaran"
+            title={t.revealScene.rewardsBtn}
             className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-full border border-[#F7EEDA]/20 bg-[#F7EEDA]/10 text-xs font-semibold text-[#F7EEDA] hover:bg-[#F7EEDA]/20 hover:border-[#E7A33E] transition cursor-pointer"
           >
             <svg className="w-3.5 h-3.5 text-[#E7A33E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -686,7 +814,7 @@ export default function ClaimClient({
               <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
               <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
             </svg>
-            <span>Hadiah</span>
+            <span>{t.revealScene.rewardsBtn}</span>
           </button>
         </div>
       </div>
@@ -699,10 +827,10 @@ export default function ClaimClient({
           </div>
           <div className="flex-1 text-xs">
             <div className="font-bold text-emerald-300">
-              {fullCardsCount} Ganjaran Sedia Ditebus!
+              {t.revealScene.rewardsReadyBannerTitle(fullCardsCount)}
             </div>
             <div className="text-[11px] text-emerald-200/80">
-              Sebut emel anda di kaunter untuk menebus: <b className="text-white">{claimData.rewardDescription}</b>
+              {t.revealScene.rewardsReadyBannerDesc(claimData.rewardDescription)}
             </div>
           </div>
         </div>
@@ -724,10 +852,10 @@ export default function ClaimClient({
                     : 'bg-[#FAF2E2]/10 text-[#FAF2E2]/70 hover:bg-[#FAF2E2]/20'
                 }`}
               >
-                <span>Kad #{idx + 1}</span>
+                <span>{t.revealScene.cardTab(idx + 1)}</span>
                 {isFull ? (
                   <span className="text-[10px] bg-emerald-600 text-white px-1.5 py-0.2 rounded-full">
-                    Penuh ✓
+                    {t.revealScene.fullBadge}
                   </span>
                 ) : (
                   <span className="text-[10px] opacity-75">
@@ -748,10 +876,7 @@ export default function ClaimClient({
       >
         <div className="text-center mb-5">
           <div className="font-space text-[10.5px] tracking-[0.14em] uppercase text-[#1E5E53] mb-1 font-semibold flex items-center justify-center gap-1.5">
-            <span>Kad #{selectedCardIdx + 1}</span>
-            {isViewingFullCard && (
-              <span className="text-[#B53629] font-bold">• Penuh (Sedia Ditebus)</span>
-            )}
+            <span>{t.revealScene.cardHeader(selectedCardIdx + 1, isViewingFullCard)}</span>
           </div>
           <div className="font-fraunces font-bold text-[32px] text-[#B53629] leading-none">
             <span>{cardStamps}</span>
@@ -817,16 +942,15 @@ export default function ClaimClient({
         <div className="text-center text-[13.5px] text-[#1E5E53] font-semibold leading-relaxed">
           {isViewingFullCard ? (
             <div className="text-emerald-800 font-bold flex items-center justify-center gap-1.5">
-              <span>🎉 Kad ini telah lengkap! Sedia ditebus: {claimData.rewardDescription}.</span>
+              <span>{t.revealScene.cardCompleteReward(claimData.rewardDescription)}</span>
             </div>
           ) : cardRemain > 0 ? (
             <>
-              Cuma <b className="text-[#B53629]">{cardRemain}</b> cop lagi untuk kad ini bagi mendapat{' '}
-              {claimData.rewardDescription}!
+              {t.revealScene.cardRemainingReward(cardRemain, claimData.rewardDescription)}
             </>
           ) : (
             <>
-              <b className="text-[#B53629]">Tahniah!</b> Cop kad ini genap — tebus ganjaran di kaunter: {claimData.rewardDescription}.
+              {t.revealScene.cardCongrats(claimData.rewardDescription)}
             </>
           )}
         </div>
@@ -838,7 +962,7 @@ export default function ClaimClient({
           href="/card"
           className="font-space text-[11px] text-[#E7A33E] hover:underline"
         >
-          Lihat Semua Kad Cop ↗
+          {t.revealScene.viewAllCards}
         </a>
         <button
           onClick={() => {
@@ -847,7 +971,7 @@ export default function ClaimClient({
           }}
           className="bg-transparent border-none font-space text-[11px] tracking-[0.08em] text-[#5B6B64] opacity-70 cursor-pointer underline underline-offset-[3px] hover:opacity-100"
         >
-          ▶ animasi getaran
+          {t.revealScene.vibrationAnim}
         </button>
       </div>
 
@@ -859,7 +983,7 @@ export default function ClaimClient({
           rel="noopener noreferrer"
           className="text-[#E7A33E]/70 hover:text-[#E7A33E] font-semibold underline underline-offset-2 inline-flex items-center gap-1 transition"
         >
-          <span>Guna sistem cop di kedai anda</span>
+          <span>{t.revealScene.useAtYourStore}</span>
           <span className="text-[10px]">↗</span>
         </a>
       </div>
@@ -870,7 +994,7 @@ export default function ClaimClient({
           <div className="w-full max-w-sm bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-6 shadow-2xl border border-[#E5A43B]/30 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between mb-4">
               <div className="font-fraunces font-bold text-lg text-[#0A1716]">
-                💡 Cara Penebusan Ganjaran
+                {t.infoModal.title}
               </div>
               <button
                 onClick={() => setShowInfoModal(false)}
@@ -886,7 +1010,7 @@ export default function ClaimClient({
                   1
                 </div>
                 <div>
-                  <b>Kumpul Cop:</b> Dapatkan cop setiap kali berbelanja sehingga kad cop anda penuh.
+                  <b>{t.infoModal.step1Title}</b> {t.infoModal.step1Desc}
                 </div>
               </div>
 
@@ -895,7 +1019,7 @@ export default function ClaimClient({
                   2
                 </div>
                 <div>
-                  <b>Pergi ke Kaunter:</b> Maklumkan kepada staff bahawa anda ingin menebus ganjaran anda.
+                  <b>{t.infoModal.step2Title}</b> {t.infoModal.step2Desc}
                 </div>
               </div>
 
@@ -904,7 +1028,7 @@ export default function ClaimClient({
                   3
                 </div>
                 <div>
-                  <b>Sebut Emel Anda:</b> Berikan emel berdaftar anda kepada staff untuk semakan baki cop di sistem.
+                  <b>{t.infoModal.step3Title}</b> {t.infoModal.step3Desc}
                 </div>
               </div>
 
@@ -913,7 +1037,7 @@ export default function ClaimClient({
                   4
                 </div>
                 <div>
-                  <b>Sahkan Penebusan:</b> Staff akan menolak cop dan menyerahkan ganjaran anda serta-merta!
+                  <b>{t.infoModal.step4Title}</b> {t.infoModal.step4Desc}
                 </div>
               </div>
             </div>
@@ -922,7 +1046,7 @@ export default function ClaimClient({
               onClick={() => setShowInfoModal(false)}
               className="w-full py-2.5 bg-[#1E5E53] hover:bg-[#2D786B] text-white font-bold text-xs rounded-xl transition cursor-pointer"
             >
-              Faham
+              {t.infoModal.gotItBtn}
             </button>
           </div>
         </div>
@@ -934,7 +1058,7 @@ export default function ClaimClient({
           <div className="w-full max-w-sm bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-6 shadow-2xl border border-[#E5A43B]/30 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between mb-4">
               <div className="font-fraunces font-bold text-lg text-[#0A1716]">
-                🎁 Hadiah &amp; Ganjaran
+                {t.rewardsModal.title}
               </div>
               <button
                 onClick={() => setShowRewardsModal(false)}
@@ -971,7 +1095,7 @@ export default function ClaimClient({
                       </div>
                     )}
                     <div className="inline-block mt-1 font-space text-[10px] font-bold text-[#B53629] bg-red-100 px-2 py-0.5 rounded-md">
-                      ⚡ {item.stampsRequired || TOTAL} Cop Diperlukan
+                      {t.rewardsModal.stampsRequiredBadge(item.stampsRequired || TOTAL)}
                     </div>
                   </div>
                 </div>
@@ -982,7 +1106,7 @@ export default function ClaimClient({
               onClick={() => setShowRewardsModal(false)}
               className="w-full py-2.5 bg-[#1E5E53] hover:bg-[#2D786B] text-white font-bold text-xs rounded-xl transition cursor-pointer"
             >
-              Tutup
+              {t.rewardsModal.closeBtn}
             </button>
           </div>
         </div>
