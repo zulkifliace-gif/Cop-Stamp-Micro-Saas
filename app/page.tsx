@@ -793,6 +793,7 @@ export default function LandingPage() {
               <li><a href="#harga" className="hover:text-white transition">Pelan Harga</a></li>
               <li><a href="#faq" className="hover:text-white transition">Soalan Lazim (FAQ)</a></li>
               <li><a href="/card" className="hover:text-[#E5A43B] font-semibold transition">Kad Cop Pelanggan ↗</a></li>
+              <li><a href="/privacy" className="hover:text-white transition text-slate-400">Dasar Privasi (PDPA)</a></li>
             </ul>
           </div>
 
@@ -806,10 +807,17 @@ export default function LandingPage() {
               <span>Log Masuk Staff</span>
               <span>→</span>
             </button>
-            <p className="text-[11px] text-white/60 leading-relaxed pt-1">
-              © {new Date().getFullYear()} LajuS. Hak cipta terpelihara. Dicetuskan &amp; dibangunkan oleh{' '}
-              <strong className="text-white">BOTZ GLOBAL SOLUTIONS</strong>.
-            </p>
+            <div className="text-[11px] text-white/60 leading-relaxed pt-1 space-y-1">
+              <p>
+                © {new Date().getFullYear()} LajuS. Hak cipta terpelihara. Dicetuskan &amp; dibangunkan oleh{' '}
+                <strong className="text-white">BOTZ GLOBAL SOLUTIONS</strong>.
+              </p>
+              <p>
+                <a href="/privacy" className="text-slate-400 hover:text-[#E5A43B] underline transition">
+                  Dasar Privasi
+                </a>
+              </p>
+            </div>
           </div>
 
         </div>

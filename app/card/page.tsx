@@ -455,14 +455,26 @@ export default function CustomerCardPage() {
               </button>
             </form>
 
-            <div className="text-center mt-3.5 text-xs text-[#5B6B64]">
-              {isSignup ? 'Sudah ada akaun? ' : 'Akaun baru? '}
-              <button
-                onClick={() => setIsSignup(!isSignup)}
-                className="text-[#1F5C52] font-semibold underline cursor-pointer hover:text-[#2E7568]"
-              >
-                {isSignup ? 'Log masuk' : 'Daftar'}
-              </button>
+            <div className="text-center mt-3.5 text-xs text-[#5B6B64] space-y-1.5">
+              <div>
+                {isSignup ? 'Sudah ada akaun? ' : 'Akaun baru? '}
+                <button
+                  onClick={() => setIsSignup(!isSignup)}
+                  className="text-[#1F5C52] font-semibold underline cursor-pointer hover:text-[#2E7568]"
+                >
+                  {isSignup ? 'Log masuk' : 'Daftar'}
+                </button>
+              </div>
+              <div>
+                <a
+                  href="/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[11px] text-[#5B6B64]/80 hover:text-[#1F5C52] underline transition"
+                >
+                  Dasar Privasi (PDPA)
+                </a>
+              </div>
             </div>
           </div>
         ) : (
@@ -709,9 +721,14 @@ export default function CustomerCardPage() {
         )}
 
         {/* FOOTPAGE LAJUS BRANDING (CENTERED & COMPACT) */}
-        <footer className="w-full text-center mt-6 mb-2 flex items-center justify-center gap-1.5 opacity-35 hover:opacity-75 transition text-[11px] font-space text-[#FAF2E2]">
-          <img src="/logo.svg" alt="LajuS" className="w-3.5 h-3.5 object-contain" />
-          <span>LajuS</span>
+        <footer className="w-full text-center mt-6 mb-2 flex flex-col items-center justify-center gap-1 opacity-45 hover:opacity-80 transition text-[11px] font-space text-[#FAF2E2]">
+          <div className="flex items-center gap-1.5">
+            <img src="/logo.svg" alt="LajuS" className="w-3.5 h-3.5 object-contain" />
+            <span>LajuS</span>
+          </div>
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[10px] text-[#FAF2E2]/70 hover:text-[#E5A43B] underline">
+            Dasar Privasi
+          </a>
         </footer>
       </div>
 

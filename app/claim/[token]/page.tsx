@@ -70,7 +70,7 @@ export default async function ClaimPage({ params }: PageProps) {
             >
               Lihat Kad Cop Saya
             </a>
-            <div className="mt-4 pt-3.5 border-t border-[#E2CE9E]/60 text-xs text-[#5B6B64]">
+            <div className="mt-4 pt-3.5 border-t border-[#E2CE9E]/60 text-xs text-[#5B6B64] flex flex-col items-center gap-1.5">
               <a
                 href="https://lajus.lajuq.my/"
                 target="_blank"
@@ -79,6 +79,14 @@ export default async function ClaimPage({ params }: PageProps) {
               >
                 <span>Guna sistem cop di kedai anda</span>
                 <span className="text-[10px]">↗</span>
+              </a>
+              <a
+                href="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] text-[#5B6B64]/80 hover:text-[#1F5C52] underline transition"
+              >
+                Dasar Privasi
               </a>
             </div>
           </div>

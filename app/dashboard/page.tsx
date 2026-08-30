@@ -1073,8 +1073,12 @@ export default function CashierDashboard() {
             {isLoggingIn ? 'Menghubungkan ke Google...' : 'Log masuk dengan Google'}
           </button>
 
-          <div className="mt-5 text-xs text-[#5E6F68] font-space">
-            Akses selamat melalui Supabase Auth
+          <div className="mt-5 text-xs text-[#5E6F68] font-space flex items-center justify-center gap-2">
+            <span>Akses selamat melalui Supabase Auth</span>
+            <span>•</span>
+            <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#1E5E53] hover:underline font-semibold">
+              Dasar Privasi
+            </a>
           </div>
         </div>
       ) : needsRegistration ? (
@@ -2483,6 +2487,15 @@ export default function CashierDashboard() {
           </div>
         </div>
       )}
+
+      {/* Dashboard Footer Subtext */}
+      <div className="mt-8 text-center text-[11px] text-[#FAF2E2]/50 font-space flex items-center justify-center gap-2">
+        <span>© {new Date().getFullYear()} LajuS</span>
+        <span>•</span>
+        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#FAF2E2]/70 hover:text-[#E5A43B] underline transition">
+          Dasar Privasi (PDPA)
+        </a>
+      </div>
     </div>
   )
 }
