@@ -192,6 +192,12 @@ export default function CashierDashboard() {
   const [exportEndDate, setExportEndDate] = useState<string>('')
   const [isExporting, setIsExporting] = useState<boolean>(false)
 
+  // Delete Account Modal State
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState<boolean>(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState<string>('')
+  const [isDeletingAccount, setIsDeletingAccount] = useState<boolean>(false)
+  const [deleteAccountError, setDeleteAccountError] = useState<string>('')
+
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // 1. Check current cashier session
@@ -432,6 +438,31 @@ export default function CashierDashboard() {
     await supabase.auth.signOut()
     setUser(null)
     setNeedsRegistration(false)
+  }
+
+  // Handle Account Deletion
+  async function handleDeleteAccount() {
+    if (deleteConfirmText.trim() !== 'PADAM') return
+    setIsDeletingAccount(true)
+    setDeleteAccountError('')
+    try {
+      const res = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        setDeleteAccountError(data.error || 'Gagal memadam akaun.')
+        return
+      }
+      // Sign out and redirect to /
+      await supabase.auth.signOut()
+      window.location.href = '/'
+    } catch (err: any) {
+      setDeleteAccountError('Ralat sambungan. Sila cuba lagi.')
+    } finally {
+      setIsDeletingAccount(false)
+    }
   }
 
   // 6. Handle Store Registration (Onboarding -> Get Store UUID)
@@ -2088,6 +2119,27 @@ export default function CashierDashboard() {
                 >
                   ✓ Tetapan disimpan
                 </div>
+
+                {/* ZON BAHAYA: PADAM AKAUN */}
+                <div className="border-t border-[#E4D9BE] pt-4 mt-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-bold text-red-600">Zon Bahaya</div>
+                      <div className="text-[11px] text-[#5E6F68]">Padam akaun anda secara kekal</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDeleteConfirmText('')
+                        setDeleteAccountError('')
+                        setShowDeleteAccountModal(true)
+                      }}
+                      className="px-3 py-2 rounded-xl bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-bold transition cursor-pointer shadow-xs"
+                    >
+                      Padam Akaun Saya
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -2482,6 +2534,76 @@ export default function CashierDashboard() {
                 className="flex-1 py-2.5 rounded-xl bg-[#1E5E53] hover:bg-[#2D786B] text-white text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-sm"
               >
                 Simpan Pautan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* POPUP MODAL: PENGESAHAN PADAM AKAUN */}
+      {showDeleteAccountModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-6 shadow-2xl border border-red-300 anim-popup">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2 text-red-600 font-fraunces font-bold text-lg">
+                <span>⚠️</span>
+                <span>Padam Akaun</span>
+              </div>
+              <button
+                type="button"
+                disabled={isDeletingAccount}
+                onClick={() => setShowDeleteAccountModal(false)}
+                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-gray-500 hover:text-gray-800 text-lg font-bold transition cursor-pointer"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="text-xs text-slate-700 leading-relaxed mb-4 space-y-2">
+              <p className="font-semibold text-red-700">
+                Tindakan ini kekal dan tidak boleh dibatalkan.
+              </p>
+              <p className="text-[#5E6F68]">
+                Semua data cop, sejarah tebusan, dan akaun anda akan dipadam dari sistem.
+              </p>
+            </div>
+
+            {deleteAccountError && (
+              <div className="mb-3.5 p-3 rounded-xl bg-red-100 border border-red-300 text-red-700 text-xs font-semibold leading-relaxed">
+                {deleteAccountError}
+              </div>
+            )}
+
+            <div className="mb-4">
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                Sila taip <span className="font-mono text-red-600 bg-red-100 px-1.5 py-0.5 rounded">PADAM</span> untuk mengesahkan:
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="PADAM"
+                disabled={isDeletingAccount}
+                className="w-full border border-[#E4D9BE] rounded-xl p-2.5 font-mono text-sm text-center tracking-widest uppercase text-slate-900 bg-white outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={isDeletingAccount}
+                onClick={() => setShowDeleteAccountModal(false)}
+                className="flex-1 py-2.5 rounded-xl border border-[#E4D9BE] bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={deleteConfirmText.trim() !== 'PADAM' || isDeletingAccount}
+                onClick={handleDeleteAccount}
+                className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-sm active:scale-95"
+              >
+                {isDeletingAccount ? 'Memadam...' : 'Sahkan Padam'}
               </button>
             </div>
           </div>

@@ -295,7 +295,10 @@ export default function PrivacyPolicyPage() {
                 <li><strong>Memohon pemadaman</strong> akaun dan data berkaitan.</li>
               </ul>
               <p className="text-slate-600">
-                Untuk menggunakan hak-hak ini, sila hubungi kami melalui butiran di Seksyen 9.
+                Untuk memohon pemadaman akaun anda, sila log masuk dan pergi ke <strong>Tetapan → Padam Akaun Saya</strong> (untuk pemilik/staf) atau di bahagian bawah halaman <strong>Kad Cop Pelanggan</strong>.
+              </p>
+              <p className="text-slate-600">
+                Untuk permohonan lain berkaitan hak data peribadi anda, sila hubungi kami melalui butiran di Seksyen 9.
               </p>
             </section>
 

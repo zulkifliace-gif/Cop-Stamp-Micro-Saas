@@ -82,6 +82,12 @@ export default function CustomerCardPage() {
   const [authError, setAuthError] = useState('')
   const [isAuthenticating, setIsAuthenticating] = useState(false)
 
+  // Delete Account Modal State
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState<boolean>(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState<string>('')
+  const [isDeletingAccount, setIsDeletingAccount] = useState<boolean>(false)
+  const [deleteAccountError, setDeleteAccountError] = useState<string>('')
+
   // Multi-Store Loyalty Data (Live - No mock defaults)
   const [allStores, setAllStores] = useState<CustomerStoreCard[]>([])
   const [activeStoreId, setActiveStoreId] = useState<string>('')
@@ -262,6 +268,30 @@ export default function CustomerCardPage() {
     setStoreName('')
     setTotalStamps(0)
     setAllStores([])
+  }
+
+  // Handle Account Deletion
+  async function handleDeleteAccount() {
+    if (deleteConfirmText.trim() !== 'PADAM') return
+    setIsDeletingAccount(true)
+    setDeleteAccountError('')
+    try {
+      const res = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        setDeleteAccountError(data.error || 'Gagal memadam akaun.')
+        return
+      }
+      await supabase.auth.signOut()
+      window.location.href = '/'
+    } catch (err: any) {
+      setDeleteAccountError('Ralat sambungan. Sila cuba lagi.')
+    } finally {
+      setIsDeletingAccount(false)
+    }
   }
 
   // 1. SLEEK ANIMATED LOADING SKELETON
@@ -721,14 +751,32 @@ export default function CustomerCardPage() {
         )}
 
         {/* FOOTPAGE LAJUS BRANDING (CENTERED & COMPACT) */}
-        <footer className="w-full text-center mt-6 mb-2 flex flex-col items-center justify-center gap-1 opacity-45 hover:opacity-80 transition text-[11px] font-space text-[#FAF2E2]">
+        <footer className="w-full text-center mt-6 mb-2 flex flex-col items-center justify-center gap-1.5 opacity-60 hover:opacity-100 transition text-[11px] font-space text-[#FAF2E2]">
           <div className="flex items-center gap-1.5">
             <img src="/logo.svg" alt="LajuS" className="w-3.5 h-3.5 object-contain" />
             <span>LajuS</span>
           </div>
-          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[10px] text-[#FAF2E2]/70 hover:text-[#E5A43B] underline">
-            Dasar Privasi
-          </a>
+          <div className="flex items-center gap-2 text-[10px]">
+            <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#FAF2E2]/70 hover:text-[#E5A43B] underline">
+              Dasar Privasi
+            </a>
+            {user && (
+              <>
+                <span className="text-[#FAF2E2]/30">•</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeleteConfirmText('')
+                    setDeleteAccountError('')
+                    setShowDeleteAccountModal(true)
+                  }}
+                  className="text-red-400/80 hover:text-red-300 underline cursor-pointer"
+                >
+                  Padam Akaun
+                </button>
+              </>
+            )}
+          </div>
         </footer>
       </div>
 
@@ -902,6 +950,75 @@ export default function CustomerCardPage() {
           </div>
         )
       })()}
+      {/* POPUP MODAL: PENGESAHAN PADAM AKAUN */}
+      {showDeleteAccountModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-6 shadow-2xl border border-red-300 anim-popup">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2 text-red-600 font-fraunces font-bold text-lg">
+                <span>⚠️</span>
+                <span>Padam Akaun</span>
+              </div>
+              <button
+                type="button"
+                disabled={isDeletingAccount}
+                onClick={() => setShowDeleteAccountModal(false)}
+                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-gray-500 hover:text-gray-800 text-lg font-bold transition cursor-pointer"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="text-xs text-slate-700 leading-relaxed mb-4 space-y-2">
+              <p className="font-semibold text-red-700">
+                Tindakan ini kekal dan tidak boleh dibatalkan.
+              </p>
+              <p className="text-[#5E6F68]">
+                Semua data kad cop dan ganjaran anda akan dipadam secara kekal dari sistem.
+              </p>
+            </div>
+
+            {deleteAccountError && (
+              <div className="mb-3.5 p-3 rounded-xl bg-red-100 border border-red-300 text-red-700 text-xs font-semibold leading-relaxed">
+                {deleteAccountError}
+              </div>
+            )}
+
+            <div className="mb-4">
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                Sila taip <span className="font-mono text-red-600 bg-red-100 px-1.5 py-0.5 rounded">PADAM</span> untuk mengesahkan:
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="PADAM"
+                disabled={isDeletingAccount}
+                className="w-full border border-[#E4D9BE] rounded-xl p-2.5 font-mono text-sm text-center tracking-widest uppercase text-slate-900 bg-white outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={isDeletingAccount}
+                onClick={() => setShowDeleteAccountModal(false)}
+                className="flex-1 py-2.5 rounded-xl border border-[#E4D9BE] bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={deleteConfirmText.trim() !== 'PADAM' || isDeletingAccount}
+                onClick={handleDeleteAccount}
+                className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-sm active:scale-95"
+              >
+                {isDeletingAccount ? 'Memadam...' : 'Sahkan Padam'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
