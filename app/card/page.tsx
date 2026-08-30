@@ -579,7 +579,7 @@ export default function CustomerCardPage() {
 
             {/* MULTI-CARD TABS */}
             {totalCardsCount > 1 && (
-              <div className="w-full flex items-center gap-1.5 mb-2.5 overflow-x-auto pb-1">
+              <div className="w-full flex items-center gap-1.5 mb-2.5 overflow-x-auto pb-1 scrollbar-none">
                 {Array.from({ length: totalCardsCount }).map((_, idx) => {
                   const isFull = idx < fullCardsCount
                   const isActive = idx === selectedCardIdx

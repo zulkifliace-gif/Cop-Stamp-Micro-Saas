@@ -19,14 +19,11 @@ interface ClaimClientProps {
   rewardDescription: string
 }
 
-const MESSAGES = [
-  'Cop ni tengah cuba letak cop pada kad awak…',
-  'Eh, jangan lari lagi…',
-  'Yes, kena jugak — cop berjaya masuk! 🎯',
-]
-
-const MSG_HOLD = 2200
-const MSG_FADE = 350
+// Tempoh animasi maskot (satu kitaran penuh CSS animation ialah 6s — lihat
+// keyframes sdWhiff/sdRing/sdDust/sdCardDodge/sdInk/sdStampAttack di bawah)
+// + sedikit buffer sebelum redirect ke /card.
+const LOADING_ANIMATION_DURATION = 6000
+const REDIRECT_BUFFER = 400
 
 export default function ClaimClient({
   token,
@@ -49,10 +46,6 @@ export default function ClaimClient({
   const [isSignup, setIsSignup] = useState(false)
   const [authError, setAuthError] = useState('')
   const [isAuthenticating, setIsAuthenticating] = useState(false)
-
-  // Loading mascot state
-  const [speechText, setSpeechText] = useState(MESSAGES[0])
-  const [speechFading, setSpeechFading] = useState(false)
 
   // Claim result data
   const [claimData, setClaimData] = useState<{
@@ -103,38 +96,21 @@ export default function ClaimClient({
     checkAuth()
   }, [])
 
-  // 2. Multi-step mascot dialogue & claim execution
+  // 2. Loading animation & claim execution
   function startLoadingSequence(currentUser: any) {
     if (hasClaimedRef.current) return
     hasClaimedRef.current = true
 
     setScene('loading')
-    setSpeechText(MESSAGES[0])
-    setSpeechFading(false)
 
     // Trigger atomic claim API in background
     executeClaim(currentUser)
 
-    // Play dialog sequence
-    playDialog(0)
-  }
-
-  function playDialog(index: number) {
-    if (index >= MESSAGES.length) {
-      setTimeout(() => {
-        const storeId = claimedStoreIdRef.current
-        window.location.href = storeId ? `/card?storeId=${storeId}` : '/card'
-      }, 400)
-      return
-    }
-
-    setSpeechText(MESSAGES[index])
-    setSpeechFading(false)
-
+    // Bagi animasi maskot main satu kitaran penuh sebelum redirect
     setTimeout(() => {
-      setSpeechFading(true)
-      setTimeout(() => playDialog(index + 1), MSG_FADE)
-    }, MSG_HOLD)
+      const storeId = claimedStoreIdRef.current
+      window.location.href = storeId ? `/card?storeId=${storeId}` : '/card'
+    }, LOADING_ANIMATION_DURATION + REDIRECT_BUFFER)
   }
 
   // 3. POST /api/tokens/claim
@@ -465,16 +441,6 @@ export default function ClaimClient({
 
         <div className="font-space text-[11px] tracking-[0.14em] uppercase text-[#E7A33E] opacity-85 mb-3.5">
           Memproses Cop
-        </div>
-
-        <div className="relative bg-[#F7EEDA] text-[#1C2624] rounded-[18px] py-4 px-6 font-fraunces font-medium italic text-[17px] leading-snug min-h-[62px] w-full flex items-center justify-center text-center shadow-[0_12px_28px_rgba(0,0,0,0.3)] before:content-[''] before:absolute before:-top-2 before:left-1/2 before:-translate-x-1/2 before:border-solid before:border-b-[#F7EEDA] before:border-b-[9px] before:border-x-transparent before:border-x-[8px]">
-          <span
-            className={`inline-block transition-all duration-350 ${
-              speechFading ? 'opacity-0 translate-y-1' : 'opacity-100 translate-y-0'
-            }`}
-          >
-            {speechText}
-          </span>
         </div>
 
         <style jsx>{`
