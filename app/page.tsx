@@ -527,13 +527,13 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto relative z-10">
           <ScrollReveal className="text-center mb-12 space-y-4">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#E5A43B]/10 border border-[#E5A43B]/25 rounded-full text-[#E5A43B] text-xs font-extrabold uppercase tracking-wider">
-              💳 Harga & Pelan
+              💳 Pricing & Plans
             </div>
             <h2 className="text-3xl md:text-5xl font-black text-white">
-              Pilih Pelan Yang <span className="text-[#E5A43B]">Sesuai</span>
+              Choose the <span className="text-[#E5A43B]">Right Plan</span>
             </h2>
             <p className="text-slate-400 text-base max-w-xl mx-auto">
-              Mulakan percuma. Tingkat apabila perniagaan anda berkembang.
+              Start for free. Upgrade as your business grows.
             </p>
 
             {/* Billing Toggle */}
@@ -546,7 +546,7 @@ export default function LandingPage() {
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                Bulanan
+                Monthly
               </button>
               <button
                 onClick={() => setBillingCycle('yearly')}
@@ -556,11 +556,11 @@ export default function LandingPage() {
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                Tahunan
+                Yearly
                 <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${
                   billingCycle === 'yearly' ? 'bg-slate-900/30 text-slate-900' : 'bg-emerald-500/20 text-emerald-400'
                 }`}>
-                  JIMAT RM20
+                  SAVE RM20
                 </span>
               </button>
             </div>
@@ -572,33 +572,26 @@ export default function LandingPage() {
             {/* FREE PLAN */}
             <ScrollReveal delay={0}>
               <div className="h-full flex flex-col bg-slate-900 border border-slate-700 rounded-3xl p-7 shadow-xl hover:border-slate-500 transition-all duration-300">
-                <div className="mb-5">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#1E5E53]/20 border border-[#1E5E53]/30 rounded-full text-[#4EB89D] text-[11px] font-bold uppercase mb-4">
-                    ✦ Percuma Selamanya
-                  </div>
-                  <div className="font-black text-white text-2xl mb-1">Pelan Starter</div>
+                <div className="mb-6">
+                  <div className="font-black text-white text-2xl mb-1">Free Plan</div>
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-5xl font-black text-white">RM0</span>
-                    <span className="text-slate-400 text-sm">/bulan</span>
+                    <span className="text-slate-400 text-sm">/month</span>
                   </div>
-                  <p className="text-slate-400 text-sm mt-2">Sesuai untuk kedai yang baru bermula.</p>
+                  <p className="text-slate-400 text-sm mt-2">Perfect for getting started.</p>
                 </div>
 
-                <ul className="space-y-3 flex-1 mb-7">
+                <ul className="space-y-3.5 flex-1 mb-7">
                   {[
-                    ['✓', 'Sehingga 20 pelanggan unik', true],
-                    ['✓', 'Token QR cop stamp tanpa had', true],
-                    ['✓', '1 kaunter kasir', true],
-                    ['✓', 'Kad cop digital pelanggan', true],
-                    ['–', 'Cetak resit Bluetooth', false],
-                    ['–', 'Analitik & log aktiviti lanjut', false],
-                    ['–', 'Sokongan keutamaan', false],
+                    ['✓', 'Limited to 20 new customers', true],
+                    ['✓', 'Full access to all features', true],
+                    ['–', 'Send stamp cards via email (excluded)', false],
                   ].map(([icon, label, active]) => (
-                    <li key={String(label)} className={`flex items-center gap-2.5 text-sm ${active ? 'text-slate-200' : 'text-slate-600'}`}>
-                      <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${active ? 'bg-[#1E5E53]/30 text-[#4EB89D]' : 'bg-slate-800 text-slate-600'}`}>
+                    <li key={String(label)} className={`flex items-center gap-2.5 text-sm ${active ? 'text-slate-200' : 'text-slate-500'}`}>
+                      <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${active ? 'bg-[#1E5E53]/30 text-[#4EB89D]' : 'bg-slate-800 text-slate-500'}`}>
                         {String(icon)}
                       </span>
-                      {String(label)}
+                      <span className={active ? '' : 'line-through opacity-75'}>{String(label)}</span>
                     </li>
                   ))}
                 </ul>
@@ -608,7 +601,7 @@ export default function LandingPage() {
                   disabled={planLoading === 'free'}
                   className="w-full py-3.5 rounded-2xl border-2 border-[#1E5E53] text-[#4EB89D] font-bold text-sm hover:bg-[#1E5E53]/20 transition cursor-pointer disabled:opacity-60 active:scale-[0.98]"
                 >
-                  {planLoading === 'free' ? 'Memproses...' : 'Mulakan Percuma →'}
+                  {planLoading === 'free' ? 'Processing...' : 'Get Started Free →'}
                 </button>
               </div>
             </ScrollReveal>
@@ -616,42 +609,29 @@ export default function LandingPage() {
             {/* PRO PLAN */}
             <ScrollReveal delay={80}>
               <div className="h-full flex flex-col bg-gradient-to-b from-[#2A1A02] to-[#1A1008] border-2 border-[#E5A43B]/60 rounded-3xl p-7 shadow-[0_0_40px_rgba(229,164,59,0.15)] relative overflow-hidden hover:shadow-[0_0_60px_rgba(229,164,59,0.25)] transition-all duration-300">
-                {/* Popular badge */}
-                <div className="absolute top-5 right-5 bg-[#E5A43B] text-slate-900 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
-                  🔥 Popular
-                </div>
-
-                <div className="mb-5">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#E5A43B]/15 border border-[#E5A43B]/30 rounded-full text-[#E5A43B] text-[11px] font-bold uppercase mb-4">
-                    ⚡ Pro
-                  </div>
-                  <div className="font-black text-white text-2xl mb-1">Pelan Pro</div>
+                <div className="mb-6">
+                  <div className="font-black text-white text-2xl mb-1">Pro Plan</div>
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-5xl font-black text-[#E5A43B]">
                       {billingCycle === 'yearly' ? 'RM616' : 'RM53'}
                     </span>
                     <span className="text-slate-400 text-sm">
-                      /{billingCycle === 'yearly' ? 'tahun' : 'bulan'}
+                      /{billingCycle === 'yearly' ? 'year' : 'month'}
                     </span>
                   </div>
                   {billingCycle === 'yearly' && (
                     <p className="text-emerald-400 text-xs font-bold mt-1">
-                      ≈ RM51.33/bln • Jimat RM20 berbanding bulanan
+                      ≈ RM51.33/mo • Save RM20 compared to monthly
                     </p>
                   )}
-                  <p className="text-slate-400 text-sm mt-2">Untuk perniagaan yang sedang berkembang pesat.</p>
+                  <p className="text-slate-400 text-sm mt-2">For growing businesses without limits.</p>
                 </div>
 
-                <ul className="space-y-3 flex-1 mb-7">
+                <ul className="space-y-3.5 flex-1 mb-7">
                   {[
-                    'Pelanggan tanpa had',
-                    'Token QR cop stamp tanpa had',
-                    'Staf kasir tanpa had',
-                    'Kad cop digital pelanggan',
-                    'Cetak resit Bluetooth',
-                    'Analitik & log aktiviti lanjut',
-                    'Katalog hadiah berbilang',
-                    'Sokongan keutamaan (WhatsApp)',
+                    'Unlimited customers',
+                    'Unlimited stamp delivery via email',
+                    'Full access to all features',
                   ].map((label) => (
                     <li key={label} className="flex items-center gap-2.5 text-sm text-slate-200">
                       <span className="w-5 h-5 rounded-full bg-[#E5A43B]/20 text-[#E5A43B] flex items-center justify-center text-[11px] font-bold shrink-0">
@@ -668,16 +648,16 @@ export default function LandingPage() {
                   className="w-full py-4 rounded-2xl bg-gradient-to-b from-[#E7A33E] to-[#C77B1B] text-slate-900 font-black text-sm shadow-[0_4px_20px_rgba(229,164,59,0.4)] hover:shadow-[0_4px_28px_rgba(229,164,59,0.55)] hover:-translate-y-0.5 transition-all cursor-pointer disabled:opacity-60 active:scale-[0.98] flex items-center justify-center gap-2"
                 >
                   {planLoading === billingCycle ? (
-                    'Memproses...'
+                    'Processing...'
                   ) : (
                     <>
-                      Langganan Pro Sekarang
+                      Subscribe to Pro Now
                       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </>
                   )}
                 </button>
                 <p className="text-center text-[11px] text-slate-500 mt-3">
-                  Bayaran selamat melalui Stripe • Boleh batal bila-bila masa
+                  Secure payment via Stripe • Cancel anytime
                 </p>
               </div>
             </ScrollReveal>
@@ -686,8 +666,8 @@ export default function LandingPage() {
           {/* Bottom note */}
           <ScrollReveal delay={120}>
             <p className="text-center text-slate-500 text-xs mt-10">
-              Semua pelan termasuk akses ke dashboard kasir, sistem token QR, dan kad cop digital pelanggan.<br/>
-              Soalan? Hubungi kami di{' '}
+              All plans include cashier dashboard access, QR token system, and digital customer stamp cards.<br/>
+              Questions? Contact us at{' '}
               <a href="mailto:support@lajus.my" className="text-[#E5A43B] hover:underline">support@lajus.my</a>
             </p>
           </ScrollReveal>
