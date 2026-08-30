@@ -104,8 +104,7 @@ export default function CashierDashboard() {
   // Store Registration State (Onboarding for new owners)
   const [needsRegistration, setNeedsRegistration] = useState<boolean>(false)
   const [regStoreName, setRegStoreName] = useState<string>('')
-  const [regStampsRequired, setRegStampsRequired] = useState<number>(10)
-  const [regRewardDesc, setRegRewardDesc] = useState<string>('')
+  const [regStampIcon, setRegStampIcon] = useState<string>('/icons/stamps/coffee.svg')
   const [isRegisteringStore, setIsRegisteringStore] = useState<boolean>(false)
   const [regError, setRegError] = useState<string>('')
 
@@ -338,8 +337,8 @@ export default function CashierDashboard() {
     try {
       const seedReward = {
         id: 'rw_' + Date.now(),
-        name: regRewardDesc.trim() || '1 minuman percuma',
-        stampsRequired: Number(regStampsRequired) || 10,
+        name: '1 Ganjaran Percuma',
+        stampsRequired: 10,
         imageUrl: '',
         description: 'Tebus di kaunter',
       }
@@ -349,9 +348,10 @@ export default function CashierDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: regStoreName.trim(),
-          stampsRequired: Number(regStampsRequired) || 10,
-          rewardDescription: regRewardDesc.trim() || '1 minuman percuma',
+          stampsRequired: 10,
+          rewardDescription: '1 Ganjaran Percuma',
           rewards: [seedReward],
+          stampIcon: regStampIcon || '/icons/stamps/coffee.svg',
         }),
       })
 
@@ -362,8 +362,9 @@ export default function CashierDashboard() {
 
       setStoreId(data.storeId)
       setStoreName(data.name)
-      setStampsRequired(data.stampsRequired)
-      setRewardDesc(data.rewardDescription)
+      setStampsRequired(data.stampsRequired || 10)
+      setRewardDesc(data.rewardDescription || '1 Ganjaran Percuma')
+      setStampIcon(data.stampIcon || regStampIcon || '/icons/stamps/coffee.svg')
       setRewardsList(Array.isArray(data.rewards) && data.rewards.length > 0 ? data.rewards : [seedReward])
       setStaffRole('owner')
       setNeedsRegistration(false)
@@ -734,6 +735,11 @@ export default function CashierDashboard() {
     setSettingsError('')
 
     try {
+      const primaryReward = rewardsList[0]
+      const effectiveStamps = Number(primaryReward?.stampsRequired || stampsRequired || 10)
+      const effectiveRewardDesc = (primaryReward?.name || rewardDesc || 'Ganjaran Percuma').trim()
+      const effectiveRewardImg = (primaryReward?.imageUrl || rewardImageUrl || '').trim()
+
       const res = await fetch('/api/store/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -741,9 +747,9 @@ export default function CashierDashboard() {
           storeId,
           name: storeName.trim(),
           logoUrl: logoUrl.trim(),
-          stampsRequired: Number(stampsRequired),
-          rewardDescription: rewardDesc.trim(),
-          rewardImageUrl: (rewardsList[0]?.imageUrl || rewardImageUrl).trim(),
+          stampsRequired: effectiveStamps,
+          rewardDescription: effectiveRewardDesc,
+          rewardImageUrl: effectiveRewardImg,
           rewards: rewardsList,
           stampIcon,
           socialLinks,
@@ -962,12 +968,22 @@ export default function CashierDashboard() {
         </div>
       ) : needsRegistration ? (
         /* 2. ONBOARDING / DAFTAR KEDAI BAHARU */
-        <div className="bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-7 shadow-[0_24px_50px_rgba(0,0,0,0.45),0_0_0_1px_rgba(229,164,59,0.15)] mb-6 anim-result">
-          <div className="font-fraunces font-semibold text-[22px] mb-1.5 text-[#0A1716]">
-            Daftarkan Kedai Anda
+        <div className="bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-6 sm:p-7 shadow-[0_24px_50px_rgba(0,0,0,0.45),0_0_0_1px_rgba(229,164,59,0.15)] mb-6 anim-result">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-2xl bg-[#E5A43B]/20 border border-[#E5A43B]/40 flex items-center justify-center text-xl">
+              🏪
+            </div>
+            <div>
+              <div className="font-fraunces font-semibold text-[22px] text-[#0A1716] leading-tight">
+                Daftarkan Kedai Anda
+              </div>
+              <div className="text-[11px] text-[#1E5E53] font-bold uppercase tracking-wider">
+                Langkah Pantas
+              </div>
+            </div>
           </div>
           <div className="text-[13px] text-[#5E6F68] mb-5 leading-relaxed">
-            Selamat datang! Sila isi maklumat asas kedai anda untuk menjana UUID kedai dan memulakan kaunter cop stamp.
+            Selamat datang! Masukkan nama kedai atau bisnes anda untuk mula menggunakan sistem kad cop digital.
           </div>
 
           {regError && (
@@ -979,53 +995,80 @@ export default function CashierDashboard() {
           <form onSubmit={handleRegisterStore}>
             <div className="mb-4">
               <label className="block text-xs font-semibold text-[#5E6F68] mb-1.5">
-                Nama Kedai / Bisnes
+                Nama Kedai / Bisnes <span className="text-[#B53629]">*</span>
               </label>
               <input
                 type="text"
                 value={regStoreName}
                 onChange={(e) => setRegStoreName(e.target.value)}
-                placeholder="Contoh: Kopi & Kawan"
+                placeholder="Contoh: Kopi & Kawan / Barber Studio"
                 required
-                className="w-full border border-[#E4D9BE] rounded-[10px] p-2.5 font-jakarta text-sm text-[#1A2422] bg-white outline-none"
+                autoFocus
+                className="w-full border border-[#E4D9BE] rounded-[12px] p-3 font-jakarta text-sm text-[#1A2422] bg-white outline-none focus:ring-2 focus:ring-[#E5A43B] focus:border-transparent transition"
               />
             </div>
 
-            <div className="mb-4">
-              <label className="block text-xs font-semibold text-[#5E6F68] mb-1.5">
-                Jumlah Cop Diperlukan untuk Ganjaran
-              </label>
-              <input
-                type="number"
-                value={regStampsRequired}
-                min="1"
-                max="50"
-                onChange={(e) => setRegStampsRequired(Number(e.target.value))}
-                required
-                className="w-full border border-[#E4D9BE] rounded-[10px] p-2.5 font-jakarta text-sm text-[#1A2422] bg-white outline-none"
-              />
+            {/* STAMP ICON SELECTOR (MULTI-CATEGORY) */}
+            <div className="mb-5 border-t border-[#E4D9BE]/60 pt-3.5">
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-bold text-[#0A1716]">
+                  Pilih Ikon Cop (Kategori Kedai)
+                </label>
+                <span className="text-[10px] text-[#1E5E53] font-semibold bg-[#1E5E53]/10 px-2 py-0.5 rounded-full">
+                  Pilihan Ikon
+                </span>
+              </div>
+              <div className="text-xs text-[#5E6F68] mb-2.5">
+                Ikon ini akan dipaparkan pada kad cop digital pelanggan anda.
+              </div>
+              <div className="grid grid-cols-4 gap-2">
+                {STAMP_ICON_OPTIONS.map((opt) => {
+                  const isSelected = regStampIcon === opt.icon
+                  return (
+                    <button
+                      key={opt.icon}
+                      type="button"
+                      onClick={() => setRegStampIcon(opt.icon)}
+                      title={opt.label}
+                      className={`flex flex-col items-center justify-center p-2 rounded-xl border transition cursor-pointer text-center ${
+                        isSelected
+                          ? 'border-[#E5A43B] bg-[#E5A43B]/20 shadow-sm ring-2 ring-[#E5A43B]'
+                          : 'border-[#E4D9BE] bg-white hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="w-8 h-8 rounded-full bg-[#B53629] flex items-center justify-center mb-1 shadow-sm">
+                        <img
+                          src={opt.icon}
+                          alt={opt.label}
+                          className="w-4 h-4 object-contain filter invert brightness-200"
+                        />
+                      </div>
+                      <span className="text-[9.5px] font-bold text-[#1A2422] truncate w-full">
+                        {opt.label.split('/')[0]}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
 
-            <div className="mb-5">
-              <label className="block text-xs font-semibold text-[#5E6F68] mb-1.5">
-                Penerangan Ganjaran
-              </label>
-              <textarea
-                value={regRewardDesc}
-                onChange={(e) => setRegRewardDesc(e.target.value)}
-                placeholder="Contoh: 1 minuman panas percuma (saiz regular)"
-                rows={2}
-                required
-                className="w-full border border-[#E4D9BE] rounded-[10px] p-2.5 font-jakarta text-sm text-[#1A2422] bg-white outline-none resize-y min-h-[60px]"
-              />
+            <div className="mb-5 p-3 rounded-xl bg-[#1E5E53]/10 border border-[#1E5E53]/20 flex items-start gap-2 text-xs text-[#1E5E53]">
+              <span className="text-sm shrink-0">💡</span>
+              <span>Katalog hadiah, bilangan cop, dan pautan media sosial boleh disesuaikan bila-bila masa di menu <b>Tetapan</b> selepas ini.</span>
             </div>
 
             <button
               type="submit"
               disabled={isRegisteringStore}
-              className="w-full border-none rounded-[12px] p-3.5 bg-gradient-to-b from-[#E5A43B] to-[#C77B1B] text-[#1A2422] font-jakarta font-bold text-[14.5px] cursor-pointer active:scale-[0.98] transition disabled:opacity-60 shadow-[0_4px_12px_rgba(229,164,59,0.3)]"
+              className="w-full border-none rounded-[12px] p-3.5 bg-gradient-to-b from-[#E5A43B] to-[#C77B1B] text-[#1A2422] font-jakarta font-bold text-[14.5px] cursor-pointer active:scale-[0.98] transition disabled:opacity-60 shadow-[0_4px_12px_rgba(229,164,59,0.3)] flex items-center justify-center gap-2"
             >
-              {isRegisteringStore ? 'Mendaftarkan Kedai...' : 'Daftar Kedai & Buka Kaunter'}
+              {isRegisteringStore ? (
+                'Mendaftarkan Kedai...'
+              ) : (
+                <>
+                  Daftar Kedai &amp; Buka Kaunter →
+                </>
+              )}
             </button>
           </form>
         </div>
@@ -1663,33 +1706,7 @@ export default function CashierDashboard() {
                   </div>
                 </div>
 
-                <div className="mb-3.5">
-                  <label className="block text-xs font-semibold text-[#5E6F68] mb-1.5">
-                    Cop Diperlukan untuk Ganjaran Utama
-                  </label>
-                  <input
-                    type="number"
-                    value={stampsRequired}
-                    min="1"
-                    max="50"
-                    onChange={(e) => setStampsRequired(Number(e.target.value))}
-                    disabled={staffRole !== 'owner'}
-                    className="w-full border border-[#E4D9BE] rounded-[10px] p-2.5 font-jakarta text-sm text-[#1A2422] bg-white outline-none disabled:bg-gray-100"
-                  />
-                </div>
 
-                <div className="mb-3.5">
-                  <label className="block text-xs font-semibold text-[#5E6F68] mb-1.5">
-                    Penerangan Ganjaran Utama
-                  </label>
-                  <textarea
-                    value={rewardDesc}
-                    onChange={(e) => setRewardDesc(e.target.value)}
-                    disabled={staffRole !== 'owner'}
-                    rows={2}
-                    className="w-full border border-[#E4D9BE] rounded-[10px] p-2.5 font-jakarta text-sm text-[#1A2422] bg-white outline-none resize-y min-h-[60px] disabled:bg-gray-100"
-                  />
-                </div>
 
                 {/* DYNAMIC REWARDS LIST (BOLEH TAMBAH HADIAH) */}
                 <div className="border-t border-[#E4D9BE] pt-4 mt-4 mb-4">
