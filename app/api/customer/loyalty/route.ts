@@ -22,6 +22,22 @@ export async function GET(req: NextRequest) {
 
     const admin = createAdminClient()
 
+    // Ensure customer profile is in sync in customer_profiles table
+    const fullName =
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      user.email?.split('@')[0] ||
+      'Pelanggan'
+    const avatarUrl = user.user_metadata?.avatar_url || null
+
+    await admin.from('customer_profiles').upsert({
+      id: user.id,
+      email: user.email,
+      full_name: fullName,
+      avatar_url: avatarUrl,
+      updated_at: new Date().toISOString(),
+    })
+
     // Query all loyalty records for this customer across all stores
     const { data: allLoyalties, error: loyaltyError } = await admin
       .from('customer_loyalty')

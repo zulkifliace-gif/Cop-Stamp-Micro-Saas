@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { checkRateLimit } from '@/lib/rate-limit'
 
 export async function POST(req: NextRequest) {
@@ -15,6 +16,27 @@ export async function POST(req: NextRequest) {
         { error: 'Sila log masuk untuk menebus cop.' },
         { status: 401 }
       )
+    }
+
+    // Ensure customer profile is in sync in customer_profiles table
+    try {
+      const admin = createAdminClient()
+      const fullName =
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.email?.split('@')[0] ||
+        'Pelanggan'
+      const avatarUrl = user.user_metadata?.avatar_url || null
+
+      await admin.from('customer_profiles').upsert({
+        id: user.id,
+        email: user.email,
+        full_name: fullName,
+        avatar_url: avatarUrl,
+        updated_at: new Date().toISOString(),
+      })
+    } catch (profileSyncErr) {
+      console.warn('Silent fallback for customer profile sync:', profileSyncErr)
     }
 
     // Rate limiting: 30 percubaan claim setiap jam per user (persistent DB limiter)
