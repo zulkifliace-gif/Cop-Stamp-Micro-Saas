@@ -69,6 +69,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      storeId: rpcResult.storeId,
       stampsAdded: rpcResult.stampsAdded,
       previousStamps: rpcResult.previousStamps,
       newTotal: rpcResult.newTotal,

@@ -343,6 +343,7 @@ begin
     -- 8. Return comprehensive payload for frontend animations
     return jsonb_build_object(
         'success', true,
+        'storeId', v_token_row.store_id,
         'stampsAdded', v_token_row.stamp_count,
         'previousStamps', v_prev_stamps,
         'newTotal', v_new_stamps,

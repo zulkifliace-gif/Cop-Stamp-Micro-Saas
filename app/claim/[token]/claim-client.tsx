@@ -85,6 +85,7 @@ export default function ClaimClient({
   const [selectedCardIdx, setSelectedCardIdx] = useState(0)
 
   const hasClaimedRef = useRef(false)
+  const claimedStoreIdRef = useRef<string | null>(null)
 
   // 1. Check user session on mount
   useEffect(() => {
@@ -121,7 +122,8 @@ export default function ClaimClient({
   function playDialog(index: number) {
     if (index >= MESSAGES.length) {
       setTimeout(() => {
-        window.location.href = '/card'
+        const storeId = claimedStoreIdRef.current
+        window.location.href = storeId ? `/card?storeId=${storeId}` : '/card'
       }, 400)
       return
     }
@@ -151,6 +153,8 @@ export default function ClaimClient({
         setScene('error')
         return
       }
+
+      claimedStoreIdRef.current = data.storeId || null
 
       const total = data.newTotal ?? initialStampCount
       const req = data.stampsRequired ?? initialStampsRequired ?? 10
