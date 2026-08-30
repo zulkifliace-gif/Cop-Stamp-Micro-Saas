@@ -70,7 +70,7 @@ export default async function ClaimPage({ params }: PageProps) {
             >
               Lihat Kad Cop Saya
             </a>
-            <div className="mt-4 pt-3.5 border-t border-[#E2CE9E]/60 text-xs text-[#5B6B64] flex flex-col items-center gap-1.5">
+            <div className="mt-4 pt-3.5 border-t border-[#E2CE9E]/60 text-xs text-[#5B6B64] text-center">
               <a
                 href="https://lajus.lajuq.my/"
                 target="_blank"
@@ -79,14 +79,6 @@ export default async function ClaimPage({ params }: PageProps) {
               >
                 <span>Guna sistem cop di kedai anda</span>
                 <span className="text-[10px]">↗</span>
-              </a>
-              <a
-                href="/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[10px] text-[#5B6B64]/80 hover:text-[#1F5C52] underline transition"
-              >
-                Dasar Privasi
               </a>
             </div>
           </div>
@@ -99,6 +91,16 @@ export default async function ClaimPage({ params }: PageProps) {
             rewardDescription={storeInfo?.reward_description || '1 minuman percuma'}
           />
         )}
+
+        {/* FOOTPAGE LAJUS BRANDING & DASAR PRIVASI */}
+        <footer className="w-full text-center mt-6 mb-2 flex items-center justify-center gap-2 opacity-50 hover:opacity-90 transition text-[11px] font-space text-[#FAF2E2]">
+          <img src="/logo.svg" alt="LajuS" className="w-3.5 h-3.5 object-contain" />
+          <span>LajuS</span>
+          <span className="text-[#FAF2E2]/40">•</span>
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#FAF2E2]/70 hover:text-[#E5A43B] underline">
+            Dasar Privasi
+          </a>
+        </footer>
       </div>
     </main>
   )

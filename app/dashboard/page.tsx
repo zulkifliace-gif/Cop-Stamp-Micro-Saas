@@ -1104,12 +1104,8 @@ export default function CashierDashboard() {
             {isLoggingIn ? 'Menghubungkan ke Google...' : 'Log masuk dengan Google'}
           </button>
 
-          <div className="mt-5 text-xs text-[#5E6F68] font-space flex items-center justify-center gap-2">
-            <span>Akses selamat melalui Supabase Auth</span>
-            <span>•</span>
-            <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#1E5E53] hover:underline font-semibold">
-              Dasar Privasi
-            </a>
+          <div className="mt-5 text-xs text-[#5E6F68] font-space">
+            Akses selamat melalui Supabase Auth
           </div>
         </div>
       ) : needsRegistration ? (

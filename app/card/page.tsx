@@ -485,26 +485,14 @@ export default function CustomerCardPage() {
               </button>
             </form>
 
-            <div className="text-center mt-3.5 text-xs text-[#5B6B64] space-y-1.5">
-              <div>
-                {isSignup ? 'Sudah ada akaun? ' : 'Akaun baru? '}
-                <button
-                  onClick={() => setIsSignup(!isSignup)}
-                  className="text-[#1F5C52] font-semibold underline cursor-pointer hover:text-[#2E7568]"
-                >
-                  {isSignup ? 'Log masuk' : 'Daftar'}
-                </button>
-              </div>
-              <div>
-                <a
-                  href="/privacy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[11px] text-[#5B6B64]/80 hover:text-[#1F5C52] underline transition"
-                >
-                  Dasar Privasi (PDPA)
-                </a>
-              </div>
+            <div className="text-center mt-3.5 text-xs text-[#5B6B64]">
+              {isSignup ? 'Sudah ada akaun? ' : 'Akaun baru? '}
+              <button
+                onClick={() => setIsSignup(!isSignup)}
+                className="text-[#1F5C52] font-semibold underline cursor-pointer hover:text-[#2E7568]"
+              >
+                {isSignup ? 'Log masuk' : 'Daftar'}
+              </button>
             </div>
           </div>
         ) : (
