@@ -45,9 +45,26 @@ export async function POST() {
       )
     }
 
-    // 3. Delete user account from Supabase Auth
-    // Cascade triggers delete on customer_profiles, customer_loyalty, store_staff (cashier),
-    // and sets null on stamp_tokens.created_by / stamp_tokens.claimed_by / stamp_redemptions.redeemed_by
+    // 3. Explicitly cleanup / unlink all dependent user records first
+    // This prevents foreign key constraint violations if production DB constraints
+    // were created without ON DELETE CASCADE (e.g. customer_loyalty_customer_id_fkey)
+
+    // A. Unlink cashier / customer references on audit history
+    await admin.from('stamp_tokens').update({ created_by: null }).eq('created_by', user.id)
+    await admin.from('stamp_tokens').update({ claimed_by: null }).eq('claimed_by', user.id)
+    await admin.from('stamp_redemptions').update({ redeemed_by: null }).eq('redeemed_by', user.id)
+
+    // B. Delete user loyalty stamp balances and redemptions
+    await admin.from('customer_loyalty').delete().eq('customer_id', user.id)
+    await admin.from('stamp_redemptions').delete().eq('customer_id', user.id)
+
+    // C. Delete cashier staff membership (if any cashier role)
+    await admin.from('store_staff').delete().eq('user_id', user.id)
+
+    // D. Delete customer profile
+    await admin.from('customer_profiles').delete().eq('id', user.id)
+
+    // 4. Delete user account from Supabase Auth Admin
     const { error: deleteError } = await admin.auth.admin.deleteUser(user.id)
 
     if (deleteError) {
