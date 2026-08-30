@@ -141,3 +141,12 @@ html, body {
 .font-fraunces { font-family: 'Fraunces', serif; }
 .font-space { font-family: 'Space Mono', monospace; }
 .font-jakarta { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+/* Hide scrollbar (content still scrollable) */
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / Edge lama */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge baharu */
+}

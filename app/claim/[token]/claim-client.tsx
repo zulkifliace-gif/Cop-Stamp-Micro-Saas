@@ -20,9 +20,9 @@ interface ClaimClientProps {
 }
 
 const MESSAGES = [
-  'Kejap, saya kesan ada kotak misteri…',
-  'Jap saya periksa…',
-  'Ini dia… cop stamp baru!',
+  'Cop ni tengah cuba letak cop pada kad awak…',
+  'Eh, jangan lari lagi…',
+  'Yes, kena jugak — cop berjaya masuk! 🎯',
 ]
 
 const MSG_HOLD = 2200
@@ -405,29 +405,66 @@ export default function ClaimClient({
   if (scene === 'loading') {
     return (
       <div className="w-full max-w-[360px] flex flex-col items-center anim-result py-8">
-        <div className="relative w-[110px] h-[110px] mb-6">
-          <div className="anim-halo absolute -inset-[16px] rounded-full bg-[radial-gradient(circle,rgba(231,163,62,0.35),transparent_70%)]" />
-          <svg className="anim-bot w-[110px] h-[110px]" viewBox="0 0 104 104" fill="none">
-            <circle cx="52" cy="52" r="40" fill="#1F5C52" />
-            <circle cx="52" cy="52" r="40" fill="url(#botGrad)" fillOpacity="0.5" />
-            <circle cx="38" cy="48" r="5" fill="#F7EEDA" />
-            <circle cx="66" cy="48" r="5" fill="#F7EEDA" />
-            <path d="M38 64c5 6 23 6 28 0" stroke="#F7EEDA" strokeWidth="4" strokeLinecap="round" />
-            <defs>
-              <radialGradient id="botGrad" cx="0.3" cy="0.25" r="0.9">
-                <stop offset="0" stopColor="#3E8C7C" />
-                <stop offset="1" stopColor="#1F5C52" />
-              </radialGradient>
-            </defs>
-          </svg>
-          <svg className="anim-magnify absolute -right-1.5 bottom-0 w-9 h-9" viewBox="0 0 34 34" fill="none">
-            <circle cx="14" cy="14" r="10" stroke="#E7A33E" strokeWidth="3.5" />
-            <line x1="21" y1="21" x2="30" y2="30" stroke="#E7A33E" strokeWidth="4" strokeLinecap="round" />
-          </svg>
+        <div className="relative w-[200px] h-[176px] mb-5">
+          <div className="sd-desk" />
+
+          <div className="sd-flash" />
+          <div className="sd-dust d1" />
+          <div className="sd-dust d2" />
+          <div className="sd-dust d3" />
+          <div className="sd-dust d4" />
+          <div className="sd-ring r1" />
+          <div className="sd-ring r2" />
+
+          <div className="sd-whiff" />
+          <div className="sd-whiff w2" />
+
+          <div className="sd-card">
+            <div className="sd-emote">
+              <span className="e1">🙂</span>
+              <span className="e2">😝💨</span>
+              <span className="e3">😜💨</span>
+              <span className="e4">😳</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 328.373" style={{ width: '100%', height: '100%', display: 'block', borderRadius: 6 }}>
+              <path fill="#BCD9E4" d="M37.397 0h437.206C495.172 0 512 16.844 512 37.397v253.579c0 20.553-16.844 37.397-37.397 37.397H37.397C16.844 328.373 0 311.545 0 290.976V37.397C0 16.827 16.827 0 37.397 0z"/>
+              <path fill="#87B1BE" d="M37.397 0h437.206C495.172 0 512 16.851 512 37.397v35.915H0V37.397C0 16.827 16.827 0 37.397 0z"/>
+              <path fill="#85A9B3" d="M262.722 222.148c-3.119 0-5.629-3.373-5.629-7.507 0-4.134 2.51-7.506 5.629-7.506h194.095c3.119 0 5.629 3.372 5.629 7.506s-2.51 7.507-5.629 7.507H262.722zm.003 45.418c-3.118 0-5.632-3.369-5.632-7.507 0-4.134 2.514-7.506 5.632-7.506h194.092c3.119 0 5.633 3.372 5.633 7.506 0 4.138-2.514 7.507-5.633 7.507H262.725zm-.003-136.068c-3.119 0-5.629-3.372-5.629-7.507 0-4.137 2.51-7.506 5.629-7.506h139.05c3.119 0 5.633 3.369 5.633 7.506 0 4.135-2.514 7.507-5.633 7.507h-139.05zm0 45.325c-3.119 0-5.629-3.369-5.629-7.506 0-4.134 2.51-7.507 5.629-7.507h193.895c3.118 0 5.629 3.373 5.629 7.507 0 4.137-2.511 7.506-5.629 7.506H262.722z"/>
+              <path fill="#194794" fillRule="nonzero" d="M159.457 203.665c5.761 12.822 19.363 15.086 30.833 17.303 16.777 3.241 37.565 19.084 37.565 37.039v7.317a2.246 2.246 0 01-2.244 2.241H51.798a2.246 2.246 0 01-2.244-2.241v-6.62c0-21.574 21.815-34.317 39.444-36.676 12.826-1.715 23.5-3.455 28.014-18.959 1.168 1.023 2.395 2.056 3.646 3.169 11.684 10.387 24.848 10.838 36.104-.017.925-.895 1.829-1.737 2.695-2.556z"/>
+              <path fill="#D2A75F" fillRule="nonzero" d="M159.457 203.668c3.014 6.706 8.173 10.526 14.046 12.957-19.867 14.576-47.295 13.734-67.727 1.277 6.189-3.334 9.288-8.16 11.229-14.836 1.168 1.023 2.399 2.056 3.653 3.172 11.684 10.387 24.848 10.838 36.104-.017.925-.895 1.829-1.737 2.695-2.553z"/>
+              <path fill="#DBB26F" fillRule="nonzero" d="M139.81 227.397c-11.881.053-23.831-3.277-34.034-9.495 6.166-3.32 9.344-8.223 11.232-14.836 1.172 1.023 2.396 2.056 3.65 3.172 6.136 5.455 12.687 8.169 19.152 7.946v13.213z"/>
+              <path fill="#E9BE79" d="M98.547 168.146c1.542-4.412 5.125-2.993 10.234-1.128l-.046-.225.046.027c3.607-37.862 27.794-16.735 46.181-35.829l.621-.492a38.667 38.667 0 013.132 1.746c7.838 5.267 12.59 14.863 11.17 33.618l.05-.04a94.616 94.616 0 01-.508 3.313c4.647-3.521 11.342-3.191 9.237 4.604l-2.878 8.148c-.69 1.954-1.148 2.66-3.614 2.528-1.088-.06-2.184-.479-3.276-1.201 1.009 12.025-4.828 15.949-12.135 23.001-11.253 10.861-24.421 10.412-36.1.02-6.844-6.085-12.92-9.781-13.223-22.292-1.772.544-3.449.643-4.914-.191-2.921-1.66-3.983-6.495-4.141-9.591-.067-1.243-.014-4.748.164-6.016z"/>
+              <path fill="#F2CD8C" d="M98.547 168.146c1.543-4.413 5.126-2.993 10.235-1.13l-.046-.22.046.025c2.663-27.955 16.542-23.751 31.027-27.321v74.683c-6.464.226-13.012-2.486-19.149-7.946-6.842-6.086-12.919-9.78-13.22-22.292-1.774.543-3.452.642-4.916-.191-4.251-2.419-4.594-11.169-3.977-15.608z"/>
+              <path fill="#333231" d="M89.715 128.611c22.538-27.85 48.515-42.998 68.022-18.222 23.904 1.255 32.196 40.258 12.147 55.475 1.606-21.185-4.665-30.686-14.362-35.461-18.456 20.125-43.096-1.828-46.74 36.417l-8.845-4.606c-.879-10.97 1.691-30-10.222-33.603z"/>
+            </svg>
+
+            <div className="sd-ink"><span>COP!</span></div>
+          </div>
+
+          <div className="sd-stamp">
+            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" preserveAspectRatio="xMidYMid meet" style={{ width: '100%', height: '100%', display: 'block', overflow: 'visible' }}>
+              <path transform="translate(0,0)" fill="rgb(36,47,57)" d="M 1153.84 211.422 C 1170.61 209.737 1200.25 210.718 1217.1 212.043 C 1296.27 217.926 1373.33 240.303 1443.34 277.736 C 1678.92 405.469 1646.61 652.896 1460.5 805.298 C 1401.44 853.661 1335.76 917.847 1329.61 997.998 C 1326.74 1035.42 1336.28 1071.56 1356.43 1103.04 C 1359.03 1107.1 1365 1117.08 1369.09 1118.62 C 1417.24 1136.84 1429.65 1165.34 1458.12 1206.09 L 1530.28 1308.99 L 1590.53 1393.94 C 1620.15 1435.85 1645.02 1464.66 1637.21 1519.05 C 1633.53 1544.75 1624.2 1564.71 1615.1 1588.6 L 1590.86 1652.92 C 1582.1 1676.56 1567.88 1720.57 1557.32 1741.37 C 1554 1747.9 1549.27 1753.63 1543.48 1758.12 C 1527.39 1770.38 1511.37 1768.87 1493.03 1766.19 C 1485.96 1786.9 1480.27 1810.68 1461.65 1824.22 C 1439.33 1840.47 1414.89 1833.89 1389.86 1829.53 L 1322.57 1817.29 L 1099.13 1777.78 C 1055.95 1771.48 1007.7 1761.76 964.495 1754.03 L 766.997 1719.2 L 675.318 1703.1 C 654.194 1699.43 619.725 1694.47 601.045 1686.83 C 586.911 1681.12 574.231 1672.32 563.928 1661.08 C 553.867 1650.1 539.573 1628.8 530.411 1616.05 L 473.64 1536.95 L 414.044 1453.46 C 405.53 1441.64 396.174 1427.97 387.462 1416.48 C 360.336 1380.7 359.892 1360.58 376.928 1320.23 C 360.855 1297.04 341.909 1268.37 351.565 1239.03 C 367.393 1190.94 385.807 1143.7 402.241 1095.8 C 408.079 1078.78 414.1 1061.53 421.517 1045.16 C 437.795 1008.44 468.211 983.169 507.29 973.727 C 540.295 965.753 570.863 972.174 603.586 978.387 L 660.912 989.197 C 669.131 990.789 698.126 997.465 704.197 996.105 C 763.949 982.719 822.78 949.487 863.251 903.273 C 919.872 838.618 920.098 750.215 902.816 670.743 C 893.312 628.712 882.28 589.566 879.456 546.279 C 867.125 357.296 957.329 224.699 1153.84 211.422 z"/>
+              <path transform="translate(0,0)" fill="rgb(251,116,20)" d="M 1154.87 254.425 C 1189.01 250.892 1241.85 256.637 1275.7 262.897 C 1300.99 267.575 1338.17 277.662 1361.63 288.879 C 1366.37 291.628 1370.12 296.502 1373.1 300.84 C 1414.16 360.586 1410.6 428.075 1389.77 494.437 C 1354.94 605.366 1255.18 673.298 1203.73 774.181 C 1160.49 858.98 1154.3 964.806 1200.26 1049.94 C 1208.15 1064.62 1217.08 1077.79 1226.34 1091.59 C 1207.36 1089.11 1188.96 1085.17 1170.18 1081.72 L 1088.78 1067 L 787.539 1012.41 C 833.103 987.824 861.187 970.696 896.123 930.393 C 960.123 856.562 964.856 762.026 946.324 670.541 C 937.092 627.404 925.457 586.938 922.568 542.681 C 911.928 379.691 984.097 266.572 1154.87 254.425 z"/>
+              <path transform="translate(0,0)" fill="rgb(255,255,255)" d="M 979.481 520.204 C 985.492 520.466 995.451 523.434 996.953 530.302 C 1001.78 551.19 1002.35 573.553 1006.71 594.781 C 1026.43 690.781 1042.06 790.118 1001.35 883.197 C 990.692 907.552 957.758 966.2 932.234 976.573 C 923.868 976.472 913.723 974.015 911.169 965.018 C 906.841 949.769 922.09 937.566 930.516 926.987 C 942.381 912.091 951.741 898.916 960.093 881.812 C 976.343 848.086 986.095 811.602 988.84 774.266 C 990.861 748.542 989.735 728.986 986.664 703.437 C 984.421 685.201 981.684 667.03 978.457 648.942 C 972.513 614.881 964.109 580.717 962.6 546.127 C 961.966 531.592 964.508 523.724 979.481 520.204 z"/>
+              <path transform="translate(0,0)" fill="rgb(255,255,255)" d="M 1144.7 289.267 C 1158.69 287.201 1170.73 297.914 1167.53 312.073 C 1164.16 326.993 1137.02 330.089 1123.71 334.381 C 1111.67 338.291 1100.06 343.449 1089.09 349.771 C 1050.7 372.052 1021.42 408.373 1009.71 451.396 C 1006.64 462.656 1006.09 466.609 995.728 472.562 C 941.493 479.708 991.177 394.787 1002.86 378.176 C 1036.19 330.769 1088.25 299.669 1144.7 289.267 z"/>
+              <path transform="translate(0,0)" fill="rgb(251,116,20)" d="M 529.594 1012.27 C 548.457 1009.54 602.002 1021.95 623.764 1025.89 L 775.039 1053.49 L 1115.06 1115.31 L 1271.38 1143.78 C 1298.64 1148.56 1326.8 1152.53 1353.48 1159.22 C 1368.31 1162.94 1375.33 1181.47 1371.68 1195.17 C 1364.23 1223.19 1353.06 1251.34 1343.24 1278.61 L 1293.53 1417.45 C 1278.24 1415.05 1262.98 1412.46 1247.76 1409.67 L 663.418 1303.62 C 573.727 1287.32 481.246 1272 392.214 1254.03 C 404.506 1215.77 419.119 1175.92 433.19 1138.19 C 454.861 1080.08 459.369 1024.56 529.594 1012.27 z"/>
+              <path transform="translate(0,0)" fill="rgb(255,255,255)" d="M 540.548 1050.27 C 563.442 1048.14 621.266 1062.8 647.054 1066.37 C 667.095 1069.67 685.208 1073.18 705.234 1077.16 C 727.582 1081.59 729.056 1107.1 710.301 1115.59 C 704.021 1118.43 680.403 1112.9 672.29 1111.35 L 596.06 1096.98 C 578.348 1093.67 550.917 1085.29 534.935 1093.82 L 533.756 1094.46 C 515.436 1108.6 497.742 1187.9 485.058 1210.98 C 478.71 1222.53 467.205 1225.91 456.605 1218.88 C 436.593 1205.62 462.963 1165.08 466.68 1147.26 C 483.286 1103.35 486.756 1059.27 540.548 1050.27 z"/>
+              <path transform="translate(0,0)" fill="rgb(255,255,255)" d="M 766.364 1089.11 C 770.785 1088.93 775.733 1089.63 779.808 1091.4 C 784.784 1093.57 788.705 1097.61 790.718 1102.65 C 792.63 1107.5 792.413 1112.94 790.121 1117.63 C 786.86 1124.29 782.394 1126.34 775.914 1128.8 C 748.09 1130.23 739.211 1098.6 766.364 1089.11 z"/>
+              <path transform="translate(0,0)" fill="rgb(49,61,72)" d="M 428.109 1398.75 C 480.252 1405.57 540.986 1418.81 593.908 1428.16 L 958.277 1494.09 C 1047.06 1510.41 1138.33 1525.36 1226.79 1544 C 1251.16 1549.14 1267.66 1577.13 1281.53 1596.31 C 1300.32 1622.25 1318.91 1648.34 1337.29 1674.57 L 1394.81 1755 C 1401.9 1765.09 1414.9 1781.76 1420.03 1791.99 L 857.48 1691.7 L 697.685 1663.85 C 674.745 1659.76 651.642 1656.05 628.86 1651.2 C 601.624 1645.4 587.591 1621.71 572.416 1600.85 L 529.659 1540.88 L 464.167 1449.99 C 453.731 1435.47 437.075 1413.61 428.109 1398.75 z"/>
+              <path transform="translate(0,0)" fill="rgb(255,255,255)" d="M 659.799 1451.04 C 688.779 1450.56 694.803 1470 718.341 1480.55 C 735.897 1488.43 758.293 1481.84 774.322 1495.6 C 786.601 1506.14 784.14 1522.27 794.79 1533.71 C 806.998 1547.49 825.368 1552.37 836.723 1566.64 C 850.457 1585.49 828.399 1588.14 825.056 1600.95 C 822.854 1610.75 840.098 1626.75 836.661 1636 C 830.065 1653.77 798.748 1634.62 785.904 1639.65 C 773.735 1644.43 774.901 1653.03 764.125 1658.61 C 738.302 1660.43 725.519 1636.87 703.075 1628.29 C 691.636 1623.91 680.533 1625.46 669.017 1623.01 C 633.332 1615.43 644.689 1593.65 627.349 1575.08 C 618.089 1565.17 595.254 1558.37 586.537 1544.35 C 574.668 1525.25 600.217 1524.67 601.025 1511 C 601.556 1502.02 586.468 1486.21 588.828 1474.74 C 598.615 1460.5 624.804 1476.78 638.563 1471.67 C 650.605 1467.21 647.197 1457.48 659.799 1451.04 z"/>
+              <path transform="translate(0,0)" fill="rgb(234,135,155)" d="M 666.915 1497.3 C 708.329 1493.46 757.033 1520.17 779.525 1553.29 C 805.851 1592.06 774.46 1613.68 737.318 1601.02 C 718.307 1594.55 694.369 1581.24 684.29 1563.68 C 668.197 1535.64 695.932 1526.23 718.097 1536.41 C 726.266 1539.97 746.277 1551.17 741.652 1561.57 C 728.725 1568.23 716.965 1538.44 700.566 1549.77 C 695.619 1560.15 708.793 1573.03 716.357 1578.95 C 723.744 1583.41 733.244 1587.6 741.932 1588.32 C 788.505 1592.19 765.58 1550.64 744.23 1534.93 C 726.783 1522.09 709.784 1512.57 687.4 1512.39 C 669.515 1512.03 653.352 1518.95 655.433 1539.49 C 657.738 1562.23 675.616 1577.29 692.781 1589.93 C 697.179 1593.17 706.84 1599.92 707.265 1605.52 L 705.858 1607.11 C 679.07 1613.27 586.768 1514.84 666.915 1497.3 z"/>
+              <path transform="translate(0,0)" fill="rgb(245,191,151)" d="M 994.799 1539.4 C 1011 1537.24 1039.99 1540.02 1055.98 1543.15 C 1141.92 1559.96 1229.91 1612.32 1280.85 1684.14 C 1288.64 1695.12 1309.85 1731.85 1307.34 1745.09 C 1300.85 1753.87 1282.07 1747.43 1277 1741.43 C 1270.77 1734.06 1267.93 1717.72 1263.09 1708.28 C 1248.1 1679.04 1226.83 1656.3 1202.04 1635.28 C 1190.52 1625.59 1176.36 1616.14 1163.39 1608.28 C 1116.78 1580.02 1048.44 1557.43 993.846 1570.94 C 955.532 1580.42 930.158 1607.57 931.184 1648.61 C 931.448 1658.52 938.027 1673.47 933.384 1682.46 C 929.64 1689.72 913.289 1683.18 908.332 1679.47 C 899.84 1673.12 897.884 1661.01 896.526 1650.99 C 887.093 1581.35 930.147 1547.01 994.799 1539.4 z"/>
+              <path transform="translate(0,0)" fill="rgb(245,191,151)" d="M 1034.58 1600.35 C 1036.87 1600.08 1039.17 1599.89 1041.47 1599.79 C 1112.17 1596.9 1195.61 1646.92 1228.49 1709.84 C 1247.91 1747.01 1212.09 1739.63 1206.71 1730.31 C 1191.77 1704.43 1189.77 1693.09 1166.25 1670.89 C 1129.17 1640.2 1063 1607.09 1018.32 1643.35 C 996.563 1661.01 1016.17 1696.44 999.895 1697.94 C 963.725 1701.27 965.111 1647.56 981.257 1627.32 C 995.286 1609.74 1012.48 1603.41 1034.58 1600.35 z"/>
+              <path transform="translate(0,0)" fill="rgb(251,116,20)" d="M 1415.56 312.43 C 1417.6 313.002 1419.36 313.948 1421.24 314.905 C 1482.55 346.098 1536.68 397.447 1558.11 464.034 C 1570.35 502.065 1569.27 542.191 1560.34 580.816 C 1521.04 750.916 1379.39 776.097 1311.2 910.977 C 1285.66 961.481 1278.37 1019.7 1296.23 1073.84 C 1299.22 1084.33 1304.85 1096.81 1309.18 1107 C 1301.7 1105.62 1283.95 1103.9 1278.43 1100.37 C 1250.17 1082.28 1224.16 1035.16 1213.63 1005.63 C 1198.66 963.676 1194.75 918.574 1202.25 874.665 C 1207.61 842.31 1218.02 810.997 1233.1 781.872 C 1249.13 751.621 1275.76 718.127 1297.51 691.67 C 1337.46 643.063 1376.79 598.892 1403.44 541.111 C 1430.55 482.346 1442.71 417.817 1428.34 353.655 C 1424.89 338.24 1420.8 327.124 1415.56 312.43 z"/>
+              <path transform="translate(0,0)" fill="rgb(251,116,20)" d="M 1411.49 1215.58 C 1415.17 1218.39 1456.27 1279.65 1462.19 1288.04 C 1490.56 1327.67 1518.63 1367.52 1546.41 1407.57 C 1565.18 1434.25 1592.24 1463.35 1594.84 1496.44 C 1596.58 1518.52 1587.83 1537.94 1580.23 1558.03 L 1561.36 1608.49 L 1532.4 1687.27 C 1530.62 1692.21 1525.39 1712.21 1521.97 1714.16 L 1520.07 1712.15 C 1516.24 1707.14 1512.57 1701.91 1508.98 1696.72 C 1481.8 1657.5 1454.65 1618.18 1427.23 1579.13 L 1362.99 1487.97 C 1352.42 1472.89 1340.5 1456.85 1330.78 1441.39 C 1358.11 1366.27 1385.01 1291 1411.49 1215.58 z"/>
+              <path transform="translate(0,0)" fill="rgb(49,61,72)" d="M 428.264 1303.92 C 451.342 1309.43 487.831 1314.86 512.429 1319.36 L 697.3 1352.79 L 1265.36 1455.65 C 1260.55 1470.85 1253.58 1488.52 1248.08 1503.7 C 1247.2 1503.9 1136.14 1482.8 1127.31 1481.2 L 411.13 1351.54 C 417.101 1335.76 422.813 1319.89 428.264 1303.92 z"/>
+              <path transform="translate(0,0)" fill="rgb(49,61,72)" d="M 1302.91 1478.6 C 1306.56 1482.21 1317.38 1498.03 1320.75 1502.83 L 1358.78 1557.62 C 1395.29 1609.95 1432.54 1659.06 1467.53 1713.05 C 1463.95 1727.15 1455.98 1746.11 1449.82 1759.44 C 1439.97 1743.1 1424.72 1723.12 1413.36 1707.12 L 1337.1 1600.27 C 1320.28 1576.96 1298.92 1548.99 1284.39 1524.98 C 1291.12 1510.38 1296.05 1492.1 1302.91 1478.6 z"/>
+            </svg>
+          </div>
         </div>
 
         <div className="font-space text-[11px] tracking-[0.14em] uppercase text-[#E7A33E] opacity-85 mb-3.5">
-          Rafail
+          Memproses Cop
         </div>
 
         <div className="relative bg-[#F7EEDA] text-[#1C2624] rounded-[18px] py-4 px-6 font-fraunces font-medium italic text-[17px] leading-snug min-h-[62px] w-full flex items-center justify-center text-center shadow-[0_12px_28px_rgba(0,0,0,0.3)] before:content-[''] before:absolute before:-top-2 before:left-1/2 before:-translate-x-1/2 before:border-solid before:border-b-[#F7EEDA] before:border-b-[9px] before:border-x-transparent before:border-x-[8px]">
@@ -440,11 +477,157 @@ export default function ClaimClient({
           </span>
         </div>
 
-        <div className="flex gap-2 mt-6">
-          <span className="w-2 h-2 rounded-full bg-[#E7A33E] opacity-35 [animation:dotBeat_1.3s_ease-in-out_infinite]" />
-          <span className="w-2 h-2 rounded-full bg-[#E7A33E] opacity-35 [animation:dotBeat_1.3s_ease-in-out_infinite_0.18s]" />
-          <span className="w-2 h-2 rounded-full bg-[#E7A33E] opacity-35 [animation:dotBeat_1.3s_ease-in-out_infinite_0.36s]" />
-        </div>
+        <style jsx>{`
+          .sd-desk{
+            position:absolute; left:0; right:0; bottom:22px; height:9px;
+            background:linear-gradient(180deg,#2D786B,#17423B);
+            border-radius:6px;
+            box-shadow:0 8px 18px rgba(0,0,0,0.4);
+          }
+
+          .sd-whiff{
+            position:absolute; left:50%; bottom:30px; width:8px; height:8px;
+            margin-left:-4px; border-radius:50%; background:#B7C3C0; opacity:0;
+            animation:sdWhiff 6s linear infinite;
+          }
+          .sd-whiff.w2{ animation-name:sdWhiff2; }
+          @keyframes sdWhiff{
+            0%,10.5%{ opacity:0; transform:translate(0,0) scale(1); }
+            11.5%{ opacity:0.9; transform:translate(-5px,-3px) scale(1.4); }
+            15%{ opacity:0; transform:translate(-18px,-20px) scale(0.3); }
+            100%{ opacity:0; }
+          }
+          @keyframes sdWhiff2{
+            0%,27.5%{ opacity:0; transform:translate(0,0) scale(1); }
+            28.5%{ opacity:0.9; transform:translate(5px,-3px) scale(1.4); }
+            32%{ opacity:0; transform:translate(18px,-20px) scale(0.3); }
+            100%{ opacity:0; }
+          }
+
+          .sd-ring{
+            position:absolute; left:50%; bottom:32px; width:14px; height:14px;
+            margin-left:-7px; border-radius:50%; border:2.5px solid #E7A33E; opacity:0;
+            animation:sdRing 6s linear infinite;
+          }
+          .sd-ring.r2{ animation-delay:0.05s; border-color:#F4C878; }
+          @keyframes sdRing{
+            0%,43%{ opacity:0; transform:scale(0.2); }
+            45%{ opacity:0.85; transform:scale(0.5); }
+            54%{ opacity:0; transform:scale(2.6); }
+            100%{ opacity:0; }
+          }
+
+          .sd-flash{
+            position:absolute; left:50%; bottom:26px; width:150px; height:46px;
+            margin-left:-75px; border-radius:50%;
+            background:radial-gradient(circle, rgba(231,163,62,0.85) 0%, rgba(231,163,62,0) 70%);
+            opacity:0; animation:sdFlash 6s linear infinite;
+          }
+          @keyframes sdFlash{
+            0%,43%{opacity:0;} 45%{opacity:1;} 52%{opacity:0;} 100%{opacity:0;}
+          }
+
+          .sd-dust{
+            position:absolute; bottom:34px; width:7px; height:7px; border-radius:50%;
+            background:#F4C878; opacity:0;
+          }
+          .sd-dust.d1{ left:50%; margin-left:-30px; animation:sdDust1 6s linear infinite; }
+          .sd-dust.d2{ left:50%; margin-left:-7px; animation:sdDust2 6s linear infinite; }
+          .sd-dust.d3{ left:50%; margin-left:12px; animation:sdDust3 6s linear infinite; }
+          .sd-dust.d4{ left:50%; margin-left:30px; animation:sdDust4 6s linear infinite; }
+          @keyframes sdDust1{ 0%,43%{opacity:0; transform:translate(0,0) scale(1);} 45%{opacity:1;} 56%{opacity:0; transform:translate(-32px,-24px) scale(0.3);} 100%{opacity:0;} }
+          @keyframes sdDust2{ 0%,43%{opacity:0; transform:translate(0,0) scale(1);} 45%{opacity:1;} 56%{opacity:0; transform:translate(-10px,-32px) scale(0.3);} 100%{opacity:0;} }
+          @keyframes sdDust3{ 0%,43%{opacity:0; transform:translate(0,0) scale(1);} 45%{opacity:1;} 56%{opacity:0; transform:translate(12px,-30px) scale(0.3);} 100%{opacity:0;} }
+          @keyframes sdDust4{ 0%,43%{opacity:0; transform:translate(0,0) scale(1);} 45%{opacity:1;} 56%{opacity:0; transform:translate(32px,-22px) scale(0.3);} 100%{opacity:0;} }
+
+          .sd-card{
+            position:absolute; left:50%; bottom:28px; width:80px; height:52px;
+            margin-left:-40px; transform-origin:50% 100%;
+            animation:sdCardDodge 6s cubic-bezier(.4,0,.2,1) infinite;
+            filter:drop-shadow(0 6px 6px rgba(0,0,0,0.35));
+          }
+          @keyframes sdCardDodge{
+            0%     { transform:translateX(0) rotate(0deg); }
+            7%     { transform:translateX(0) rotate(0deg); }
+            9%     { transform:translateX(-3px) rotate(-2deg); }
+            10.5%  { transform:translateX(-44px) rotate(-10deg); }
+            14%    { transform:translateX(-44px) rotate(-10deg); }
+            16.5%  { transform:translateX(0) rotate(0deg); }
+            22%    { transform:translateX(0) rotate(0deg); }
+            25%    { transform:translateX(3px) rotate(2deg); }
+            26.5%  { transform:translateX(44px) rotate(10deg); }
+            30%    { transform:translateX(44px) rotate(10deg); }
+            32.5%  { transform:translateX(0) rotate(0deg); }
+            38%    { transform:translateX(0) rotate(0deg); }
+            41.5%  { transform:translateX(0) rotate(0deg); }
+            44%    { transform:translateX(0) rotate(0deg) scale(1,0.94); }
+            48%    { transform:translateX(0) rotate(0deg) scale(1,1); }
+            70%    { transform:translateX(0) rotate(0deg) scale(1,1); }
+            100%   { transform:translateX(0) rotate(0deg) scale(1,1); }
+          }
+
+          .sd-ink{
+            position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+            opacity:0; transform:scale(0.3) rotate(-10deg);
+            animation:sdInk 6s linear infinite;
+          }
+          .sd-ink span{
+            color:#B53629; font-family:'Courier New', monospace; font-weight:900;
+            font-size:15px; letter-spacing:1.5px; border:2.5px solid #B53629;
+            padding:2px 8px; border-radius:4px; background:rgba(250,242,226,0.35);
+          }
+          @keyframes sdInk{
+            0%,43.5%{ opacity:0; transform:scale(0.3) rotate(-10deg); }
+            46%{ opacity:1; transform:scale(1.15) rotate(-10deg); }
+            50%{ opacity:1; transform:scale(1) rotate(-10deg); }
+            92%{ opacity:1; transform:scale(1) rotate(-10deg); }
+            98%{ opacity:0; transform:scale(0.9) rotate(-10deg); }
+            100%{ opacity:0; }
+          }
+
+          .sd-emote{ position:absolute; left:50%; top:-8px; transform:translateX(-50%); font-size:18px; }
+          .sd-emote span{
+            position:absolute; left:0; opacity:0; white-space:nowrap;
+            animation-duration:6s; animation-iteration-count:infinite; animation-timing-function:linear;
+          }
+          .sd-emote .e1{ animation-name:sdE1; }
+          .sd-emote .e2{ animation-name:sdE2; }
+          .sd-emote .e3{ animation-name:sdE3; }
+          .sd-emote .e4{ animation-name:sdE4; }
+          @keyframes sdE1{ 0%{opacity:1;} 8%{opacity:1;} 9%{opacity:0;} 100%{opacity:0;} }
+          @keyframes sdE2{ 0%,8.5%{opacity:0;} 10%{opacity:1;} 16%{opacity:1;} 17%{opacity:0;} 100%{opacity:0;} }
+          @keyframes sdE3{ 0%,25%{opacity:0;} 26.5%{opacity:1;} 32%{opacity:1;} 33%{opacity:0;} 100%{opacity:0;} }
+          @keyframes sdE4{ 0%,37%{opacity:0;} 39%{opacity:1;} 44%{opacity:1;} 46%{opacity:1;} 60%{opacity:1;} 65%{opacity:0;} 100%{opacity:0;} }
+
+          .sd-stamp{
+            position:absolute; left:50%; bottom:36px; width:74px; height:88px;
+            margin-left:-37px; transform-origin:50% 100%;
+            animation:sdStampAttack 6s cubic-bezier(.36,.07,.19,.97) infinite;
+            filter:drop-shadow(0 10px 8px rgba(0,0,0,0.45));
+          }
+          @keyframes sdStampAttack{
+            0%     { transform:translateY(-62px) rotate(-9deg); }
+            5%     { transform:translateY(-66px) rotate(-11deg); }
+            10%    { transform:translateY(1px) rotate(1deg) scale(1,1); }
+            11%    { transform:translateY(4px) rotate(0deg) scale(1.05,0.9); }
+            14%    { transform:translateY(-5px) rotate(0deg) scale(0.97,1.03); }
+            17%    { transform:translateY(-62px) rotate(-9deg); }
+
+            22%    { transform:translateY(-66px) rotate(-11deg); }
+            27%    { transform:translateY(1px) rotate(1deg) scale(1,1); }
+            28%    { transform:translateY(4px) rotate(0deg) scale(1.05,0.9); }
+            31%    { transform:translateY(-5px) rotate(0deg) scale(0.97,1.03); }
+            33%    { transform:translateY(-62px) rotate(-9deg); }
+
+            38%    { transform:translateY(-70px) rotate(-14deg); }
+            42%    { transform:translateY(1px) rotate(1deg) scale(1,1); }
+            44%    { transform:translateY(5px) rotate(0deg) scale(1.1,0.86); }
+            48%    { transform:translateY(1px) rotate(0deg) scale(0.98,1.02); }
+            65%    { transform:translateY(1px) rotate(0deg) scale(1,1); }
+            72%    { transform:translateY(-62px) rotate(-9deg); }
+            100%   { transform:translateY(-62px) rotate(-9deg); }
+          }
+        `}</style>
       </div>
     )
   }
@@ -548,7 +731,7 @@ export default function ClaimClient({
 
       {/* MULTI-CARD TABS */}
       {totalCardsCount > 1 && (
-        <div className="w-full flex items-center gap-1.5 mb-3 overflow-x-auto pb-1">
+        <div className="w-full flex items-center gap-1.5 mb-3 overflow-x-auto pb-1 no-scrollbar">
           {Array.from({ length: totalCardsCount }).map((_, idx) => {
             const isFull = idx < fullCardsCount
             const isActive = idx === activeCardIdx
