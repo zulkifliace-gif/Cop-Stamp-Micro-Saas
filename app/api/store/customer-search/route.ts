@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url)
-    const emailQuery = searchParams.get('email')?.trim().toLowerCase()
+    const emailQuery = searchParams.get('email')?.trim().toLowerCase().slice(0, 100)
     const reqStoreId = searchParams.get('storeId')
 
     if (!emailQuery) {

@@ -305,9 +305,39 @@ export async function PUT(req: NextRequest) {
       )
     }
 
-    const cleanRewards = Array.isArray(rewards) ? rewards : []
-    const cleanStampIcon = typeof stampIcon === 'string' && stampIcon.trim() ? stampIcon.trim() : '/icons/stamps/makanan.svg'
-    const cleanSocialLinks = Array.isArray(socialLinks) ? socialLinks : []
+    // Enforce strict limits to prevent database bloat / crashes
+    const cleanName = typeof name === 'string' ? name.trim().slice(0, 80) : undefined
+    const cleanStampsRequired =
+      typeof stampsRequired === 'number' && stampsRequired > 0
+        ? Math.min(50, Math.max(1, stampsRequired))
+        : undefined
+    const cleanRewardDesc =
+      typeof rewardDescription === 'string' ? rewardDescription.trim().slice(0, 150) : undefined
+    const cleanLogoUrl =
+      typeof logoUrl === 'string' ? logoUrl.trim().slice(0, 500) || null : undefined
+    const cleanRewardImageUrl =
+      typeof rewardImageUrl === 'string' ? rewardImageUrl.trim().slice(0, 500) || null : undefined
+    const cleanStampIcon =
+      typeof stampIcon === 'string' && stampIcon.trim()
+        ? stampIcon.trim().slice(0, 100)
+        : '/icons/stamps/makanan.svg'
+
+    // Clean & limit rewards catalog (max 12 items)
+    const rawRewards = Array.isArray(rewards) ? rewards.slice(0, 12) : []
+    const cleanRewards = rawRewards.map((item: any, idx: number) => ({
+      id: String(item?.id || `rw_${idx}`),
+      name: String(item?.name || '').trim().slice(0, 80),
+      stampsRequired: Math.min(100, Math.max(1, Number(item?.stampsRequired) || 10)),
+      imageUrl: String(item?.imageUrl || '').trim().slice(0, 500),
+      description: String(item?.description || '').trim().slice(0, 250),
+    }))
+
+    // Clean & limit social links (max 10 items)
+    const rawSocialLinks = Array.isArray(socialLinks) ? socialLinks.slice(0, 10) : []
+    const cleanSocialLinks = rawSocialLinks.map((item: any) => ({
+      platform: String(item?.platform || 'instagram').trim().slice(0, 30),
+      url: String(item?.url || '').trim().slice(0, 300),
+    }))
 
     const updates: {
       name?: string
@@ -324,21 +354,11 @@ export async function PUT(req: NextRequest) {
       },
     }
 
-    if (typeof name === 'string' && name.trim()) {
-      updates.name = name.trim()
-    }
-    if (typeof stampsRequired === 'number' && stampsRequired > 0) {
-      updates.stamps_required = stampsRequired
-    }
-    if (typeof rewardDescription === 'string') {
-      updates.reward_description = rewardDescription.trim()
-    }
-    if (typeof logoUrl === 'string') {
-      updates.logo_url = logoUrl.trim() || null
-    }
-    if (typeof rewardImageUrl === 'string') {
-      updates.reward_image_url = rewardImageUrl.trim() || null
-    }
+    if (cleanName) updates.name = cleanName
+    if (cleanStampsRequired) updates.stamps_required = cleanStampsRequired
+    if (cleanRewardDesc !== undefined) updates.reward_description = cleanRewardDesc
+    if (cleanLogoUrl !== undefined) updates.logo_url = cleanLogoUrl
+    if (cleanRewardImageUrl !== undefined) updates.reward_image_url = cleanRewardImageUrl
 
     const { data: updatedStore, error: updateError } = await admin
       .from('stores')

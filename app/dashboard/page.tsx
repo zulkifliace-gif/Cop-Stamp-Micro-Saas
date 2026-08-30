@@ -1301,6 +1301,7 @@ export default function CashierDashboard() {
                     type="email"
                     value={searchEmail}
                     onChange={(e) => setSearchEmail(e.target.value)}
+                    maxLength={100}
                     placeholder="Masukkan emel pelanggan (cth: ali@gmail.com)"
                     className="w-full border border-[#E4D9BE] rounded-[12px] py-2.5 px-3 text-sm text-[#1A2422] bg-white outline-none placeholder:text-gray-400 font-jakarta"
                   />
@@ -1821,6 +1822,7 @@ export default function CashierDashboard() {
                     type="text"
                     value={storeName}
                     onChange={(e) => setStoreName(e.target.value)}
+                    maxLength={80}
                     disabled={staffRole !== 'owner'}
                     className="w-full border border-[#E4D9BE] rounded-[10px] p-2.5 font-jakarta text-sm text-[#1A2422] bg-white outline-none disabled:bg-gray-100"
                   />
@@ -1844,6 +1846,7 @@ export default function CashierDashboard() {
                     type="url"
                     value={logoUrl}
                     onChange={(e) => setLogoUrl(e.target.value)}
+                    maxLength={500}
                     placeholder="https://contoh.com/logo.png"
                     disabled={staffRole !== 'owner'}
                     className="w-full border border-[#E4D9BE] rounded-[10px] p-2.5 font-jakarta text-sm text-[#1A2422] bg-white outline-none disabled:bg-gray-100"
@@ -1901,8 +1904,6 @@ export default function CashierDashboard() {
                   </div>
                 </div>
 
-
-
                 {/* DYNAMIC REWARDS LIST (BOLEH TAMBAH HADIAH) */}
                 <div className="border-t border-[#E4D9BE] pt-4 mt-4 mb-4">
                   <div className="flex items-center justify-between mb-1">
@@ -1947,6 +1948,7 @@ export default function CashierDashboard() {
                           type="text"
                           value={item.name}
                           onChange={(e) => handleUpdateRewardItem(idx, 'name', e.target.value)}
+                          maxLength={80}
                           placeholder="Nama Hadiah (cth: Kek Red Velvet)"
                           disabled={staffRole !== 'owner'}
                           className="w-full border border-[#E4D9BE] rounded-lg p-2 text-xs text-[#1A2422] outline-none"
@@ -1956,6 +1958,7 @@ export default function CashierDashboard() {
                           <input
                             type="number"
                             min="1"
+                            max="100"
                             value={item.stampsRequired}
                             onChange={(e) =>
                               handleUpdateRewardItem(idx, 'stampsRequired', Number(e.target.value))
@@ -1968,6 +1971,7 @@ export default function CashierDashboard() {
                             type="url"
                             value={item.imageUrl}
                             onChange={(e) => handleUpdateRewardItem(idx, 'imageUrl', e.target.value)}
+                            maxLength={500}
                             placeholder="URL Gambar Hadiah (https://...)"
                             disabled={staffRole !== 'owner'}
                             className="flex-1 border border-[#E4D9BE] rounded-lg p-2 text-xs text-[#1A2422] outline-none"
@@ -1977,6 +1981,7 @@ export default function CashierDashboard() {
                         <textarea
                           value={item.description || ''}
                           onChange={(e) => handleUpdateRewardItem(idx, 'description', e.target.value)}
+                          maxLength={250}
                           placeholder="Penerangan hadiah (cth: Tebus di kaunter, terhad 1 unit sehari)"
                           disabled={staffRole !== 'owner'}
                           rows={2}
