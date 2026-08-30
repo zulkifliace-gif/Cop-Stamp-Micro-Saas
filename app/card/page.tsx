@@ -576,20 +576,6 @@ export default function CustomerCardPage() {
               </div>
             </div>
 
-            {/* FULL CARDS REWARD BANNER */}
-            {fullCardsCount > 0 && (
-              <div className="w-full mb-3 p-3 rounded-2xl bg-gradient-to-r from-emerald-950/80 to-emerald-900/60 border border-emerald-500/40 text-emerald-200 shadow-md flex items-center gap-2.5">
-                <div className="text-lg shrink-0">🎁</div>
-                <div className="flex-1 text-xs">
-                  <div className="font-bold text-emerald-300">
-                    {fullCardsCount} Ganjaran Sedia Ditebus!
-                  </div>
-                  <div className="text-[11px] text-emerald-200/80 truncate">
-                    Tebus di kaunter: <b className="text-white">{rewardDesc}</b>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* MULTI-CARD TABS */}
             {totalCardsCount > 1 && (
