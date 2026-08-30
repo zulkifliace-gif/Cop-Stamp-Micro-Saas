@@ -145,6 +145,8 @@ export default function CashierDashboard() {
   const [stampsRequired, setStampsRequired] = useState<number>(10)
   const [rewardDesc, setRewardDesc] = useState<string>('')
   const [staffRole, setStaffRole] = useState<string>('cashier')
+  const [planType, setPlanType] = useState<string>('free')
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string>('active')
   const [isSavingSettings, setIsSavingSettings] = useState<boolean>(false)
   const [saveToast, setSaveToast] = useState<boolean>(false)
   const [settingsError, setSettingsError] = useState<string>('')
@@ -233,6 +235,8 @@ export default function CashierDashboard() {
           if (data.stampIcon) setStampIcon(data.stampIcon)
           if (Array.isArray(data.socialLinks)) setSocialLinks(data.socialLinks)
           if (data.role) setStaffRole(data.role)
+          if (data.planType) setPlanType(data.planType)
+          if (data.subscriptionStatus) setSubscriptionStatus(data.subscriptionStatus)
         }
       }
     } catch (e) {
@@ -1075,6 +1079,59 @@ export default function CashierDashboard() {
       ) : (
         /* 3. CASHIER COUNTER / STATS / REWARD SEARCH / SETTINGS / ACTIVITY */
         <>
+          {/* PLAN STATUS BADGE + FREE TIER QUOTA BAR */}
+          {(() => {
+            const isPro = planType === 'pro' && subscriptionStatus === 'active'
+            const totalCustomers = storeStats.totalCustomers
+            const quotaPct = Math.min(100, (totalCustomers / 20) * 100)
+            const quotaWarning = !isPro && totalCustomers >= 18
+            const quotaFull = !isPro && totalCustomers >= 20
+            return (
+              <div className="mb-4 flex flex-col gap-2">
+                {/* Plan Badge */}
+                <div className="flex items-center justify-between">
+                  <div className={`inline-flex items-center gap-1.5 text-[11px] font-bold font-space px-3 py-1 rounded-full ${isPro ? 'bg-[#E5A43B]/20 text-[#E5A43B]' : 'bg-[#FAF2E2]/10 text-[#5E6F68]'}`}>
+                    {isPro ? '⚡ Pelan Pro – Aktif' : '✦ Pelan Percuma (Starter)'}
+                  </div>
+                  {!isPro && (
+                    <a href="/#harga" className="text-[10.5px] font-semibold text-[#E5A43B] hover:underline">
+                      Naik Taraf →
+                    </a>
+                  )}
+                </div>
+
+                {/* Free Tier Customer Quota Bar (Free plan only) */}
+                {!isPro && (
+                  <div className="bg-[#FAF2E2]/[0.05] border border-[#FAF2E2]/10 rounded-xl px-3.5 py-2.5">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] font-space uppercase text-[#5E6F68] font-bold tracking-wider">Had Pelanggan Percuma</span>
+                      <span className={`text-[11px] font-bold font-space ${quotaFull ? 'text-red-400' : quotaWarning ? 'text-amber-400' : 'text-[#FAF2E2]'}`}>
+                        {totalCustomers} / 20
+                      </span>
+                    </div>
+                    <div className="w-full h-1.5 bg-[#FAF2E2]/10 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${quotaFull ? 'bg-red-500' : quotaWarning ? 'bg-amber-400' : 'bg-[#1E5E53]'}`}
+                        style={{ width: `${quotaPct}%` }}
+                      />
+                    </div>
+                    {quotaFull && (
+                      <div className="mt-1.5 text-[10px] text-red-400 font-space font-semibold">
+                        Had pelanggan dicapai. Pelanggan baharu tidak dapat menerima cop.{' '}
+                        <a href="/#harga" className="underline text-[#E5A43B]">Naik taraf ke Pro</a>
+                      </div>
+                    )}
+                    {quotaWarning && !quotaFull && (
+                      <div className="mt-1.5 text-[10px] text-amber-400 font-space font-semibold">
+                        Hampir penuh — {20 - totalCustomers} slot pelanggan berbaki.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          })()}
+
           {/* STORE OVERVIEW METRICS BAR */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
             <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-2xl p-3 text-center">
@@ -1418,12 +1475,20 @@ export default function CashierDashboard() {
 
                   <div
                     onClick={() => {
+                      const isProPlan = planType === 'pro' && subscriptionStatus === 'active'
+                      if (!isProPlan) {
+                        // Redirect to upgrade page instead of switching to email mode
+                        window.location.href = '/#harga'
+                        return
+                      }
                       setMode('email')
                       handleResetToken()
                     }}
-                    className={`flex-1 text-center py-[10px] px-2.5 rounded-[10px] text-[13px] font-semibold cursor-pointer flex items-center justify-center gap-1.5 transition ${
+                    className={`flex-1 text-center py-[10px] px-2.5 rounded-[10px] text-[13px] font-semibold cursor-pointer flex items-center justify-center gap-1.5 transition relative ${
                       mode === 'email'
                         ? 'bg-[#FAF2E2] text-[#1A2422] shadow-[0_2px_6px_rgba(0,0,0,0.12)]'
+                        : planType !== 'pro' || subscriptionStatus !== 'active'
+                        ? 'text-[#5E6F68] opacity-60'
                         : 'text-[#5E6F68]'
                     }`}
                   >
@@ -1438,6 +1503,9 @@ export default function CashierDashboard() {
                       <path d="m3 7 9 6 9-6" />
                     </svg>
                     Emel
+                    {(planType !== 'pro' || subscriptionStatus !== 'active') && (
+                      <span className="ml-1 text-[9px] font-bold bg-[#E5A43B]/90 text-[#1A2422] px-1.5 py-0.5 rounded-full leading-none">PRO</span>
+                    )}
                   </div>
                 </div>
 

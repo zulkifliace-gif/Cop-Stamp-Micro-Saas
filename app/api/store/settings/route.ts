@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
 
     const { data: store, error: storeError } = await admin
       .from('stores')
-      .select('id, name, stamps_required, reward_description, logo_url, reward_image_url, rewards')
+      .select('id, name, stamps_required, reward_description, logo_url, reward_image_url, rewards, plan_type, subscription_status')
       .eq('id', activeStoreId)
       .single()
 
@@ -98,6 +98,8 @@ export async function GET(req: NextRequest) {
       rewards: parsedRewards,
       stampIcon: parsedStampIcon,
       socialLinks: parsedSocialLinks,
+      planType: store.plan_type || 'free',
+      subscriptionStatus: store.subscription_status || 'active',
       role: activeRole,
     })
   } catch (err: unknown) {

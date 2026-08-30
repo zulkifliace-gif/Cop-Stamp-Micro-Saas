@@ -125,14 +125,34 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Dapatkan maklumat kedai
+    // Dapatkan maklumat kedai & status pelan
     const { data: store } = await admin
       .from('stores')
-      .select('name')
+      .select('name, plan_type, subscription_status')
       .eq('id', storeId)
       .maybeSingle()
 
     const storeName = store?.name || 'Kedai'
+    const isPro = store?.plan_type === 'pro' && store?.subscription_status === 'active'
+
+    // Sekatan Pelan Percuma: Mod emel eksklusif untuk Pelan Pro sahaja (Server-side Enforcement)
+    if (deliveryMethod === 'email') {
+      if (!isPro) {
+        return NextResponse.json(
+          {
+            error: 'Penghantaran cop melalui emel adalah ciri khas Pelan Pro. Sila langgan Pelan Pro untuk menghantar cop melalui emel.',
+            code: 'PRO_REQUIRED',
+          },
+          { status: 403 }
+        )
+      }
+      if (!customerEmail || !customerEmail.includes('@')) {
+        return NextResponse.json(
+          { error: 'Sila masukkan alamat emel pelanggan yang sah.' },
+          { status: 400 }
+        )
+      }
+    }
 
     // Jana token unik 8-aksara dan tamat tempoh 30 minit
     const tokenCode = generateSecureToken()

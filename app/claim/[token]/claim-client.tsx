@@ -149,7 +149,12 @@ export default function ClaimClient({
       const data = await res.json()
 
       if (!res.ok) {
-        setClaimError(data.error || 'Gagal menebus cop.')
+        // Friendly message for customer quota limit (Free Plan)
+        if (data.code === 'customer_limit_reached') {
+          setClaimError('Kedai ini telah mencapai had maksimum pelanggan bagi Pelan Percuma. Sila maklumkan kepada pihak kedai untuk menaik taraf pelan mereka.')
+        } else {
+          setClaimError(data.error || 'Gagal menebus cop.')
+        }
         setScene('error')
         return
       }

@@ -60,6 +60,8 @@ export async function POST(req: NextRequest) {
           ? 404
           : rpcResult?.error === 'expired'
           ? 410
+          : rpcResult?.error === 'customer_limit_reached'
+          ? 403
           : 400
       return NextResponse.json(
         { error: errorMsg, code: rpcResult?.error },

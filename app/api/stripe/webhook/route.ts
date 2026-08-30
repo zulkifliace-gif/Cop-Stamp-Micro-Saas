@@ -24,12 +24,31 @@ export async function POST(req: NextRequest) {
 
   const admin = createAdminClient()
 
+  // #2 Webhook Idempotency Enforcement: Check if this event was already processed
+  try {
+    const { data: existingEvent } = await admin
+      .from('stripe_webhook_events')
+      .select('event_id')
+      .eq('event_id', event.id)
+      .maybeSingle()
+
+    if (existingEvent) {
+      console.log(`[Stripe Webhook] Duplicate event skipped (Idempotency): ${event.id}`)
+      return NextResponse.json({ received: true, duplicate: true })
+    }
+  } catch (idempErr: any) {
+    console.warn('[Stripe Webhook] Idempotency check warning:', idempErr.message)
+  }
+
+  let processedStoreId: string | null = null
+
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object
         const storeId = session.metadata?.store_id
         const planType = session.metadata?.plan_type || 'monthly'
+        processedStoreId = storeId || null
 
         console.log(`[Stripe Webhook] Checkout completed for store: ${storeId}, plan: ${planType}`)
 
@@ -40,7 +59,7 @@ export async function POST(req: NextRequest) {
               subscription_status: 'active',
               stripe_customer_id: session.customer || null,
               stripe_subscription_id: session.subscription || null,
-              plan_type: planType,
+              plan_type: planType === 'yearly' ? 'pro' : 'pro',
             })
             .eq('id', storeId)
         }
@@ -51,6 +70,7 @@ export async function POST(req: NextRequest) {
         const sub = event.data.object
         const storeId = sub.metadata?.store_id
         const status = sub.status
+        processedStoreId = storeId || null
 
         let mappedStatus = 'active'
         if (status === 'past_due' || status === 'unpaid') mappedStatus = 'past_due'
@@ -75,6 +95,7 @@ export async function POST(req: NextRequest) {
       case 'customer.subscription.deleted': {
         const sub = event.data.object
         const storeId = sub.metadata?.store_id
+        processedStoreId = storeId || null
 
         console.log(`[Stripe Webhook] Subscription cancelled for store: ${storeId}`)
 
@@ -100,6 +121,17 @@ export async function POST(req: NextRequest) {
 
       default:
         console.log(`[Stripe Webhook] Ignored event: ${event.type}`)
+    }
+
+    // Record processed event into idempotency table
+    try {
+      await admin.from('stripe_webhook_events').insert({
+        event_id: event.id,
+        event_type: event.type,
+        store_id: processedStoreId,
+      })
+    } catch (insertErr: any) {
+      console.warn('[Stripe Webhook] Failed to record event ID in idempotency log:', insertErr.message)
     }
 
     return NextResponse.json({ received: true })
