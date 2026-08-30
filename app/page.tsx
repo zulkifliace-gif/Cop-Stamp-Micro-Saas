@@ -208,7 +208,7 @@ export default function LandingPage() {
     },
     {
       q: 'Berapa kos untuk menggunakan LajuS?',
-      a: 'LajuS menawarkan Pelan Percuma (sehingga 20 pelanggan) untuk bermula tanpa sebarang kos. Pelan Pro pula berharga RM50/bulan atau RM580/tahun (jimat RM20) untuk pelanggan tanpa had, cetak resit Bluetooth, analitik lanjut, dan sokongan keutamaan.',
+      a: 'LajuS menawarkan Pelan Percuma (sehingga 20 pelanggan) untuk bermula tanpa sebarang kos. Pelan Pro pula berharga RM53/bulan atau RM616/tahun (jimat RM20) untuk pelanggan tanpa had, cetak resit Bluetooth, analitik lanjut, dan sokongan keutamaan.',
     },
     {
       q: 'Bolehkah lebih dari satu staf gunakan sistem ini?',
@@ -628,7 +628,7 @@ export default function LandingPage() {
                   <div className="font-black text-white text-2xl mb-1">Pelan Pro</div>
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-5xl font-black text-[#E5A43B]">
-                      {billingCycle === 'yearly' ? 'RM580' : 'RM50'}
+                      {billingCycle === 'yearly' ? 'RM616' : 'RM53'}
                     </span>
                     <span className="text-slate-400 text-sm">
                       /{billingCycle === 'yearly' ? 'tahun' : 'bulan'}
@@ -636,7 +636,7 @@ export default function LandingPage() {
                   </div>
                   {billingCycle === 'yearly' && (
                     <p className="text-emerald-400 text-xs font-bold mt-1">
-                      ≈ RM48.33/bln • Jimat RM20 berbanding bulanan
+                      ≈ RM51.33/bln • Jimat RM20 berbanding bulanan
                     </p>
                   )}
                   <p className="text-slate-400 text-sm mt-2">Untuk perniagaan yang sedang berkembang pesat.</p>

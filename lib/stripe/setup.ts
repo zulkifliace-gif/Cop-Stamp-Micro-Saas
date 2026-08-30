@@ -46,12 +46,12 @@ export async function ensureStripeProducts(): Promise<{
     console.log('[Stripe Setup] Created new product:', product.id)
   }
 
-  // 2. Find or create Monthly price (RM 50 = 5000 cents)
+  // 2. Find or create Monthly price (RM 53 = 5300 cents)
   let monthlyPrice: Stripe.Price | null = null
   const allPrices = await stripe.prices.list({ product: product.id, active: true, limit: 20 })
 
   const foundMonthly = allPrices.data.find(
-    (p) => p.recurring?.interval === 'month' && p.unit_amount === 5000 && p.currency === 'myr'
+    (p) => p.recurring?.interval === 'month' && p.unit_amount === 5300 && p.currency === 'myr'
   )
   if (foundMonthly) {
     monthlyPrice = foundMonthly
@@ -59,19 +59,19 @@ export async function ensureStripeProducts(): Promise<{
   } else {
     monthlyPrice = await stripe.prices.create({
       product: product.id,
-      unit_amount: 5000,
+      unit_amount: 5300,
       currency: 'myr',
       recurring: { interval: 'month', interval_count: 1 },
-      nickname: 'LajuS Pro - Bulanan RM50',
+      nickname: 'LajuS Pro - Bulanan RM53',
       metadata: { plan: 'monthly', app: 'lajus' },
     })
     console.log('[Stripe Setup] Created monthly price:', monthlyPrice.id)
   }
 
-  // 3. Find or create Yearly price (RM 580 = 58000 cents)
+  // 3. Find or create Yearly price (RM 616 = 61600 cents)
   let yearlyPrice: Stripe.Price | null = null
   const foundYearly = allPrices.data.find(
-    (p) => p.recurring?.interval === 'year' && p.unit_amount === 58000 && p.currency === 'myr'
+    (p) => p.recurring?.interval === 'year' && p.unit_amount === 61600 && p.currency === 'myr'
   )
   if (foundYearly) {
     yearlyPrice = foundYearly
@@ -79,10 +79,10 @@ export async function ensureStripeProducts(): Promise<{
   } else {
     yearlyPrice = await stripe.prices.create({
       product: product.id,
-      unit_amount: 58000,
+      unit_amount: 61600,
       currency: 'myr',
       recurring: { interval: 'year', interval_count: 1 },
-      nickname: 'LajuS Pro - Tahunan RM580',
+      nickname: 'LajuS Pro - Tahunan RM616',
       metadata: { plan: 'yearly', app: 'lajus' },
     })
     console.log('[Stripe Setup] Created yearly price:', yearlyPrice.id)
