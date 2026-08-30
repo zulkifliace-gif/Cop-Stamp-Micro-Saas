@@ -55,10 +55,21 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 2. Compute Store Overview Stats
-    // A. Total distinct customers — kira dari stamp_tokens (claimed_by) supaya
-    //    merangkumi semua pelanggan termasuk yang claim tanpa log masuk.
-    //    customer_loyalty hanya ada row untuk pelanggan yang log masuk.
+    // 2. Proactively update past pending tokens to 'expired'
+    const nowIso = new Date().toISOString()
+    try {
+      await admin
+        .from('stamp_tokens')
+        .update({ status: 'expired' })
+        .eq('store_id', storeId)
+        .eq('status', 'pending')
+        .lt('expires_at', nowIso)
+    } catch (_e) {
+      // ignore update error if column is restricted
+    }
+
+    // 3. Compute Store Overview Stats
+    // A. Total distinct customers — kira dari stamp_tokens (claimed_by)
     const { data: claimedByRows } = await admin
       .from('stamp_tokens')
       .select('claimed_by')
@@ -93,7 +104,7 @@ export async function GET(req: NextRequest) {
       .eq('store_id', storeId)
       .eq('status', 'claimed')
 
-    // E. Total rewards redeemed (with fallback if stamp_redemptions table doesn't exist)
+    // E. Total rewards redeemed
     let totalRedemptions = 0
     try {
       const { count: redemptionCount, error: redemptionError } = await admin
@@ -107,10 +118,77 @@ export async function GET(req: NextRequest) {
       // stamp_redemptions table may not exist yet — treat as 0
     }
 
-    // 3. Fetch Paginated Activity Logs (Tokens + Redemptions)
+    // 4. Handle Full Export if Requested
+    const isExport = searchParams.get('export') === 'true'
+    const startDate = searchParams.get('startDate')
+    const endDate = searchParams.get('endDate')
+
+    if (isExport) {
+      let exportQuery = admin
+        .from('stamp_tokens')
+        .select('id, token, stamp_count, status, delivery_method, recipient_email, created_at, expires_at, claimed_at')
+        .eq('store_id', storeId)
+        .order('created_at', { ascending: false })
+
+      if (startDate) {
+        exportQuery = exportQuery.gte('created_at', startDate)
+      }
+      if (endDate) {
+        exportQuery = exportQuery.lte('created_at', endDate)
+      }
+
+      const { data: rawExportTokens, error: exportError } = await exportQuery
+
+      if (exportError) {
+        return NextResponse.json({ error: 'Gagal memuat turun log aktiviti.' }, { status: 500 })
+      }
+
+      const exportActivities = (rawExportTokens || []).map((t) => {
+        const cleanToken = t.token || ''
+        const dateObj = new Date(t.created_at)
+        const isPastExpiry =
+          t.status === 'pending' &&
+          t.expires_at &&
+          new Date(t.expires_at).getTime() < Date.now()
+        const resolvedStatus = isPastExpiry ? 'expired' : t.status
+
+        const formattedDate = dateObj.toLocaleDateString('ms-MY', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        })
+        const formattedTime = dateObj.toLocaleTimeString('ms-MY', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true,
+        })
+
+        return {
+          id: t.id,
+          token: cleanToken,
+          stampCount: t.stamp_count,
+          status: resolvedStatus,
+          deliveryMethod: t.delivery_method || 'qr',
+          recipientEmail: t.recipient_email || '-',
+          createdAt: t.created_at,
+          expiresAt: t.expires_at,
+          claimedAt: t.claimed_at || '-',
+          formattedDate,
+          formattedTime,
+          fullTimestamp: `${formattedDate}, ${formattedTime}`,
+        }
+      })
+
+      return NextResponse.json({
+        exportActivities,
+        total: exportActivities.length,
+      })
+    }
+
+    // 5. Fetch Paginated Activity Logs
     const offset = (page - 1) * limit
 
-    // Get total token logs count for pagination
     const { count: totalLogsCount } = await admin
       .from('stamp_tokens')
       .select('id', { count: 'exact', head: true })
@@ -120,7 +198,6 @@ export async function GET(req: NextRequest) {
     const totalPages = Math.ceil(total / limit)
     const hasMore = page < totalPages
 
-    // Fetch this page's tokens
     let tokens: any[] | null = null
     let { data: rawTokens, error: tokenError } = await admin
       .from('stamp_tokens')
@@ -151,8 +228,12 @@ export async function GET(req: NextRequest) {
       const cleanToken = t.token || ''
       const lastFour = cleanToken.replace(/-/g, '').slice(-4)
       const dateObj = new Date(t.created_at)
+      const isPastExpiry =
+        t.status === 'pending' &&
+        t.expires_at &&
+        new Date(t.expires_at).getTime() < Date.now()
+      const resolvedStatus = isPastExpiry ? 'expired' : t.status
 
-      // Formatted date & time (e.g. 28/08/2026, 02:15:30 PM)
       const formattedDate = dateObj.toLocaleDateString('ms-MY', {
         day: '2-digit',
         month: '2-digit',
@@ -170,7 +251,7 @@ export async function GET(req: NextRequest) {
         type: 'token_generated' as const,
         maskedToken: `•••${lastFour}`,
         stampCount: t.stamp_count,
-        status: t.status,
+        status: resolvedStatus,
         deliveryMethod: t.delivery_method,
         recipientEmail: t.recipient_email || null,
         createdAt: t.created_at,

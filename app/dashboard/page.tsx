@@ -171,13 +171,26 @@ export default function CashierDashboard() {
   const [redeemCount, setRedeemCount] = useState<number>(1)
   const [selectedRewardId, setSelectedRewardId] = useState<string>('')
 
-  // Activity Feed (Paginated 10 per request)
+  // Stats Loading State (for instant lightweight shimmer placeholder)
+  const [statsLoading, setStatsLoading] = useState<boolean>(true)
+
+  // Activity Feed (Paginated 10 per request & Collapsible)
   const [activities, setActivities] = useState<ActivityItem[]>([])
   const [loadingActivity, setLoadingActivity] = useState<boolean>(false)
   const [activityPage, setActivityPage] = useState<number>(1)
   const [totalActivityPages, setTotalActivityPages] = useState<number>(1)
   const [totalActivityCount, setTotalActivityCount] = useState<number>(0)
   const [hasMoreActivity, setHasMoreActivity] = useState<boolean>(false)
+  const [showActivityLog, setShowActivityLog] = useState<boolean>(false)
+
+  // Export Activity Modal State
+  const [showExportModal, setShowExportModal] = useState<boolean>(false)
+  const [exportPeriod, setExportPeriod] = useState<
+    'this_month' | 'last_month' | 'last_3_months' | 'all' | 'custom'
+  >('this_month')
+  const [exportStartDate, setExportStartDate] = useState<string>('')
+  const [exportEndDate, setExportEndDate] = useState<string>('')
+  const [isExporting, setIsExporting] = useState<boolean>(false)
 
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -218,25 +231,20 @@ export default function CashierDashboard() {
       const res = await fetch('/api/store/settings')
       if (res.ok) {
         const data = await res.json()
-        if (data.needsRegistration) {
-          setNeedsRegistration(true)
-        } else {
-          setNeedsRegistration(false)
-          if (data.storeId) {
-            setStoreId(data.storeId)
-            loadActivity(1, data.storeId)
-          }
-          if (data.name) setStoreName(data.name)
-          if (data.stampsRequired) setStampsRequired(data.stampsRequired)
-          if (data.rewardDescription) setRewardDesc(data.rewardDescription)
-          if (data.logoUrl) setLogoUrl(data.logoUrl)
-          if (data.rewardImageUrl) setRewardImageUrl(data.rewardImageUrl)
-          if (Array.isArray(data.rewards)) setRewardsList(data.rewards)
-          if (data.stampIcon) setStampIcon(data.stampIcon)
-          if (Array.isArray(data.socialLinks)) setSocialLinks(data.socialLinks)
-          if (data.role) setStaffRole(data.role)
-          if (data.planType) setPlanType(data.planType)
-          if (data.subscriptionStatus) setSubscriptionStatus(data.subscriptionStatus)
+        setNeedsRegistration(data.needsRegistration)
+        if (!data.needsRegistration) {
+          setStoreId(data.storeId)
+          setStoreName(data.name || '')
+          setLogoUrl(data.logoUrl || '')
+          setRewardImageUrl(data.rewardImageUrl || '')
+          setRewardsList(Array.isArray(data.rewards) ? data.rewards : [])
+          setStampIcon(data.stampIcon || '/icons/stamps/makanan.svg')
+          setSocialLinks(Array.isArray(data.socialLinks) ? data.socialLinks : [])
+          setStampsRequired(data.stampsRequired || 10)
+          setRewardDesc(data.rewardDescription || '')
+          setStaffRole(data.role || 'cashier')
+          setPlanType(data.planType || 'free')
+          setSubscriptionStatus(data.subscriptionStatus || 'active')
         }
       }
     } catch (e) {
@@ -249,6 +257,7 @@ export default function CashierDashboard() {
   // 3. Fetch Paginated Activity List & Store Stats (10 items per page)
   async function loadActivity(page = 1, currentStoreId = storeId) {
     setLoadingActivity(true)
+    if (page === 1) setStatsLoading(true)
     try {
       const targetStoreId = currentStoreId || storeId
       const url = targetStoreId
@@ -273,6 +282,104 @@ export default function CashierDashboard() {
       console.error('Failed to load activity:', e)
     } finally {
       setLoadingActivity(false)
+      setStatsLoading(false)
+    }
+  }
+
+  // 3.1 Export Activity Logs to CSV
+  async function handleExportActivity() {
+    setIsExporting(true)
+    try {
+      let start: string | undefined
+      let end: string | undefined
+      const now = new Date()
+
+      if (exportPeriod === 'this_month') {
+        start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+        end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString()
+      } else if (exportPeriod === 'last_month') {
+        start = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString()
+        end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999).toISOString()
+      } else if (exportPeriod === 'last_3_months') {
+        start = new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString()
+        end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString()
+      } else if (exportPeriod === 'custom') {
+        if (exportStartDate) start = new Date(exportStartDate).toISOString()
+        if (exportEndDate) {
+          const endD = new Date(exportEndDate)
+          endD.setHours(23, 59, 59, 999)
+          end = endD.toISOString()
+        }
+      }
+
+      const targetStoreId = storeId
+      let url = `/api/store/activity?storeId=${targetStoreId}&export=true`
+      if (start) url += `&startDate=${encodeURIComponent(start)}`
+      if (end) url += `&endDate=${encodeURIComponent(end)}`
+
+      const res = await fetch(url)
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Gagal memuat turun data.')
+
+      const items: any[] = data.exportActivities || []
+      if (items.length === 0) {
+        showBtToast('Tiada rekod aktiviti untuk tempoh dipilih.', 'info')
+        setShowExportModal(false)
+        return
+      }
+
+      // Build CSV with UTF-8 BOM
+      const headers = [
+        'ID Token',
+        'Tarikh & Masa',
+        'Bilangan Cop',
+        'Status',
+        'Kaedah Hantar',
+        'Emel Penerima',
+        'Tarikh Luput',
+        'Tarikh Dituntut',
+      ]
+      const rows = items.map((it) => [
+        `"${it.token}"`,
+        `"${it.fullTimestamp || it.createdAt}"`,
+        it.stampCount,
+        `"${it.status === 'claimed' ? 'Ditebus' : it.status === 'expired' ? 'Luput' : 'Menunggu'}"`,
+        `"${it.deliveryMethod === 'email' ? 'Emel' : 'QR Kod'}"`,
+        `"${it.recipientEmail || '-'}"`,
+        `"${it.expiresAt ? new Date(it.expiresAt).toLocaleString('ms-MY') : '-'}"`,
+        `"${it.claimedAt && it.claimedAt !== '-' ? new Date(it.claimedAt).toLocaleString('ms-MY') : '-'}"`,
+      ])
+
+      const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\r\n')
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const downloadUrl = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      const periodLabel =
+        exportPeriod === 'this_month'
+          ? 'Bulan_Ini'
+          : exportPeriod === 'last_month'
+          ? 'Bulan_Lepas'
+          : exportPeriod === 'last_3_months'
+          ? '3_Bulan_Lepas'
+          : exportPeriod === 'custom'
+          ? 'Tarikh_Pilihan'
+          : 'Semua_Rekod'
+      link.setAttribute(
+        'download',
+        `Log_Aktiviti_${(storeName || 'Kedai').replace(/\s+/g, '_')}_${periodLabel}_${now.toISOString().slice(0, 10)}.csv`
+      )
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(downloadUrl)
+
+      showBtToast(`Berjaya muat turun ${items.length} rekod aktiviti (.CSV)!`, 'success')
+      setShowExportModal(false)
+    } catch (err: any) {
+      showBtToast(err.message || 'Ralat muat turun aktiviti.', 'error')
+    } finally {
+      setIsExporting(false)
     }
   }
 
@@ -1105,9 +1212,13 @@ export default function CashierDashboard() {
                   <div className="bg-[#FAF2E2]/[0.05] border border-[#FAF2E2]/10 rounded-xl px-3.5 py-2.5">
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-[10px] font-space uppercase text-[#5E6F68] font-bold tracking-wider">Had Pelanggan Percuma</span>
-                      <span className={`text-[11px] font-bold font-space ${quotaFull ? 'text-red-400' : quotaWarning ? 'text-amber-400' : 'text-[#FAF2E2]'}`}>
-                        {totalCustomers} / 20
-                      </span>
+                      {statsLoading ? (
+                        <div className="h-4 w-12 bg-white/20 rounded animate-pulse" />
+                      ) : (
+                        <span className={`text-[11px] font-bold font-space ${quotaFull ? 'text-red-400' : quotaWarning ? 'text-amber-400' : 'text-[#FAF2E2]'}`}>
+                          {totalCustomers} / 20
+                        </span>
+                      )}
                     </div>
                     <div className="w-full h-1.5 bg-[#FAF2E2]/10 rounded-full overflow-hidden">
                       <div
@@ -1136,26 +1247,42 @@ export default function CashierDashboard() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
             <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-2xl p-3 text-center">
               <div className="text-[10px] font-space uppercase text-[#5E6F68] font-bold">Pelanggan</div>
-              <div className="text-xl font-fraunces font-bold text-[#E5A43B] mt-0.5">
-                {storeStats.totalCustomers}
+              <div className="text-xl font-fraunces font-bold text-[#E5A43B] mt-0.5 min-h-[28px] flex items-center justify-center">
+                {statsLoading ? (
+                  <div className="h-6 w-10 bg-[#E5A43B]/20 rounded-md animate-pulse" />
+                ) : (
+                  storeStats.totalCustomers
+                )}
               </div>
             </div>
             <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-2xl p-3 text-center">
               <div className="text-[10px] font-space uppercase text-[#5E6F68] font-bold">Cop Dituntut</div>
-              <div className="text-xl font-fraunces font-bold text-emerald-400 mt-0.5">
-                {storeStats.totalTokensClaimed}
+              <div className="text-xl font-fraunces font-bold text-emerald-400 mt-0.5 min-h-[28px] flex items-center justify-center">
+                {statsLoading ? (
+                  <div className="h-6 w-10 bg-emerald-400/20 rounded-md animate-pulse" />
+                ) : (
+                  storeStats.totalTokensClaimed
+                )}
               </div>
             </div>
             <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-2xl p-3 text-center">
               <div className="text-[10px] font-space uppercase text-[#5E6F68] font-bold">Ganjaran Ditebus</div>
-              <div className="text-xl font-fraunces font-bold text-amber-300 mt-0.5">
-                {storeStats.totalRedemptions}
+              <div className="text-xl font-fraunces font-bold text-amber-300 mt-0.5 min-h-[28px] flex items-center justify-center">
+                {statsLoading ? (
+                  <div className="h-6 w-10 bg-amber-300/20 rounded-md animate-pulse" />
+                ) : (
+                  storeStats.totalRedemptions
+                )}
               </div>
             </div>
             <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-2xl p-3 text-center">
               <div className="text-[10px] font-space uppercase text-[#5E6F68] font-bold">Baki Cop Aktif</div>
-              <div className="text-xl font-fraunces font-bold text-[#FAF2E2] mt-0.5">
-                {storeStats.totalStampsGiven}
+              <div className="text-xl font-fraunces font-bold text-[#FAF2E2] mt-0.5 min-h-[28px] flex items-center justify-center">
+                {statsLoading ? (
+                  <div className="h-6 w-10 bg-[#FAF2E2]/20 rounded-md animate-pulse" />
+                ) : (
+                  storeStats.totalStampsGiven
+                )}
               </div>
             </div>
           </div>
@@ -1956,101 +2083,162 @@ export default function CashierDashboard() {
             </div>
           )}
 
-          {/* ACTIVITY LOG (PAGINATED - 10 ITEMS PER REQUEST) */}
-          <div>
-            <div className="flex items-center justify-between mb-2.5">
-              <div className="font-space text-[10.5px] tracking-[0.14em] uppercase text-[#E5A43B] opacity-90 font-semibold">
-                Log Aktiviti ({totalActivityCount})
-              </div>
+          {/* ACTIVITY LOG (COLLAPSIBLE DROPDOWN WITH EXPORT DOWNLOAD) */}
+          <div className="border border-[#FAF2E2]/12 bg-[#FAF2E2]/[0.03] rounded-[20px] p-4 transition-all">
+            <div className="flex items-center justify-between gap-2">
               <button
-                onClick={() => loadActivity(activityPage)}
-                disabled={loadingActivity}
-                className="text-[10.5px] font-space text-[#5E6F68] hover:text-[#FAF2E2] transition cursor-pointer"
+                type="button"
+                onClick={() => setShowActivityLog(!showActivityLog)}
+                className="flex items-center gap-2.5 text-left cursor-pointer group flex-1 py-1"
               >
-                {loadingActivity ? 'Memuatkan...' : '↻ Muat Semula'}
-              </button>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              {activities.length === 0 ? (
-                <div className="text-center py-6 text-xs text-[#5E6F68] bg-[#FAF2E2]/[0.03] border border-[#FAF2E2]/10 rounded-xl">
-                  Belum ada rekod log.
-                </div>
-              ) : (
-                activities.map((act) => (
-                  <div
-                    key={act.id}
-                    className="flex items-center justify-between gap-2.5 bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/10 rounded-[12px] p-3 hover:bg-[#FAF2E2]/[0.09] transition"
+                <div className="w-6 h-6 rounded-lg bg-[#E5A43B]/10 border border-[#E5A43B]/20 flex items-center justify-center text-[#E5A43B] transition-transform duration-300 group-hover:bg-[#E5A43B]/20 shrink-0">
+                  <svg
+                    className={`w-3.5 h-3.5 transition-transform duration-300 ${
+                      showActivityLog ? 'rotate-180 text-[#E5A43B]' : 'rotate-0 text-[#FAF2E2]/70'
+                    }`}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
                   >
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-[32px] h-[32px] rounded-full bg-[#B53629] flex items-center justify-center shrink-0 shadow-sm">
-                        <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="none">
-                          <path
-                            d="M12 2C7 2 3 6.5 3 12s4 10 9 10 9-4.5 9-10S17 2 12 2Z"
-                            fill="#FAF2E2"
-                          />
-                          <path
-                            d="M12 3.3C13.6 6.2 12 9 10.3 11.5S8.2 17 12 20.6"
-                            stroke="#B53629"
-                            strokeWidth="1.6"
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                      </div>
-                      <div>
-                        <div className="font-space text-[12px] text-[#FAF2E2] font-semibold">
-                          +{act.stampCount} Cop • {act.deliveryMethod === 'email' ? 'Emel' : 'QR'} ({act.maskedToken})
-                        </div>
-                        <div className="text-[10.5px] text-[#5E6F68] font-space">
-                          {act.fullTimestamp || act.createdAt}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center">
-                      <span
-                        className={`text-[10px] font-bold py-1 px-2 rounded-[7px] tracking-[0.03em] whitespace-nowrap ${
-                          act.status === 'claimed'
-                            ? 'bg-[#388E5F]/[0.2] text-[#388E5F]'
-                            : act.status === 'expired'
-                            ? 'bg-red-500/20 text-red-400'
-                            : 'bg-[#E5A43B]/[0.2] text-[#E5A43B]'
-                        }`}
-                      >
-                        {act.status === 'claimed'
-                          ? 'DITEBUS'
-                          : act.status === 'expired'
-                          ? 'LUPUT'
-                          : 'PENDING'}
-                      </span>
-                    </div>
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="font-space text-[11px] tracking-[0.12em] uppercase text-[#E5A43B] font-bold flex items-center gap-1.5">
+                    <span>Log Aktiviti</span>
+                    <span className="text-[10px] text-[#FAF2E2]/60 font-normal">
+                      ({totalActivityCount})
+                    </span>
                   </div>
-                ))
-              )}
+                  <div className="text-[10px] text-[#5E6F68]">
+                    {showActivityLog ? 'Tekan untuk tutup senarai log' : 'Tekan untuk buka & semak rekod'}
+                  </div>
+                </div>
+              </button>
+
+              <div className="flex items-center gap-1.5">
+                {/* EXPORT DOWNLOAD BUTTON */}
+                <button
+                  type="button"
+                  onClick={() => setShowExportModal(true)}
+                  title="Muat Turun Log Aktiviti (.CSV)"
+                  className="py-1.5 px-2.5 rounded-xl border border-[#E5A43B]/30 bg-[#E5A43B]/10 hover:bg-[#E5A43B]/20 text-[#E5A43B] transition flex items-center gap-1.5 text-xs font-bold cursor-pointer active:scale-95 shadow-xs"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  <span className="hidden sm:inline text-[11px]">Muat Turun</span>
+                </button>
+
+                {/* REFRESH BUTTON */}
+                <button
+                  type="button"
+                  onClick={() => loadActivity(activityPage)}
+                  disabled={loadingActivity}
+                  title="Muat Semula Log"
+                  className="w-8 h-8 rounded-xl border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.05] hover:bg-[#FAF2E2]/10 text-[#5E6F68] hover:text-[#FAF2E2] transition flex items-center justify-center cursor-pointer disabled:opacity-40"
+                >
+                  <svg
+                    className={`w-3.5 h-3.5 ${loadingActivity ? 'animate-spin text-[#E5A43B]' : ''}`}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                  >
+                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
-            {/* PAGINATION BAR (10 ITEMS PER REQUEST) */}
-            {totalActivityPages > 1 && (
-              <div className="mt-4 flex items-center justify-between px-2 pt-3 border-t border-[#FAF2E2]/10 font-space text-xs text-[#5E6F68]">
-                <button
-                  onClick={() => loadActivity(Math.max(1, activityPage - 1))}
-                  disabled={activityPage <= 1 || loadingActivity}
-                  className="px-3 py-1.5 rounded-lg border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.05] text-[#FAF2E2] disabled:opacity-30 disabled:pointer-events-none hover:bg-[#FAF2E2]/10 transition cursor-pointer"
-                >
-                  ◀ Sebelum
-                </button>
+            {/* COLLAPSED / EXPANDED CONTENT */}
+            {showActivityLog && (
+              <div className="mt-3.5 pt-3 border-t border-[#FAF2E2]/10 anim-result">
+                <div className="flex flex-col gap-2">
+                  {activities.length === 0 ? (
+                    <div className="text-center py-6 text-xs text-[#5E6F68] bg-[#FAF2E2]/[0.02] border border-[#FAF2E2]/10 rounded-xl">
+                      Belum ada rekod log aktiviti.
+                    </div>
+                  ) : (
+                    activities.map((act) => (
+                      <div
+                        key={act.id}
+                        className="flex items-center justify-between gap-2.5 bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/10 rounded-[12px] p-3 hover:bg-[#FAF2E2]/[0.09] transition"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-[32px] h-[32px] rounded-full bg-[#B53629] flex items-center justify-center shrink-0 shadow-sm">
+                            <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="none">
+                              <path
+                                d="M12 2C7 2 3 6.5 3 12s4 10 9 10 9-4.5 9-10S17 2 12 2Z"
+                                fill="#FAF2E2"
+                              />
+                              <path
+                                d="M12 3.3C13.6 6.2 12 9 10.3 11.5S8.2 17 12 20.6"
+                                stroke="#B53629"
+                                strokeWidth="1.6"
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                          </div>
+                          <div>
+                            <div className="font-space text-[12px] text-[#FAF2E2] font-semibold">
+                              +{act.stampCount} Cop • {act.deliveryMethod === 'email' ? 'Emel' : 'QR'} ({act.maskedToken})
+                            </div>
+                            <div className="text-[10.5px] text-[#5E6F68] font-space">
+                              {act.fullTimestamp || act.createdAt}
+                            </div>
+                          </div>
+                        </div>
 
-                <div className="font-bold text-[#FAF2E2]">
-                  Halaman {activityPage} / {totalActivityPages}
+                        <div className="flex items-center">
+                          <span
+                            className={`text-[10px] font-bold py-1 px-2 rounded-[7px] tracking-[0.03em] whitespace-nowrap ${
+                              act.status === 'claimed'
+                                ? 'bg-[#388E5F]/[0.2] text-[#388E5F]'
+                                : act.status === 'expired'
+                                ? 'bg-red-500/20 text-red-400'
+                                : 'bg-[#E5A43B]/[0.2] text-[#E5A43B]'
+                            }`}
+                          >
+                            {act.status === 'claimed'
+                              ? 'DITEBUS'
+                              : act.status === 'expired'
+                              ? 'LUPUT'
+                              : 'PENDING'}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
 
-                <button
-                  onClick={() => loadActivity(activityPage + 1)}
-                  disabled={!hasMoreActivity || loadingActivity}
-                  className="px-3 py-1.5 rounded-lg border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.05] text-[#FAF2E2] disabled:opacity-30 disabled:pointer-events-none hover:bg-[#FAF2E2]/10 transition cursor-pointer"
-                >
-                  Seterusnya ▶
-                </button>
+                {/* PAGINATION BAR (10 ITEMS PER REQUEST) */}
+                {totalActivityPages > 1 && (
+                  <div className="mt-4 flex items-center justify-between px-2 pt-3 border-t border-[#FAF2E2]/10 font-space text-xs text-[#5E6F68]">
+                    <button
+                      onClick={() => loadActivity(Math.max(1, activityPage - 1))}
+                      disabled={activityPage <= 1 || loadingActivity}
+                      className="px-3 py-1.5 rounded-lg border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.05] text-[#FAF2E2] disabled:opacity-30 disabled:pointer-events-none hover:bg-[#FAF2E2]/10 transition cursor-pointer"
+                    >
+                      ◀ Sebelum
+                    </button>
+
+                    <div className="font-bold text-[#FAF2E2]">
+                      Halaman {activityPage} / {totalActivityPages}
+                    </div>
+
+                    <button
+                      onClick={() => loadActivity(activityPage + 1)}
+                      disabled={!hasMoreActivity || loadingActivity}
+                      className="px-3 py-1.5 rounded-lg border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.05] text-[#FAF2E2] disabled:opacity-30 disabled:pointer-events-none hover:bg-[#FAF2E2]/10 transition cursor-pointer"
+                    >
+                      Seterusnya ▶
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -2085,6 +2273,125 @@ export default function CashierDashboard() {
               </svg>
             )}
             <span>{btToast.msg}</span>
+          </div>
+        </div>
+      )}
+
+      {/* POPUP MODAL: MUAT TURUN / EKSPORT LOG AKTIVITI */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-5 shadow-2xl border border-[#E5A43B]/30 anim-popup">
+            <div className="flex items-center justify-between mb-3.5">
+              <div className="font-fraunces font-bold text-base text-[#0A1716] flex items-center gap-2">
+                <span>📥 Muat Turun Log Aktiviti</span>
+              </div>
+              <button
+                onClick={() => setShowExportModal(false)}
+                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-gray-500 hover:text-gray-800 text-lg font-bold transition cursor-pointer"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="text-xs text-[#5E6F68] mb-4">
+              Pilih tempoh masa untuk menjana dan memuat turun fail laporan log aktiviti kedai anda (.CSV).
+            </div>
+
+            <div className="space-y-2 mb-4">
+              <label className="block text-xs font-bold text-[#1A2422] mb-1">
+                Pilihan Tempoh / Bulan:
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: 'this_month', label: '📅 Bulan Ini' },
+                  { id: 'last_month', label: '📅 Bulan Lepas' },
+                  { id: 'last_3_months', label: '📅 3 Bulan Terakhir' },
+                  { id: 'all', label: '📊 Semua Rekod' },
+                ].map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setExportPeriod(opt.id as any)}
+                    className={`py-2 px-3 rounded-xl border text-xs font-semibold text-left transition cursor-pointer ${
+                      exportPeriod === opt.id
+                        ? 'border-[#E5A43B] bg-[#E5A43B]/20 text-[#0A1716] ring-1 ring-[#E5A43B] font-bold shadow-xs'
+                        : 'border-[#E4D9BE] bg-white text-[#5E6F68] hover:bg-gray-50'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom Date Range Toggle */}
+              <button
+                type="button"
+                onClick={() => setExportPeriod('custom')}
+                className={`w-full mt-1 py-2 px-3 rounded-xl border text-xs font-semibold text-left transition cursor-pointer ${
+                  exportPeriod === 'custom'
+                    ? 'border-[#E5A43B] bg-[#E5A43B]/20 text-[#0A1716] ring-1 ring-[#E5A43B] font-bold shadow-xs'
+                    : 'border-[#E4D9BE] bg-white text-[#5E6F68] hover:bg-gray-50'
+                }`}
+              >
+                🗓️ Pilih Julat Tarikh Khusus...
+              </button>
+
+              {exportPeriod === 'custom' && (
+                <div className="grid grid-cols-2 gap-2 pt-2 anim-result">
+                  <div>
+                    <label className="block text-[10.5px] font-bold text-[#5E6F68] mb-1">
+                      Dari Tarikh:
+                    </label>
+                    <input
+                      type="date"
+                      value={exportStartDate}
+                      onChange={(e) => setExportStartDate(e.target.value)}
+                      className="w-full border border-[#E4D9BE] rounded-lg p-2 text-xs bg-white text-[#1A2422] outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10.5px] font-bold text-[#5E6F68] mb-1">
+                      Hingga Tarikh:
+                    </label>
+                    <input
+                      type="date"
+                      value={exportEndDate}
+                      onChange={(e) => setExportEndDate(e.target.value)}
+                      className="w-full border border-[#E4D9BE] rounded-lg p-2 text-xs bg-white text-[#1A2422] outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowExportModal(false)}
+                className="flex-1 py-2.5 rounded-xl border border-[#E4D9BE] bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleExportActivity}
+                disabled={isExporting || (exportPeriod === 'custom' && (!exportStartDate || !exportEndDate))}
+                className="flex-1 py-2.5 rounded-xl bg-[#1E5E53] hover:bg-[#2D786B] text-white text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
+              >
+                {isExporting ? (
+                  <>
+                    <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                    </svg>
+                    <span>Menjana...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Muat Turun .CSV</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
