@@ -743,7 +743,7 @@ export default function CustomerCardPage() {
                 <div className="w-5 h-5 rounded-full bg-[#1E5E53] text-white font-bold text-[10px] flex items-center justify-center shrink-0">
                   2
                 </div>
-                <div>Maklumkan kasir ingin menebus ganjaran.</div>
+                <div>Maklumkan staff ingin menebus ganjaran.</div>
               </div>
 
               <div className="flex items-center gap-2.5 bg-white p-2.5 rounded-xl border border-[#E4D9BE]">
@@ -757,7 +757,7 @@ export default function CustomerCardPage() {
                 <div className="w-5 h-5 rounded-full bg-[#1E5E53] text-white font-bold text-[10px] flex items-center justify-center shrink-0">
                   4
                 </div>
-                <div>Kasir sahkan &amp; serahkan ganjaran!</div>
+                <div>Staff sahkan &amp; serahkan ganjaran!</div>
               </div>
             </div>
 

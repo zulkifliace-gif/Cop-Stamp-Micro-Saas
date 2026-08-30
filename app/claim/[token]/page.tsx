@@ -34,7 +34,7 @@ export default async function ClaimPage({ params }: PageProps) {
     tokenRecord.status === 'expired' ||
     new Date(tokenRecord.expires_at).getTime() < Date.now()
   ) {
-    initialError = 'Pautan ini telah luput tempoh (sah selama 15 minit sahaja).'
+    initialError = 'Pautan ini telah luput tempoh (sah selama 30 minit sahaja).'
     errorCode = 'expired'
   }
 

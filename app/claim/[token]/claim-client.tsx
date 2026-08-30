@@ -882,7 +882,7 @@ export default function ClaimClient({
                   2
                 </div>
                 <div>
-                  <b>Pergi ke Kaunter:</b> Maklumkan kepada kasir bahawa anda ingin menebus ganjaran anda.
+                  <b>Pergi ke Kaunter:</b> Maklumkan kepada staff bahawa anda ingin menebus ganjaran anda.
                 </div>
               </div>
 
@@ -891,7 +891,7 @@ export default function ClaimClient({
                   3
                 </div>
                 <div>
-                  <b>Sebut Emel Anda:</b> Berikan emel berdaftar anda kepada kasir untuk semakan baki cop di sistem.
+                  <b>Sebut Emel Anda:</b> Berikan emel berdaftar anda kepada staff untuk semakan baki cop di sistem.
                 </div>
               </div>
 
@@ -900,7 +900,7 @@ export default function ClaimClient({
                   4
                 </div>
                 <div>
-                  <b>Sahkan Penebusan:</b> Kasir akan menolak cop dan menyerahkan ganjaran anda serta-merta!
+                  <b>Sahkan Penebusan:</b> Staff akan menolak cop dan menyerahkan ganjaran anda serta-merta!
                 </div>
               </div>
             </div>

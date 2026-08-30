@@ -908,7 +908,7 @@ export default function CashierDashboard() {
             {/* Micro Caption */}
             <div className="w-full text-center mt-5 flex items-center justify-center gap-1.5 opacity-40 text-[11px] font-space text-[#FAF2E2]">
               <img src="/logo.svg" alt="LajuS" className="w-3 h-3 object-contain" />
-              <span>Memuatkan Kaunter Kasir...</span>
+              <span>Memuatkan Kaunter Staff...</span>
             </div>
           </div>
         </div>
@@ -933,7 +933,7 @@ export default function CashierDashboard() {
               {storeName || 'Kedai Anda'}
             </div>
             <div className="font-space text-[9.5px] tracking-[0.1em] text-[#5E6F68]">
-              KAUNTER KASIR{' '}
+              KAUNTER STAFF{' '}
               {user
                 ? needsRegistration
                   ? '• PENDAFTARAN KEDAI'
@@ -1047,7 +1047,7 @@ export default function CashierDashboard() {
             LajuS
           </div>
           <div className="font-space text-[10px] tracking-[0.14em] uppercase text-[#1E5E53] mb-4 font-semibold">
-            Kaunter Kasir
+            Kaunter Staff
           </div>
           <div className="text-[13.5px] text-[#5E6F68] mb-6 leading-relaxed max-w-[340px] mx-auto">
             Sila log masuk dengan akaun Google yang didaftarkan sebagai staf atau pemilik kedai untuk mengakses kaunter cop.

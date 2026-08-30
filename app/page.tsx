@@ -108,7 +108,7 @@ function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }
               <div className="font-extrabold text-slate-900 text-base leading-tight">
                 Laju<span className="text-[#E5A43B]">S</span>
               </div>
-              <div className="text-xs text-slate-500 font-medium">Akses Portal Kasir / Pemilik</div>
+              <div className="text-xs text-slate-500 font-medium">Akses Portal Staff / Pemilik</div>
             </div>
           </div>
 
@@ -204,15 +204,15 @@ export default function LandingPage() {
   const faqs = [
     {
       q: 'Adakah pelanggan perlu muat turun aplikasi?',
-      a: 'Tidak perlu langsung! Pelanggan hanya perlu imbas QR kod atau klik pautan yang diberikan kasir. Kad cop digital akan terbuka terus dalam pelayar web.',
+      a: 'Tidak perlu langsung! Pelanggan hanya perlu imbas QR kod atau klik pautan yang diberikan staff. Kad cop digital akan terbuka terus dalam pelayar web.',
     },
     {
       q: 'Berapa kos untuk menggunakan LajuS?',
       a: 'LajuS menawarkan Pelan Percuma (sehingga 20 pelanggan) untuk bermula tanpa sebarang kos. Pelan Pro pula berharga RM53/bulan atau RM616/tahun (jimat RM20) untuk pelanggan tanpa had, cetak resit Bluetooth, analitik lanjut, dan sokongan keutamaan.',
     },
     {
-      q: 'Bolehkah lebih dari satu staf gunakan sistem ini?',
-      a: 'Ya! Anda boleh tambah seberapa ramai staf mengikut keperluan kedai. Setiap staf log masuk dengan akaun Google mereka sendiri.',
+      q: 'Bolehkah lebih dari satu staff gunakan sistem ini?',
+      a: 'Ya! Anda boleh tambah seberapa ramai staff mengikut keperluan kedai. Setiap staff log masuk dengan akaun Google mereka sendiri.',
     },
     {
       q: 'Apakah jenis ganjaran yang boleh ditawarkan?',
@@ -228,94 +228,136 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white text-slate-900 font-sans overflow-x-hidden">
 
       {/* ── NAV ─────────────────────────────────── */}
-      <header className={`fixed z-50 transition-all duration-500 ${isScrolled ? 'top-4 left-4 right-4' : 'top-0 left-0 right-0'}`}>
+      <header className={`fixed z-50 transition-all duration-500 ${isScrolled ? 'top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-4' : 'top-0 left-0 right-0'}`}>
         <nav className={`mx-auto transition-all duration-500 ${
           isScrolled || mobileOpen
-            ? 'bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl max-w-[1200px]'
+            ? 'bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl max-w-[1240px]'
             : 'bg-white/90 backdrop-blur-md border-b border-slate-100 max-w-[1400px]'
         }`}>
-          <div className={`flex items-center justify-between px-6 lg:px-8 transition-all duration-500 ${isScrolled ? 'h-14' : 'h-20'}`}>
+          <div className={`flex items-center justify-between px-4 sm:px-6 lg:px-8 transition-all duration-500 ${isScrolled ? 'h-14' : 'h-16 sm:h-20'}`}>
 
-            {/* Brand */}
-            <a href="#" className="flex items-center gap-3 group">
-              <div className="h-9 w-9 rounded-xl bg-[#E5A43B] flex items-center justify-center shadow-md shadow-[#E5A43B]/30 group-hover:scale-105 transition overflow-hidden">
-                <img src="/logo.svg" alt="LajuS" className="w-full h-full object-cover" />
+            {/* Brand Logo */}
+            <a href="#" className="flex items-center gap-2.5 sm:gap-3 group">
+              <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-[#E5A43B] flex items-center justify-center shadow-md shadow-[#E5A43B]/30 group-hover:scale-105 transition overflow-hidden p-1 shrink-0">
+                <img src="/logo.svg" alt="LajuS" className="w-full h-full object-contain" />
               </div>
-              <span className="font-extrabold tracking-tight text-xl text-slate-900">
+              <span className="font-extrabold tracking-tight text-lg sm:text-xl text-slate-900">
                 Laju<span className="text-[#E5A43B]">S</span>
               </span>
             </a>
 
-            {/* Desktop nav links */}
-            <div className="hidden md:flex items-center gap-7 lg:gap-9 text-xs font-bold text-slate-700">
+            {/* Desktop & Tablet Navigation links (Visible on lg screens) */}
+            <div className="hidden lg:flex items-center gap-7 text-xs font-bold text-slate-700">
               <a href="#cara-kerja" className="hover:text-[#E5A43B] transition">Cara Kerja</a>
               <a href="#ciri" className="hover:text-[#E5A43B] transition">Ciri-Ciri</a>
               <a href="#harga" className="hover:text-[#E5A43B] transition">Harga</a>
               <a href="#faq" className="hover:text-[#E5A43B] transition">FAQ</a>
+              <a href="/card" className="hover:text-[#E5A43B] font-extrabold text-[#1E5E53] flex items-center gap-1 transition">
+                <span>Kad Pelanggan</span>
+                <span className="text-[10px]">↗</span>
+              </a>
             </div>
 
-            {/* Desktop CTA */}
-            <div className="hidden md:flex items-center gap-3">
+            {/* Right Action Buttons */}
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={() => setAuthOpen(true)}
-                className="px-5 py-2.5 bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] hover:brightness-110 text-white font-extrabold text-xs rounded-full shadow-lg shadow-[#E5A43B]/25 transition flex items-center gap-1.5 transform hover:-translate-y-0.5"
+                className="hidden sm:inline-flex px-4 sm:px-5 py-2.5 bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] hover:brightness-110 text-white font-extrabold text-xs rounded-full shadow-md shadow-[#E5A43B]/25 transition items-center gap-1.5 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
               >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
-                Log Masuk
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>
+                </svg>
+                <span>Portal Staff</span>
+              </button>
+
+              {/* Mobile & Tablet Hamburger Toggle */}
+              <button
+                onClick={() => setMobileOpen(!mobileOpen)}
+                className="lg:hidden p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 transition active:scale-95 cursor-pointer"
+                aria-label="Menu Navigasi"
+              >
+                {mobileOpen ? (
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M18 6 6 18M6 6l12 12"/>
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M4 6h16M4 12h16M4 18h16"/>
+                  </svg>
+                )}
               </button>
             </div>
-
-            {/* Mobile hamburger */}
-            <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden p-2 text-slate-900" aria-label="Menu">
-              {mobileOpen
-                ? <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
-                : <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-              }
-            </button>
           </div>
         </nav>
 
-        {/* Mobile drawer */}
-        <div className={`md:hidden fixed inset-0 z-50 bg-white flex flex-col justify-between p-6 transition-all duration-300 ${mobileOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
-          <div className="flex items-center justify-between border-b border-slate-100 pb-5">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-[#E5A43B] overflow-hidden shadow-md">
-                <img src="/logo.svg" alt="LajuS" className="w-full h-full object-cover" />
-              </div>
-              <span className="font-extrabold text-xl">Laju<span className="text-[#E5A43B]">S</span></span>
-            </div>
-            <button onClick={() => setMobileOpen(false)} className="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-full border border-slate-200 transition">
-              <svg className="w-5 h-5 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
-            </button>
-          </div>
-
-          <div className="flex flex-col gap-3 my-auto py-6">
-            {[
-              { href: '#cara-kerja', label: 'Cara Kerja', desc: 'Proses mudah 3 langkah' },
-              { href: '#ciri', label: 'Ciri-Ciri Utama', desc: 'Cop QR, Emel & Kad Digital' },
-              { href: '#faq', label: 'Soalan Lazim (FAQ)', desc: 'Jawapan untuk soalan biasa' },
-            ].map((link, i) => (
-              <a key={i} href={link.href} onClick={() => setMobileOpen(false)}
-                className="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl p-4 flex items-center justify-between group transition active:scale-[0.98]"
-              >
-                <div>
-                  <div className="font-extrabold text-slate-900 group-hover:text-[#E5A43B] transition text-base">{link.label}</div>
-                  <p className="text-xs text-slate-500 font-medium">{link.desc}</p>
+        {/* Mobile & Tablet Slide-Down Drawer Menu */}
+        {mobileOpen && (
+          <div className="lg:hidden fixed inset-0 z-50 bg-slate-950/65 backdrop-blur-md flex flex-col justify-end sm:justify-center p-3 sm:p-6 animate-in fade-in duration-200">
+            <div className="w-full max-w-lg mx-auto bg-white rounded-[28px] p-6 shadow-2xl border border-slate-200 flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+              
+              {/* Drawer Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-xl bg-[#E5A43B] overflow-hidden shadow-md flex items-center justify-center p-1">
+                    <img src="/logo.svg" alt="LajuS" className="w-full h-full object-contain" />
+                  </div>
+                  <div>
+                    <div className="font-extrabold text-lg leading-tight">Laju<span className="text-[#E5A43B]">S</span></div>
+                    <div className="text-[11px] text-slate-500">Sistem Cop Stamp Digital</div>
+                  </div>
                 </div>
-                <span className="text-slate-400 group-hover:text-[#E5A43B] font-mono font-bold text-lg transition">➔</span>
-              </a>
-            ))}
-          </div>
+                <button
+                  onClick={() => setMobileOpen(false)}
+                  className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full border border-slate-200 transition cursor-pointer text-slate-600"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M18 6 6 18M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
 
-          <div className="flex flex-col gap-3 pt-4 border-t border-slate-100">
-            <button onClick={() => { setMobileOpen(false); setAuthOpen(true) }}
-              className="w-full py-4 bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] text-white font-extrabold text-sm rounded-2xl shadow-xl shadow-[#E5A43B]/25 transition flex items-center justify-center gap-2 active:scale-[0.98]"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
-              Log Masuk Kaunter Kasir
-            </button>
+              {/* Navigation Links Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 py-2">
+                {[
+                  { href: '#cara-kerja', label: 'Cara Kerja', desc: 'Proses mudah 3 langkah', icon: '⚡' },
+                  { href: '#ciri', label: 'Ciri-Ciri Utama', desc: 'Cop QR, Emel & Kad Digital', icon: '⭐' },
+                  { href: '#harga', label: 'Pelan Harga', desc: 'Percuma & Pelan Pro', icon: '💳' },
+                  { href: '#faq', label: 'Soalan Lazim (FAQ)', desc: 'Jawapan untuk soalan lazim', icon: '❓' },
+                  { href: '/card', label: 'Kad Cop Pelanggan', desc: 'Semak baki cop anda', icon: '🎴' },
+                ].map((link, i) => (
+                  <a
+                    key={i}
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl p-3.5 flex items-center justify-between group transition active:scale-[0.98]"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">{link.icon}</span>
+                      <div>
+                        <div className="font-extrabold text-slate-900 group-hover:text-[#E5A43B] transition text-sm">{link.label}</div>
+                        <p className="text-[11px] text-slate-500 font-medium">{link.desc}</p>
+                      </div>
+                    </div>
+                    <span className="text-slate-400 group-hover:text-[#E5A43B] font-bold text-sm transition">➔</span>
+                  </a>
+                ))}
+              </div>
+
+              {/* Primary Action Button */}
+              <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
+                <button
+                  onClick={() => { setMobileOpen(false); setAuthOpen(true) }}
+                  className="w-full py-3.5 bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-[#E5A43B]/25 transition flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>
+                  </svg>
+                  <span>Buka Kaunter Staff</span>
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </header>
 
       {/* ── HERO ────────────────────────────────── */}
@@ -349,15 +391,15 @@ export default function LandingPage() {
             </h1>
 
             <p className="text-base md:text-lg text-slate-600 leading-relaxed">
-              Tingkatkan <strong>system repeat order</strong> pelanggan dengan <strong>LajuS</strong> — sistem kad <strong>cop stamp</strong> &amp; <strong>loyalty reward</strong> digital paling pantas. Kasir jana QR dalam 5 saat, pelanggan kumpul cop stamp terus dari telefon. <strong className="text-slate-900">Tanpa aplikasi, tanpa kad kertas lapuk.</strong>
+              Tingkatkan <strong>system repeat order</strong> pelanggan dengan <strong>LajuS</strong> — sistem kad <strong>cop stamp</strong> &amp; <strong>loyalty reward</strong> digital paling pantas. Staff jana QR dalam 5 saat, pelanggan kumpul cop stamp terus dari telefon. <strong className="text-slate-900">Tanpa aplikasi, tanpa kad kertas lapuk.</strong>
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 pt-2">
               <button
                 onClick={() => setAuthOpen(true)}
-                className="px-8 h-14 bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] hover:brightness-110 text-white font-extrabold text-sm rounded-full shadow-lg shadow-[#E5A43B]/25 flex items-center justify-center gap-2 transition transform hover:-translate-y-0.5 group"
+                className="px-8 h-14 bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] hover:brightness-110 text-white font-extrabold text-sm rounded-full shadow-lg shadow-[#E5A43B]/25 flex items-center justify-center gap-2 transition transform hover:-translate-y-0.5 group cursor-pointer"
               >
-                <span>Buka Kaunter Kasir</span>
+                <span>Buka Kaunter Staff</span>
                 <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
               </button>
               <a
@@ -370,7 +412,7 @@ export default function LandingPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-3 pt-2 text-xs font-semibold text-slate-700">
-              {['Tanpa App Dimuat Turun', 'Token QR 15 Minit', 'Log Masuk Google', 'Data Selamat (RLS)'].map(f => (
+              {['Tanpa App Dimuat Turun', 'Token QR 30 Minit', 'Log Masuk Google', 'Data Selamat (RLS)'].map(f => (
                 <div key={f} className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-[#1E5E53] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6 9 17l-5-5"/></svg>
                   <span>{f}</span>
@@ -401,7 +443,7 @@ export default function LandingPage() {
           {[
             { val: '5 Saat', label: 'Jana Token QR', color: 'text-[#E5A43B]' },
             { val: '0%', label: 'Keperluan App', color: 'text-[#34D399]' },
-            { val: '15 Min', label: 'Tempoh Token Selamat', color: 'text-[#FBBF24]' },
+            { val: '30 Min', label: '30m Stamp Akan Luput', color: 'text-[#FBBF24]' },
             { val: '100%', label: 'Data Pelanggan Selamat', color: 'text-white' },
           ].map(m => (
             <div key={m.label} className="space-y-1">
@@ -420,7 +462,7 @@ export default function LandingPage() {
               Cara Berfungsi
             </div>
             <h2 className="text-3xl md:text-4xl font-black text-slate-900">Mudah, Pantas, Tanpa Kertas</h2>
-            <p className="text-slate-500 max-w-xl mx-auto">3 langkah sahaja dari kasir jana cop hingga pelanggan terima ganjaran</p>
+            <p className="text-slate-500 max-w-xl mx-auto">3 langkah sahaja dari staff jana cop hingga pelanggan terima ganjaran</p>
           </ScrollReveal>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -430,8 +472,8 @@ export default function LandingPage() {
                 icon: (
                   <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM19 14v3M14 19h3"/></svg>
                 ),
-                title: 'Kasir Jana Token',
-                desc: 'Kasir pilih bilangan cop, klik Jana — token QR 8-aksara terus terhasil. Sah 15 minit sahaja.',
+                title: 'Staff Jana Token',
+                desc: 'Staff pilih bilangan cop, klik Jana — token QR 8-aksara terus terhasil. Sah 30 minit sahaja.',
                 color: 'from-[#E5A43B] to-[#C77B1B]',
               },
               {
@@ -480,11 +522,11 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
-              { icon: '🔐', title: 'Log Masuk Google', desc: 'Kasir dan pelanggan log masuk selamat melalui Google OAuth — tiada kata laluan untuk diingat.' },
+              { icon: '🔐', title: 'Log Masuk Google', desc: 'Staff dan pelanggan log masuk selamat melalui Google OAuth — tiada kata laluan untuk diingat.' },
               { icon: '⚡', title: 'Token QR Serta-merta', desc: 'Jana kod QR dalam masa 5 saat. Token 1-kali-guna mencegah penipuan sepenuhnya.' },
               { icon: '📱', title: 'Tanpa App', desc: 'Semua berfungsi dalam pelayar web biasa. Pelanggan tidak perlu muat turun apa-apa.' },
               { icon: '🛡️', title: 'Keselamatan RLS', desc: 'Row Level Security Supabase memastikan setiap pelanggan hanya boleh akses data mereka sendiri.' },
-              { icon: '📧', title: 'Hantar via Emel', desc: 'Kasir boleh hantar token terus ke emel pelanggan sebagai alternatif kepada QR.' },
+              { icon: '📧', title: 'Hantar via Emel', desc: 'Staff boleh hantar token terus ke emel pelanggan sebagai alternatif kepada QR.' },
               { icon: '🎯', title: 'Tetapan Ganjaran', desc: 'Pemilik kedai tetapkan sasaran cop dan penerangan ganjaran mengikut keperluan.' },
             ].map((f, i) => (
               <ScrollReveal key={i} delay={i * 80}>
@@ -509,9 +551,9 @@ export default function LandingPage() {
           <p className="text-white/80 text-base">Log masuk sekarang dan mula jana cop stamp pertama anda dalam masa 5 minit.</p>
           <button
             onClick={() => setAuthOpen(true)}
-            className="px-10 h-14 bg-white hover:bg-slate-50 text-[#C77B1B] font-extrabold text-sm rounded-full shadow-xl transition transform hover:-translate-y-0.5 group inline-flex items-center gap-2"
+            className="px-10 h-14 bg-white hover:bg-slate-50 text-[#C77B1B] font-extrabold text-sm rounded-full shadow-xl transition transform hover:-translate-y-0.5 group inline-flex items-center gap-2 cursor-pointer active:scale-95"
           >
-            Buka Kaunter Kasir
+            <span>Buka Kaunter Staff</span>
             <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
         </ScrollReveal>
@@ -526,40 +568,40 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto relative z-10">
           <ScrollReveal className="text-center mb-12 space-y-4">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#E5A43B]/10 border border-[#E5A43B]/25 rounded-full text-[#E5A43B] text-xs font-extrabold uppercase tracking-wider">
-              💳 Pricing & Plans
+              💳 Pricing &amp; Plans
             </div>
             <h2 className="text-3xl md:text-5xl font-black text-white">
-              Choose the <span className="text-[#E5A43B]">Right Plan</span>
+              Pilih Pelan <span className="text-[#E5A43B]">Terbaik Untuk Kedai Anda</span>
             </h2>
             <p className="text-slate-400 text-base max-w-xl mx-auto">
-              Start for free. Upgrade as your business grows.
+              Bermula percuma. Naik taraf bila perniagaan anda semakin berkembang pesat.
             </p>
 
             {/* Billing Toggle */}
             <div className="inline-flex items-center gap-1 bg-slate-800 border border-slate-700 rounded-2xl p-1 mt-4">
               <button
                 onClick={() => setBillingCycle('monthly')}
-                className={`px-5 py-2 rounded-xl text-sm font-bold transition ${
+                className={`px-5 py-2 rounded-xl text-sm font-bold transition cursor-pointer ${
                   billingCycle === 'monthly'
                     ? 'bg-[#E5A43B] text-slate-900'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                Monthly
+                Bulanan
               </button>
               <button
                 onClick={() => setBillingCycle('yearly')}
-                className={`px-5 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 ${
+                className={`px-5 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 cursor-pointer ${
                   billingCycle === 'yearly'
                     ? 'bg-[#E5A43B] text-slate-900'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                Yearly
+                Tahunan
                 <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${
                   billingCycle === 'yearly' ? 'bg-slate-900/30 text-slate-900' : 'bg-emerald-500/20 text-emerald-400'
                 }`}>
-                  SAVE RM20
+                  JIMAT RM20
                 </span>
               </button>
             </div>
@@ -572,19 +614,19 @@ export default function LandingPage() {
             <ScrollReveal delay={0}>
               <div className="h-full flex flex-col bg-slate-900 border border-slate-700 rounded-3xl p-7 shadow-xl hover:border-slate-500 transition-all duration-300">
                 <div className="mb-6">
-                  <div className="font-black text-white text-2xl mb-1">Free Plan</div>
+                  <div className="font-black text-white text-2xl mb-1">Pelan Percuma</div>
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-5xl font-black text-white">RM0</span>
-                    <span className="text-slate-400 text-sm">/month</span>
+                    <span className="text-slate-400 text-sm">/bulan</span>
                   </div>
-                  <p className="text-slate-400 text-sm mt-2">Perfect for getting started.</p>
+                  <p className="text-slate-400 text-sm mt-2">Sesuai untuk memulakan sistem kad cop digital.</p>
                 </div>
 
                 <ul className="space-y-3.5 flex-1 mb-7">
                   {[
-                    ['✓', 'Limited to 20 new customers', true],
-                    ['✓', 'Full access to all features', true],
-                    ['–', 'Send stamp cards via email (excluded)', false],
+                    ['✓', 'Terhad sehingga 20 pelanggan baharu', true],
+                    ['✓', 'Akses penuh ke semua ciri asas', true],
+                    ['–', 'Hantar kad cop melalui emel (eksklusif Pro)', false],
                   ].map(([icon, label, active]) => (
                     <li key={String(label)} className={`flex items-center gap-2.5 text-sm ${active ? 'text-slate-200' : 'text-slate-500'}`}>
                       <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${active ? 'bg-[#1E5E53]/30 text-[#4EB89D]' : 'bg-slate-800 text-slate-500'}`}>
@@ -600,7 +642,7 @@ export default function LandingPage() {
                   disabled={planLoading === 'free'}
                   className="w-full py-3.5 rounded-2xl border-2 border-[#1E5E53] text-[#4EB89D] font-bold text-sm hover:bg-[#1E5E53]/20 transition cursor-pointer disabled:opacity-60 active:scale-[0.98]"
                 >
-                  {planLoading === 'free' ? 'Processing...' : 'Get Started Free →'}
+                  {planLoading === 'free' ? 'Memproses...' : 'Mula Percuma Sekarang →'}
                 </button>
               </div>
             </ScrollReveal>
@@ -609,28 +651,28 @@ export default function LandingPage() {
             <ScrollReveal delay={80}>
               <div className="h-full flex flex-col bg-gradient-to-b from-[#2A1A02] to-[#1A1008] border-2 border-[#E5A43B]/60 rounded-3xl p-7 shadow-[0_0_40px_rgba(229,164,59,0.15)] relative overflow-hidden hover:shadow-[0_0_60px_rgba(229,164,59,0.25)] transition-all duration-300">
                 <div className="mb-6">
-                  <div className="font-black text-white text-2xl mb-1">Pro Plan</div>
+                  <div className="font-black text-white text-2xl mb-1">Pelan Pro</div>
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-5xl font-black text-[#E5A43B]">
                       {billingCycle === 'yearly' ? 'RM616' : 'RM53'}
                     </span>
                     <span className="text-slate-400 text-sm">
-                      /{billingCycle === 'yearly' ? 'year' : 'month'}
+                      /{billingCycle === 'yearly' ? 'tahun' : 'bulan'}
                     </span>
                   </div>
                   {billingCycle === 'yearly' && (
                     <p className="text-emerald-400 text-xs font-bold mt-1">
-                      ≈ RM51.33/mo • Save RM20 compared to monthly
+                      ≈ RM51.33/bln • Jimat RM20 berbanding bayaran bulanan
                     </p>
                   )}
-                  <p className="text-slate-400 text-sm mt-2">For growing businesses without limits.</p>
+                  <p className="text-slate-400 text-sm mt-2">Untuk perniagaan yang berkembang tanpa sebarang had.</p>
                 </div>
 
                 <ul className="space-y-3.5 flex-1 mb-7">
                   {[
-                    'Unlimited customers',
-                    'Unlimited stamp delivery via email',
-                    'Full access to all features',
+                    'Pelanggan tanpa had',
+                    'Hantar kad cop melalui emel tanpa had',
+                    'Akses penuh ke semua ciri premium',
                   ].map((label) => (
                     <li key={label} className="flex items-center gap-2.5 text-sm text-slate-200">
                       <span className="w-5 h-5 rounded-full bg-[#E5A43B]/20 text-[#E5A43B] flex items-center justify-center text-[11px] font-bold shrink-0">
@@ -647,16 +689,16 @@ export default function LandingPage() {
                   className="w-full py-4 rounded-2xl bg-gradient-to-b from-[#E7A33E] to-[#C77B1B] text-slate-900 font-black text-sm shadow-[0_4px_20px_rgba(229,164,59,0.4)] hover:shadow-[0_4px_28px_rgba(229,164,59,0.55)] hover:-translate-y-0.5 transition-all cursor-pointer disabled:opacity-60 active:scale-[0.98] flex items-center justify-center gap-2"
                 >
                   {planLoading === billingCycle ? (
-                    'Processing...'
+                    'Memproses...'
                   ) : (
                     <>
-                      Subscribe to Pro Now
+                      Langgan Pelan Pro Sekarang
                       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </>
                   )}
                 </button>
                 <p className="text-center text-[11px] text-slate-500 mt-3">
-                  Secure payment via Stripe • Cancel anytime
+                  Bayaran selamat melalui Stripe • Batal bila-bila masa
                 </p>
               </div>
             </ScrollReveal>
@@ -665,9 +707,9 @@ export default function LandingPage() {
           {/* Bottom note */}
           <ScrollReveal delay={120}>
             <p className="text-center text-slate-500 text-xs mt-10">
-              All plans include cashier dashboard access, QR token system, and digital customer stamp cards.<br/>
-              Questions? Contact us at{' '}
-              <a href="mailto:support@lajus.my" className="text-[#E5A43B] hover:underline">support@lajus.my</a>
+              Semua pelan merangkumi portal staff kaunter, sistem token QR, dan kad cop digital pelanggan.<br/>
+              Sebarang pertanyaan? Hubungi kami di{' '}
+              <a href="mailto:akubotaman@gmail.com" className="text-[#E5A43B] hover:underline">akubotaman@gmail.com</a>
             </p>
           </ScrollReveal>
         </div>
@@ -710,21 +752,66 @@ export default function LandingPage() {
       </section>
 
       {/* ── FOOTER ──────────────────────────────── */}
-      <footer className="py-10 px-6 bg-slate-900 border-t border-slate-800">
-        <div className="max-w-[1200px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl bg-[#E5A43B] overflow-hidden shadow-md">
-              <img src="/logo.svg" alt="LajuS" className="w-full h-full object-cover" />
+      <footer className="py-14 px-6 bg-[#0D1117] border-t border-white/10 text-xs text-white/60">
+        <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
+          
+          {/* Col 1 & 2: Brand & Company Info (BOTZ GLOBAL SOLUTIONS) */}
+          <div className="space-y-3 md:col-span-2">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-[#E5A43B] overflow-hidden shadow-md flex items-center justify-center p-1 shrink-0">
+                <img src="/logo.svg" alt="LajuS" className="w-full h-full object-contain" />
+              </div>
+              <div className="bg-white p-1.5 rounded-xl shadow-md inline-flex items-center justify-center shrink-0">
+                <img src="/botz-logo.svg" alt="BOTZ Logo" className="w-6 h-6 object-contain" />
+              </div>
+              <span className="font-extrabold text-white text-base">
+                Laju<span className="text-[#E5A43B]">S</span>
+              </span>
             </div>
-            <span className="font-extrabold text-white">Laju<span className="text-[#E5A43B]">S</span></span>
+
+            <div className="space-y-1 text-slate-400 text-xs pt-1">
+              <p className="font-bold text-white text-sm tracking-wide">BOTZ GLOBAL SOLUTIONS</p>
+              <p className="font-mono text-[11px] text-slate-300">No. SSM: 202603077221 (TR0339427-P)</p>
+              <p className="pt-1 flex items-center gap-2 text-slate-300">
+                <span>📧 E-mel:</span>
+                <a
+                  href="mailto:akubotaman@gmail.com"
+                  className="hover:text-[#E5A43B] transition underline font-mono text-white"
+                >
+                  akubotaman@gmail.com
+                </a>
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-slate-500">© {new Date().getFullYear()} LajuS. Sistem Loyalty Stamp Digital.</p>
-          <button
-            onClick={() => setAuthOpen(true)}
-            className="text-xs text-[#E5A43B] hover:text-[#C77B1B] font-bold transition"
-          >
-            Log Masuk Kasir →
-          </button>
+
+          {/* Col 3: Quick Navigation */}
+          <div className="space-y-2.5">
+            <p className="font-bold text-[#E5A43B] text-xs uppercase tracking-wider">Pautan Pantas</p>
+            <ul className="space-y-2 text-xs">
+              <li><a href="#cara-kerja" className="hover:text-white transition">Cara Berfungsi</a></li>
+              <li><a href="#ciri" className="hover:text-white transition">Ciri-Ciri Utama</a></li>
+              <li><a href="#harga" className="hover:text-white transition">Pelan Harga</a></li>
+              <li><a href="#faq" className="hover:text-white transition">Soalan Lazim (FAQ)</a></li>
+              <li><a href="/card" className="hover:text-[#E5A43B] font-semibold transition">Kad Cop Pelanggan ↗</a></li>
+            </ul>
+          </div>
+
+          {/* Col 4: Staff Portal Access & Platform Rights */}
+          <div className="space-y-3">
+            <p className="font-bold text-white text-xs uppercase tracking-wider">Akses Kaunter</p>
+            <button
+              onClick={() => setAuthOpen(true)}
+              className="w-full py-2.5 px-4 bg-[#E5A43B]/20 hover:bg-[#E5A43B]/30 border border-[#E5A43B]/40 text-[#E5A43B] rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+            >
+              <span>Log Masuk Staff</span>
+              <span>→</span>
+            </button>
+            <p className="text-[11px] text-white/60 leading-relaxed pt-1">
+              © {new Date().getFullYear()} LajuS. Hak cipta terpelihara. Dicetuskan &amp; dibangunkan oleh{' '}
+              <strong className="text-white">BOTZ GLOBAL SOLUTIONS</strong>.
+            </p>
+          </div>
+
         </div>
       </footer>
 
