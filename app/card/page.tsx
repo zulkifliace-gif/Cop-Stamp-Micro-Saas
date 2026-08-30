@@ -49,6 +49,32 @@ function normalizeStampIcon(path?: string) {
   return path.startsWith('/') ? path : `/${path}`
 }
 
+function formatStampDateTime(dateStr: string | null, lang: Lang) {
+  if (!dateStr) {
+    return {
+      date: lang === 'en' ? 'Recently' : 'Baru-baru ini',
+      time: '',
+    }
+  }
+  try {
+    const d = new Date(dateStr)
+    const locale = lang === 'en' ? 'en-US' : 'ms-MY'
+    const dateFormatted = d.toLocaleDateString(locale, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+    const timeFormatted = d.toLocaleTimeString(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
+    return { date: dateFormatted, time: timeFormatted }
+  } catch {
+    return { date: dateStr, time: '' }
+  }
+}
+
 function getSocialIcon(platform: string) {
   switch (platform.toLowerCase()) {
     case 'instagram':
@@ -123,6 +149,7 @@ export default function CustomerCardPage() {
   const [stampsRequired, setStampsRequired] = useState(10)
   const [rewardDesc, setRewardDesc] = useState('')
   const [updatedAt, setUpdatedAt] = useState<string | null>(null)
+  const [stampDates, setStampDates] = useState<string[]>([])
   const [cardImpact, setCardImpact] = useState(false)
   const [stampedSlots, setStampedSlots] = useState<Set<number>>(new Set())
 
@@ -133,6 +160,15 @@ export default function CustomerCardPage() {
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [showRewardsModal, setShowRewardsModal] = useState(false)
   const [rewardSlideIdx, setRewardSlideIdx] = useState(0)
+
+  // Stamp circle touch/click detail popup modal state
+  const [selectedStampDetail, setSelectedStampDetail] = useState<{
+    slotNum: number
+    cardNum: number
+    globalStampNum: number
+    isFilled: boolean
+    date: string | null
+  } | null>(null)
 
   useEffect(() => {
     async function checkAuth() {
@@ -190,6 +226,7 @@ export default function CustomerCardPage() {
         setStampIcon(normalizeStampIcon(data.stampIcon))
         setSocialLinks(Array.isArray(data.socialLinks) ? data.socialLinks : [])
         setUpdatedAt(data.updatedAt || null)
+        setStampDates(Array.isArray(data.stampDates) ? data.stampDates : [])
 
         // Automatically focus on the latest active card
         const fullCards = Math.floor(stamps / req)
@@ -706,20 +743,37 @@ export default function CustomerCardPage() {
                 </div>
               </div>
 
-              {/* STAMP GRID (RENDER SELECTED STAMP ICON) */}
+              {/* STAMP GRID (RENDER SELECTED STAMP ICON - CLICKABLE TO VIEW DATE & TIME) */}
               <div className="grid grid-cols-5 gap-2.5 my-2 mb-4">
                 {Array.from({ length: TOTAL }).map((_, i) => {
                   const slotNum = i + 1
                   const isFilled = slotNum <= cardStamps
                   const isAnimated = stampedSlots.has(slotNum)
+                  const globalIdx = selectedCardIdx * TOTAL + slotNum - 1
+                  const stampDate = isFilled ? (stampDates[globalIdx] || updatedAt) : null
 
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={slotNum}
-                      className={`aspect-square rounded-full flex items-center justify-center relative overflow-hidden ${
+                      onClick={() => {
+                        setSelectedStampDetail({
+                          slotNum,
+                          cardNum: selectedCardIdx + 1,
+                          globalStampNum: globalIdx + 1,
+                          isFilled,
+                          date: stampDate,
+                        })
+                      }}
+                      title={
                         isFilled
-                          ? 'bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,0.22),transparent_55%),#B53629] shadow-[0_4px_10px_rgba(181,54,41,0.45)]'
-                          : 'border-2 border-dashed border-[#E2CE9E] bg-[#FAF2E2]/50'
+                          ? `${t.stampDetailModal.title(slotNum, selectedCardIdx + 1)} • ${t.stampDetailModal.earnedBadge}`
+                          : `${t.stampDetailModal.title(slotNum, selectedCardIdx + 1)} • ${t.stampDetailModal.notEarnedBadge}`
+                      }
+                      className={`aspect-square rounded-full flex items-center justify-center relative overflow-hidden transition-transform duration-150 active:scale-90 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#E5A43B]/60 ${
+                        isFilled
+                          ? 'bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,0.22),transparent_55%),#B53629] shadow-[0_4px_10px_rgba(181,54,41,0.45)] hover:scale-105'
+                          : 'border-2 border-dashed border-[#E2CE9E] bg-[#FAF2E2]/50 hover:bg-[#FAF2E2]/80'
                       }`}
                       style={{
                         transform: isFilled
@@ -737,14 +791,18 @@ export default function CustomerCardPage() {
                           className="absolute inset-0 rounded-full border-2 border-[#B53629]/60 anim-ink-burst pointer-events-none"
                         />
                       )}
-                      {isFilled && (
+                      {isFilled ? (
                         <img
                           src={normalizeStampIcon(stampIcon)}
                           alt="Stamp"
-                          className={`w-[58%] h-[58%] object-contain ${isAnimated ? 'anim-stamp-impact' : ''}`}
+                          className={`w-[58%] h-[58%] object-contain pointer-events-none ${isAnimated ? 'anim-stamp-impact' : ''}`}
                         />
+                      ) : (
+                        <span className="font-space text-[10.5px] font-bold text-[#C2B18A] pointer-events-none">
+                          {slotNum}
+                        </span>
                       )}
-                    </div>
+                    </button>
                   )
                 })}
               </div>
@@ -825,6 +883,112 @@ export default function CustomerCardPage() {
           </div>
         </footer>
       </div>
+
+      {/* 0. POPUP MODAL: BUTIRAN TARIKH & MASA COP STAMP */}
+      {selectedStampDetail && (
+        <div
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4"
+          onClick={() => setSelectedStampDetail(null)}
+        >
+          <div
+            className="w-full max-w-xs bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-5 shadow-2xl border border-[#E5A43B]/30 anim-popup relative text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* CLOSE BUTTON */}
+            <button
+              type="button"
+              onClick={() => setSelectedStampDetail(null)}
+              className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-gray-500 hover:text-gray-800 text-base font-bold transition cursor-pointer"
+            >
+              &times;
+            </button>
+
+            {/* STAMP ICON / BADGE */}
+            <div className="flex flex-col items-center justify-center mb-3">
+              <div
+                className={`w-16 h-16 rounded-full flex items-center justify-center shadow-md mb-2.5 relative overflow-hidden ${
+                  selectedStampDetail.isFilled
+                    ? 'bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,0.22),transparent_55%),#B53629] shadow-[0_6px_15px_rgba(181,54,41,0.4)]'
+                    : 'border-2 border-dashed border-[#E2CE9E] bg-[#FAF2E2]/80'
+                }`}
+              >
+                {selectedStampDetail.isFilled ? (
+                  <img
+                    src={normalizeStampIcon(stampIcon)}
+                    alt="Stamp"
+                    className="w-9 h-9 object-contain"
+                  />
+                ) : (
+                  <span className="font-space text-base font-bold text-[#A89872]">
+                    {selectedStampDetail.slotNum}
+                  </span>
+                )}
+              </div>
+
+              <div className="font-fraunces font-bold text-lg text-[#0A1716] leading-tight">
+                {t.stampDetailModal.title(selectedStampDetail.slotNum, selectedStampDetail.cardNum)}
+              </div>
+              <div className="text-[11px] font-space text-[#5E6F68] mt-0.5">
+                {storeName}
+              </div>
+            </div>
+
+            {selectedStampDetail.isFilled ? (
+              <div className="space-y-2.5 mb-4">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-800 text-[11.5px] font-bold">
+                  <span>✓</span>
+                  <span>{t.stampDetailModal.earnedBadge}</span>
+                </div>
+
+                {/* DATE & TIME CARD */}
+                <div className="bg-white rounded-xl p-3 border border-[#E4D9BE] text-left space-y-1.5 shadow-xs">
+                  {(() => {
+                    const { date, time } = formatStampDateTime(selectedStampDetail.date, lang)
+                    return (
+                      <>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-gray-500 font-medium flex items-center gap-1.5">
+                            <span>📅</span>
+                            <span>{t.stampDetailModal.dateLabel}:</span>
+                          </span>
+                          <span className="font-bold text-gray-800">{date}</span>
+                        </div>
+                        {time && (
+                          <div className="flex items-center justify-between text-xs pt-1 border-t border-gray-100">
+                            <span className="text-gray-500 font-medium flex items-center gap-1.5">
+                              <span>⏰</span>
+                              <span>{t.stampDetailModal.timeLabel}:</span>
+                            </span>
+                            <span className="font-bold text-gray-800 font-mono text-[11.5px]">{time}</span>
+                          </div>
+                        )}
+                      </>
+                    )
+                  })()}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2 mb-4">
+                <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-200/80 text-gray-600 text-[11px] font-semibold">
+                  <span>⚪</span>
+                  <span>{t.stampDetailModal.notEarnedBadge}</span>
+                </div>
+                <p className="text-xs text-gray-600 bg-white p-3 rounded-xl border border-[#E4D9BE] leading-relaxed">
+                  {t.stampDetailModal.notEarnedHint}
+                </p>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setSelectedStampDetail(null)}
+              className="w-full py-2.5 bg-[#1E5E53] hover:bg-[#2D786B] text-white font-bold text-xs rounded-xl transition cursor-pointer active:scale-98 shadow-sm"
+            >
+              {t.stampDetailModal.closeBtn}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 1. POPUP MODAL: CARA PENEBUSAN (LIGHTWEIGHT POPUP ANIMATION) */}
       {showInfoModal && (

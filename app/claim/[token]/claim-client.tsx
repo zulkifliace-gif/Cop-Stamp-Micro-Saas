@@ -28,6 +28,32 @@ interface ClaimClientProps {
 const LOADING_ANIMATION_DURATION = 6000
 const REDIRECT_BUFFER = 400
 
+function formatStampDateTime(dateStr: string | null, lang: Lang) {
+  if (!dateStr) {
+    return {
+      date: lang === 'en' ? 'Recently' : 'Baru-baru ini',
+      time: '',
+    }
+  }
+  try {
+    const d = new Date(dateStr)
+    const locale = lang === 'en' ? 'en-US' : 'ms-MY'
+    const dateFormatted = d.toLocaleDateString(locale, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+    const timeFormatted = d.toLocaleTimeString(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
+    return { date: dateFormatted, time: timeFormatted }
+  } catch {
+    return { date: dateStr, time: '' }
+  }
+}
+
 export default function ClaimClient({
   token,
   stampCount: initialStampCount,
@@ -105,6 +131,15 @@ export default function ClaimClient({
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [showRewardsModal, setShowRewardsModal] = useState(false)
   const [selectedCardIdx, setSelectedCardIdx] = useState(0)
+
+  // Stamp detail popup modal state
+  const [selectedStampDetail, setSelectedStampDetail] = useState<{
+    slotNum: number
+    cardNum: number
+    globalStampNum: number
+    isFilled: boolean
+    date: string | null
+  } | null>(null)
 
   const hasClaimedRef = useRef(false)
   const claimedStoreIdRef = useRef<string | null>(null)
@@ -891,14 +926,30 @@ export default function ClaimClient({
           {Array.from({ length: TOTAL }).map((_, i) => {
             const slotNum = i + 1
             const isFilled = slotNum <= cardStamps
+            const globalIdx = selectedCardIdx * TOTAL + slotNum - 1
 
             return (
-              <div
+              <button
+                type="button"
                 key={slotNum}
-                className={`aspect-square rounded-full flex items-center justify-center relative ${
+                onClick={() => {
+                  setSelectedStampDetail({
+                    slotNum,
+                    cardNum: selectedCardIdx + 1,
+                    globalStampNum: globalIdx + 1,
+                    isFilled,
+                    date: isFilled ? new Date().toISOString() : null,
+                  })
+                }}
+                title={
                   isFilled
-                    ? 'bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,0.18),transparent_55%),#B53629] shadow-[0_4px_8px_rgba(181,54,41,0.38)]'
-                    : 'border-2 border-dashed border-[#E2CE9E]'
+                    ? `${t.stampDetailModal.title(slotNum, selectedCardIdx + 1)} • ${t.stampDetailModal.earnedBadge}`
+                    : `${t.stampDetailModal.title(slotNum, selectedCardIdx + 1)} • ${t.stampDetailModal.notEarnedBadge}`
+                }
+                className={`aspect-square rounded-full flex items-center justify-center relative transition-transform duration-150 active:scale-90 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#E5A43B]/60 ${
+                  isFilled
+                    ? 'bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,0.18),transparent_55%),#B53629] shadow-[0_4px_8px_rgba(181,54,41,0.38)] hover:scale-105'
+                    : 'border-2 border-dashed border-[#E2CE9E] hover:bg-[#FAF2E2]/10'
                 }`}
                 style={{
                   transform:
@@ -911,8 +962,8 @@ export default function ClaimClient({
                       : undefined,
                 }}
               >
-                {isFilled && (
-                  <svg className="w-[54%] h-[54%]" viewBox="0 0 24 24" fill="none">
+                {isFilled ? (
+                  <svg className="w-[54%] h-[54%] pointer-events-none" viewBox="0 0 24 24" fill="none">
                     <path
                       d="M12 2C7 2 3 6.5 3 12s4 10 9 10 9-4.5 9-10S17 2 12 2Z"
                       fill="#FAF2E2"
@@ -924,8 +975,12 @@ export default function ClaimClient({
                       strokeLinecap="round"
                     />
                   </svg>
+                ) : (
+                  <span className="font-space text-[10.5px] font-bold text-[#E2CE9E]/80 pointer-events-none">
+                    {slotNum}
+                  </span>
                 )}
-              </div>
+              </button>
             )
           })}
         </div>
@@ -987,6 +1042,119 @@ export default function ClaimClient({
           <span className="text-[10px]">↗</span>
         </a>
       </div>
+
+      {/* 0. POPUP MODAL: BUTIRAN TARIKH & MASA COP STAMP */}
+      {selectedStampDetail && (
+        <div
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4"
+          onClick={() => setSelectedStampDetail(null)}
+        >
+          <div
+            className="w-full max-w-xs bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-5 shadow-2xl border border-[#E5A43B]/30 anim-popup relative text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* CLOSE BUTTON */}
+            <button
+              type="button"
+              onClick={() => setSelectedStampDetail(null)}
+              className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-gray-500 hover:text-gray-800 text-base font-bold transition cursor-pointer"
+            >
+              &times;
+            </button>
+
+            {/* STAMP ICON / BADGE */}
+            <div className="flex flex-col items-center justify-center mb-3">
+              <div
+                className={`w-16 h-16 rounded-full flex items-center justify-center shadow-md mb-2.5 relative overflow-hidden ${
+                  selectedStampDetail.isFilled
+                    ? 'bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,0.22),transparent_55%),#B53629] shadow-[0_6px_15px_rgba(181,54,41,0.4)]'
+                    : 'border-2 border-dashed border-[#E2CE9E] bg-[#FAF2E2]/80'
+                }`}
+              >
+                {selectedStampDetail.isFilled ? (
+                  <svg className="w-8 h-8 pointer-events-none" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M12 2C7 2 3 6.5 3 12s4 10 9 10 9-4.5 9-10S17 2 12 2Z"
+                      fill="#FAF2E2"
+                    />
+                    <path
+                      d="M12 3.3C13.6 6.2 12 9 10.3 11.5S8.2 17 12 20.6"
+                      stroke="#B53629"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                ) : (
+                  <span className="font-space text-base font-bold text-[#A89872]">
+                    {selectedStampDetail.slotNum}
+                  </span>
+                )}
+              </div>
+
+              <div className="font-fraunces font-bold text-lg text-[#0A1716] leading-tight">
+                {t.stampDetailModal.title(selectedStampDetail.slotNum, selectedStampDetail.cardNum)}
+              </div>
+              <div className="text-[11px] font-space text-[#5E6F68] mt-0.5">
+                {claimData.storeName}
+              </div>
+            </div>
+
+            {selectedStampDetail.isFilled ? (
+              <div className="space-y-2.5 mb-4">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-800 text-[11.5px] font-bold">
+                  <span>✓</span>
+                  <span>{t.stampDetailModal.earnedBadge}</span>
+                </div>
+
+                {/* DATE & TIME CARD */}
+                <div className="bg-white rounded-xl p-3 border border-[#E4D9BE] text-left space-y-1.5 shadow-xs">
+                  {(() => {
+                    const { date, time } = formatStampDateTime(selectedStampDetail.date, lang)
+                    return (
+                      <>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-gray-500 font-medium flex items-center gap-1.5">
+                            <span>📅</span>
+                            <span>{t.stampDetailModal.dateLabel}:</span>
+                          </span>
+                          <span className="font-bold text-gray-800">{date}</span>
+                        </div>
+                        {time && (
+                          <div className="flex items-center justify-between text-xs pt-1 border-t border-gray-100">
+                            <span className="text-gray-500 font-medium flex items-center gap-1.5">
+                              <span>⏰</span>
+                              <span>{t.stampDetailModal.timeLabel}:</span>
+                            </span>
+                            <span className="font-bold text-gray-800 font-mono text-[11.5px]">{time}</span>
+                          </div>
+                        )}
+                      </>
+                    )
+                  })()}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2 mb-4">
+                <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-200/80 text-gray-600 text-[11px] font-semibold">
+                  <span>⚪</span>
+                  <span>{t.stampDetailModal.notEarnedBadge}</span>
+                </div>
+                <p className="text-xs text-gray-600 bg-white p-3 rounded-xl border border-[#E4D9BE] leading-relaxed">
+                  {t.stampDetailModal.notEarnedHint}
+                </p>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setSelectedStampDetail(null)}
+              className="w-full py-2.5 bg-[#1E5E53] hover:bg-[#2D786B] text-white font-bold text-xs rounded-xl transition cursor-pointer active:scale-98 shadow-sm"
+            >
+              {t.stampDetailModal.closeBtn}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 1. POPUP MODAL: CARA CLAIM GANJARAN (INFO 'i') */}
       {showInfoModal && (

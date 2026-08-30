@@ -135,11 +135,30 @@ export async function GET(req: NextRequest) {
         stampIcon: defaultStampIcon,
         socialLinks: defaultSocialLinks,
         updatedAt: null,
+        stampDates: [],
       })
     }
 
     // Determine active store (either matching storeIdParam or the first/most recent one)
     const activeStore = (storeIdParam ? allStores.find((s) => s.storeId === storeIdParam) : null) || allStores[0]
+
+    // Fetch individual stamp claim history for active store to show timestamps on each stamp circle
+    const { data: stampHistory } = await admin
+      .from('stamp_tokens')
+      .select('stamp_count, claimed_at, created_at')
+      .eq('claimed_by', user.id)
+      .eq('store_id', activeStore.storeId)
+      .eq('status', 'claimed')
+      .order('claimed_at', { ascending: true })
+
+    const stampDates: string[] = []
+    for (const token of stampHistory || []) {
+      const dateStr = token.claimed_at || token.created_at
+      const count = token.stamp_count || 1
+      for (let i = 0; i < count; i++) {
+        stampDates.push(dateStr)
+      }
+    }
 
     return NextResponse.json({
       allStores,
@@ -154,6 +173,7 @@ export async function GET(req: NextRequest) {
       stampIcon: activeStore.stampIcon,
       socialLinks: activeStore.socialLinks,
       updatedAt: activeStore.updatedAt,
+      stampDates,
     })
   } catch (err: unknown) {
     console.error('Error fetching loyalty:', err)

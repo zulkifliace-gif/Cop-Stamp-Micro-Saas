@@ -75,6 +75,15 @@ export interface ClaimTranslation {
       stampsRequiredBadge: (count: number) => string
       closeBtn: string
     }
+    stampDetailModal: {
+      title: (slot: number, card: number) => string
+      earnedBadge: string
+      notEarnedBadge: string
+      dateLabel: string
+      timeLabel: string
+      notEarnedHint: string
+      closeBtn: string
+    }
   }
 }
 
@@ -157,6 +166,15 @@ export const I18N_CLAIM: Record<Lang, ClaimTranslation> = {
         stampsRequiredBadge: (count) => `⚡ ${count} Cop Diperlukan`,
         closeBtn: 'Tutup',
       },
+      stampDetailModal: {
+        title: (slot, card) => `Cop #${slot} (Kad #${card})`,
+        earnedBadge: 'Cop Berjaya Diperoleh',
+        notEarnedBadge: 'Belum Diperoleh',
+        dateLabel: 'Tarikh',
+        timeLabel: 'Masa',
+        notEarnedHint: 'Imbas QR di kaunter untuk menambah cop ini.',
+        closeBtn: 'Faham',
+      },
     },
   },
   en: {
@@ -236,6 +254,15 @@ export const I18N_CLAIM: Record<Lang, ClaimTranslation> = {
         title: '🎁 Rewards & Gifts',
         stampsRequiredBadge: (count) => `⚡ ${count} Stamps Required`,
         closeBtn: 'Close',
+      },
+      stampDetailModal: {
+        title: (slot, card) => `Stamp #${slot} (Card #${card})`,
+        earnedBadge: 'Stamp Earned',
+        notEarnedBadge: 'Not Yet Earned',
+        dateLabel: 'Date',
+        timeLabel: 'Time',
+        notEarnedHint: 'Scan the QR code at the checkout counter to collect this stamp.',
+        closeBtn: 'Got it',
       },
     },
   },

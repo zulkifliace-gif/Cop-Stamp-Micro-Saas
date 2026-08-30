@@ -50,6 +50,15 @@ export interface CardTranslation {
     stampsRequiredBadge: (count: number) => string
     closeBtn: string
   }
+  stampDetailModal: {
+    title: (slot: number, card: number) => string
+    earnedBadge: string
+    notEarnedBadge: string
+    dateLabel: string
+    timeLabel: string
+    notEarnedHint: string
+    closeBtn: string
+  }
   deleteModal: {
     title: string
     warning1: string
@@ -118,6 +127,15 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
       stampsRequiredBadge: (count) => `⚡ ${count} Cop Diperlukan`,
       closeBtn: 'Tutup',
     },
+    stampDetailModal: {
+      title: (slot, card) => `Cop #${slot} (Kad #${card})`,
+      earnedBadge: 'Cop Berjaya Diperoleh',
+      notEarnedBadge: 'Belum Diperoleh',
+      dateLabel: 'Tarikh',
+      timeLabel: 'Masa',
+      notEarnedHint: 'Imbas QR di kaunter untuk menambah cop ini.',
+      closeBtn: 'Faham',
+    },
     deleteModal: {
       title: 'Padam Akaun',
       warning1: 'Tindakan ini kekal dan tidak boleh dibatalkan.',
@@ -183,6 +201,15 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
       title: '🎁 Rewards & Gifts',
       stampsRequiredBadge: (count) => `⚡ ${count} Stamps Required`,
       closeBtn: 'Close',
+    },
+    stampDetailModal: {
+      title: (slot, card) => `Stamp #${slot} (Card #${card})`,
+      earnedBadge: 'Stamp Earned',
+      notEarnedBadge: 'Not Yet Earned',
+      dateLabel: 'Date',
+      timeLabel: 'Time',
+      notEarnedHint: 'Scan the QR code at the counter to collect this stamp.',
+      closeBtn: 'Got it',
     },
     deleteModal: {
       title: 'Delete Account',
