@@ -676,7 +676,7 @@ export default function CustomerCardPage() {
                         <img
                           src={normalizeStampIcon(stampIcon)}
                           alt="Stamp"
-                          className={`w-[58%] h-[58%] object-contain filter invert brightness-200 ${isAnimated ? 'anim-stamp-impact' : ''}`}
+                          className={`w-[58%] h-[58%] object-contain ${isAnimated ? 'anim-stamp-impact' : ''}`}
                         />
                       )}
                     </div>
