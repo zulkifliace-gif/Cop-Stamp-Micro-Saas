@@ -332,7 +332,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-3 text-xs font-extrabold uppercase tracking-widest">
               <span className="w-16 h-[2px] bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] inline-block" />
               <span className="bg-gradient-to-r from-[#E5A43B] to-[#1E5E53] bg-clip-text text-transparent">
-                SISTEM LOYALTY STAMP DIGITAL
+                LAJUS — SISTEM COP STAMP &amp; LOYALTY REPEAT CUSTOMER
               </span>
             </div>
 
@@ -349,8 +349,7 @@ export default function LandingPage() {
             </h1>
 
             <p className="text-base md:text-lg text-slate-600 leading-relaxed">
-              Gantikan kad cop kertas lapuk dengan sistem digital moden. Kasir jana QR dalam 5 saat, pelanggan cop terus dari telefon.{' '}
-              <strong className="text-slate-900">Tanpa aplikasi, tanpa queue panjang.</strong>
+              Tingkatkan <strong>system repeat order</strong> pelanggan dengan <strong>LajuS</strong> — sistem kad <strong>cop stamp</strong> &amp; <strong>loyalty reward</strong> digital paling pantas. Kasir jana QR dalam 5 saat, pelanggan kumpul cop stamp terus dari telefon. <strong className="text-slate-900">Tanpa aplikasi, tanpa kad kertas lapuk.</strong>
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 pt-2">
