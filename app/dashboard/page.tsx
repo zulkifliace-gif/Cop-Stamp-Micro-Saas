@@ -10,6 +10,7 @@ import {
   type BluetoothPrinterConnection,
   type ClaimReceiptData,
 } from '@/lib/bluetoothPrinter'
+import { Lang, I18N_DASHBOARD } from '@/lib/i18n/dashboard'
 
 interface ActivityItem {
   id: string
@@ -93,6 +94,23 @@ const SOCIAL_PLATFORMS = [
 
 export default function CashierDashboard() {
   const supabase = createClient()
+
+  // i18n Language State
+  const [lang, setLang] = useState<Lang>('my')
+
+  useEffect(() => {
+    const saved = localStorage.getItem('lajus_lang') as Lang | null
+    if (saved === 'my' || saved === 'en') {
+      setLang(saved)
+    }
+  }, [])
+
+  function switchLang(newLang: Lang) {
+    setLang(newLang)
+    localStorage.setItem('lajus_lang', newLang)
+  }
+
+  const t = I18N_DASHBOARD[lang]
 
   // Auth State
   const [user, setUser] = useState<any>(null)
@@ -400,13 +418,13 @@ export default function CashierDashboard() {
     const tick = () => {
       const diff = Math.max(0, Math.floor((expiresAtDate.getTime() - Date.now()) / 1000))
       if (diff <= 0) {
-        setTimeLeftStr('Token tamat tempoh')
+        setTimeLeftStr(t.generator.expiredMsg)
         if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current)
         return
       }
       const m = String(Math.floor(diff / 60)).padStart(2, '0')
       const s = String(diff % 60).padStart(2, '0')
-      setTimeLeftStr(`Tamat dalam ${m}:${s}`)
+      setTimeLeftStr(t.generator.expiresIn(m, s))
     }
 
     tick()
@@ -415,7 +433,7 @@ export default function CashierDashboard() {
     return () => {
       if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current)
     }
-  }, [expiresAtDate])
+  }, [expiresAtDate, lang])
 
   // 5. Handle Google-Only Cashier Login
   async function handleGoogleLogin() {
@@ -939,7 +957,7 @@ export default function CashierDashboard() {
             {/* Micro Caption */}
             <div className="w-full text-center mt-5 flex items-center justify-center gap-1.5 opacity-40 text-[11px] font-space text-[#FAF2E2]">
               <img src="/logo.svg" alt="LajuS" className="w-3 h-3 object-contain" />
-              <span>Memuatkan Kaunter Staff...</span>
+              <span>{t.loading.loadingCounter}</span>
             </div>
           </div>
         </div>
@@ -961,40 +979,41 @@ export default function CashierDashboard() {
           </div>
           <div>
             <div className="font-fraunces font-semibold text-[18px] leading-tight">
-              {storeName || 'Kedai Anda'}
+              {storeName || (lang === 'en' ? 'Your Store' : 'Kedai Anda')}
             </div>
             <div className="font-space text-[9.5px] tracking-[0.1em] text-[#5E6F68]">
-              KAUNTER STAFF{' '}
+              {t.topbar.staffCounter}{' '}
               {user
                 ? needsRegistration
-                  ? '• PENDAFTARAN KEDAI'
+                  ? t.topbar.onboarding
                   : staffRole === 'owner'
-                  ? '• PEMILIK'
-                  : '• STAF'
-                : '• LOG MASUK'}
+                  ? t.topbar.owner
+                  : t.topbar.staff
+                : t.topbar.login}
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* BLUETOOTH THERMAL PRINTER BUTTON */}
+          {/* BLUETOOTH THERMAL PRINTER BUTTON (ICON ONLY WITH GLOW/STATUS) */}
           {user && !needsRegistration && (
             <button
               onClick={handleToggleBluetooth}
               disabled={isConnectingBt}
               title={
                 btPrinter
-                  ? `Printer Disambung: ${btPrinter.name} (Klik untuk putuskan)`
-                  : 'Sambung Thermal Printer Bluetooth (Auto-Print Resit)'
+                  ? t.topbar.printerConnectedTitle(btPrinter.name)
+                  : t.topbar.printerDisconnectedTitle
               }
-              className={`h-[38px] px-3 rounded-[12px] border transition-all flex items-center gap-2 cursor-pointer text-xs font-semibold ${
+              className={`w-[38px] h-[38px] rounded-[12px] border transition-all flex items-center justify-center cursor-pointer shadow-sm active:scale-95 relative ${
                 btPrinter
-                  ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 shadow-[0_0_14px_rgba(16,185,129,0.25)]'
-                  : 'bg-[#FAF2E2]/[0.06] border-[#FAF2E2]/15 text-[#FAF2E2] hover:border-[#E5A43B]/40'
+                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.35)]'
+                  : 'bg-red-500/15 border-red-500/40 text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.25)] hover:border-red-400'
               }`}
+              aria-label="Bluetooth Printer"
             >
               <svg
-                className="w-4 h-4"
+                className={`w-4 h-4 ${isConnectingBt ? 'animate-spin' : ''}`}
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -1007,20 +1026,47 @@ export default function CashierDashboard() {
                 <path d="M6 14h12v8H6z" />
               </svg>
               <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  btPrinter ? 'bg-emerald-400 animate-pulse' : 'bg-slate-400'
+                className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full ${
+                  btPrinter
+                    ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse'
+                    : 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.9)]'
                 }`}
               />
-              <span className="hidden sm:inline">
-                {isConnectingBt ? 'Menyambung...' : btPrinter ? 'Printer OK' : 'Printer BT'}
-              </span>
             </button>
           )}
+
+          {/* LANGUAGE TOGGLE (MY / EN) */}
+          <div className="flex items-center bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/15 p-0.5 rounded-[12px] text-[11px] font-extrabold">
+            <button
+              type="button"
+              onClick={() => switchLang('my')}
+              className={`px-2 py-1 rounded-[8px] transition-all cursor-pointer ${
+                lang === 'my'
+                  ? 'bg-[#E5A43B] text-[#1A2422] font-bold shadow-xs'
+                  : 'text-[#FAF2E2]/70 hover:text-[#FAF2E2]'
+              }`}
+              aria-label="Tukar ke Bahasa Melayu"
+            >
+              MY
+            </button>
+            <button
+              type="button"
+              onClick={() => switchLang('en')}
+              className={`px-2 py-1 rounded-[8px] transition-all cursor-pointer ${
+                lang === 'en'
+                  ? 'bg-[#E5A43B] text-[#1A2422] font-bold shadow-xs'
+                  : 'text-[#FAF2E2]/70 hover:text-[#FAF2E2]'
+              }`}
+              aria-label="Switch to English"
+            >
+              EN
+            </button>
+          </div>
 
           {user && !needsRegistration && (
             <button
               onClick={() => setShowSettings(!showSettings)}
-              title={showSettings ? 'Tutup Tetapan' : 'Tetapan Kedai'}
+              title={showSettings ? t.topbar.settingsOpenTitle : t.topbar.settingsTitle}
               className={`w-[38px] h-[38px] rounded-[12px] border transition-all flex items-center justify-center cursor-pointer shadow-sm active:scale-95 ${
                 showSettings
                   ? 'bg-[#E5A43B] border-[#E5A43B] text-[#1A2422] shadow-[0_0_12px_rgba(229,164,59,0.35)]'
@@ -1046,7 +1092,7 @@ export default function CashierDashboard() {
           {user && (
             <button
               onClick={handleLogout}
-              title="Log keluar"
+              title={t.topbar.logoutTitle}
               className="w-[38px] h-[38px] rounded-[12px] border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.06] text-[#5E6F68] hover:text-[#FAF2E2] hover:bg-[#FAF2E2]/15 transition flex items-center justify-center cursor-pointer shadow-sm active:scale-95"
               aria-label="Log keluar"
             >
@@ -1075,13 +1121,13 @@ export default function CashierDashboard() {
             <img src="/logo.svg" alt="LajuS" className="w-full h-full object-cover" />
           </div>
           <div className="font-fraunces font-semibold text-[22px] mb-1 text-[#0A1716]">
-            LajuS
+            {t.loginCard.title}
           </div>
           <div className="font-space text-[10px] tracking-[0.14em] uppercase text-[#1E5E53] mb-4 font-semibold">
-            Kaunter Staff
+            {t.loginCard.subtitle}
           </div>
           <div className="text-[13.5px] text-[#5E6F68] mb-6 leading-relaxed max-w-[340px] mx-auto">
-            Sila log masuk dengan akaun Google yang didaftarkan sebagai staf atau pemilik kedai untuk mengakses kaunter cop.
+            {t.loginCard.desc}
           </div>
 
           {loginError && (
@@ -1101,11 +1147,11 @@ export default function CashierDashboard() {
               <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.98A9 9 0 0 0 0 9c0 1.45.35 2.83.98 4.03l2.97-2.33z" />
               <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.9 11.42 0 9 0A9 9 0 0 0 .98 4.97l2.97 2.33C4.66 5.17 6.65 3.58 9 3.58z" />
             </svg>
-            {isLoggingIn ? 'Menghubungkan ke Google...' : 'Log masuk dengan Google'}
+            {isLoggingIn ? t.loginCard.connecting : t.loginCard.googleBtn}
           </button>
 
           <div className="mt-5 text-xs text-[#5E6F68] font-space">
-            Akses selamat melalui Supabase Auth
+            {t.loginCard.secureNote}
           </div>
         </div>
       ) : needsRegistration ? (
@@ -1117,15 +1163,15 @@ export default function CashierDashboard() {
             </div>
             <div>
               <div className="font-fraunces font-semibold text-[22px] text-[#0A1716] leading-tight">
-                Daftarkan Kedai Anda
+                {t.onboarding.title}
               </div>
               <div className="text-[11px] text-[#1E5E53] font-bold uppercase tracking-wider">
-                Langkah Pantas
+                {t.onboarding.subtitle}
               </div>
             </div>
           </div>
           <div className="text-[13px] text-[#5E6F68] mb-5 leading-relaxed">
-            Selamat datang! Masukkan nama kedai atau bisnes anda untuk mula menggunakan sistem kad cop digital.
+            {t.onboarding.desc}
           </div>
 
           {regError && (
@@ -1137,13 +1183,13 @@ export default function CashierDashboard() {
           <form onSubmit={handleRegisterStore}>
             <div className="mb-4">
               <label className="block text-xs font-semibold text-[#5E6F68] mb-1.5">
-                Nama Kedai / Bisnes <span className="text-[#B53629]">*</span>
+                {t.onboarding.storeNameLabel} <span className="text-[#B53629]">*</span>
               </label>
               <input
                 type="text"
                 value={regStoreName}
                 onChange={(e) => setRegStoreName(e.target.value)}
-                placeholder="Contoh: Kopi & Kawan / Barber Studio"
+                placeholder={t.onboarding.storeNamePlaceholder}
                 required
                 autoFocus
                 className="w-full border border-[#E4D9BE] rounded-[12px] p-3 font-jakarta text-sm text-[#1A2422] bg-white outline-none focus:ring-2 focus:ring-[#E5A43B] focus:border-transparent transition"
@@ -1154,14 +1200,14 @@ export default function CashierDashboard() {
             <div className="mb-5 border-t border-[#E4D9BE]/60 pt-3.5">
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-xs font-bold text-[#0A1716]">
-                  Pilih Ikon Cop (Kategori Kedai)
+                  {t.onboarding.stampIconLabel}
                 </label>
                 <span className="text-[10px] text-[#1E5E53] font-semibold bg-[#1E5E53]/10 px-2 py-0.5 rounded-full">
-                  Pilihan Ikon
+                  {t.onboarding.stampIconBadge}
                 </span>
               </div>
               <div className="text-xs text-[#5E6F68] mb-2.5">
-                Ikon ini akan dipaparkan pada kad cop digital pelanggan anda.
+                {t.onboarding.stampIconDesc}
               </div>
               <div className="grid grid-cols-4 gap-2">
                 {STAMP_ICON_OPTIONS.map((opt) => {
@@ -1196,7 +1242,7 @@ export default function CashierDashboard() {
 
             <div className="mb-5 p-3 rounded-xl bg-[#1E5E53]/10 border border-[#1E5E53]/20 flex items-start gap-2 text-xs text-[#1E5E53]">
               <span className="text-sm shrink-0">💡</span>
-              <span>Katalog hadiah, bilangan cop, dan pautan media sosial boleh disesuaikan bila-bila masa di menu <b>Tetapan</b> selepas ini.</span>
+              <span>{t.onboarding.hint}</span>
             </div>
 
             <button
@@ -1205,10 +1251,10 @@ export default function CashierDashboard() {
               className="w-full border-none rounded-[12px] p-3.5 bg-gradient-to-b from-[#E5A43B] to-[#C77B1B] text-[#1A2422] font-jakarta font-bold text-[14.5px] cursor-pointer active:scale-[0.98] transition disabled:opacity-60 shadow-[0_4px_12px_rgba(229,164,59,0.3)] flex items-center justify-center gap-2"
             >
               {isRegisteringStore ? (
-                'Mendaftarkan Kedai...'
+                t.onboarding.registering
               ) : (
                 <>
-                  Daftar Kedai &amp; Buka Kaunter →
+                  {t.onboarding.registerBtn}
                 </>
               )}
             </button>
@@ -1229,11 +1275,11 @@ export default function CashierDashboard() {
                 {/* Plan Badge */}
                 <div className="flex items-center justify-between">
                   <div className={`inline-flex items-center gap-1.5 text-[11px] font-bold font-space px-3 py-1 rounded-full ${isPro ? 'bg-[#E5A43B]/20 text-[#E5A43B]' : 'bg-[#FAF2E2]/10 text-[#5E6F68]'}`}>
-                    {isPro ? '⚡ Pelan Pro – Aktif' : '✦ Pelan Percuma (Starter)'}
+                    {isPro ? t.planQuota.proActive : t.planQuota.freeStarter}
                   </div>
                   {!isPro && (
                     <a href="/#harga" className="text-[10.5px] font-semibold text-[#E5A43B] hover:underline">
-                      Naik Taraf →
+                      {t.planQuota.upgrade}
                     </a>
                   )}
                 </div>
@@ -1242,7 +1288,7 @@ export default function CashierDashboard() {
                 {!isPro && (
                   <div className="bg-[#FAF2E2]/[0.05] border border-[#FAF2E2]/10 rounded-xl px-3.5 py-2.5">
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-[10px] font-space uppercase text-[#5E6F68] font-bold tracking-wider">Had Pelanggan Percuma</span>
+                      <span className="text-[10px] font-space uppercase text-[#5E6F68] font-bold tracking-wider">{t.planQuota.quotaTitle}</span>
                       {statsLoading ? (
                         <div className="h-4 w-12 bg-white/20 rounded animate-pulse" />
                       ) : (
@@ -1259,13 +1305,13 @@ export default function CashierDashboard() {
                     </div>
                     {quotaFull && (
                       <div className="mt-1.5 text-[10px] text-red-400 font-space font-semibold">
-                        Had pelanggan dicapai. Pelanggan baharu tidak dapat menerima cop.{' '}
-                        <a href="/#harga" className="underline text-[#E5A43B]">Naik taraf ke Pro</a>
+                        {t.planQuota.quotaFull}{' '}
+                        <a href="/#harga" className="underline text-[#E5A43B]">{t.planQuota.upgradeToPro}</a>
                       </div>
                     )}
                     {quotaWarning && !quotaFull && (
                       <div className="mt-1.5 text-[10px] text-amber-400 font-space font-semibold">
-                        Hampir penuh — {20 - totalCustomers} slot pelanggan berbaki.
+                        {t.planQuota.quotaWarning(20 - totalCustomers)}
                       </div>
                     )}
                   </div>
@@ -1277,7 +1323,7 @@ export default function CashierDashboard() {
           {/* STORE OVERVIEW METRICS BAR */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
             <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-2xl p-3 text-center">
-              <div className="text-[10px] font-space uppercase text-[#5E6F68] font-bold">Pelanggan</div>
+              <div className="text-[10px] font-space uppercase text-[#5E6F68] font-bold">{t.stats.customers}</div>
               <div className="text-xl font-fraunces font-bold text-[#E5A43B] mt-0.5 min-h-[28px] flex items-center justify-center">
                 {statsLoading ? (
                   <div className="h-6 w-10 bg-[#E5A43B]/20 rounded-md animate-pulse" />
@@ -1287,7 +1333,7 @@ export default function CashierDashboard() {
               </div>
             </div>
             <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-2xl p-3 text-center">
-              <div className="text-[10px] font-space uppercase text-[#5E6F68] font-bold">Cop Dituntut</div>
+              <div className="text-[10px] font-space uppercase text-[#5E6F68] font-bold">{t.stats.stampsClaimed}</div>
               <div className="text-xl font-fraunces font-bold text-emerald-400 mt-0.5 min-h-[28px] flex items-center justify-center">
                 {statsLoading ? (
                   <div className="h-6 w-10 bg-emerald-400/20 rounded-md animate-pulse" />
@@ -1297,7 +1343,7 @@ export default function CashierDashboard() {
               </div>
             </div>
             <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-2xl p-3 text-center">
-              <div className="text-[10px] font-space uppercase text-[#5E6F68] font-bold">Ganjaran Ditebus</div>
+              <div className="text-[10px] font-space uppercase text-[#5E6F68] font-bold">{t.stats.rewardsRedeemed}</div>
               <div className="text-xl font-fraunces font-bold text-amber-300 mt-0.5 min-h-[28px] flex items-center justify-center">
                 {statsLoading ? (
                   <div className="h-6 w-10 bg-amber-300/20 rounded-md animate-pulse" />
@@ -1307,7 +1353,7 @@ export default function CashierDashboard() {
               </div>
             </div>
             <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-2xl p-3 text-center">
-              <div className="text-[10px] font-space uppercase text-[#5E6F68] font-bold">Baki Cop Aktif</div>
+              <div className="text-[10px] font-space uppercase text-[#5E6F68] font-bold">{t.stats.activeStamps}</div>
               <div className="text-xl font-fraunces font-bold text-[#FAF2E2] mt-0.5 min-h-[28px] flex items-center justify-center">
                 {statsLoading ? (
                   <div className="h-6 w-10 bg-[#FAF2E2]/20 rounded-md animate-pulse" />
@@ -1321,8 +1367,8 @@ export default function CashierDashboard() {
           {/* CUSTOMER REWARD CLAIM SEARCH BAR */}
           <div className="mb-6">
             <div className="font-space text-[10.5px] tracking-[0.14em] uppercase text-[#E5A43B] mb-2.5 opacity-90 font-semibold flex items-center justify-between">
-              <span>Tebus Ganjaran di Kaunter</span>
-              <span className="text-[10px] text-[#5E6F68]">Cari Emel Pelanggan</span>
+              <span>{t.searchSection.title}</span>
+              <span className="text-[10px] text-[#5E6F68]">{t.searchSection.subTitle}</span>
             </div>
 
             <div className="bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-5 shadow-[0_24px_50px_rgba(0,0,0,0.45),0_0_0_1px_rgba(229,164,59,0.15)]">
@@ -1333,7 +1379,7 @@ export default function CashierDashboard() {
                     value={searchEmail}
                     onChange={(e) => setSearchEmail(e.target.value)}
                     maxLength={100}
-                    placeholder="Masukkan emel pelanggan (cth: ali@gmail.com)"
+                    placeholder={t.searchSection.placeholder}
                     className="w-full border border-[#E4D9BE] rounded-[12px] py-2.5 px-3 text-sm text-[#1A2422] bg-white outline-none placeholder:text-gray-400 font-jakarta"
                   />
                 </div>
@@ -1343,14 +1389,14 @@ export default function CashierDashboard() {
                   className="px-4 py-2.5 bg-[#1E5E53] hover:bg-[#2D786B] active:scale-95 text-white font-bold text-xs rounded-[12px] transition cursor-pointer disabled:opacity-60 flex items-center gap-1.5 shadow-sm"
                 >
                   {isSearchingCustomer ? (
-                    'Mencari...'
+                    t.searchSection.searching
                   ) : (
                     <>
                       <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                         <circle cx="11" cy="11" r="8" />
                         <path d="m21 21-4.35-4.35" />
                       </svg>
-                      <span>Cari</span>
+                      <span>{t.searchSection.searchBtn}</span>
                     </>
                   )}
                 </button>
@@ -1368,14 +1414,14 @@ export default function CashierDashboard() {
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div>
                       <div className="font-bold text-[15px] text-[#0A1716] leading-tight">
-                        {searchResult.name || 'Pelanggan'}
+                        {searchResult.name || (lang === 'en' ? 'Customer' : 'Pelanggan')}
                       </div>
                       <div className="text-xs text-[#5E6F68]">{searchResult.email}</div>
                     </div>
                     <div className="text-right">
                       <div className="font-fraunces font-bold text-2xl text-[#B53629]">
                         {searchResult.totalStamps}{' '}
-                        <small className="font-space text-xs text-[#5E6F68] font-normal">Cop</small>
+                        <small className="font-space text-xs text-[#5E6F68] font-normal">{t.searchSection.stampsUnit}</small>
                       </div>
                     </div>
                   </div>
@@ -1386,16 +1432,16 @@ export default function CashierDashboard() {
                       <div className="flex items-center gap-2 text-emerald-800 font-bold">
                         <span className="text-base">🎁</span>
                         <span>
-                          {searchResult.fullCardsCount} Kad Penuh ({searchResult.fullCardsCount} Ganjaran Sedia Ditebus)!
+                          {t.searchSection.fullCardsNotice(searchResult.fullCardsCount)}
                         </span>
                       </div>
                     ) : (
                       <div className="text-[#5E6F68]">
-                        Belum cukup cop ({searchResult.currentCardStamps}/{searchResult.stampsRequired} cop pada kad aktif).
+                        {t.searchSection.notEnoughStamps(searchResult.currentCardStamps, searchResult.stampsRequired)}
                       </div>
                     )}
                     <div className="text-[11px] text-[#5E6F68] mt-1">
-                      Ganjaran: <b>{searchResult.rewardDescription}</b>
+                      {t.searchSection.rewardLabel} <b>{searchResult.rewardDescription}</b>
                     </div>
                   </div>
 
@@ -1405,7 +1451,7 @@ export default function CashierDashboard() {
                     searchResult.rewardsCatalog.length > 0 && (
                       <div className="mb-3.5">
                         <div className="text-xs font-semibold text-[#1A2422] mb-1.5">
-                          Pilih hadiah untuk ditebus:
+                          {t.searchSection.chooseReward}
                         </div>
                         <div className="flex flex-col gap-1.5">
                           {searchResult.rewardsCatalog.map((rw) => {
@@ -1425,10 +1471,10 @@ export default function CashierDashboard() {
                                 } disabled:opacity-40 disabled:cursor-not-allowed`}
                               >
                                 <span className="text-xs font-semibold text-[#1A2422]">
-                                  {rw.name || 'Hadiah'}
+                                  {rw.name || (lang === 'en' ? 'Reward' : 'Hadiah')}
                                 </span>
                                 <span className="text-[10.5px] font-bold text-[#B53629] whitespace-nowrap">
-                                  {rw.stampsRequired} cop
+                                  {rw.stampsRequired} {t.searchSection.stampsUnit.toLowerCase()}
                                 </span>
                               </button>
                             )
@@ -1444,7 +1490,7 @@ export default function CashierDashboard() {
                       {searchResult.fullCardsCount > 1 && (
                         <div className="flex items-center gap-2.5 bg-[#EFE3C4] rounded-xl p-2.5">
                           <span className="text-xs font-semibold text-[#1A2422] flex-1">
-                            Tebus berapa ganjaran?
+                            {t.searchSection.howManyRewards}
                           </span>
                           <div className="flex items-center gap-1.5">
                             <button
@@ -1468,7 +1514,7 @@ export default function CashierDashboard() {
                             </button>
                           </div>
                           <span className="text-[10.5px] text-[#5E6F68] font-semibold">
-                            / {searchResult.fullCardsCount} maks
+                            / {searchResult.fullCardsCount} {t.searchSection.maxSuffix}
                           </span>
                         </div>
                       )}
@@ -1483,20 +1529,21 @@ export default function CashierDashboard() {
                         </svg>
                         <span>
                           {isRedeeming
-                            ? 'Memproses Penebusan...'
+                            ? t.searchSection.processingRedeem
                             : redeemCount > 1
-                            ? `Sahkan Penebusan ${redeemCount}x ${
-                                searchResult.rewardsCatalog?.find((r) => r.id === selectedRewardId)?.name || 'Ganjaran'
-                              }`
-                            : `Sahkan Penebusan: ${
-                                searchResult.rewardsCatalog?.find((r) => r.id === selectedRewardId)?.name || 'Ganjaran (Done Claim)'
-                              }`}
+                            ? t.searchSection.confirmRedeemMultiple(
+                                redeemCount,
+                                searchResult.rewardsCatalog?.find((r) => r.id === selectedRewardId)?.name || (lang === 'en' ? 'Reward' : 'Ganjaran')
+                              )
+                            : t.searchSection.confirmRedeemSingle(
+                                searchResult.rewardsCatalog?.find((r) => r.id === selectedRewardId)?.name || (lang === 'en' ? 'Reward (Done Claim)' : 'Ganjaran (Done Claim)')
+                              )}
                         </span>
                       </button>
                     </div>
                   ) : (
                     <div className="text-center py-2 px-3 bg-gray-200/70 text-gray-500 rounded-xl text-xs font-semibold">
-                      Pelanggan memerlukan sekurang-kurangnya {searchResult.stampsRequired} cop untuk menebus.
+                      {t.searchSection.needMinStamps(searchResult.stampsRequired)}
                     </div>
                   )}
 
@@ -1506,39 +1553,39 @@ export default function CashierDashboard() {
                       <div className="flex items-center justify-between font-bold text-emerald-800 border-b border-gray-100 pb-2">
                         <div className="flex items-center gap-1.5">
                           <span className="text-base">🧾</span>
-                          <span>Resit Penebusan Selesai</span>
+                          <span>{t.searchSection.receiptTitle}</span>
                         </div>
                         <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full uppercase tracking-wider font-space">
-                          Done Claim ✓
+                          {t.searchSection.doneClaimBadge}
                         </span>
                       </div>
 
                       <div className="space-y-1 text-gray-600 text-[11.5px] font-jakarta">
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Nama Kedai:</span>
+                          <span className="text-gray-400">{t.searchSection.receiptStore}</span>
                           <b className="text-gray-800">{lastClaimReceipt.storeName}</b>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Emel Pelanggan:</span>
+                          <span className="text-gray-400">{t.searchSection.receiptCustomer}</span>
                           <b className="text-gray-800">{lastClaimReceipt.customerEmail}</b>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Nama Hadiah:</span>
+                          <span className="text-gray-400">{t.searchSection.receiptReward}</span>
                           <b className="text-emerald-700">{lastClaimReceipt.rewardName}</b>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Cop Diguna:</span>
-                          <b className="text-[#B53629]">{lastClaimReceipt.stampsUsed} Cop</b>
+                          <span className="text-gray-400">{t.searchSection.receiptStampsUsed}</span>
+                          <b className="text-[#B53629]">{lastClaimReceipt.stampsUsed} {t.searchSection.stampsUnit}</b>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Baki Cop:</span>
-                          <b className="text-gray-800">{lastClaimReceipt.remainingStamps} Cop</b>
+                          <span className="text-gray-400">{t.searchSection.receiptRemaining}</span>
+                          <b className="text-gray-800">{lastClaimReceipt.remainingStamps} {t.searchSection.stampsUnit}</b>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Masa &amp; Tarikh:</span>
+                          <span className="text-gray-400">{t.searchSection.receiptTime}</span>
                           <span className="font-space text-[10.5px] text-gray-700">
-                            {new Date(lastClaimReceipt.redeemedAt || Date.now()).toLocaleDateString('ms-MY')}{' '}
-                            {new Date(lastClaimReceipt.redeemedAt || Date.now()).toLocaleTimeString('ms-MY', {
+                            {new Date(lastClaimReceipt.redeemedAt || Date.now()).toLocaleDateString(lang === 'en' ? 'en-US' : 'ms-MY')}{' '}
+                            {new Date(lastClaimReceipt.redeemedAt || Date.now()).toLocaleTimeString(lang === 'en' ? 'en-US' : 'ms-MY', {
                               hour: '2-digit',
                               minute: '2-digit',
                               second: '2-digit',
@@ -1558,7 +1605,7 @@ export default function CashierDashboard() {
                           <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
                           <path d="M6 14h12v8H6z" />
                         </svg>
-                        <span>{isPrintingClaim ? 'Mencetak Resit...' : 'Cetak Resit Penebusan (Bluetooth)'}</span>
+                        <span>{isPrintingClaim ? t.searchSection.printingClaim : t.searchSection.printClaimReceiptBtn}</span>
                       </button>
                     </div>
                   )}
@@ -1571,15 +1618,15 @@ export default function CashierDashboard() {
           {!showSettings ? (
             <div id="counterSection" className="mb-6">
               <div className="font-space text-[10.5px] tracking-[0.14em] uppercase text-[#E5A43B] mb-2.5 opacity-90 font-semibold">
-                Bagi Cop Stamp
+                {t.generator.title}
               </div>
 
               <div className="bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-[24px] shadow-[0_24px_50px_rgba(0,0,0,0.45),0_0_0_1px_rgba(229,164,59,0.15)]">
                 <div className="font-fraunces font-semibold text-[20px] mb-1 text-[#0A1716]">
-                  Berapa cop nak diberi?
+                  {t.generator.question}
                 </div>
                 <div className="text-[13px] text-[#5E6F68] mb-[18px]">
-                  Pilih bilangan cop, pelanggan terima terus lepas scan atau klik pautan.
+                  {t.generator.desc}
                 </div>
 
                 {/* STEPPER */}
@@ -1601,7 +1648,7 @@ export default function CashierDashboard() {
                   </button>
                 </div>
                 <div className="text-center font-space text-[10.5px] tracking-[0.08em] text-[#5E6F68] uppercase -mt-3 mb-5 font-semibold">
-                  bilangan cop
+                  {t.generator.stampsUnit}
                 </div>
 
                 {/* MODE TOGGLE */}
@@ -1629,7 +1676,7 @@ export default function CashierDashboard() {
                       <rect x="3" y="14" width="7" height="7" rx="1" />
                       <path d="M14 14h3v3h-3zM19 14h2v2h-2zM14 19h2v2h-2zM19 19h2v2h-2z" />
                     </svg>
-                    Resit (QR)
+                    {t.generator.receiptQr}
                   </div>
 
                   <div
@@ -1661,7 +1708,7 @@ export default function CashierDashboard() {
                       <rect x="3" y="5" width="18" height="14" rx="2" />
                       <path d="m3 7 9 6 9-6" />
                     </svg>
-                    Emel
+                    {t.generator.email}
                     {(planType !== 'pro' || subscriptionStatus !== 'active') && (
                       <span className="ml-1 text-[9px] font-bold bg-[#E5A43B]/90 text-[#1A2422] px-1.5 py-0.5 rounded-full leading-none">PRO</span>
                     )}
@@ -1685,7 +1732,7 @@ export default function CashierDashboard() {
                       type="email"
                       value={customerEmail}
                       onChange={(e) => setCustomerEmail(e.target.value)}
-                      placeholder="emel.pelanggan@contoh.com"
+                      placeholder={t.generator.emailPlaceholder}
                       className="border-none outline-none flex-1 font-jakarta text-sm bg-transparent text-[#1A2422]"
                     />
                   </div>
@@ -1703,7 +1750,7 @@ export default function CashierDashboard() {
                   disabled={isGenerating}
                   className="w-full border-none rounded-[12px] p-3.5 mt-0.5 bg-gradient-to-b from-[#E5A43B] to-[#C77B1B] text-[#1A2422] font-jakarta font-bold text-[14.5px] cursor-pointer active:scale-[0.98] transition disabled:opacity-60 shadow-[0_4px_12px_rgba(229,164,59,0.3)]"
                 >
-                  {isGenerating ? 'Menjana Token...' : 'Jana Cop Sekarang'}
+                  {isGenerating ? t.generator.generating : t.generator.generateBtn}
                 </button>
 
                 {/* RESULT: QR PANEL */}
@@ -1725,7 +1772,7 @@ export default function CashierDashboard() {
                       {timeLeftStr}
                     </div>
                     <div className="text-[12.5px] text-[#5E6F68] max-w-[260px] mb-3">
-                      Papar skrin ini pada pelanggan untuk diimbas, atau salin pautan di bawah.
+                      {t.generator.scanPrompt}
                     </div>
                     {claimUrl && (
                       <a
@@ -1734,7 +1781,7 @@ export default function CashierDashboard() {
                         rel="noreferrer"
                         className="text-xs text-[#1E5E53] underline font-semibold mb-3 hover:text-[#2D786B]"
                       >
-                        Buka pautan tebusan ↗
+                        {t.generator.openClaimLink}
                       </a>
                     )}
                     {/* PRINT RECEIPT ACTION BUTTON */}
@@ -1763,10 +1810,10 @@ export default function CashierDashboard() {
                         </svg>
                         <span>
                           {isPrinting
-                            ? 'Mencetak Resit...'
+                            ? t.generator.printing
                             : btPrinter
-                            ? 'Cetak Semula Resit'
-                            : 'Sambung BT & Cetak Resit'}
+                            ? t.generator.printBtnConnected
+                            : t.generator.printBtnConnectAndPrint}
                         </span>
                       </button>
 
@@ -1778,7 +1825,7 @@ export default function CashierDashboard() {
                           onChange={(e) => setAutoPrint(e.target.checked)}
                           className="accent-[#E5A43B] w-3.5 h-3.5 rounded cursor-pointer"
                         />
-                        <span>Auto-print resit setiap kali jana cop</span>
+                        <span>{t.generator.autoPrintHint}</span>
                       </label>
                     </div>
 
@@ -1786,7 +1833,7 @@ export default function CashierDashboard() {
                       onClick={handleResetToken}
                       className="bg-transparent border border-[#E2CE9E] rounded-[10px] py-2 px-4 font-jakarta text-[12.5px] font-semibold text-[#1E5E53] cursor-pointer hover:bg-white/40 transition"
                     >
-                      + Token baharu
+                      {t.generator.newTokenBtn}
                     </button>
                   </div>
                 )}
@@ -1804,7 +1851,7 @@ export default function CashierDashboard() {
                       >
                         <path d="M20 6 9 17l-5-5" />
                       </svg>
-                      Emel Dihantar
+                      {t.generator.emailSentTitle}
                     </div>
                     <div className="text-[12.5px] text-[#5E6F68] max-w-[280px] mb-2">
                       {emailSentNote}
@@ -1816,7 +1863,7 @@ export default function CashierDashboard() {
                       onClick={handleResetToken}
                       className="bg-transparent border border-[#E2CE9E] rounded-[10px] py-2 px-4 font-jakarta text-[12.5px] font-semibold text-[#1E5E53] cursor-pointer hover:bg-white/40 transition"
                     >
-                      + Token baharu
+                      {t.generator.newTokenBtn}
                     </button>
                   </div>
                 )}
@@ -1827,14 +1874,14 @@ export default function CashierDashboard() {
             <div id="settingsPanel" className="mb-6 anim-result">
               <div className="flex items-center justify-between mb-2.5">
                 <div className="font-space text-[10.5px] tracking-[0.14em] uppercase text-[#E5A43B] opacity-90 font-semibold">
-                  Tetapan Kedai
+                  {t.settings.title}
                 </div>
                 <button
                   onClick={() => setShowSettings(false)}
-                  title="Tutup Tetapan"
+                  title={t.settings.close}
                   className="text-xs text-[#FAF2E2]/70 hover:text-[#FAF2E2] font-semibold flex items-center gap-1 cursor-pointer transition"
                 >
-                  <span>Tutup</span>
+                  <span>{t.settings.close}</span>
                   <span className="text-sm leading-none font-bold">✕</span>
                 </button>
               </div>
@@ -1847,7 +1894,7 @@ export default function CashierDashboard() {
 
                 <div className="mb-3.5">
                   <label className="block text-xs font-semibold text-[#5E6F68] mb-1.5">
-                    Nama Kedai
+                    {t.settings.storeNameLabel}
                   </label>
                   <input
                     type="text"
@@ -1862,7 +1909,7 @@ export default function CashierDashboard() {
                 <div className="mb-3.5">
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="block text-xs font-semibold text-[#5E6F68]">
-                      URL Logo Kedai (Imej)
+                      {t.settings.logoUrlLabel}
                     </label>
                     <a
                       href="https://www.imghippo.com/"
@@ -1870,7 +1917,7 @@ export default function CashierDashboard() {
                       rel="noopener noreferrer"
                       className="text-[11px] font-semibold text-[#1E5E53] hover:text-[#E5A43B] underline flex items-center gap-1 cursor-pointer"
                     >
-                      <span>Dapatkan Direct URL di ImgHippo ↗</span>
+                      <span>{t.settings.directUrlHint}</span>
                     </a>
                   </div>
                   <input
@@ -1885,7 +1932,7 @@ export default function CashierDashboard() {
                   {logoUrl && (
                     <div className="mt-2 flex items-center gap-2 bg-white p-2 rounded-lg border border-[#E4D9BE]">
                       <img src={logoUrl} alt="Logo Preview" className="w-8 h-8 rounded-full object-cover border" />
-                      <span className="text-[11px] text-[#5E6F68]">Pratonton Logo</span>
+                      <span className="text-[11px] text-[#5E6F68]">{t.settings.logoPreview}</span>
                     </div>
                   )}
                 </div>
@@ -1894,14 +1941,14 @@ export default function CashierDashboard() {
                 <div className="mb-4 border-t border-[#E4D9BE] pt-3.5">
                   <div className="flex items-center justify-between mb-1">
                     <label className="block text-xs font-bold text-[#0A1716]">
-                      Ikon Cop Stamp (Kategori Kedai)
+                      {t.settings.stampIconLabel}
                     </label>
                     <span className="text-[10.5px] text-[#1E5E53] font-semibold bg-[#1E5E53]/10 px-2 py-0.5 rounded-full">
-                      Pilihan Tersedia
+                      {t.settings.stampIconBadge}
                     </span>
                   </div>
                   <div className="text-xs text-[#5E6F68] mb-2.5">
-                    Pilih ikon cop yang akan dipaparkan di bulatan cop kad pelanggan anda.
+                    {t.settings.stampIconDesc}
                   </div>
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                     {STAMP_ICON_OPTIONS.map((opt) => {
@@ -1939,7 +1986,7 @@ export default function CashierDashboard() {
                 <div className="border-t border-[#E4D9BE] pt-4 mt-4 mb-4">
                   <div className="flex items-center justify-between mb-1">
                     <div className="font-bold text-sm text-[#0A1716]">
-                      Katalog Hadiah &amp; Ganjaran
+                      {t.settings.rewardsTitle}
                     </div>
                     <a
                       href="https://www.imghippo.com/"
@@ -1947,11 +1994,11 @@ export default function CashierDashboard() {
                       rel="noopener noreferrer"
                       className="text-[11px] font-semibold text-[#1E5E53] hover:text-[#E5A43B] underline flex items-center gap-1 cursor-pointer"
                     >
-                      <span>Dapatkan Direct URL di ImgHippo ↗</span>
+                      <span>{t.settings.directUrlHint}</span>
                     </a>
                   </div>
                   <div className="text-xs text-[#5E6F68] mb-3">
-                    Tambah pilihan hadiah lain mengikut bilangan cop yang berbeza.
+                    {t.settings.rewardsDesc}
                   </div>
 
                   <div className="space-y-3">
@@ -1962,7 +2009,7 @@ export default function CashierDashboard() {
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-[#1A2422]">
-                            Hadiah #{idx + 1}
+                            {t.settings.rewardItemNumber(idx + 1)}
                           </span>
                           {staffRole === 'owner' && (
                             <button
@@ -1970,7 +2017,7 @@ export default function CashierDashboard() {
                               onClick={() => handleDeleteRewardItem(idx)}
                               className="text-[11px] text-red-600 hover:text-red-800 font-semibold cursor-pointer"
                             >
-                              Padam
+                              {t.settings.deleteBtn}
                             </button>
                           )}
                         </div>
@@ -1980,7 +2027,7 @@ export default function CashierDashboard() {
                           value={item.name}
                           onChange={(e) => handleUpdateRewardItem(idx, 'name', e.target.value)}
                           maxLength={80}
-                          placeholder="Nama Hadiah (cth: Kek Red Velvet)"
+                          placeholder={t.settings.rewardNamePlaceholder}
                           disabled={staffRole !== 'owner'}
                           className="w-full border border-[#E4D9BE] rounded-lg p-2 text-xs text-[#1A2422] outline-none"
                         />
@@ -1994,7 +2041,7 @@ export default function CashierDashboard() {
                             onChange={(e) =>
                               handleUpdateRewardItem(idx, 'stampsRequired', Number(e.target.value))
                             }
-                            placeholder="Cop"
+                            placeholder={t.settings.stampsPlaceholder}
                             disabled={staffRole !== 'owner'}
                             className="w-24 border border-[#E4D9BE] rounded-lg p-2 text-xs text-[#1A2422] outline-none"
                           />
@@ -2003,7 +2050,7 @@ export default function CashierDashboard() {
                             value={item.imageUrl}
                             onChange={(e) => handleUpdateRewardItem(idx, 'imageUrl', e.target.value)}
                             maxLength={500}
-                            placeholder="URL Gambar Hadiah (https://...)"
+                            placeholder={t.settings.rewardImgPlaceholder}
                             disabled={staffRole !== 'owner'}
                             className="flex-1 border border-[#E4D9BE] rounded-lg p-2 text-xs text-[#1A2422] outline-none"
                           />
@@ -2013,7 +2060,7 @@ export default function CashierDashboard() {
                           value={item.description || ''}
                           onChange={(e) => handleUpdateRewardItem(idx, 'description', e.target.value)}
                           maxLength={250}
-                          placeholder="Penerangan hadiah (cth: Tebus di kaunter, terhad 1 unit sehari)"
+                          placeholder={t.settings.rewardDescPlaceholder}
                           disabled={staffRole !== 'owner'}
                           rows={2}
                           className="w-full border border-[#E4D9BE] rounded-lg p-2 text-xs text-[#1A2422] outline-none resize-y min-h-[44px] disabled:bg-gray-100"
@@ -2028,7 +2075,7 @@ export default function CashierDashboard() {
                       onClick={handleAddRewardItem}
                       className="w-full mt-3 py-2 px-3 border border-dashed border-[#1E5E53] rounded-xl text-xs font-bold text-[#1E5E53] bg-[#1E5E53]/[0.05] hover:bg-[#1E5E53]/10 transition flex items-center justify-center gap-1.5 cursor-pointer"
                     >
-                      <span>+ Tambah Hadiah Baharu</span>
+                      <span>{t.settings.addRewardBtn}</span>
                     </button>
                   )}
                 </div>
@@ -2037,7 +2084,7 @@ export default function CashierDashboard() {
                 <div className="border-t border-[#E4D9BE] pt-4 mt-4 mb-4">
                   <div className="flex items-center justify-between mb-1">
                     <div className="font-bold text-sm text-[#0A1716]">
-                      Pautan Media Sosial &amp; Laman Web
+                      {t.settings.socialTitle}
                     </div>
                     {staffRole === 'owner' && (
                       <button
@@ -2045,17 +2092,17 @@ export default function CashierDashboard() {
                         onClick={() => setShowSocialModal(true)}
                         className="text-xs font-bold text-[#1E5E53] hover:text-[#E5A43B] underline cursor-pointer"
                       >
-                        + Tambah Pautan
+                        {t.settings.addLinkBtn}
                       </button>
                     )}
                   </div>
                   <div className="text-xs text-[#5E6F68] mb-3">
-                    Pautan ini akan dipaparkan sebagai ikon di bawah nama kedai di kad pelanggan.
+                    {t.settings.socialDesc}
                   </div>
 
                   {socialLinks.length === 0 ? (
                     <div className="bg-white/60 p-3 rounded-xl border border-dashed border-[#E4D9BE] text-center text-xs text-[#5E6F68]">
-                      Belum ada pautan media sosial. Tekan &quot;+ Tambah Pautan&quot; untuk masukkan Instagram, TikTok, WhatsApp, dll.
+                      {t.settings.noSocialLinks}
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -2084,7 +2131,7 @@ export default function CashierDashboard() {
                                 onClick={() => handleDeleteSocialLink(sIdx)}
                                 className="text-xs text-red-600 hover:text-red-800 font-semibold p-1 cursor-pointer shrink-0"
                               >
-                                Padam
+                                {t.settings.deleteBtn}
                               </button>
                             )}
                           </div>
@@ -2100,11 +2147,11 @@ export default function CashierDashboard() {
                     disabled={isSavingSettings}
                     className="w-full border-none rounded-[12px] p-3 mt-1 bg-[#1E5E53] text-[#FAF2E2] font-bold text-sm cursor-pointer active:scale-[0.98] transition disabled:opacity-60 hover:bg-[#2D786B]"
                   >
-                    {isSavingSettings ? 'Menyimpan...' : 'Simpan Tetapan'}
+                    {isSavingSettings ? t.settings.saving : t.settings.saveBtn}
                   </button>
                 ) : (
                   <div className="text-xs text-[#5E6F68] bg-[#EFE3C4] p-2.5 rounded-lg text-center font-medium">
-                    Hanya Pemilik (Owner) boleh menukar tetapan kedai.
+                    {t.settings.ownerOnlyNote}
                   </div>
                 )}
 
@@ -2113,15 +2160,15 @@ export default function CashierDashboard() {
                     saveToast ? 'opacity-100' : 'opacity-0'
                   }`}
                 >
-                  ✓ Tetapan disimpan
+                  {t.settings.savedToast}
                 </div>
 
                 {/* ZON BAHAYA: PADAM AKAUN */}
                 <div className="border-t border-[#E4D9BE] pt-4 mt-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-xs font-bold text-red-600">Zon Bahaya</div>
-                      <div className="text-[11px] text-[#5E6F68]">Padam akaun anda secara kekal</div>
+                      <div className="text-xs font-bold text-red-600">{t.settings.dangerZone}</div>
+                      <div className="text-[11px] text-[#5E6F68]">{t.settings.dangerZoneDesc}</div>
                     </div>
                     <button
                       type="button"
@@ -2132,7 +2179,7 @@ export default function CashierDashboard() {
                       }}
                       className="px-3 py-2 rounded-xl bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-bold transition cursor-pointer shadow-xs"
                     >
-                      Padam Akaun Saya
+                      {t.settings.deleteAccountBtn}
                     </button>
                   </div>
                 </div>
@@ -2163,13 +2210,13 @@ export default function CashierDashboard() {
                 </div>
                 <div>
                   <div className="font-space text-[11px] tracking-[0.12em] uppercase text-[#E5A43B] font-bold flex items-center gap-1.5">
-                    <span>Log Aktiviti</span>
+                    <span>{t.activity.title}</span>
                     <span className="text-[10px] text-[#FAF2E2]/60 font-normal">
                       ({totalActivityCount})
                     </span>
                   </div>
                   <div className="text-[10px] text-[#5E6F68]">
-                    {showActivityLog ? 'Tekan untuk tutup senarai log' : 'Tekan untuk buka & semak rekod'}
+                    {t.activity.hint(showActivityLog)}
                   </div>
                 </div>
               </button>
@@ -2179,7 +2226,7 @@ export default function CashierDashboard() {
                 <button
                   type="button"
                   onClick={() => setShowExportModal(true)}
-                  title="Muat Turun Log Aktiviti (.CSV)"
+                  title={t.activity.downloadTooltip}
                   className="py-1.5 px-2.5 rounded-xl border border-[#E5A43B]/30 bg-[#E5A43B]/10 hover:bg-[#E5A43B]/20 text-[#E5A43B] transition flex items-center gap-1.5 text-xs font-bold cursor-pointer active:scale-95 shadow-xs"
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -2187,7 +2234,7 @@ export default function CashierDashboard() {
                     <polyline points="7 10 12 15 17 10" />
                     <line x1="12" y1="15" x2="12" y2="3" />
                   </svg>
-                  <span className="hidden sm:inline text-[11px]">Muat Turun</span>
+                  <span className="hidden sm:inline text-[11px]">{t.activity.downloadBtn}</span>
                 </button>
 
                 {/* REFRESH BUTTON */}
@@ -2195,7 +2242,7 @@ export default function CashierDashboard() {
                   type="button"
                   onClick={() => loadActivity(activityPage)}
                   disabled={loadingActivity}
-                  title="Muat Semula Log"
+                  title={t.activity.refreshTooltip}
                   className="w-8 h-8 rounded-xl border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.05] hover:bg-[#FAF2E2]/10 text-[#5E6F68] hover:text-[#FAF2E2] transition flex items-center justify-center cursor-pointer disabled:opacity-40"
                 >
                   <svg
@@ -2217,7 +2264,7 @@ export default function CashierDashboard() {
                 <div className="flex flex-col gap-2">
                   {activities.length === 0 ? (
                     <div className="text-center py-6 text-xs text-[#5E6F68] bg-[#FAF2E2]/[0.02] border border-[#FAF2E2]/10 rounded-xl">
-                      Belum ada rekod log aktiviti.
+                      {t.activity.empty}
                     </div>
                   ) : (
                     activities.map((act) => (
@@ -2242,7 +2289,7 @@ export default function CashierDashboard() {
                           </div>
                           <div>
                             <div className="font-space text-[12px] text-[#FAF2E2] font-semibold">
-                              +{act.stampCount} Cop • {act.deliveryMethod === 'email' ? 'Emel' : 'QR'} ({act.maskedToken})
+                              +{act.stampCount} {t.activity.stampsUnit} • {act.deliveryMethod === 'email' ? (lang === 'en' ? 'Email' : 'Emel') : 'QR'} ({act.maskedToken})
                             </div>
                             <div className="text-[10.5px] text-[#5E6F68] font-space">
                               {act.fullTimestamp || act.createdAt}
@@ -2261,10 +2308,10 @@ export default function CashierDashboard() {
                             }`}
                           >
                             {act.status === 'claimed'
-                              ? 'DITEBUS'
+                              ? t.activity.claimedBadge
                               : act.status === 'expired'
-                              ? 'LUPUT'
-                              : 'PENDING'}
+                              ? t.activity.expiredBadge
+                              : t.activity.pendingBadge}
                           </span>
                         </div>
                       </div>
@@ -2280,11 +2327,11 @@ export default function CashierDashboard() {
                       disabled={activityPage <= 1 || loadingActivity}
                       className="px-3 py-1.5 rounded-lg border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.05] text-[#FAF2E2] disabled:opacity-30 disabled:pointer-events-none hover:bg-[#FAF2E2]/10 transition cursor-pointer"
                     >
-                      ◀ Sebelum
+                      {t.activity.prevPage}
                     </button>
 
                     <div className="font-bold text-[#FAF2E2]">
-                      Halaman {activityPage} / {totalActivityPages}
+                      {t.activity.pageInfo(activityPage, totalActivityPages)}
                     </div>
 
                     <button
@@ -2292,7 +2339,7 @@ export default function CashierDashboard() {
                       disabled={!hasMoreActivity || loadingActivity}
                       className="px-3 py-1.5 rounded-lg border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.05] text-[#FAF2E2] disabled:opacity-30 disabled:pointer-events-none hover:bg-[#FAF2E2]/10 transition cursor-pointer"
                     >
-                      Seterusnya ▶
+                      {t.activity.nextPage}
                     </button>
                   </div>
                 )}
@@ -2340,7 +2387,7 @@ export default function CashierDashboard() {
           <div className="w-full max-w-sm bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-5 shadow-2xl border border-[#E5A43B]/30 anim-popup">
             <div className="flex items-center justify-between mb-3.5">
               <div className="font-fraunces font-bold text-base text-[#0A1716] flex items-center gap-2">
-                <span>📥 Muat Turun Log Aktiviti</span>
+                <span>{t.exportModal.title}</span>
               </div>
               <button
                 onClick={() => setShowExportModal(false)}
@@ -2351,19 +2398,19 @@ export default function CashierDashboard() {
             </div>
 
             <div className="text-xs text-[#5E6F68] mb-4">
-              Pilih tempoh masa untuk menjana dan memuat turun fail laporan log aktiviti kedai anda (.CSV).
+              {t.exportModal.desc}
             </div>
 
             <div className="space-y-2 mb-4">
               <label className="block text-xs font-bold text-[#1A2422] mb-1">
-                Pilihan Tempoh / Bulan:
+                {t.exportModal.periodLabel}
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { id: 'this_month', label: '📅 Bulan Ini' },
-                  { id: 'last_month', label: '📅 Bulan Lepas' },
-                  { id: 'last_3_months', label: '📅 3 Bulan Terakhir' },
-                  { id: 'all', label: '📊 Semua Rekod' },
+                  { id: 'this_month', label: t.exportModal.thisMonth },
+                  { id: 'last_month', label: t.exportModal.lastMonth },
+                  { id: 'last_3_months', label: t.exportModal.last3Months },
+                  { id: 'all', label: t.exportModal.allRecords },
                 ].map((opt) => (
                   <button
                     key={opt.id}
@@ -2390,14 +2437,14 @@ export default function CashierDashboard() {
                     : 'border-[#E4D9BE] bg-white text-[#5E6F68] hover:bg-gray-50'
                 }`}
               >
-                🗓️ Pilih Julat Tarikh Khusus...
+                {t.exportModal.customRange}
               </button>
 
               {exportPeriod === 'custom' && (
                 <div className="grid grid-cols-2 gap-2 pt-2 anim-result">
                   <div>
                     <label className="block text-[10.5px] font-bold text-[#5E6F68] mb-1">
-                      Dari Tarikh:
+                      {t.exportModal.from}
                     </label>
                     <input
                       type="date"
@@ -2408,7 +2455,7 @@ export default function CashierDashboard() {
                   </div>
                   <div>
                     <label className="block text-[10.5px] font-bold text-[#5E6F68] mb-1">
-                      Hingga Tarikh:
+                      {t.exportModal.to}
                     </label>
                     <input
                       type="date"
@@ -2427,7 +2474,7 @@ export default function CashierDashboard() {
                 onClick={() => setShowExportModal(false)}
                 className="flex-1 py-2.5 rounded-xl border border-[#E4D9BE] bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
               >
-                Batal
+                {t.exportModal.cancel}
               </button>
               <button
                 type="button"
@@ -2440,11 +2487,11 @@ export default function CashierDashboard() {
                     <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
                     </svg>
-                    <span>Menjana...</span>
+                    <span>{t.exportModal.generating}</span>
                   </>
                 ) : (
                   <>
-                    <span>Muat Turun .CSV</span>
+                    <span>{t.exportModal.downloadBtn}</span>
                   </>
                 )}
               </button>
@@ -2459,7 +2506,7 @@ export default function CashierDashboard() {
           <div className="w-full max-w-sm bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-5 shadow-2xl border border-[#E5A43B]/30 anim-popup">
             <div className="flex items-center justify-between mb-3.5">
               <div className="font-fraunces font-bold text-base text-[#0A1716]">
-                🔗 Tambah Media Sosial / Web
+                {t.socialModal.title}
               </div>
               <button
                 onClick={() => setShowSocialModal(false)}
@@ -2472,7 +2519,7 @@ export default function CashierDashboard() {
             <div className="space-y-3 mb-4">
               <div>
                 <label className="block text-xs font-bold text-[#1A2422] mb-1.5">
-                  Pilih Platform
+                  {t.socialModal.selectPlatform}
                 </label>
                 <div className="grid grid-cols-2 gap-1.5 max-h-[160px] overflow-y-auto pr-1">
                   {SOCIAL_PLATFORMS.map((plat) => {
@@ -2500,7 +2547,7 @@ export default function CashierDashboard() {
 
               <div>
                 <label className="block text-xs font-bold text-[#1A2422] mb-1">
-                  Pautan URL / Nombor Akaun
+                  {t.socialModal.urlLabel}
                 </label>
                 <input
                   type="text"
@@ -2521,7 +2568,7 @@ export default function CashierDashboard() {
                 onClick={() => setShowSocialModal(false)}
                 className="flex-1 py-2.5 rounded-xl border border-[#E4D9BE] bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
               >
-                Batal
+                {t.socialModal.cancel}
               </button>
               <button
                 type="button"
@@ -2529,7 +2576,7 @@ export default function CashierDashboard() {
                 disabled={!newSocialUrl.trim()}
                 className="flex-1 py-2.5 rounded-xl bg-[#1E5E53] hover:bg-[#2D786B] text-white text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-sm"
               >
-                Simpan Pautan
+                {t.socialModal.save}
               </button>
             </div>
           </div>
@@ -2543,7 +2590,7 @@ export default function CashierDashboard() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 text-red-600 font-fraunces font-bold text-lg">
                 <span>⚠️</span>
-                <span>Padam Akaun</span>
+                <span>{t.deleteModal.title}</span>
               </div>
               <button
                 type="button"
@@ -2557,10 +2604,10 @@ export default function CashierDashboard() {
 
             <div className="text-xs text-slate-700 leading-relaxed mb-4 space-y-2">
               <p className="font-semibold text-red-700">
-                Tindakan ini kekal dan tidak boleh dibatalkan.
+                {t.deleteModal.warning1}
               </p>
               <p className="text-[#5E6F68]">
-                Semua data cop, sejarah tebusan, dan akaun anda akan dipadam dari sistem.
+                {t.deleteModal.warning2}
               </p>
             </div>
 
@@ -2572,7 +2619,7 @@ export default function CashierDashboard() {
 
             <div className="mb-4">
               <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                Sila taip <span className="font-mono text-red-600 bg-red-100 px-1.5 py-0.5 rounded">PADAM</span> untuk mengesahkan:
+                {t.deleteModal.typeToConfirm.split('PADAM')[0]}<span className="font-mono text-red-600 bg-red-100 px-1.5 py-0.5 rounded">PADAM</span>{t.deleteModal.typeToConfirm.split('PADAM')[1]}
               </label>
               <input
                 type="text"
@@ -2591,7 +2638,7 @@ export default function CashierDashboard() {
                 onClick={() => setShowDeleteAccountModal(false)}
                 className="flex-1 py-2.5 rounded-xl border border-[#E4D9BE] bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
               >
-                Batal
+                {t.deleteModal.cancel}
               </button>
               <button
                 type="button"
@@ -2599,7 +2646,7 @@ export default function CashierDashboard() {
                 onClick={handleDeleteAccount}
                 className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-sm active:scale-95"
               >
-                {isDeletingAccount ? 'Memadam...' : 'Sahkan Padam'}
+                {isDeletingAccount ? t.deleteModal.deleting : t.deleteModal.confirmDelete}
               </button>
             </div>
           </div>
@@ -2611,7 +2658,7 @@ export default function CashierDashboard() {
         <span>© {new Date().getFullYear()} LajuS</span>
         <span>•</span>
         <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#FAF2E2]/70 hover:text-[#E5A43B] underline transition">
-          Dasar Privasi (PDPA)
+          {t.footer.privacyPolicy}
         </a>
       </div>
     </div>
