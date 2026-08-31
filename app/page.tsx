@@ -279,6 +279,7 @@ export default function LandingPage() {
 
             {/* Desktop & Tablet Navigation links */}
             <div className="hidden lg:flex items-center gap-7 text-xs font-bold text-slate-700">
+              <a href="#demo" className="hover:text-[#E5A43B] transition">{t.nav.demo}</a>
               <a href="#cara-kerja" className="hover:text-[#E5A43B] transition">{t.nav.howItWorks}</a>
               <a href="#ciri" className="hover:text-[#E5A43B] transition">{t.nav.features}</a>
               <a href="#harga" className="hover:text-[#E5A43B] transition">{t.nav.pricing}</a>
@@ -482,7 +483,7 @@ export default function LandingPage() {
                 <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
               </button>
               <a
-                href="#cara-kerja"
+                href="#demo"
                 className="px-7 h-14 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 font-bold text-sm rounded-full flex items-center justify-center gap-2 transition"
               >
                 <svg className="w-4 h-4 fill-[#E5A43B] text-[#E5A43B]" viewBox="0 0 24 24"><polygon points="6,3 20,12 6,21"/></svg>
@@ -526,6 +527,41 @@ export default function LandingPage() {
             </div>
           ))}
         </ScrollReveal>
+      </section>
+
+      {/* ── VIDEO DEMO SECTION ──────────────────── */}
+      <section id="demo" className="py-20 lg:py-24 px-6 bg-slate-950 relative overflow-hidden border-b border-slate-800">
+        {/* Background glow effects */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[450px] bg-gradient-to-tr from-[#E5A43B]/15 via-[#1E5E53]/15 to-[#B53629]/15 rounded-full blur-[100px] pointer-events-none" />
+
+        <div className="max-w-[1000px] mx-auto relative z-10">
+          <ScrollReveal className="text-center mb-10 space-y-4">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#E5A43B]/15 border border-[#E5A43B]/25 rounded-full text-[#E5A43B] text-xs font-extrabold uppercase tracking-wider">
+              {t.videoDemo.badge}
+            </div>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight">
+              {t.videoDemo.title}
+            </h2>
+            <p className="text-slate-400 max-w-xl mx-auto text-sm sm:text-base">
+              {t.videoDemo.subtitle}
+            </p>
+          </ScrollReveal>
+
+          {/* Video Player Card Frame */}
+          <ScrollReveal delay={150}>
+            <div className="relative mx-auto bg-gradient-to-tr from-[#E5A43B] via-[#C77B1B] to-[#1E5E53] p-[2px] sm:p-[3px] rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_30px_rgba(229,164,59,0.15)]">
+              <div className="relative w-full aspect-video bg-slate-900 rounded-[14px] sm:rounded-[21px] overflow-hidden">
+                <iframe
+                  src="https://www.youtube-nocookie.com/embed/Mh4ZoUJnums?rel=0&modestbranding=1"
+                  title="LajuS Video Demo"
+                  className="w-full h-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          </ScrollReveal>
+        </div>
       </section>
 
       {/* ── CARA KERJA ──────────────────────────── */}

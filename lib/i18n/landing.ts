@@ -26,6 +26,7 @@ export interface FaqItem {
 
 export interface LandingTranslation {
   nav: {
+    demo: string
     howItWorks: string
     features: string
     pricing: string
@@ -54,6 +55,11 @@ export interface LandingTranslation {
     badges: string[]
   }
   metrics: MetricItem[]
+  videoDemo: {
+    badge: string
+    title: string
+    subtitle: string
+  }
   howItWorks: {
     badge: string
     title: string
@@ -108,6 +114,7 @@ export interface LandingTranslation {
 export const I18N_LANDING: Record<Lang, LandingTranslation> = {
   my: {
     nav: {
+      demo: 'Demo',
       howItWorks: 'Cara Kerja',
       features: 'Ciri-Ciri',
       pricing: 'Harga',
@@ -119,6 +126,7 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
       tagline: 'Sistem Cop Stamp Digital',
       openCounter: 'Buka Kaunter Staff',
       links: [
+        { href: '#demo', label: 'Video Demo', desc: 'Tonton demo sistem berfungsi', icon: '🎬' },
         { href: '#cara-kerja', label: 'Cara Kerja', desc: 'Proses mudah 3 langkah', icon: '⚡' },
         { href: '#ciri', label: 'Ciri-Ciri Utama', desc: 'Cop QR, Emel & Kad Digital', icon: '⭐' },
         { href: '#harga', label: 'Pelan Harga', desc: 'Percuma & Pelan Pro', icon: '💳' },
@@ -153,6 +161,12 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
       { val: '30 Min', label: '30m Stamp Akan Luput', color: 'text-[#FBBF24]' },
       { val: '100%', label: 'Data Pelanggan Selamat', color: 'text-white' },
     ],
+    videoDemo: {
+      badge: 'VIDEO DEMO • LIHAT SISTEM BERFUNGSI',
+      title: 'Lihat Betapa Pantas & Mudahnya LajuS',
+      subtitle:
+        'Tonton demonstrasi bagaimana staff menjana kod QR dalam 5 saat dan pelanggan mengumpul cop terus dari telefon pintar.',
+    },
     howItWorks: {
       badge: 'Cara Berfungsi',
       title: 'Mudah, Pantas, Tanpa Kertas',
@@ -260,6 +274,7 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
   },
   en: {
     nav: {
+      demo: 'Demo',
       howItWorks: 'How It Works',
       features: 'Features',
       pricing: 'Pricing',
@@ -271,6 +286,7 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
       tagline: 'Digital Stamp Card System',
       openCounter: 'Open Staff Counter',
       links: [
+        { href: '#demo', label: 'Video Demo', desc: 'Watch system demo in action', icon: '🎬' },
         { href: '#cara-kerja', label: 'How It Works', desc: 'Simple 3-step process', icon: '⚡' },
         { href: '#ciri', label: 'Key Features', desc: 'QR Stamps, Email & Digital Cards', icon: '⭐' },
         { href: '#harga', label: 'Pricing Plans', desc: 'Free & Pro Plans', icon: '💳' },
@@ -305,6 +321,12 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
       { val: '30 Min', label: '30m Stamp Expiry Window', color: 'text-[#FBBF24]' },
       { val: '100%', label: 'Secure Customer Data', color: 'text-white' },
     ],
+    videoDemo: {
+      badge: 'VIDEO DEMO • SEE IT IN ACTION',
+      title: 'See How Fast & Simple LajuS Works',
+      subtitle:
+        'Watch a quick walkthrough of how staff issue QR stamps in 5 seconds and customers collect rewards straight on their mobile phones.',
+    },
     howItWorks: {
       badge: 'How It Works',
       title: 'Simple, Fast, Paperless',
