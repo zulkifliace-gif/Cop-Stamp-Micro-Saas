@@ -132,6 +132,7 @@ export default function ClaimClient({
   const [showRewardsModal, setShowRewardsModal] = useState(false)
   const [showReviewPopup, setShowReviewPopup] = useState(false)
   const [googleReviewUrl, setGoogleReviewUrl] = useState<string | null>(null)
+  const [reviewRating, setReviewRating] = useState<number>(5)
   const [selectedCardIdx, setSelectedCardIdx] = useState(0)
 
   // Stamp detail popup modal state
@@ -205,15 +206,10 @@ export default function ClaimClient({
       const gUrl = data.googleReviewUrl || null
       setGoogleReviewUrl(gUrl)
 
-      if (gUrl && data.storeId) {
-        try {
-          const isDismissed = localStorage.getItem('lajus_reviewed_store_' + data.storeId) === 'true'
-          if (!isDismissed) {
-            setTimeout(() => {
-              setShowReviewPopup(true)
-            }, 2500)
-          }
-        } catch {}
+      if (gUrl) {
+        setTimeout(() => {
+          setShowReviewPopup(true)
+        }, 2500)
       }
 
       const total = data.newTotal ?? initialStampCount
@@ -244,12 +240,6 @@ export default function ClaimClient({
 
   function handleCloseReviewPopup() {
     setShowReviewPopup(false)
-    const sId = claimedStoreIdRef.current
-    if (sId) {
-      try {
-        localStorage.setItem('lajus_reviewed_store_' + sId, 'true')
-      } catch {}
-    }
   }
 
   // 4. Google OAuth
@@ -804,16 +794,7 @@ export default function ClaimClient({
   return (
     <div className="w-full max-w-[380px] flex flex-col items-center anim-result">
       {/* TOP TOGGLE */}
-      <div className="w-full flex items-center justify-between mb-2">
-        {googleReviewUrl ? (
-          <button
-            type="button"
-            onClick={() => window.open(googleReviewUrl, '_blank')}
-            className="px-2.5 py-1 text-[11px] font-bold rounded-full bg-[#E5A43B] text-[#1A2422] hover:brightness-110 transition shadow-xs flex items-center gap-1 cursor-pointer"
-          >
-            <span>{t.reviewNavbarBtn}</span>
-          </button>
-        ) : <div />}
+      <div className="w-full flex items-center justify-end mb-2">
         <div className="flex items-center gap-1 bg-[#FAF2E2]/[0.08] border border-[#FAF2E2]/15 rounded-full p-0.5 backdrop-blur-xs">
           <button
             type="button"
@@ -856,7 +837,7 @@ export default function ClaimClient({
           {t.revealScene.digitalStampBadge(claimData.newTotal)}
         </div>
 
-        {/* ACTION PILLS: INFO 'i' AND REWARD GIFT */}
+        {/* ACTION PILLS: INFO 'i', REWARD GIFT AND GOOGLE REVIEW */}
         <div className="flex items-center justify-center gap-2 mt-2.5">
           <button
             onClick={() => setShowInfoModal(true)}
@@ -885,6 +866,20 @@ export default function ClaimClient({
             </svg>
             <span>{t.revealScene.rewardsBtn}</span>
           </button>
+
+          {googleReviewUrl && (
+            <button
+              onClick={() => setShowReviewPopup(true)}
+              title="Google Review"
+              className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-full border border-[#F7EEDA]/20 bg-[#F7EEDA]/10 text-xs font-semibold text-[#F7EEDA] hover:bg-[#F7EEDA]/20 hover:border-[#E7A33E] transition cursor-pointer"
+            >
+              <img
+                src="/Google-Review.svg"
+                alt="Google Review"
+                className="h-4 w-auto object-contain"
+              />
+            </button>
+          )}
         </div>
       </div>
 
@@ -1314,24 +1309,66 @@ export default function ClaimClient({
         </div>
       )}
 
-      {/* 3. GOOGLE REVIEW MODAL POPUP (MOD 1) */}
+      {/* 3. GOOGLE REVIEW INTERACTIVE SLIDE-UP SHEET (PILIHAN A) */}
       {showReviewPopup && googleReviewUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 anim-fade">
-          <div className="w-full max-w-[340px] bg-[#FAF2E2] rounded-[24px] p-6 shadow-2xl border border-[#E5A43B]/30 text-[#1C2624] relative text-center anim-scale">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm p-0 sm:p-4 anim-fade">
+          <div className="w-full max-w-[400px] bg-[#FAF2E2] rounded-t-[32px] sm:rounded-[32px] p-6 sm:p-7 shadow-2xl border-t sm:border border-[#E5A43B]/30 text-[#1C2624] relative text-center anim-scale">
+            {/* Top pull handle indicator for mobile */}
+            <div className="w-12 h-1.5 bg-[#1C2624]/15 rounded-full mx-auto mb-4 sm:hidden" />
+
             <button
               onClick={handleCloseReviewPopup}
-              className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-[#1C2624]/10 hover:bg-[#1C2624]/20 flex items-center justify-center text-sm font-bold text-[#1C2624] transition cursor-pointer"
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#1C2624]/10 hover:bg-[#1C2624]/20 flex items-center justify-center text-sm font-bold text-[#1C2624] transition cursor-pointer"
             >
               ✕
             </button>
 
-            <div className="text-3xl mb-2">⭐⭐⭐⭐⭐</div>
-            <div className="font-fraunces font-bold text-lg text-[#0A1716] mb-1.5 leading-tight">
+            {/* Google Review Badge Header */}
+            <div className="flex items-center justify-center mb-3">
+              <div className="bg-white px-3.5 py-1.5 rounded-full shadow-sm border border-[#E4D9BE] flex items-center gap-2">
+                <img
+                  src="/Google-Review.svg"
+                  alt="Google Review"
+                  className="h-4 w-auto object-contain"
+                />
+              </div>
+            </div>
+
+            <div className="font-fraunces font-bold text-xl text-[#0A1716] mb-1 leading-tight">
               {t.reviewModal.title}
             </div>
-            <p className="text-xs text-[#5E6F68] mb-5 leading-relaxed">
+            <p className="text-xs text-[#5E6F68] mb-4 leading-relaxed">
               {t.reviewModal.message}
             </p>
+
+            {/* INTERACTIVE 5-STAR SELECTOR (PILIHAN A) */}
+            <div className="bg-white/90 border border-[#E4D9BE] rounded-2xl p-4 mb-4 shadow-sm">
+              <div className="flex items-center justify-center gap-1.5 mb-2">
+                {[1, 2, 3, 4, 5].map((star) => {
+                  const isFilled = star <= reviewRating
+                  return (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setReviewRating(star)}
+                      className="p-1 text-3xl sm:text-4xl transition-transform hover:scale-125 active:scale-95 cursor-pointer leading-none"
+                      title={`${star} Bintang`}
+                    >
+                      <span className={isFilled ? 'text-amber-400 drop-shadow-[0_2px_6px_rgba(251,191,36,0.45)]' : 'text-gray-300'}>
+                        ★
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="text-xs font-bold text-[#1E5E53] min-h-[18px]">
+                {reviewRating === 5
+                  ? (lang === 'en' ? '⭐ 5 Stars — Excellent experience!' : '⭐ 5 Bintang — Pengalaman terbaik!')
+                  : reviewRating === 4
+                  ? (lang === 'en' ? '⭐ 4 Stars — Great service!' : '⭐ 4 Bintang — Servis yang hebat!')
+                  : (lang === 'en' ? '⭐ Thank you for your feedback!' : '⭐ Terima kasih atas penilaian anda!')}
+              </div>
+            </div>
 
             <div className="flex flex-col gap-2">
               <a
@@ -1339,15 +1376,15 @@ export default function ClaimClient({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={handleCloseReviewPopup}
-                className="w-full py-3 px-4 bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] hover:brightness-110 text-[#1A2422] font-jakarta font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3.5 px-4 bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] hover:brightness-110 active:scale-[0.98] text-[#1A2422] font-jakarta font-bold text-[13px] rounded-xl shadow-[0_4px_14px_rgba(229,164,59,0.35)] transition flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>{t.reviewModal.primaryBtn}</span>
-                <span className="text-sm">↗</span>
+                <span className="text-base">↗</span>
               </a>
               <button
                 type="button"
                 onClick={handleCloseReviewPopup}
-                className="w-full py-2.5 px-3 bg-transparent hover:bg-black/5 text-xs text-[#5E6F68] font-semibold rounded-xl transition cursor-pointer"
+                className="w-full py-2 px-3 bg-transparent hover:bg-black/5 text-xs text-[#5E6F68] font-semibold rounded-xl transition cursor-pointer"
               >
                 {t.reviewModal.secondaryBtn}
               </button>
