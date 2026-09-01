@@ -1842,11 +1842,8 @@ export default function CashierDashboard() {
               </div>
 
               <div className="bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-[24px] shadow-[0_24px_50px_rgba(0,0,0,0.45),0_0_0_1px_rgba(229,164,59,0.15)]">
-                <div className="font-fraunces font-semibold text-[20px] mb-1 text-[#0A1716]">
+                <div className="font-fraunces font-semibold text-[20px] mb-5 text-[#0A1716]">
                   {t.generator.question}
-                </div>
-                <div className="text-[13px] text-[#5E6F68] mb-[18px]">
-                  {t.generator.desc}
                 </div>
 
                 {/* STEPPER */}
