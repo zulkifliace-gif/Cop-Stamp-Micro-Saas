@@ -55,7 +55,6 @@ export interface LandingTranslation {
     downloadApkCta: string
     badges: string[]
     googleReviewCard: {
-      tag: string
       title: string
       desc: string
       stars: string
@@ -163,7 +162,6 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
         'Data Selamat (RLS)',
       ],
       googleReviewCard: {
-        tag: '🔥 Paling Disukai Pemilik Kedai',
         title: 'Auto Direct ke Google Review 5-Bintang!',
         desc: 'Sebaik sahaja pelanggan terima cop stamp baharu, Slide-up Sheet 5-bintang auto muncul. Tekan mana-mana bintang terus bawa pelanggan ke Google Review kedai anda!',
         stars: '★★★★★',
@@ -330,7 +328,6 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
         'Secure Data (RLS)',
       ],
       googleReviewCard: {
-        tag: '🔥 Store Owners Favorite',
         title: 'Auto Direct to 5-Star Google Reviews!',
         desc: 'Right after customers claim their stamps, a 5-star Slide-up Sheet auto pops up. Tapping any star takes them straight to your Google Review page!',
         stars: '★★★★★',

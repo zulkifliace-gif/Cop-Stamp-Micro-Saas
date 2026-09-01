@@ -519,18 +519,13 @@ export default function LandingPage() {
             {/* Google Review Hero Highlight Card */}
             <div className="pt-2">
               <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-emerald-500/10 border-2 border-[#E5A43B]/40 rounded-2xl p-4 sm:p-5 shadow-lg shadow-[#E5A43B]/10 relative overflow-hidden">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="h-9 w-auto bg-white px-2.5 py-1 rounded-xl shadow-sm border border-slate-200 flex items-center justify-center shrink-0">
-                      <img src="/Google-Review.svg" alt="Google Review" className="h-6 w-auto object-contain" />
-                    </div>
-                    <div className="flex items-center text-amber-400 text-sm tracking-wider font-bold">
-                      ★★★★★
-                    </div>
+                <div className="flex items-center gap-3 mb-2.5">
+                  <div className="h-9 w-auto bg-white px-2.5 py-1 rounded-xl shadow-sm border border-slate-200 flex items-center justify-center shrink-0">
+                    <img src="/Google-Review.svg" alt="Google Review" className="h-6 w-auto object-contain" />
                   </div>
-                  <span className="inline-flex self-start sm:self-auto text-[10.5px] font-extrabold uppercase font-mono px-2.5 py-0.5 rounded-full bg-[#E5A43B] text-slate-900 shadow-xs">
-                    {t.hero.googleReviewCard.tag}
-                  </span>
+                  <div className="flex items-center text-amber-400 text-sm tracking-wider font-bold">
+                    ★★★★★
+                  </div>
                 </div>
                 <h2 className="text-sm sm:text-base font-extrabold text-slate-900 mb-1">
                   {t.hero.googleReviewCard.title}
