@@ -54,6 +54,12 @@ export interface LandingTranslation {
     howItWorksCta: string
     downloadApkCta: string
     badges: string[]
+    googleReviewCard: {
+      tag: string
+      title: string
+      desc: string
+      stars: string
+    }
   }
   metrics: MetricItem[]
   videoDemo: {
@@ -151,16 +157,22 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
       howItWorksCta: 'Cara Kerja',
       downloadApkCta: 'Muat Turun APK Android',
       badges: [
-        'Tanpa App Dimuat Turun',
+        'Tanpa Muat Turun App',
         'Token QR 30 Minit',
-        'Log Masuk Google',
+        '⭐ Auto 5-Star Google Review',
         'Data Selamat (RLS)',
       ],
+      googleReviewCard: {
+        tag: '🔥 Paling Disukai Pemilik Kedai',
+        title: 'Auto Direct ke Google Review 5-Bintang!',
+        desc: 'Sebaik sahaja pelanggan terima cop stamp baharu, Slide-up Sheet 5-bintang auto muncul. Tekan mana-mana bintang terus bawa pelanggan ke Google Review kedai anda!',
+        stars: '★★★★★',
+      },
     },
     metrics: [
       { val: '5 Saat', label: 'Jana Token QR', color: 'text-[#E5A43B]' },
       { val: '0%', label: 'Keperluan App', color: 'text-[#34D399]' },
-      { val: '30 Min', label: '30m Stamp Akan Luput', color: 'text-[#FBBF24]' },
+      { val: '5.0 ⭐', label: 'Auto Google Review', color: 'text-[#FBBF24]' },
       { val: '100%', label: 'Data Pelanggan Selamat', color: 'text-white' },
     ],
     videoDemo: {
@@ -172,7 +184,7 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
     howItWorks: {
       badge: 'Cara Berfungsi',
       title: 'Mudah, Pantas, Tanpa Kertas',
-      subtitle: '3 langkah sahaja dari staff jana cop hingga pelanggan terima ganjaran',
+      subtitle: '3 langkah sahaja dari staff jana cop hingga pelanggan terima ganjaran & ulasan Google',
       steps: [
         {
           step: '01',
@@ -188,8 +200,8 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
         },
         {
           step: '03',
-          title: 'Cop & Ganjaran',
-          desc: 'Kad cop digital dikemas kini serta-merta. Bila genap, pelanggan tebus ganjaran di kaunter.',
+          title: 'Cop, Ganjaran & Google Review',
+          desc: 'Kad cop dikemas kini serta-merta & Google Review auto-muncul. Pelanggan tebus ganjaran di kaunter.',
           color: 'from-[#B53629] to-[#E5A43B]',
         },
       ],
@@ -198,10 +210,10 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
       badge: 'Ciri-Ciri Utama',
       title: 'Semua yang Kedai Anda Perlukan',
       items: [
-        { icon: '🔐', title: 'Log Masuk Google', desc: 'Staff dan pelanggan log masuk selamat melalui Google OAuth — tiada kata laluan untuk diingat.' },
+        { icon: '⭐', title: 'Google Review 5-Bintang Automatik', desc: 'Slide-up Sheet muncul sebaik sahaja pelanggan terima cop. 1-klik terus ke Google Review kedai anda — melonjakkan ranking Google Maps!' },
         { icon: '⚡', title: 'Token QR Serta-merta', desc: 'Jana kod QR dalam masa 5 saat. Token 1-kali-guna mencegah penipuan sepenuhnya.' },
-        { icon: '📱', title: 'Tanpa App', desc: 'Semua berfungsi dalam pelayar web biasa. Pelanggan tidak perlu muat turun apa-apa.' },
-        { icon: '🛡️', title: 'Keselamatan RLS', desc: 'Row Level Security Supabase memastikan setiap pelanggan hanya boleh akses data mereka sendiri.' },
+        { icon: '📱', title: 'Tanpa App Dimuat Turun', desc: 'Semua berfungsi dalam pelayar web biasa. Pelanggan tidak perlu muat turun apa-apa.' },
+        { icon: '🔐', title: 'Log Masuk Google', desc: 'Staff dan pelanggan log masuk selamat melalui Google OAuth — tiada kata laluan untuk diingat.' },
         { icon: '📧', title: 'Hantar via Emel', desc: 'Staff boleh hantar token terus ke emel pelanggan sebagai alternatif kepada QR.' },
         { icon: '🎯', title: 'Tetapan Ganjaran', desc: 'Pemilik kedai tetapkan sasaran cop dan penerangan ganjaran mengikut keperluan.' },
       ],
@@ -314,14 +326,20 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
       badges: [
         'Zero App Downloads',
         '30-Min Safe QR Token',
-        'Google Single Sign-On',
+        '⭐ Auto 5-Star Google Review',
         'Secure Data (RLS)',
       ],
+      googleReviewCard: {
+        tag: '🔥 Store Owners Favorite',
+        title: 'Auto Direct to 5-Star Google Reviews!',
+        desc: 'Right after customers claim their stamps, a 5-star Slide-up Sheet auto pops up. Tapping any star takes them straight to your Google Review page!',
+        stars: '★★★★★',
+      },
     },
     metrics: [
       { val: '5 Secs', label: 'Generate QR Token', color: 'text-[#E5A43B]' },
       { val: '0%', label: 'App Needed', color: 'text-[#34D399]' },
-      { val: '30 Min', label: '30m Stamp Expiry Window', color: 'text-[#FBBF24]' },
+      { val: '5.0 ⭐', label: 'Auto Google Review', color: 'text-[#FBBF24]' },
       { val: '100%', label: 'Secure Customer Data', color: 'text-white' },
     ],
     videoDemo: {
@@ -333,7 +351,7 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
     howItWorks: {
       badge: 'How It Works',
       title: 'Simple, Fast, Paperless',
-      subtitle: 'Just 3 steps from staff issuing stamps to customer claiming rewards',
+      subtitle: 'Just 3 steps from staff issuing stamps to customer claiming rewards & Google reviews',
       steps: [
         {
           step: '01',
@@ -349,8 +367,8 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
         },
         {
           step: '03',
-          title: 'Collect & Redeem',
-          desc: 'Digital stamp card updates in real-time. Once complete, customer redeems reward at counter.',
+          title: 'Stamps, Rewards & Google Review',
+          desc: 'Digital card updates instantly & Google Review pops up. Once full, customer redeems reward at counter.',
           color: 'from-[#B53629] to-[#E5A43B]',
         },
       ],
@@ -359,10 +377,10 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
       badge: 'Key Features',
       title: 'Everything Your Business Needs',
       items: [
-        { icon: '🔐', title: 'Google Single Sign-On', desc: 'Staff and customers log in securely via Google OAuth — zero passwords to remember.' },
+        { icon: '⭐', title: 'Automated 5-Star Google Reviews', desc: 'A sleek Slide-up Sheet appears immediately upon stamp collection. 1-tap takes customers straight to your Google Review page!' },
         { icon: '⚡', title: 'Instant QR Tokens', desc: 'Generate QR codes in 5 seconds. Single-use tokens prevent duplicate fraud completely.' },
         { icon: '📱', title: 'Zero App Downloads', desc: 'Runs entirely in any mobile browser. No app store download required.' },
-        { icon: '🛡️', title: 'RLS Security', desc: 'Supabase Row Level Security ensures each customer only accesses their own loyalty data.' },
+        { icon: '🔐', title: 'Google Single Sign-On', desc: 'Staff and customers log in securely via Google OAuth — zero passwords to remember.' },
         { icon: '📧', title: 'Send via Email', desc: 'Staff can dispatch stamp tokens directly to customer email as a QR alternative.' },
         { icon: '🎯', title: 'Custom Reward Settings', desc: 'Store owners easily configure stamp targets and reward descriptions.' },
       ],
