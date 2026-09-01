@@ -234,13 +234,6 @@ export default function CustomerCardPage() {
         const gReviewUrl = data.googleReviewUrl || null
         setGoogleReviewUrl(gReviewUrl)
 
-        // Jadualkan Slide-up Sheet Google Review (Pilihan A) pada 2.5s jika kedai aktifkan review
-        if (gReviewUrl) {
-          setTimeout(() => {
-            setShowReviewPopup(true)
-          }, 2500)
-        }
-
         // Automatically focus on the latest active card
         const fullCards = Math.floor(stamps / req)
         const rem = stamps % req
