@@ -52,6 +52,7 @@ export interface LandingTranslation {
     description: string
     openStaffCta: string
     howItWorksCta: string
+    downloadApkCta: string
     badges: string[]
   }
   metrics: MetricItem[]
@@ -148,6 +149,7 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
         'Tingkatkan system repeat order pelanggan dengan LajuS — sistem kad cop stamp & loyalty reward digital paling pantas. Staff jana QR dalam 5 saat, pelanggan kumpul cop stamp terus dari telefon. Tanpa aplikasi, tanpa kad kertas lapuk.',
       openStaffCta: 'Buka Kaunter Staff',
       howItWorksCta: 'Cara Kerja',
+      downloadApkCta: 'Muat Turun APK Android',
       badges: [
         'Tanpa App Dimuat Turun',
         'Token QR 30 Minit',
@@ -308,6 +310,7 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
         'Boost customer repeat orders with LajuS — the fastest digital loyalty stamp & reward platform. Staff generate QR in 5 seconds, customers collect stamps directly on their phone. No app downloads, no lost paper cards.',
       openStaffCta: 'Open Staff Counter',
       howItWorksCta: 'How It Works',
+      downloadApkCta: 'Download Android APK',
       badges: [
         'Zero App Downloads',
         '30-Min Safe QR Token',

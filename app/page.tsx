@@ -424,7 +424,7 @@ export default function LandingPage() {
               </div>
 
               {/* Primary Action Button */}
-              <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
+              <div className="pt-2 border-t border-slate-100 flex flex-col gap-2.5">
                 <button
                   onClick={() => { setMobileOpen(false); setAuthOpen(true) }}
                   className="w-full py-3.5 bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-[#E5A43B]/25 transition flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer"
@@ -434,6 +434,19 @@ export default function LandingPage() {
                   </svg>
                   <span>{t.drawer.openCounter}</span>
                 </button>
+                <a
+                  href="/downloads/LajuS.apk"
+                  download="LajuS.apk"
+                  onClick={() => setMobileOpen(false)}
+                  className="w-full py-3 bg-[#0A1716] text-white font-bold text-xs rounded-2xl flex items-center justify-center gap-2 transition active:scale-[0.98]"
+                >
+                  <svg className="w-4 h-4 text-[#E5A43B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  <span>{t.hero.downloadApkCta} (APK v1.0)</span>
+                </a>
               </div>
             </div>
           </div>
@@ -474,17 +487,29 @@ export default function LandingPage() {
               {t.hero.description}
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-2">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3.5 pt-2">
               <button
                 onClick={() => setAuthOpen(true)}
-                className="px-8 h-14 bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] hover:brightness-110 text-white font-extrabold text-sm rounded-full shadow-lg shadow-[#E5A43B]/25 flex items-center justify-center gap-2 transition transform hover:-translate-y-0.5 group cursor-pointer"
+                className="px-7 h-13 bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] hover:brightness-110 text-white font-extrabold text-xs sm:text-sm rounded-full shadow-lg shadow-[#E5A43B]/25 flex items-center justify-center gap-2 transition transform hover:-translate-y-0.5 group cursor-pointer"
               >
                 <span>{t.hero.openStaffCta}</span>
                 <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
               </button>
               <a
+                href="/downloads/LajuS.apk"
+                download="LajuS.apk"
+                className="px-6 h-13 bg-[#0A1716] hover:bg-[#152724] text-white font-bold text-xs sm:text-sm rounded-full shadow-md flex items-center justify-center gap-2 transition transform hover:-translate-y-0.5 group"
+              >
+                <svg className="w-4 h-4 text-[#E5A43B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>{t.hero.downloadApkCta}</span>
+              </a>
+              <a
                 href="#demo"
-                className="px-7 h-14 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 font-bold text-sm rounded-full flex items-center justify-center gap-2 transition"
+                className="px-6 h-13 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 font-bold text-xs sm:text-sm rounded-full flex items-center justify-center gap-2 transition"
               >
                 <svg className="w-4 h-4 fill-[#E5A43B] text-[#E5A43B]" viewBox="0 0 24 24"><polygon points="6,3 20,12 6,21"/></svg>
                 {t.hero.howItWorksCta}
