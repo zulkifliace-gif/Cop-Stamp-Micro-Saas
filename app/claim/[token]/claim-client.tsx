@@ -176,7 +176,10 @@ export default function ClaimClient({
     // Bagi animasi maskot main satu kitaran penuh sebelum redirect
     setTimeout(() => {
       const storeId = claimedStoreIdRef.current
-      window.location.href = storeId ? `/card?storeId=${storeId}` : '/card'
+      try {
+        sessionStorage.setItem('lajus_just_claimed', 'true')
+      } catch {}
+      window.location.href = storeId ? `/card?storeId=${storeId}&claimed=true` : '/card?claimed=true'
     }, LOADING_ANIMATION_DURATION + REDIRECT_BUFFER)
   }
 

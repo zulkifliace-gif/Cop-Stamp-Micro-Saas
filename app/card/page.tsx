@@ -234,6 +234,28 @@ export default function CustomerCardPage() {
         const gReviewUrl = data.googleReviewUrl || null
         setGoogleReviewUrl(gReviewUrl)
 
+        // Auto-popup Slide-up Sheet Google Review (2.5s) HANYA bila pelanggan baru sahaja claim cop
+        try {
+          const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+          const isClaimedParam = searchParams?.get('claimed') === 'true'
+          const isSessionClaimed = typeof window !== 'undefined' && sessionStorage.getItem('lajus_just_claimed') === 'true'
+
+          if (gReviewUrl && (isClaimedParam || isSessionClaimed)) {
+            sessionStorage.removeItem('lajus_just_claimed')
+            if (searchParams?.has('claimed')) {
+              const cleanUrl = new URL(window.location.href)
+              cleanUrl.searchParams.delete('claimed')
+              window.history.replaceState({}, '', cleanUrl.toString())
+            }
+
+            setTimeout(() => {
+              setShowReviewPopup(true)
+            }, 2500)
+          }
+        } catch (e) {
+          console.warn('Review popup trigger error:', e)
+        }
+
         // Automatically focus on the latest active card
         const fullCards = Math.floor(stamps / req)
         const rem = stamps % req
