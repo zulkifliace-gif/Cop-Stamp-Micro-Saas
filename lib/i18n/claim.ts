@@ -75,6 +75,13 @@ export interface ClaimTranslation {
       stampsRequiredBadge: (count: number) => string
       closeBtn: string
     }
+    reviewNavbarBtn: string
+    reviewModal: {
+      title: string
+      message: string
+      primaryBtn: string
+      secondaryBtn: string
+    }
     stampDetailModal: {
       title: (slot: number, card: number) => string
       earnedBadge: string
@@ -166,6 +173,13 @@ export const I18N_CLAIM: Record<Lang, ClaimTranslation> = {
         stampsRequiredBadge: (count) => `⚡ ${count} Cop Diperlukan`,
         closeBtn: 'Tutup',
       },
+      reviewNavbarBtn: '⭐ Review Kami',
+      reviewModal: {
+        title: 'Suka servis kami?',
+        message: 'Bantu kami dengan ulasan 5-bintang di Google!',
+        primaryBtn: '⭐ Tulis Ulasan Google',
+        secondaryBtn: 'Nanti Dulu',
+      },
       stampDetailModal: {
         title: (slot, card) => `Cop #${slot} (Kad #${card})`,
         earnedBadge: 'Cop Berjaya Diperoleh',
@@ -254,6 +268,13 @@ export const I18N_CLAIM: Record<Lang, ClaimTranslation> = {
         title: '🎁 Rewards & Gifts',
         stampsRequiredBadge: (count) => `⚡ ${count} Stamps Required`,
         closeBtn: 'Close',
+      },
+      reviewNavbarBtn: '⭐ Review Us',
+      reviewModal: {
+        title: 'Enjoyed our service?',
+        message: 'Help us with a 5-star review on Google!',
+        primaryBtn: '⭐ Write Google Review',
+        secondaryBtn: 'Maybe Later',
       },
       stampDetailModal: {
         title: (slot, card) => `Stamp #${slot} (Card #${card})`,

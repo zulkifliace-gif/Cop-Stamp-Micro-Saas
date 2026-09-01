@@ -91,6 +91,26 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Ambil status Google Review kedai untuk kembangkan pada response —
+    // frontend guna ni untuk decide sama ada nak jadualkan popup review
+    // (MOD 1) selepas animasi cop stamp selesai, atau langsung skip (MOD 2).
+    let googleReviewUrl: string | null = null
+    let googleReviewMode = 'manual'
+    try {
+      const admin = createAdminClient()
+      const { data: reviewSettings } = await admin
+        .from('stores')
+        .select('google_review_url, google_review_mode')
+        .eq('id', rpcResult.storeId)
+        .maybeSingle()
+
+      googleReviewUrl = reviewSettings?.google_review_url || null
+      googleReviewMode = reviewSettings?.google_review_mode || 'manual'
+    } catch (reviewLookupErr) {
+      // Jangan gagalkan seluruh claim hanya sebab lookup review settings gagal
+      console.warn('Failed to load google review settings for store:', reviewLookupErr)
+    }
+
     return NextResponse.json({
       success: true,
       storeId: rpcResult.storeId,
@@ -100,6 +120,8 @@ export async function POST(req: NextRequest) {
       storeName: rpcResult.storeName,
       stampsRequired: rpcResult.stampsRequired,
       rewardDescription: rpcResult.rewardDescription,
+      googleReviewUrl,
+      googleReviewMode,
     })
   } catch (err: unknown) {
     console.error('Error claiming token:', err)

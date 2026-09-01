@@ -119,10 +119,12 @@ export default function CashierDashboard() {
   const [loginError, setLoginError] = useState('')
   const [isLoggingIn, setIsLoggingIn] = useState(false)
 
-  // Store Registration State (Onboarding for new owners)
+  // Store Registration State (Onboarding for new owners)  // Onboarding Registration State
   const [needsRegistration, setNeedsRegistration] = useState<boolean>(false)
   const [regStoreName, setRegStoreName] = useState<string>('')
   const [regStampIcon, setRegStampIcon] = useState<string>('/icons/stamps/coffee.svg')
+  const [regGoogleReviewMode, setRegGoogleReviewMode] = useState<'google' | 'manual'>('google')
+  const [regGoogleReviewInput, setRegGoogleReviewInput] = useState<string>('')
   const [isRegisteringStore, setIsRegisteringStore] = useState<boolean>(false)
   const [regError, setRegError] = useState<string>('')
 
@@ -160,6 +162,10 @@ export default function CashierDashboard() {
   const [showSocialModal, setShowSocialModal] = useState<boolean>(false)
   const [newSocialPlatform, setNewSocialPlatform] = useState<string>('instagram')
   const [newSocialUrl, setNewSocialUrl] = useState<string>('')
+  const [googleReviewMode, setGoogleReviewMode] = useState<'google' | 'manual'>('manual')
+  const [googleReviewInput, setGoogleReviewInput] = useState<string>('')
+  const [googleReviewUrl, setGoogleReviewUrl] = useState<string | null>(null)
+  const [googlePlaceId, setGooglePlaceId] = useState<string | null>(null)
   const [stampsRequired, setStampsRequired] = useState<number>(10)
   const [rewardDesc, setRewardDesc] = useState<string>('')
   const [staffRole, setStaffRole] = useState<string>('cashier')
@@ -269,6 +275,10 @@ export default function CashierDashboard() {
           setStaffRole(data.role || 'cashier')
           setPlanType(data.planType || 'free')
           setSubscriptionStatus(data.subscriptionStatus || 'active')
+          setGoogleReviewMode(data.googleReviewMode || 'manual')
+          setGoogleReviewUrl(data.googleReviewUrl || null)
+          setGooglePlaceId(data.googlePlaceId || null)
+          setGoogleReviewInput(data.googleReviewUrl || '')
         }
       }
     } catch (e) {
@@ -503,16 +513,22 @@ export default function CashierDashboard() {
         description: 'Tebus di kaunter',
       }
 
+      const regPayload: any = {
+        name: regStoreName.trim(),
+        stampsRequired: 10,
+        rewardDescription: '1 Ganjaran Percuma',
+        rewards: [seedReward],
+        stampIcon: regStampIcon || '/icons/stamps/coffee.svg',
+        googleReviewMode: regGoogleReviewMode,
+      }
+      if (regGoogleReviewMode === 'google') {
+        regPayload.googleReviewInput = regGoogleReviewInput.trim()
+      }
+
       const res = await fetch('/api/store/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: regStoreName.trim(),
-          stampsRequired: 10,
-          rewardDescription: '1 Ganjaran Percuma',
-          rewards: [seedReward],
-          stampIcon: regStampIcon || '/icons/stamps/coffee.svg',
-        }),
+        body: JSON.stringify(regPayload),
       })
 
       const data = await res.json()
@@ -526,6 +542,10 @@ export default function CashierDashboard() {
       setRewardDesc(data.rewardDescription || '1 Ganjaran Percuma')
       setStampIcon(data.stampIcon || regStampIcon || '/icons/stamps/coffee.svg')
       setRewardsList(Array.isArray(data.rewards) && data.rewards.length > 0 ? data.rewards : [seedReward])
+      setGoogleReviewMode(data.googleReviewMode || 'manual')
+      setGoogleReviewUrl(data.googleReviewUrl || null)
+      setGooglePlaceId(data.googlePlaceId || null)
+      setGoogleReviewInput(data.googleReviewUrl || '')
       setStaffRole('owner')
       setNeedsRegistration(false)
 
@@ -901,26 +921,37 @@ export default function CashierDashboard() {
       const effectiveRewardDesc = (primaryReward?.name || rewardDesc || 'Ganjaran Percuma').trim()
       const effectiveRewardImg = (primaryReward?.imageUrl || rewardImageUrl || '').trim()
 
+      const bodyPayload: any = {
+        storeId,
+        name: storeName.trim(),
+        logoUrl: logoUrl.trim(),
+        stampsRequired: effectiveStamps,
+        rewardDescription: effectiveRewardDesc,
+        rewardImageUrl: effectiveRewardImg,
+        rewards: rewardsList,
+        stampIcon,
+        socialLinks,
+        googleReviewMode,
+      }
+      if (googleReviewMode === 'google') {
+        bodyPayload.googleReviewInput = googleReviewInput.trim()
+      }
+
       const res = await fetch('/api/store/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          storeId,
-          name: storeName.trim(),
-          logoUrl: logoUrl.trim(),
-          stampsRequired: effectiveStamps,
-          rewardDescription: effectiveRewardDesc,
-          rewardImageUrl: effectiveRewardImg,
-          rewards: rewardsList,
-          stampIcon,
-          socialLinks,
-        }),
+        body: JSON.stringify(bodyPayload),
       })
 
       const data = await res.json()
       if (!res.ok) {
         throw new Error(data.error || 'Gagal menyimpan tetapan.')
       }
+
+      setGoogleReviewMode(data.googleReviewMode || 'manual')
+      setGoogleReviewUrl(data.googleReviewUrl || null)
+      setGooglePlaceId(data.googlePlaceId || null)
+      setGoogleReviewInput(data.googleReviewUrl || (data.googleReviewMode === 'manual' ? '' : googleReviewInput))
 
       setSaveToast(true)
       setTimeout(() => {
@@ -1195,6 +1226,67 @@ export default function CashierDashboard() {
                 autoFocus
                 className="w-full border border-[#E4D9BE] rounded-[12px] p-3 font-jakarta text-sm text-[#1A2422] bg-white outline-none focus:ring-2 focus:ring-[#E5A43B] focus:border-transparent transition"
               />
+            </div>
+
+            {/* GOOGLE REVIEW CONNECTION MODE (MOD 1 VS MOD 2) */}
+            <div className="mb-4 p-3.5 rounded-2xl bg-white border border-[#E4D9BE]">
+              <label className="block text-xs font-bold text-[#0A1716] mb-2">
+                {t.onboarding.reviewModeLabel}
+              </label>
+              <div className="flex flex-col gap-2 mb-3">
+                <label className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition ${regGoogleReviewMode === 'google' ? 'bg-[#E5A43B]/15 border-[#E5A43B] ring-1 ring-[#E5A43B]' : 'bg-gray-50 border-gray-200'}`}>
+                  <input
+                    type="radio"
+                    name="regGoogleReviewMode"
+                    value="google"
+                    checked={regGoogleReviewMode === 'google'}
+                    onChange={() => setRegGoogleReviewMode('google')}
+                    className="accent-[#E5A43B]"
+                  />
+                  <div className="text-xs font-bold text-[#1A2422]">
+                    {t.onboarding.reviewModeGoogle}
+                  </div>
+                </label>
+                <label className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition ${regGoogleReviewMode === 'manual' ? 'bg-[#E5A43B]/15 border-[#E5A43B] ring-1 ring-[#E5A43B]' : 'bg-gray-50 border-gray-200'}`}>
+                  <input
+                    type="radio"
+                    name="regGoogleReviewMode"
+                    value="manual"
+                    checked={regGoogleReviewMode === 'manual'}
+                    onChange={() => setRegGoogleReviewMode('manual')}
+                    className="accent-[#E5A43B]"
+                  />
+                  <div className="text-xs font-semibold text-[#5E6F68]">
+                    {t.onboarding.reviewModeManual}
+                  </div>
+                </label>
+              </div>
+
+              {regGoogleReviewMode === 'google' && (
+                <div className="space-y-2 anim-result">
+                  <input
+                    type="text"
+                    value={regGoogleReviewInput}
+                    onChange={(e) => setRegGoogleReviewInput(e.target.value)}
+                    placeholder={t.onboarding.reviewInputPlaceholder}
+                    className="w-full border border-[#E4D9BE] rounded-xl p-2.5 text-xs text-[#1A2422] bg-white outline-none focus:ring-1 focus:ring-[#E5A43B]"
+                  />
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] text-[#5E6F68]">
+                      {t.onboarding.reviewInputHint}
+                    </span>
+                    {regGoogleReviewInput.trim() && (
+                      <button
+                        type="button"
+                        onClick={() => window.open(regGoogleReviewInput.trim(), '_blank')}
+                        className="text-[11px] font-bold text-[#1E5E53] hover:text-[#2D786B] underline cursor-pointer shrink-0"
+                      >
+                        {t.onboarding.reviewTestButton}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* STAMP ICON SELECTOR (MULTI-CATEGORY) */}
@@ -1910,6 +2002,77 @@ export default function CashierDashboard() {
                     disabled={staffRole !== 'owner'}
                     className="w-full border border-[#E4D9BE] rounded-[10px] p-2.5 font-jakarta text-sm text-[#1A2422] bg-white outline-none disabled:bg-gray-100"
                   />
+                </div>
+
+                {/* GOOGLE REVIEW CONNECTION MODE (MOD 1 VS MOD 2) */}
+                <div className="mb-3.5 p-3.5 rounded-xl bg-white border border-[#E4D9BE]">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs font-bold text-[#0A1716]">
+                      {t.settings.reviewModeLabel}
+                    </label>
+                    {googleReviewMode === 'google' && googleReviewUrl && (
+                      <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full">
+                        {t.settings.reviewConnectedBadge}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2 mb-2.5">
+                    <label className={`flex items-center gap-2.5 p-2 rounded-lg border cursor-pointer transition ${googleReviewMode === 'google' ? 'bg-[#E5A43B]/15 border-[#E5A43B] ring-1 ring-[#E5A43B]' : 'bg-gray-50 border-gray-200'}`}>
+                      <input
+                        type="radio"
+                        name="settingsGoogleReviewMode"
+                        value="google"
+                        checked={googleReviewMode === 'google'}
+                        onChange={() => setGoogleReviewMode('google')}
+                        disabled={staffRole !== 'owner'}
+                        className="accent-[#E5A43B]"
+                      />
+                      <div className="text-xs font-bold text-[#1A2422]">
+                        {t.settings.reviewModeGoogle}
+                      </div>
+                    </label>
+                    <label className={`flex items-center gap-2.5 p-2 rounded-lg border cursor-pointer transition ${googleReviewMode === 'manual' ? 'bg-[#E5A43B]/15 border-[#E5A43B] ring-1 ring-[#E5A43B]' : 'bg-gray-50 border-gray-200'}`}>
+                      <input
+                        type="radio"
+                        name="settingsGoogleReviewMode"
+                        value="manual"
+                        checked={googleReviewMode === 'manual'}
+                        onChange={() => setGoogleReviewMode('manual')}
+                        disabled={staffRole !== 'owner'}
+                        className="accent-[#E5A43B]"
+                      />
+                      <div className="text-xs font-semibold text-[#5E6F68]">
+                        {t.settings.reviewModeManual}
+                      </div>
+                    </label>
+                  </div>
+
+                  {googleReviewMode === 'google' && (
+                    <div className="space-y-2 anim-result">
+                      <input
+                        type="text"
+                        value={googleReviewInput}
+                        onChange={(e) => setGoogleReviewInput(e.target.value)}
+                        placeholder={t.settings.reviewInputPlaceholder}
+                        disabled={staffRole !== 'owner'}
+                        className="w-full border border-[#E4D9BE] rounded-lg p-2 text-xs text-[#1A2422] bg-white outline-none disabled:bg-gray-100"
+                      />
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[11px] text-[#5E6F68]">
+                          {t.settings.reviewInputHint}
+                        </span>
+                        {(googleReviewUrl || googleReviewInput.trim()) && (
+                          <button
+                            type="button"
+                            onClick={() => window.open(googleReviewUrl || googleReviewInput.trim(), '_blank')}
+                            className="text-[11px] font-bold text-[#1E5E53] hover:text-[#2D786B] underline cursor-pointer shrink-0"
+                          >
+                            {t.settings.reviewTestButton}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mb-3.5">

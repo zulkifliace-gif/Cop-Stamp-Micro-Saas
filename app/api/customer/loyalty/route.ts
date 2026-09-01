@@ -41,7 +41,9 @@ export async function GET(req: NextRequest) {
     // Query all loyalty records for this customer across all stores
     const { data: allLoyalties, error: loyaltyError } = await admin
       .from('customer_loyalty')
-      .select('store_id, total_stamps, updated_at, stores(id, name, stamps_required, reward_description, logo_url, reward_image_url, rewards)')
+      .select(
+        'store_id, total_stamps, updated_at, stores(id, name, stamps_required, reward_description, logo_url, reward_image_url, rewards, google_review_url, google_review_mode)'
+      )
       .eq('customer_id', user.id)
 
     if (loyaltyError) {
@@ -67,6 +69,8 @@ export async function GET(req: NextRequest) {
         (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && Array.isArray(rawRewards?.socialLinks) && rawRewards.socialLinks) ||
         []
 
+      // google_review_url akan NULL secara automatik kalau kedai guna MOD 2 (manual)
+      // — jadi frontend cuma perlu semak "if (googleReviewUrl)" untuk decide popup.
       return {
         storeId: item.store_id,
         storeName: storeObj?.name || 'Kedai Tanpa Nama',
@@ -79,6 +83,8 @@ export async function GET(req: NextRequest) {
         stampIcon: parsedStampIcon,
         socialLinks: parsedSocialLinks,
         updatedAt: item.updated_at,
+        googleReviewUrl: storeObj?.google_review_url || null,
+        googleReviewMode: storeObj?.google_review_mode || 'manual',
       }
     })
 
@@ -93,11 +99,15 @@ export async function GET(req: NextRequest) {
       let defaultRewards: any[] = []
       let defaultStampIcon = '/icons/stamps/makanan.svg'
       let defaultSocialLinks: any[] = []
+      let defaultGoogleReviewUrl: string | null = null
+      let defaultGoogleReviewMode = 'manual'
 
       if (storeIdParam) {
         const { data: st } = await admin
           .from('stores')
-          .select('id, name, stamps_required, reward_description, logo_url, reward_image_url, rewards')
+          .select(
+            'id, name, stamps_required, reward_description, logo_url, reward_image_url, rewards, google_review_url, google_review_mode'
+          )
           .eq('id', storeIdParam)
           .single()
         if (st) {
@@ -119,6 +129,8 @@ export async function GET(req: NextRequest) {
           defaultSocialLinks =
             (typeof rawStRewards === 'object' && !Array.isArray(rawStRewards) && Array.isArray(rawStRewards?.socialLinks) && rawStRewards.socialLinks) ||
             []
+          defaultGoogleReviewUrl = st.google_review_url || null
+          defaultGoogleReviewMode = st.google_review_mode || 'manual'
         }
       }
 
@@ -136,6 +148,8 @@ export async function GET(req: NextRequest) {
         socialLinks: defaultSocialLinks,
         updatedAt: null,
         stampDates: [],
+        googleReviewUrl: defaultGoogleReviewUrl,
+        googleReviewMode: defaultGoogleReviewMode,
       })
     }
 
@@ -174,6 +188,8 @@ export async function GET(req: NextRequest) {
       socialLinks: activeStore.socialLinks,
       updatedAt: activeStore.updatedAt,
       stampDates,
+      googleReviewUrl: activeStore.googleReviewUrl,
+      googleReviewMode: activeStore.googleReviewMode,
     })
   } catch (err: unknown) {
     console.error('Error fetching loyalty:', err)
@@ -181,4 +197,3 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }
-

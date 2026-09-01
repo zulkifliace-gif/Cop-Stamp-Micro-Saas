@@ -159,6 +159,8 @@ export default function CustomerCardPage() {
   // Modals state
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [showRewardsModal, setShowRewardsModal] = useState(false)
+  const [showReviewPopup, setShowReviewPopup] = useState<boolean>(false)
+  const [googleReviewUrl, setGoogleReviewUrl] = useState<string | null>(null)
   const [rewardSlideIdx, setRewardSlideIdx] = useState(0)
 
   // Stamp circle touch/click detail popup modal state
@@ -227,6 +229,22 @@ export default function CustomerCardPage() {
         setSocialLinks(Array.isArray(data.socialLinks) ? data.socialLinks : [])
         setUpdatedAt(data.updatedAt || null)
         setStampDates(Array.isArray(data.stampDates) ? data.stampDates : [])
+
+        const gReviewUrl = data.googleReviewUrl || null
+        setGoogleReviewUrl(gReviewUrl)
+
+        // Jadualkan popup Google Review (MOD 1) pada 2.5s jika belum ditutup/direview
+        const currStoreId = data.activeStoreId || (stores[0]?.storeId || '')
+        if (gReviewUrl && currStoreId) {
+          try {
+            const isDismissed = localStorage.getItem('lajus_reviewed_store_' + currStoreId) === 'true'
+            if (!isDismissed) {
+              setTimeout(() => {
+                setShowReviewPopup(true)
+              }, 2500)
+            }
+          } catch {}
+        }
 
         // Automatically focus on the latest active card
         const fullCards = Math.floor(stamps / req)
@@ -327,6 +345,15 @@ export default function CustomerCardPage() {
     setStoreName('')
     setTotalStamps(0)
     setAllStores([])
+  }
+
+  function handleCloseReviewPopup() {
+    setShowReviewPopup(false)
+    if (activeStoreId) {
+      try {
+        localStorage.setItem('lajus_reviewed_store_' + activeStoreId, 'true')
+      } catch {}
+    }
   }
 
   // Handle Account Deletion
@@ -459,6 +486,16 @@ export default function CustomerCardPage() {
 
           {user && (
             <div className="flex items-center gap-2">
+              {googleReviewUrl && (
+                <button
+                  type="button"
+                  onClick={() => window.open(googleReviewUrl, '_blank')}
+                  className="px-2.5 py-1 text-[11px] font-bold rounded-full bg-[#E5A43B] text-[#1A2422] hover:brightness-110 transition shadow-xs flex items-center gap-1 cursor-pointer"
+                >
+                  <span>{t.reviewNavbarBtn}</span>
+                </button>
+              )}
+
               <button
                 onClick={() => fetchLoyalty(activeStoreId)}
                 disabled={refreshing}
@@ -1224,6 +1261,48 @@ export default function CustomerCardPage() {
                 className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-sm active:scale-95"
               >
                 {isDeletingAccount ? t.deleteModal.deleting : t.deleteModal.confirmDelete}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── GOOGLE REVIEW MODAL POPUP (MOD 1) ─────────────────────────────────── */}
+      {showReviewPopup && googleReviewUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 anim-fade">
+          <div className="w-full max-w-[340px] bg-[#FAF2E2] rounded-[24px] p-6 shadow-2xl border border-[#E5A43B]/30 text-[#1C2624] relative text-center anim-scale">
+            <button
+              onClick={handleCloseReviewPopup}
+              className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-[#1C2624]/10 hover:bg-[#1C2624]/20 flex items-center justify-center text-sm font-bold text-[#1C2624] transition cursor-pointer"
+            >
+              ✕
+            </button>
+
+            <div className="text-3xl mb-2">⭐⭐⭐⭐⭐</div>
+            <div className="font-fraunces font-bold text-lg text-[#0A1716] mb-1.5 leading-tight">
+              {t.reviewModal.title}
+            </div>
+            <p className="text-xs text-[#5E6F68] mb-5 leading-relaxed">
+              {t.reviewModal.message}
+            </p>
+
+            <div className="flex flex-col gap-2">
+              <a
+                href={googleReviewUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={handleCloseReviewPopup}
+                className="w-full py-3 px-4 bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] hover:brightness-110 text-[#1A2422] font-jakarta font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>{t.reviewModal.primaryBtn}</span>
+                <span className="text-sm">↗</span>
+              </a>
+              <button
+                type="button"
+                onClick={handleCloseReviewPopup}
+                className="w-full py-2.5 px-3 bg-transparent hover:bg-black/5 text-xs text-[#5E6F68] font-semibold rounded-xl transition cursor-pointer"
+              >
+                {t.reviewModal.secondaryBtn}
               </button>
             </div>
           </div>

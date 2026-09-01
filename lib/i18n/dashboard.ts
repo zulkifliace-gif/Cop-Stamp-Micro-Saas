@@ -30,6 +30,14 @@ export interface DashboardTranslation {
     desc: string
     storeNameLabel: string
     storeNamePlaceholder: string
+    reviewModeLabel: string
+    reviewModeGoogle: string
+    reviewModeManual: string
+    reviewInputLabel: string
+    reviewInputPlaceholder: string
+    reviewInputHint: string
+    reviewTestButton: string
+    reviewInvalidLinkError: string
     stampIconLabel: string
     stampIconBadge: string
     stampIconDesc: string
@@ -105,6 +113,15 @@ export interface DashboardTranslation {
     title: string
     close: string
     storeNameLabel: string
+    reviewModeLabel: string
+    reviewModeGoogle: string
+    reviewModeManual: string
+    reviewInputLabel: string
+    reviewInputPlaceholder: string
+    reviewInputHint: string
+    reviewTestButton: string
+    reviewConnectedBadge: string
+    reviewInvalidLinkError: string
     logoUrlLabel: string
     directUrlHint: string
     logoPreview: string
@@ -214,6 +231,14 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       desc: 'Selamat datang! Masukkan nama kedai atau bisnes anda untuk mula menggunakan sistem kad cop digital.',
       storeNameLabel: 'Nama Kedai / Bisnes',
       storeNamePlaceholder: 'Contoh: Kopi & Kawan / Barber Studio',
+      reviewModeLabel: 'Mod Sambungan Google Review',
+      reviewModeGoogle: 'MOD 1: Sambung Google Review ⭐ (Disyorkan)',
+      reviewModeManual: 'MOD 2: Manual (Nama Kedai Sahaja)',
+      reviewInputLabel: 'Link / Place ID Google Review',
+      reviewInputPlaceholder: 'Paste link Google Maps / g.page / link "Tulis Ulasan" / Place ID',
+      reviewInputHint: 'Sistem akan automatik menjana link yang terus membuka kotak ulasan 5-bintang.',
+      reviewTestButton: '👁️ Uji Buka Link Review',
+      reviewInvalidLinkError: 'Link Google Review tidak sah. Sila semak pautan anda.',
       stampIconLabel: 'Pilih Ikon Cop (Kategori Kedai)',
       stampIconBadge: 'Pilihan Ikon',
       stampIconDesc: 'Ikon ini akan dipaparkan pada kad cop digital pelanggan anda.',
@@ -289,6 +314,15 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       title: 'Tetapan Kedai',
       close: 'Tutup',
       storeNameLabel: 'Nama Kedai',
+      reviewModeLabel: 'Pilihan Mod Google Review',
+      reviewModeGoogle: 'MOD 1: Sambung Google Review ⭐ (Disyorkan)',
+      reviewModeManual: 'MOD 2: Manual (Nama Kedai Sahaja)',
+      reviewInputLabel: 'Link / Place ID Google Review',
+      reviewInputPlaceholder: 'Paste link Google Maps / g.page / link "Tulis Ulasan" / Place ID',
+      reviewInputHint: 'Sistem akan automatik menjana link yang terus membuka kotak ulasan 5-bintang untuk pelanggan.',
+      reviewTestButton: '👁️ Uji Buka Link Review',
+      reviewConnectedBadge: '✓ Google Review Disambungkan',
+      reviewInvalidLinkError: 'Link Google Review tidak sah. Sila semak pautan anda.',
       logoUrlLabel: 'URL Logo Kedai (Imej)',
       directUrlHint: 'Dapatkan Direct URL di ImgHippo ↗',
       logoPreview: 'Pratonton Logo',
@@ -396,6 +430,14 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       desc: 'Welcome! Enter your store or business name to start using the digital stamp card system.',
       storeNameLabel: 'Store / Business Name',
       storeNamePlaceholder: 'E.g. Coffee & Co / Barber Studio',
+      reviewModeLabel: 'Google Review Connection Mode',
+      reviewModeGoogle: 'MOD 1: Connect Google Review ⭐ (Recommended)',
+      reviewModeManual: 'MOD 2: Manual (Store Name Only)',
+      reviewInputLabel: 'Google Review Link / Place ID',
+      reviewInputPlaceholder: 'Paste Google Maps / g.page link / Place ID',
+      reviewInputHint: 'The system will automatically generate a direct 5-star review link.',
+      reviewTestButton: '👁️ Test Review Link',
+      reviewInvalidLinkError: 'Invalid Google Review link. Please check your link.',
       stampIconLabel: 'Select Stamp Icon (Store Category)',
       stampIconBadge: 'Icon Choices',
       stampIconDesc: 'This icon will appear on your customer digital stamp cards.',
@@ -471,6 +513,15 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       title: 'Store Settings',
       close: 'Close',
       storeNameLabel: 'Store Name',
+      reviewModeLabel: 'Google Review Mode Selection',
+      reviewModeGoogle: 'MOD 1: Connect Google Review ⭐ (Recommended)',
+      reviewModeManual: 'MOD 2: Manual (Store Name Only)',
+      reviewInputLabel: 'Google Review Link / Place ID',
+      reviewInputPlaceholder: 'Paste Google Maps / g.page link / Place ID',
+      reviewInputHint: 'The system will automatically generate a direct 5-star review link for customers.',
+      reviewTestButton: '👁️ Test Review Link',
+      reviewConnectedBadge: '✓ Google Review Connected',
+      reviewInvalidLinkError: 'Invalid Google Review link. Please check your link.',
       logoUrlLabel: 'Store Logo URL (Image)',
       directUrlHint: 'Get Direct URL at ImgHippo ↗',
       logoPreview: 'Logo Preview',

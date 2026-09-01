@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { normalizeGoogleReviewUrl } from '@/lib/google-review'
 
 // GET: Dapatkan tetapan kedai bagi staf/pemilik semasa
 export async function GET(req: NextRequest) {
@@ -63,7 +64,9 @@ export async function GET(req: NextRequest) {
 
     const { data: store, error: storeError } = await admin
       .from('stores')
-      .select('id, name, stamps_required, reward_description, logo_url, reward_image_url, rewards, plan_type, subscription_status')
+      .select(
+        'id, name, stamps_required, reward_description, logo_url, reward_image_url, rewards, plan_type, subscription_status, google_review_url, google_place_id, google_review_mode'
+      )
       .eq('id', activeStoreId)
       .single()
 
@@ -101,6 +104,9 @@ export async function GET(req: NextRequest) {
       planType: store.plan_type || 'free',
       subscriptionStatus: store.subscription_status || 'active',
       role: activeRole,
+      googleReviewMode: store.google_review_mode || 'manual',
+      googleReviewUrl: store.google_review_url || null,
+      googlePlaceId: store.google_place_id || null,
     })
   } catch (err: unknown) {
     console.error('Error fetching settings:', err)
@@ -150,6 +156,8 @@ export async function POST(req: NextRequest) {
       logoUrl = '',
       rewardImageUrl = '',
       rewards = [],
+      googleReviewMode = 'manual', // 'google' | 'manual'
+      googleReviewInput = '', // link/place ID mentah dari pemilik (MOD 1 sahaja)
     } = body
 
     const cleanName = String(name).trim() || 'Kedai Saya'
@@ -159,6 +167,26 @@ export async function POST(req: NextRequest) {
     const cleanLogoUrl = typeof logoUrl === 'string' ? logoUrl.trim() : ''
     const cleanRewardImageUrl = typeof rewardImageUrl === 'string' ? rewardImageUrl.trim() : ''
     const cleanRewards = Array.isArray(rewards) ? rewards : []
+
+    // --- Google Review (MOD 1 vs MOD 2) ---
+    const cleanReviewMode = googleReviewMode === 'google' ? 'google' : 'manual'
+    let googleReviewUrl: string | null = null
+    let googlePlaceId: string | null = null
+
+    if (cleanReviewMode === 'google') {
+      const normalized = await normalizeGoogleReviewUrl(String(googleReviewInput || ''))
+      if (!normalized) {
+        return NextResponse.json(
+          {
+            error:
+              'Link Google Review tidak sah. Sila gunakan link "Tulis Ulasan" dari Google Business Profile, link g.page, atau Place ID.',
+          },
+          { status: 400 }
+        )
+      }
+      googleReviewUrl = normalized.reviewUrl
+      googlePlaceId = normalized.placeId
+    }
 
     // Jana slug yang unik dan selamat (cth: "kopi-kawan-a1b2c")
     const baseSlug = cleanName
@@ -180,6 +208,9 @@ export async function POST(req: NextRequest) {
         logo_url: cleanLogoUrl || null,
         reward_image_url: cleanRewardImageUrl || null,
         rewards: cleanRewards,
+        google_review_mode: cleanReviewMode,
+        google_review_url: googleReviewUrl,
+        google_place_id: googlePlaceId,
       })
       .select()
       .single()
@@ -217,6 +248,9 @@ export async function POST(req: NextRequest) {
       rewardImageUrl: newStore.reward_image_url || '',
       rewards: newStore.rewards || [],
       role: 'owner',
+      googleReviewMode: newStore.google_review_mode || 'manual',
+      googleReviewUrl: newStore.google_review_url || null,
+      googlePlaceId: newStore.google_place_id || null,
     })
   } catch (err: unknown) {
     console.error('Error registering store:', err)
@@ -253,6 +287,8 @@ export async function PUT(req: NextRequest) {
       rewards,
       stampIcon,
       socialLinks,
+      googleReviewMode, // 'google' | 'manual' — optional, hanya proses kalau dihantar
+      googleReviewInput, // link/place ID mentah — hanya diperlukan kalau mode = 'google'
     } = body
 
     // Check staff role
@@ -346,6 +382,9 @@ export async function PUT(req: NextRequest) {
       logo_url?: string | null
       reward_image_url?: string | null
       rewards?: any
+      google_review_mode?: string
+      google_review_url?: string | null
+      google_place_id?: string | null
     } = {
       rewards: {
         list: cleanRewards,
@@ -359,6 +398,27 @@ export async function PUT(req: NextRequest) {
     if (cleanRewardDesc !== undefined) updates.reward_description = cleanRewardDesc
     if (cleanLogoUrl !== undefined) updates.logo_url = cleanLogoUrl
     if (cleanRewardImageUrl !== undefined) updates.reward_image_url = cleanRewardImageUrl
+
+    // --- Google Review (MOD 1 vs MOD 2) — proses hanya jika dihantar dalam body ---
+    if (googleReviewMode === 'manual') {
+      updates.google_review_mode = 'manual'
+      updates.google_review_url = null
+      updates.google_place_id = null
+    } else if (googleReviewMode === 'google') {
+      const normalized = await normalizeGoogleReviewUrl(String(googleReviewInput || ''))
+      if (!normalized) {
+        return NextResponse.json(
+          {
+            error:
+              'Link Google Review tidak sah. Sila gunakan link "Tulis Ulasan" dari Google Business Profile, link g.page, atau Place ID.',
+          },
+          { status: 400 }
+        )
+      }
+      updates.google_review_mode = 'google'
+      updates.google_review_url = normalized.reviewUrl
+      updates.google_place_id = normalized.placeId
+    }
 
     const { data: updatedStore, error: updateError } = await admin
       .from('stores')
@@ -399,6 +459,9 @@ export async function PUT(req: NextRequest) {
       rewards: finalRewards,
       stampIcon: finalStampIcon,
       socialLinks: finalSocialLinks,
+      googleReviewMode: updatedStore.google_review_mode || 'manual',
+      googleReviewUrl: updatedStore.google_review_url || null,
+      googlePlaceId: updatedStore.google_place_id || null,
     })
   } catch (err: unknown) {
     console.error('Error updating settings:', err)
