@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  --breakpoint-xs: 400px;
+}
+
 :root {
   --ink-bg: #0A1716;
   --ink-bg-2: #122B28;

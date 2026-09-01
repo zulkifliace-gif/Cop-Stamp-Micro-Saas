@@ -1094,22 +1094,22 @@ export default function CashierDashboard() {
   }
 
   return (
-    <div className="relative z-10 max-w-[560px] mx-auto px-[18px] pt-6 pb-16 font-jakarta text-[#FAF2E2]">
+    <div className="relative z-10 w-full max-w-[560px] md:max-w-[680px] lg:max-w-[760px] mx-auto px-4 sm:px-6 pt-5 sm:pt-6 pb-16 font-jakarta text-[#FAF2E2]">
       {/* TOPBAR */}
-      <div className="flex items-center justify-between mb-[22px]">
-        <div className="flex items-center gap-[11px]">
-          <div className="w-[38px] h-[38px] rounded-full overflow-hidden bg-[#E5A43B] flex items-center justify-center shadow-sm border border-[#FAF2E2]/20">
+      <div className="flex items-center justify-between gap-2 mb-5 sm:mb-[22px]">
+        <div className="flex items-center gap-2.5 sm:gap-[11px] min-w-0">
+          <div className="w-9 h-9 sm:w-[38px] sm:h-[38px] rounded-full overflow-hidden bg-[#E5A43B] flex items-center justify-center shadow-sm border border-[#FAF2E2]/20 shrink-0">
             {logoUrl ? (
               <img src={logoUrl} alt={storeName || 'Kedai'} className="w-full h-full object-cover" />
             ) : (
               <img src="/logo.svg" alt="LajuS" className="w-full h-full object-cover" />
             )}
           </div>
-          <div>
-            <div className="font-fraunces font-semibold text-[18px] leading-tight">
+          <div className="min-w-0">
+            <div className="font-fraunces font-semibold text-[16px] sm:text-[18px] leading-tight truncate">
               {storeName || (lang === 'en' ? 'Your Store' : 'Kedai Anda')}
             </div>
-            <div className="font-space text-[9.5px] tracking-[0.1em] text-[#5E6F68]">
+            <div className="font-space text-[9px] sm:text-[9.5px] tracking-[0.1em] text-[#5E6F68] truncate">
               {t.topbar.staffCounter}{' '}
               {user
                 ? needsRegistration
@@ -1122,53 +1122,13 @@ export default function CashierDashboard() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* BLUETOOTH THERMAL PRINTER BUTTON (ICON ONLY WITH GLOW/STATUS) */}
-          {user && !needsRegistration && (
-            <button
-              onClick={handleToggleBluetooth}
-              disabled={isConnectingBt}
-              title={
-                btPrinter
-                  ? t.topbar.printerConnectedTitle(btPrinter.name)
-                  : t.topbar.printerDisconnectedTitle
-              }
-              className={`w-[38px] h-[38px] rounded-[12px] border transition-all flex items-center justify-center cursor-pointer shadow-sm active:scale-95 relative ${
-                btPrinter
-                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.35)]'
-                  : 'bg-red-500/15 border-red-500/40 text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.25)] hover:border-red-400'
-              }`}
-              aria-label="Bluetooth Printer"
-            >
-              <svg
-                className={`w-4 h-4 ${isConnectingBt ? 'animate-spin' : ''}`}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M6 9V2h12v7" />
-                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-                <path d="M6 14h12v8H6z" />
-              </svg>
-              <span
-                className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full ${
-                  btPrinter
-                    ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse'
-                    : 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.9)]'
-                }`}
-              />
-            </button>
-          )}
-
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* LANGUAGE TOGGLE (MY / EN) */}
-          <div className="flex items-center bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/15 p-0.5 rounded-[12px] text-[11px] font-extrabold">
+          <div className="flex items-center bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/15 p-0.5 rounded-[12px] text-[10.5px] sm:text-[11px] font-extrabold shrink-0">
             <button
               type="button"
               onClick={() => switchLang('my')}
-              className={`px-2 py-1 rounded-[8px] transition-all cursor-pointer ${
+              className={`px-1.5 sm:px-2 py-1 rounded-[8px] transition-all cursor-pointer ${
                 lang === 'my'
                   ? 'bg-[#E5A43B] text-[#1A2422] font-bold shadow-xs'
                   : 'text-[#FAF2E2]/70 hover:text-[#FAF2E2]'
@@ -1180,7 +1140,7 @@ export default function CashierDashboard() {
             <button
               type="button"
               onClick={() => switchLang('en')}
-              className={`px-2 py-1 rounded-[8px] transition-all cursor-pointer ${
+              className={`px-1.5 sm:px-2 py-1 rounded-[8px] transition-all cursor-pointer ${
                 lang === 'en'
                   ? 'bg-[#E5A43B] text-[#1A2422] font-bold shadow-xs'
                   : 'text-[#FAF2E2]/70 hover:text-[#FAF2E2]'
@@ -1191,53 +1151,96 @@ export default function CashierDashboard() {
             </button>
           </div>
 
-          {user && !needsRegistration && (
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              title={showSettings ? t.topbar.settingsOpenTitle : t.topbar.settingsTitle}
-              className={`w-[38px] h-[38px] rounded-[12px] border transition-all flex items-center justify-center cursor-pointer shadow-sm active:scale-95 ${
-                showSettings
-                  ? 'bg-[#E5A43B] border-[#E5A43B] text-[#1A2422] shadow-[0_0_12px_rgba(229,164,59,0.35)]'
-                  : 'bg-[#FAF2E2]/[0.06] border-[#FAF2E2]/15 text-[#FAF2E2] hover:bg-[#FAF2E2]/15 hover:border-[#E5A43B]/40'
-              }`}
-              aria-label="Tetapan"
-            >
-              <svg
-                className="w-[18px] h-[18px]"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="3" />
-                <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 0 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 0 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z" />
-              </svg>
-            </button>
-          )}
-
+          {/* ICON ACTION GROUP — grouped in one consistent surface so icons line up neatly at any width */}
           {user && (
-            <button
-              onClick={handleLogout}
-              title={t.topbar.logoutTitle}
-              className="w-[38px] h-[38px] rounded-[12px] border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.06] text-[#5E6F68] hover:text-[#FAF2E2] hover:bg-[#FAF2E2]/15 transition flex items-center justify-center cursor-pointer shadow-sm active:scale-95"
-              aria-label="Log keluar"
-            >
-              <svg
-                className="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            <div className="flex items-center gap-1 sm:gap-1.5 bg-[#FAF2E2]/[0.04] border border-[#FAF2E2]/10 rounded-[14px] p-1 shrink-0">
+              {/* BLUETOOTH THERMAL PRINTER BUTTON (ICON ONLY WITH GLOW/STATUS) */}
+              {!needsRegistration && (
+                <button
+                  onClick={handleToggleBluetooth}
+                  disabled={isConnectingBt}
+                  title={
+                    btPrinter
+                      ? t.topbar.printerConnectedTitle(btPrinter.name)
+                      : t.topbar.printerDisconnectedTitle
+                  }
+                  className={`w-8 h-8 sm:w-[34px] sm:h-[34px] rounded-[10px] border transition-all flex items-center justify-center cursor-pointer active:scale-95 relative shrink-0 ${
+                    btPrinter
+                      ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
+                      : 'bg-red-500/15 border-red-500/40 text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.2)] hover:border-red-400'
+                  }`}
+                  aria-label="Bluetooth Printer"
+                >
+                  <svg
+                    className={`w-[15px] h-[15px] sm:w-4 sm:h-4 ${isConnectingBt ? 'animate-spin' : ''}`}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M6 9V2h12v7" />
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                    <path d="M6 14h12v8H6z" />
+                  </svg>
+                  <span
+                    className={`absolute top-1 right-1 w-1.5 h-1.5 rounded-full ${
+                      btPrinter
+                        ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse'
+                        : 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.9)]'
+                    }`}
+                  />
+                </button>
+              )}
+
+              {!needsRegistration && (
+                <button
+                  onClick={() => setShowSettings(!showSettings)}
+                  title={showSettings ? t.topbar.settingsOpenTitle : t.topbar.settingsTitle}
+                  className={`w-8 h-8 sm:w-[34px] sm:h-[34px] rounded-[10px] border transition-all flex items-center justify-center cursor-pointer active:scale-95 shrink-0 ${
+                    showSettings
+                      ? 'bg-[#E5A43B] border-[#E5A43B] text-[#1A2422] shadow-[0_0_12px_rgba(229,164,59,0.35)]'
+                      : 'bg-transparent border-[#FAF2E2]/15 text-[#FAF2E2] hover:bg-[#FAF2E2]/12 hover:border-[#E5A43B]/40'
+                  }`}
+                  aria-label="Tetapan"
+                >
+                  <svg
+                    className="w-[16px] h-[16px] sm:w-[17px] sm:h-[17px]"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.03.03a2 2 0 1 1-2.83 2.83l-.03-.03a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1.08 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.03.03a2 2 0 1 1-2.83-2.83l.03-.03a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1.08H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.03-.03a2 2 0 1 1 2.83-2.83l.03.03a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1.08-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1.08 1.51 1.65 1.65 0 0 0 1.82-.33l.03-.03a2 2 0 1 1 2.83 2.83l-.03.03a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1.08H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1.08Z" />
+                  </svg>
+                </button>
+              )}
+
+              <button
+                onClick={handleLogout}
+                title={t.topbar.logoutTitle}
+                className="w-8 h-8 sm:w-[34px] sm:h-[34px] rounded-[10px] border border-[#FAF2E2]/15 bg-transparent text-[#5E6F68] hover:text-[#FAF2E2] hover:bg-[#FAF2E2]/12 transition flex items-center justify-center cursor-pointer active:scale-95 shrink-0"
+                aria-label="Log keluar"
               >
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-            </button>
+                <svg
+                  className="w-[15px] h-[15px] sm:w-4 sm:h-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -1517,43 +1520,43 @@ export default function CashierDashboard() {
             )
           })()}
 
-          {/* STORE OVERVIEW METRICS BAR */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
-            <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-2xl p-3 text-center">
-              <div className="text-[10px] font-space uppercase text-[#5E6F68] font-bold">{t.stats.customers}</div>
-              <div className="text-xl font-fraunces font-bold text-[#E5A43B] mt-0.5 min-h-[28px] flex items-center justify-center">
+          {/* STORE OVERVIEW METRICS BAR — always 1 row on phone & tablet */}
+          <div className="grid grid-cols-4 gap-1.5 xs:gap-2 sm:gap-2.5 mb-5">
+            <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-xl sm:rounded-2xl px-1.5 py-2.5 sm:p-3 text-center min-w-0">
+              <div className="text-[8px] xs:text-[9px] sm:text-[10px] font-space uppercase text-[#5E6F68] font-bold leading-tight truncate">{t.stats.customers}</div>
+              <div className="text-sm xs:text-base sm:text-xl font-fraunces font-bold text-[#E5A43B] mt-0.5 min-h-[22px] sm:min-h-[28px] flex items-center justify-center">
                 {statsLoading ? (
-                  <div className="h-6 w-10 bg-[#E5A43B]/20 rounded-md animate-pulse" />
+                  <div className="h-5 sm:h-6 w-8 sm:w-10 bg-[#E5A43B]/20 rounded-md animate-pulse" />
                 ) : (
                   storeStats.totalCustomers
                 )}
               </div>
             </div>
-            <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-2xl p-3 text-center">
-              <div className="text-[10px] font-space uppercase text-[#5E6F68] font-bold">{t.stats.stampsClaimed}</div>
-              <div className="text-xl font-fraunces font-bold text-emerald-400 mt-0.5 min-h-[28px] flex items-center justify-center">
+            <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-xl sm:rounded-2xl px-1.5 py-2.5 sm:p-3 text-center min-w-0">
+              <div className="text-[8px] xs:text-[9px] sm:text-[10px] font-space uppercase text-[#5E6F68] font-bold leading-tight truncate">{t.stats.stampsClaimed}</div>
+              <div className="text-sm xs:text-base sm:text-xl font-fraunces font-bold text-emerald-400 mt-0.5 min-h-[22px] sm:min-h-[28px] flex items-center justify-center">
                 {statsLoading ? (
-                  <div className="h-6 w-10 bg-emerald-400/20 rounded-md animate-pulse" />
+                  <div className="h-5 sm:h-6 w-8 sm:w-10 bg-emerald-400/20 rounded-md animate-pulse" />
                 ) : (
                   storeStats.totalTokensClaimed
                 )}
               </div>
             </div>
-            <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-2xl p-3 text-center">
-              <div className="text-[10px] font-space uppercase text-[#5E6F68] font-bold">{t.stats.rewardsRedeemed}</div>
-              <div className="text-xl font-fraunces font-bold text-amber-300 mt-0.5 min-h-[28px] flex items-center justify-center">
+            <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-xl sm:rounded-2xl px-1.5 py-2.5 sm:p-3 text-center min-w-0">
+              <div className="text-[8px] xs:text-[9px] sm:text-[10px] font-space uppercase text-[#5E6F68] font-bold leading-tight truncate">{t.stats.rewardsRedeemed}</div>
+              <div className="text-sm xs:text-base sm:text-xl font-fraunces font-bold text-amber-300 mt-0.5 min-h-[22px] sm:min-h-[28px] flex items-center justify-center">
                 {statsLoading ? (
-                  <div className="h-6 w-10 bg-amber-300/20 rounded-md animate-pulse" />
+                  <div className="h-5 sm:h-6 w-8 sm:w-10 bg-amber-300/20 rounded-md animate-pulse" />
                 ) : (
                   storeStats.totalRedemptions
                 )}
               </div>
             </div>
-            <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-2xl p-3 text-center">
-              <div className="text-[10px] font-space uppercase text-[#5E6F68] font-bold">{t.stats.activeStamps}</div>
-              <div className="text-xl font-fraunces font-bold text-[#FAF2E2] mt-0.5 min-h-[28px] flex items-center justify-center">
+            <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-xl sm:rounded-2xl px-1.5 py-2.5 sm:p-3 text-center min-w-0">
+              <div className="text-[8px] xs:text-[9px] sm:text-[10px] font-space uppercase text-[#5E6F68] font-bold leading-tight truncate">{t.stats.activeStamps}</div>
+              <div className="text-sm xs:text-base sm:text-xl font-fraunces font-bold text-[#FAF2E2] mt-0.5 min-h-[22px] sm:min-h-[28px] flex items-center justify-center">
                 {statsLoading ? (
-                  <div className="h-6 w-10 bg-[#FAF2E2]/20 rounded-md animate-pulse" />
+                  <div className="h-5 sm:h-6 w-8 sm:w-10 bg-[#FAF2E2]/20 rounded-md animate-pulse" />
                 ) : (
                   storeStats.totalStampsGiven
                 )}
