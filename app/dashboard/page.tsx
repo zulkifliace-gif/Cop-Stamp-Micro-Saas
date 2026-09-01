@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import QRCode from 'qrcode'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -93,6 +95,7 @@ const SOCIAL_PLATFORMS = [
 ]
 
 export default function CashierDashboard() {
+  const router = useRouter()
   const supabase = createClient()
 
   // i18n Language State
@@ -1478,9 +1481,9 @@ export default function CashierDashboard() {
                     {isPro ? t.planQuota.proActive : t.planQuota.freeStarter}
                   </div>
                   {!isPro && (
-                    <a href="/#harga" className="text-[10.5px] font-semibold text-[#E5A43B] hover:underline">
+                    <Link href="/dashboard/billing" className="text-[10.5px] font-semibold text-[#E5A43B] hover:underline">
                       {t.planQuota.upgrade}
-                    </a>
+                    </Link>
                   )}
                 </div>
 
@@ -1506,7 +1509,7 @@ export default function CashierDashboard() {
                     {quotaFull && (
                       <div className="mt-1.5 text-[10px] text-red-400 font-space font-semibold">
                         {t.planQuota.quotaFull}{' '}
-                        <a href="/#harga" className="underline text-[#E5A43B]">{t.planQuota.upgradeToPro}</a>
+                        <Link href="/dashboard/billing" className="underline text-[#E5A43B]">{t.planQuota.upgradeToPro}</Link>
                       </div>
                     )}
                     {quotaWarning && !quotaFull && (
@@ -1901,7 +1904,7 @@ export default function CashierDashboard() {
                       const isProPlan = planType === 'pro' && subscriptionStatus === 'active'
                       if (!isProPlan) {
                         // Redirect to upgrade page instead of switching to email mode
-                        window.location.href = '/#harga'
+                        router.push('/dashboard/billing')
                         return
                       }
                       setMode('email')
