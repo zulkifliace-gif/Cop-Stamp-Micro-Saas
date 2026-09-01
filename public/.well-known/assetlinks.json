@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "my.lajuq.lajus.twa",
+        "sha256_cert_fingerprints": ["4C:4C:A7:D4:D5:B8:7D:50:0B:69:7C:5B:21:82:79:A4:56:AE:A3:A6:FE:B5:FB:69:9C:1C:52:D8:9C:EE:9A:7E"]
+      }
+    }]
