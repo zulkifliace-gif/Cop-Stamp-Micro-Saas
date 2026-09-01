@@ -87,8 +87,8 @@ export const metadata: Metadata = {
     title: 'LajuS',
   },
   icons: {
-    icon: '/mascot.png',
-    apple: '/mascot.png',
+    icon: '/logo.svg',
+    apple: '/logo.svg',
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || '',
