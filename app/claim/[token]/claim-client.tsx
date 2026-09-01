@@ -132,7 +132,7 @@ export default function ClaimClient({
   const [showRewardsModal, setShowRewardsModal] = useState(false)
   const [showReviewPopup, setShowReviewPopup] = useState(false)
   const [googleReviewUrl, setGoogleReviewUrl] = useState<string | null>(null)
-  const [reviewRating, setReviewRating] = useState<number>(5)
+  const [reviewRating, setReviewRating] = useState<number>(0)
   const [selectedCardIdx, setSelectedCardIdx] = useState(0)
 
   // Stamp detail popup modal state
@@ -240,6 +240,18 @@ export default function ClaimClient({
 
   function handleCloseReviewPopup() {
     setShowReviewPopup(false)
+    setReviewRating(0)
+  }
+
+  function handleSelectStarAndReview(star: number) {
+    setReviewRating(star)
+    if (googleReviewUrl) {
+      setTimeout(() => {
+        window.open(googleReviewUrl, '_blank')
+        setShowReviewPopup(false)
+        setReviewRating(0)
+      }, 250)
+    }
   }
 
   // 4. Google OAuth
@@ -1341,50 +1353,47 @@ export default function ClaimClient({
               {t.reviewModal.message}
             </p>
 
-            {/* INTERACTIVE 5-STAR SELECTOR (PILIHAN A) */}
-            <div className="bg-white/90 border border-[#E4D9BE] rounded-2xl p-4 mb-4 shadow-sm">
-              <div className="flex items-center justify-center gap-1.5 mb-2">
+            {/* INTERACTIVE 5-STAR SELECTOR (PILIHAN A - TAP STAR TO OPEN REVIEW) */}
+            <div className="bg-white/95 border border-[#E4D9BE] rounded-2xl p-5 mb-4 shadow-sm">
+              <div className="text-[11.5px] font-semibold text-[#5E6F68] mb-3">
+                {lang === 'en'
+                  ? 'Tap a star below to rate us on Google:'
+                  : 'Sentuh mana-mana bintang di bawah untuk ulas di Google:'}
+              </div>
+              <div className="flex items-center justify-center gap-2 mb-2.5">
                 {[1, 2, 3, 4, 5].map((star) => {
-                  const isFilled = star <= reviewRating
+                  const isFilled = reviewRating > 0 && star <= reviewRating
                   return (
                     <button
                       key={star}
                       type="button"
-                      onClick={() => setReviewRating(star)}
-                      className="p-1 text-3xl sm:text-4xl transition-transform hover:scale-125 active:scale-95 cursor-pointer leading-none"
+                      onClick={() => handleSelectStarAndReview(star)}
+                      className="p-1 text-4xl sm:text-5xl transition-transform hover:scale-125 active:scale-95 cursor-pointer leading-none"
                       title={`${star} Bintang`}
                     >
-                      <span className={isFilled ? 'text-amber-400 drop-shadow-[0_2px_6px_rgba(251,191,36,0.45)]' : 'text-gray-300'}>
+                      <span className={isFilled ? 'text-amber-400 drop-shadow-[0_2px_8px_rgba(251,191,36,0.6)]' : 'text-gray-300 hover:text-amber-300'}>
                         ★
                       </span>
                     </button>
                   )
                 })}
               </div>
-              <div className="text-xs font-bold text-[#1E5E53] min-h-[18px]">
-                {reviewRating === 5
-                  ? (lang === 'en' ? '⭐ 5 Stars — Excellent experience!' : '⭐ 5 Bintang — Pengalaman terbaik!')
-                  : reviewRating === 4
-                  ? (lang === 'en' ? '⭐ 4 Stars — Great service!' : '⭐ 4 Bintang — Servis yang hebat!')
-                  : (lang === 'en' ? '⭐ Thank you for your feedback!' : '⭐ Terima kasih atas penilaian anda!')}
+              <div className="text-xs font-bold text-[#1E5E53] min-h-[20px] transition">
+                {reviewRating > 0 ? (
+                  lang === 'en' ? '⭐ Opening Google Review...' : '⭐ Membuka Google Review...'
+                ) : (
+                  <span className="text-[#5E6F68]/70 text-[11px] font-normal">
+                    {lang === 'en' ? '⭐ 5 stars is greatly appreciated!' : '⭐ 5 bintang amat kami hargai!'}
+                  </span>
+                )}
               </div>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <a
-                href={googleReviewUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={handleCloseReviewPopup}
-                className="w-full py-3.5 px-4 bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] hover:brightness-110 active:scale-[0.98] text-[#1A2422] font-jakarta font-bold text-[13px] rounded-xl shadow-[0_4px_14px_rgba(229,164,59,0.35)] transition flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>{t.reviewModal.primaryBtn}</span>
-                <span className="text-base">↗</span>
-              </a>
+            <div className="flex flex-col">
               <button
                 type="button"
                 onClick={handleCloseReviewPopup}
-                className="w-full py-2 px-3 bg-transparent hover:bg-black/5 text-xs text-[#5E6F68] font-semibold rounded-xl transition cursor-pointer"
+                className="w-full py-2.5 px-3 bg-transparent hover:bg-black/5 text-xs text-[#5E6F68] hover:text-[#1C2624] font-semibold rounded-xl transition cursor-pointer"
               >
                 {t.reviewModal.secondaryBtn}
               </button>
