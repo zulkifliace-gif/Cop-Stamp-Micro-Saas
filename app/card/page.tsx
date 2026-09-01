@@ -481,6 +481,21 @@ export default function CustomerCardPage() {
 
           {user && (
             <div className="flex items-center gap-2">
+              {googleReviewUrl && (
+                <button
+                  type="button"
+                  onClick={() => setShowReviewPopup(true)}
+                  title="Google Review"
+                  className="h-8 px-2.5 rounded-full border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.06] hover:bg-[#FAF2E2]/15 transition flex items-center justify-center cursor-pointer shadow-sm active:scale-95"
+                >
+                  <img
+                    src="/Google-Review.svg"
+                    alt="Google Review"
+                    className="h-4 w-auto object-contain"
+                  />
+                </button>
+              )}
+
               <button
                 onClick={() => fetchLoyalty(activeStoreId)}
                 disabled={refreshing}
@@ -711,20 +726,6 @@ export default function CustomerCardPage() {
                   </svg>
                   <span>{t.card.rewardsBtn}</span>
                 </button>
-
-                {googleReviewUrl && (
-                  <button
-                    onClick={() => setShowReviewPopup(true)}
-                    title="Google Review"
-                    className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full border border-[#F7EEDA]/15 bg-[#F7EEDA]/[0.07] text-[11px] font-semibold text-[#F7EEDA] hover:bg-[#F7EEDA]/15 transition cursor-pointer"
-                  >
-                    <img
-                      src="/Google-Review.svg"
-                      alt="Google Review"
-                      className="h-3.5 w-auto object-contain"
-                    />
-                  </button>
-                )}
               </div>
             </div>
 

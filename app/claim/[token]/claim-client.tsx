@@ -793,8 +793,22 @@ export default function ClaimClient({
 
   return (
     <div className="w-full max-w-[380px] flex flex-col items-center anim-result">
-      {/* TOP TOGGLE */}
-      <div className="w-full flex items-center justify-end mb-2">
+      {/* TOP TOGGLE & GOOGLE REVIEW BUTTON */}
+      <div className="w-full flex items-center justify-between mb-2">
+        {googleReviewUrl ? (
+          <button
+            type="button"
+            onClick={() => setShowReviewPopup(true)}
+            title="Google Review"
+            className="h-8 px-2.5 rounded-full border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.06] hover:bg-[#FAF2E2]/15 transition flex items-center justify-center cursor-pointer shadow-sm active:scale-95"
+          >
+            <img
+              src="/Google-Review.svg"
+              alt="Google Review"
+              className="h-4 w-auto object-contain"
+            />
+          </button>
+        ) : <div />}
         <div className="flex items-center gap-1 bg-[#FAF2E2]/[0.08] border border-[#FAF2E2]/15 rounded-full p-0.5 backdrop-blur-xs">
           <button
             type="button"
@@ -837,7 +851,7 @@ export default function ClaimClient({
           {t.revealScene.digitalStampBadge(claimData.newTotal)}
         </div>
 
-        {/* ACTION PILLS: INFO 'i', REWARD GIFT AND GOOGLE REVIEW */}
+        {/* ACTION PILLS: INFO 'i' AND REWARD GIFT */}
         <div className="flex items-center justify-center gap-2 mt-2.5">
           <button
             onClick={() => setShowInfoModal(true)}
@@ -866,20 +880,6 @@ export default function ClaimClient({
             </svg>
             <span>{t.revealScene.rewardsBtn}</span>
           </button>
-
-          {googleReviewUrl && (
-            <button
-              onClick={() => setShowReviewPopup(true)}
-              title="Google Review"
-              className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-full border border-[#F7EEDA]/20 bg-[#F7EEDA]/10 text-xs font-semibold text-[#F7EEDA] hover:bg-[#F7EEDA]/20 hover:border-[#E7A33E] transition cursor-pointer"
-            >
-              <img
-                src="/Google-Review.svg"
-                alt="Google Review"
-                className="h-4 w-auto object-contain"
-              />
-            </button>
-          )}
         </div>
       </div>
 
