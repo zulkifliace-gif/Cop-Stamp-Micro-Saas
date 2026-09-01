@@ -119,11 +119,11 @@ export default function CashierDashboard() {
   const [loginError, setLoginError] = useState('')
   const [isLoggingIn, setIsLoggingIn] = useState(false)
 
-  // Store Registration State (Onboarding for new owners)  // Onboarding Registration State
+  // Onboarding Registration State
   const [needsRegistration, setNeedsRegistration] = useState<boolean>(false)
   const [regStoreName, setRegStoreName] = useState<string>('')
   const [regStampIcon, setRegStampIcon] = useState<string>('/icons/stamps/coffee.svg')
-  const [regGoogleReviewMode, setRegGoogleReviewMode] = useState<'google' | 'manual'>('google')
+  const [regGoogleReviewMode, setRegGoogleReviewMode] = useState<'google' | 'manual'>('manual')
   const [regGoogleReviewInput, setRegGoogleReviewInput] = useState<string>('')
   const [isRegisteringStore, setIsRegisteringStore] = useState<boolean>(false)
   const [regError, setRegError] = useState<string>('')
@@ -1228,42 +1228,50 @@ export default function CashierDashboard() {
               />
             </div>
 
-            {/* GOOGLE REVIEW CONNECTION MODE (MOD 1 VS MOD 2) */}
+            {/* GOOGLE REVIEW CONNECTION (ON/OFF TOGGLE) */}
             <div className="mb-4 p-3.5 rounded-2xl bg-white border border-[#E4D9BE]">
-              <label className="block text-xs font-bold text-[#0A1716] mb-2">
-                {t.onboarding.reviewModeLabel}
-              </label>
-              <div className="flex flex-col gap-2 mb-3">
-                <label className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition ${regGoogleReviewMode === 'google' ? 'bg-[#E5A43B]/15 border-[#E5A43B] ring-1 ring-[#E5A43B]' : 'bg-gray-50 border-gray-200'}`}>
-                  <input
-                    type="radio"
-                    name="regGoogleReviewMode"
-                    value="google"
-                    checked={regGoogleReviewMode === 'google'}
-                    onChange={() => setRegGoogleReviewMode('google')}
-                    className="accent-[#E5A43B]"
-                  />
-                  <div className="text-xs font-bold text-[#1A2422]">
-                    {t.onboarding.reviewModeGoogle}
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-xs font-bold text-[#0A1716] flex items-center gap-1.5">
+                    <span>{t.onboarding.reviewToggleLabel}</span>
                   </div>
-                </label>
-                <label className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition ${regGoogleReviewMode === 'manual' ? 'bg-[#E5A43B]/15 border-[#E5A43B] ring-1 ring-[#E5A43B]' : 'bg-gray-50 border-gray-200'}`}>
-                  <input
-                    type="radio"
-                    name="regGoogleReviewMode"
-                    value="manual"
-                    checked={regGoogleReviewMode === 'manual'}
-                    onChange={() => setRegGoogleReviewMode('manual')}
-                    className="accent-[#E5A43B]"
-                  />
-                  <div className="text-xs font-semibold text-[#5E6F68]">
-                    {t.onboarding.reviewModeManual}
+                  <div className="text-[11px] text-[#5E6F68] mt-0.5 leading-snug">
+                    {t.onboarding.reviewToggleDesc}
                   </div>
-                </label>
+                </div>
+                {/* ON / OFF Switch Button */}
+                <button
+                  type="button"
+                  onClick={() => setRegGoogleReviewMode(regGoogleReviewMode === 'google' ? 'manual' : 'google')}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    regGoogleReviewMode === 'google' ? 'bg-[#E5A43B]' : 'bg-gray-300'
+                  }`}
+                  role="switch"
+                  aria-checked={regGoogleReviewMode === 'google'}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                      regGoogleReviewMode === 'google' ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
               </div>
 
               {regGoogleReviewMode === 'google' && (
-                <div className="space-y-2 anim-result">
+                <div className="mt-3 pt-3 border-t border-[#E4D9BE]/60 space-y-2 anim-result">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-[#0A1716]">
+                      {t.onboarding.reviewInputLabel}
+                    </label>
+                    <a
+                      href="https://productmate.com/google-review-link-generator"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10.5px] font-bold text-[#1E5E53] hover:text-[#E5A43B] underline flex items-center gap-0.5 cursor-pointer"
+                    >
+                      <span>{t.onboarding.reviewGeneratorHint}</span>
+                    </a>
+                  </div>
                   <input
                     type="text"
                     value={regGoogleReviewInput}
@@ -1272,7 +1280,7 @@ export default function CashierDashboard() {
                     className="w-full border border-[#E4D9BE] rounded-xl p-2.5 text-xs text-[#1A2422] bg-white outline-none focus:ring-1 focus:ring-[#E5A43B]"
                   />
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] text-[#5E6F68]">
+                    <span className="text-[10.5px] text-[#5E6F68]">
                       {t.onboarding.reviewInputHint}
                     </span>
                     {regGoogleReviewInput.trim() && (
@@ -2004,51 +2012,56 @@ export default function CashierDashboard() {
                   />
                 </div>
 
-                {/* GOOGLE REVIEW CONNECTION MODE (MOD 1 VS MOD 2) */}
+                {/* GOOGLE REVIEW CONNECTION (ON/OFF TOGGLE) */}
                 <div className="mb-3.5 p-3.5 rounded-xl bg-white border border-[#E4D9BE]">
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-xs font-bold text-[#0A1716]">
-                      {t.settings.reviewModeLabel}
-                    </label>
-                    {googleReviewMode === 'google' && googleReviewUrl && (
-                      <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full">
-                        {t.settings.reviewConnectedBadge}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2 mb-2.5">
-                    <label className={`flex items-center gap-2.5 p-2 rounded-lg border cursor-pointer transition ${googleReviewMode === 'google' ? 'bg-[#E5A43B]/15 border-[#E5A43B] ring-1 ring-[#E5A43B]' : 'bg-gray-50 border-gray-200'}`}>
-                      <input
-                        type="radio"
-                        name="settingsGoogleReviewMode"
-                        value="google"
-                        checked={googleReviewMode === 'google'}
-                        onChange={() => setGoogleReviewMode('google')}
-                        disabled={staffRole !== 'owner'}
-                        className="accent-[#E5A43B]"
-                      />
-                      <div className="text-xs font-bold text-[#1A2422]">
-                        {t.settings.reviewModeGoogle}
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-xs font-bold text-[#0A1716] flex items-center gap-2">
+                        <span>{t.settings.reviewToggleLabel}</span>
+                        {googleReviewMode === 'google' && googleReviewUrl && (
+                          <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full">
+                            {t.settings.reviewConnectedBadge}
+                          </span>
+                        )}
                       </div>
-                    </label>
-                    <label className={`flex items-center gap-2.5 p-2 rounded-lg border cursor-pointer transition ${googleReviewMode === 'manual' ? 'bg-[#E5A43B]/15 border-[#E5A43B] ring-1 ring-[#E5A43B]' : 'bg-gray-50 border-gray-200'}`}>
-                      <input
-                        type="radio"
-                        name="settingsGoogleReviewMode"
-                        value="manual"
-                        checked={googleReviewMode === 'manual'}
-                        onChange={() => setGoogleReviewMode('manual')}
-                        disabled={staffRole !== 'owner'}
-                        className="accent-[#E5A43B]"
-                      />
-                      <div className="text-xs font-semibold text-[#5E6F68]">
-                        {t.settings.reviewModeManual}
+                      <div className="text-[11px] text-[#5E6F68] mt-0.5 leading-snug">
+                        {t.settings.reviewToggleDesc}
                       </div>
-                    </label>
+                    </div>
+                    {/* ON / OFF Switch Button */}
+                    <button
+                      type="button"
+                      disabled={staffRole !== 'owner'}
+                      onClick={() => setGoogleReviewMode(googleReviewMode === 'google' ? 'manual' : 'google')}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${
+                        googleReviewMode === 'google' ? 'bg-[#E5A43B]' : 'bg-gray-300'
+                      }`}
+                      role="switch"
+                      aria-checked={googleReviewMode === 'google'}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                          googleReviewMode === 'google' ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
                   </div>
 
                   {googleReviewMode === 'google' && (
-                    <div className="space-y-2 anim-result">
+                    <div className="mt-3 pt-3 border-t border-[#E4D9BE]/60 space-y-2 anim-result">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-bold text-[#0A1716]">
+                          {t.settings.reviewInputLabel}
+                        </label>
+                        <a
+                          href="https://productmate.com/google-review-link-generator"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10.5px] font-bold text-[#1E5E53] hover:text-[#E5A43B] underline flex items-center gap-0.5 cursor-pointer"
+                        >
+                          <span>{t.settings.reviewGeneratorHint}</span>
+                        </a>
+                      </div>
                       <input
                         type="text"
                         value={googleReviewInput}
@@ -2058,7 +2071,7 @@ export default function CashierDashboard() {
                         className="w-full border border-[#E4D9BE] rounded-lg p-2 text-xs text-[#1A2422] bg-white outline-none disabled:bg-gray-100"
                       />
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] text-[#5E6F68]">
+                        <span className="text-[10.5px] text-[#5E6F68]">
                           {t.settings.reviewInputHint}
                         </span>
                         {(googleReviewUrl || googleReviewInput.trim()) && (
