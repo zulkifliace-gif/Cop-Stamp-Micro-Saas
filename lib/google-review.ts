@@ -40,18 +40,14 @@ function tryParseDirectly(input: string): NormalizedReviewLink | null {
 
   let url: URL
   try {
-    url = new URL(input)
+    url = new URL(input.startsWith('http://') || input.startsWith('https://') ? input : `https://${input}`)
   } catch {
-    return null // bukan Place ID, bukan URL sah
+    return null
   }
 
-  // Kes B — link "Tulis Ulasan" rasmi (dari GBP > Ask for reviews)
-  const placeIdParam = url.searchParams.get('placeid')
-  if (
-    url.hostname === 'search.google.com' &&
-    url.pathname.includes('/local/writereview') &&
-    placeIdParam
-  ) {
+  // Kes B — link "Tulis Ulasan" rasmi (dari GBP / search.google.com / google.com)
+  const placeIdParam = url.searchParams.get('placeid') || url.searchParams.get('place_id')
+  if (placeIdParam && PLACE_ID_PATTERN.test(placeIdParam)) {
     return {
       reviewUrl: `https://search.google.com/local/writereview?placeid=${placeIdParam}`,
       placeId: placeIdParam,
@@ -59,9 +55,18 @@ function tryParseDirectly(input: string): NormalizedReviewLink | null {
   }
 
   // Kes C — Google Business shortlink (g.page/r/xxxx atau .../review)
-  if (url.hostname === 'g.page') {
+  if (url.hostname.includes('g.page')) {
     const cleanPath = url.pathname.endsWith('/review') ? url.pathname : `${url.pathname}/review`
     return { reviewUrl: `https://g.page${cleanPath}`, placeId: null }
+  }
+
+  // Kes D — Jika URL ada Place ID regex di mana-mana dalam string URL
+  const match = input.match(/(ChIJ[A-Za-z0-9_-]{10,})/)
+  if (match) {
+    return {
+      reviewUrl: `https://search.google.com/local/writereview?placeid=${match[1]}`,
+      placeId: match[1],
+    }
   }
 
   return null
@@ -90,7 +95,7 @@ function extractHintsFromUrl(url: string) {
   }
 }
 
-/** Kes D — fallback Places API Text Search bila format lain tak match. */
+/** Kes E — fallback Places API Text Search bila format lain tak match. */
 async function resolveViaPlacesApi(rawUrl: string): Promise<NormalizedReviewLink | null> {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY
   if (!apiKey) return null
@@ -132,8 +137,6 @@ async function resolveViaPlacesApi(rawUrl: string): Promise<NormalizedReviewLink
 
 /**
  * Fungsi utama — panggil ni dari route API.
- * Pulangkan null kalau input tak dapat dikenalpasti langsung
- * (route yang panggil patut respons dengan mesej ralat sesuai).
  */
 export async function normalizeGoogleReviewUrl(
   rawInput: string
@@ -148,5 +151,19 @@ export async function normalizeGoogleReviewUrl(
   const directAfterResolve = tryParseDirectly(resolvedUrl)
   if (directAfterResolve) return directAfterResolve
 
-  return resolveViaPlacesApi(resolvedUrl)
+  const apiResult = await resolveViaPlacesApi(resolvedUrl)
+  if (apiResult) return apiResult
+
+  // Fallback selamat: Jika ia adalah link URL HTTP/HTTPS sah, terima terus
+  try {
+    const validUrl = new URL(resolvedUrl.startsWith('http://') || resolvedUrl.startsWith('https://') ? resolvedUrl : `https://${resolvedUrl}`)
+    if (validUrl.protocol === 'http:' || validUrl.protocol === 'https:') {
+      return {
+        reviewUrl: resolvedUrl,
+        placeId: null,
+      }
+    }
+  } catch {}
+
+  return null
 }

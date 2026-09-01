@@ -275,7 +275,8 @@ export default function CashierDashboard() {
           setStaffRole(data.role || 'cashier')
           setPlanType(data.planType || 'free')
           setSubscriptionStatus(data.subscriptionStatus || 'active')
-          setGoogleReviewMode(data.googleReviewMode || 'manual')
+          const isGoogleMode = data.googleReviewMode === 'google' || Boolean(data.googleReviewUrl)
+          setGoogleReviewMode(isGoogleMode ? 'google' : 'manual')
           setGoogleReviewUrl(data.googleReviewUrl || null)
           setGooglePlaceId(data.googlePlaceId || null)
           setGoogleReviewInput(data.googleReviewUrl || '')
@@ -934,6 +935,15 @@ export default function CashierDashboard() {
         googleReviewMode,
       }
       if (googleReviewMode === 'google') {
+        if (!googleReviewInput.trim()) {
+          setSettingsError(
+            lang === 'en'
+              ? 'Please enter your Google Review link or Place ID before saving.'
+              : 'Sila masukkan link atau Place ID Google Review anda sebelum menyimpan.'
+          )
+          setIsSavingSettings(false)
+          return
+        }
         bodyPayload.googleReviewInput = googleReviewInput.trim()
       }
 
