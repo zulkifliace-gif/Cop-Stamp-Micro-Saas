@@ -195,6 +195,11 @@ export default function CashierDashboard() {
   const [redeemCount, setRedeemCount] = useState<number>(1)
   const [selectedRewardId, setSelectedRewardId] = useState<string>('')
 
+  // Customer QR Camera Scanner State
+  const [showQrScanner, setShowQrScanner] = useState<boolean>(false)
+  const [scannerError, setScannerError] = useState<string>('')
+  const scannerRef = useRef<any>(null)
+
   // Stats Loading State (for instant lightweight shimmer placeholder)
   const [statsLoading, setStatsLoading] = useState<boolean>(true)
 
@@ -873,7 +878,88 @@ export default function CashierDashboard() {
     }
   }
 
-  // 12. Rewards List Helpers in Settings
+  // 12. QR Code Camera Scanner Lifecycle
+  useEffect(() => {
+    let html5QrCodeInstance: any = null
+    let isMounted = true
+
+    async function startCamera() {
+      if (!showQrScanner) return
+      setScannerError('')
+
+      try {
+        const { Html5Qrcode } = await import('html5-qrcode')
+        if (!isMounted) return
+
+        const readerElem = document.getElementById('dashboard-qr-reader')
+        if (!readerElem) return
+
+        html5QrCodeInstance = new Html5Qrcode('dashboard-qr-reader')
+        scannerRef.current = html5QrCodeInstance
+
+        await html5QrCodeInstance.start(
+          { facingMode: 'environment' },
+          {
+            fps: 10,
+            qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+              const edge = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.75)
+              return { width: edge, height: edge }
+            },
+            aspectRatio: 1.0,
+          },
+          (decodedText: string) => {
+            const cleanedEmail = decodedText.trim()
+            setSearchEmail(cleanedEmail)
+            handleCloseQrScanner(html5QrCodeInstance)
+          },
+          () => {
+            // Ignore continuous frame parse errors
+          }
+        )
+      } catch (err: any) {
+        console.error('QR Scanner init error:', err)
+        if (isMounted) {
+          setScannerError(
+            t.searchSection.scanCameraError ||
+              'Tidak dapat mengakses kamera. Sila benarkan kebenaran kamera.'
+          )
+        }
+      }
+    }
+
+    if (showQrScanner) {
+      const timer = setTimeout(() => {
+        startCamera()
+      }, 150)
+      return () => {
+        clearTimeout(timer)
+        isMounted = false
+        handleCloseQrScanner(html5QrCodeInstance || scannerRef.current)
+      }
+    }
+  }, [showQrScanner])
+
+  function handleCloseQrScanner(instance?: any) {
+    const scanner = instance || scannerRef.current
+    if (scanner) {
+      try {
+        if (scanner.isScanning) {
+          scanner
+            .stop()
+            .then(() => {
+              try {
+                scanner.clear()
+              } catch {}
+            })
+            .catch(() => {})
+        }
+      } catch {}
+    }
+    scannerRef.current = null
+    setShowQrScanner(false)
+  }
+
+  // 13. Rewards List Helpers in Settings
   function handleAddRewardItem() {
     setRewardsList((prev) => [
       ...prev,
@@ -1495,9 +1581,21 @@ export default function CashierDashboard() {
                   />
                 </div>
                 <button
+                  type="button"
+                  onClick={() => setShowQrScanner(true)}
+                  title={t.searchSection.scanQrBtn}
+                  className="px-3.5 py-2.5 bg-[#E5A43B] hover:bg-[#d89731] active:scale-95 text-[#1A2422] font-bold text-xs rounded-[12px] transition cursor-pointer flex items-center justify-center gap-1.5 shadow-sm shrink-0"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
+                  <span className="hidden sm:inline text-xs font-semibold">Scan QR</span>
+                </button>
+                <button
                   type="submit"
                   disabled={isSearchingCustomer}
-                  className="px-4 py-2.5 bg-[#1E5E53] hover:bg-[#2D786B] active:scale-95 text-white font-bold text-xs rounded-[12px] transition cursor-pointer disabled:opacity-60 flex items-center gap-1.5 shadow-sm"
+                  className="px-4 py-2.5 bg-[#1E5E53] hover:bg-[#2D786B] active:scale-95 text-white font-bold text-xs rounded-[12px] transition cursor-pointer disabled:opacity-60 flex items-center gap-1.5 shadow-sm shrink-0"
                 >
                   {isSearchingCustomer ? (
                     t.searchSection.searching
@@ -2771,6 +2869,54 @@ export default function CashierDashboard() {
                 {t.socialModal.save}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── DASHBOARD QR CAMERA SCANNER MODAL ─────────────────────────────── */}
+      {showQrScanner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 anim-fade">
+          <div className="w-full max-w-[360px] bg-[#FAF2E2] rounded-[28px] p-5 sm:p-6 shadow-2xl border border-[#E5A43B]/30 text-[#1C2624] relative text-center anim-scale">
+            <button
+              onClick={() => handleCloseQrScanner()}
+              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-[#1C2624]/10 hover:bg-[#1C2624]/20 flex items-center justify-center text-sm font-bold text-[#1C2624] transition cursor-pointer z-10"
+            >
+              ✕
+            </button>
+
+            <div className="w-10 h-10 rounded-2xl bg-[#E5A43B]/20 text-[#C77B1B] flex items-center justify-center mx-auto mb-2.5">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                <circle cx="12" cy="13" r="4" />
+              </svg>
+            </div>
+
+            <div className="font-fraunces font-bold text-lg text-[#0A1716] mb-1 leading-tight">
+              {t.searchSection.scanModalTitle}
+            </div>
+            <p className="text-xs text-[#5E6F68] mb-3 leading-relaxed">
+              {t.searchSection.scanModalDesc}
+            </p>
+
+            {/* Video Viewport Container */}
+            <div className="relative w-full aspect-square bg-black rounded-2xl overflow-hidden mb-3 border-2 border-[#1E5E53]/30 shadow-inner flex items-center justify-center">
+              <div id="dashboard-qr-reader" className="w-full h-full" />
+
+              {scannerError && (
+                <div className="absolute inset-0 bg-black/90 p-4 flex flex-col items-center justify-center text-center text-red-300 text-xs font-semibold">
+                  <span className="text-2xl mb-1">⚠️</span>
+                  <span>{scannerError}</span>
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => handleCloseQrScanner()}
+              className="w-full py-2.5 bg-gray-200 hover:bg-gray-300 active:scale-98 text-[#1C2624] font-bold text-xs rounded-xl transition cursor-pointer"
+            >
+              {t.searchSection.scanCloseBtn}
+            </button>
           </div>
         </div>
       )}

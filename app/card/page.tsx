@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import QRCode from 'qrcode'
 import { createClient } from '@/lib/supabase/client'
 import { Lang, I18N_CARD } from '@/lib/i18n/card'
 
@@ -159,6 +160,8 @@ export default function CustomerCardPage() {
   // Modals state
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [showRewardsModal, setShowRewardsModal] = useState(false)
+  const [showCustomerQrModal, setShowCustomerQrModal] = useState(false)
+  const [customerQrDataUrl, setCustomerQrDataUrl] = useState('')
   const [showReviewPopup, setShowReviewPopup] = useState<boolean>(false)
   const [googleReviewUrl, setGoogleReviewUrl] = useState<string | null>(null)
   const [reviewRating, setReviewRating] = useState<number>(0)
@@ -373,6 +376,24 @@ export default function CustomerCardPage() {
     }
   }
 
+  async function handleOpenCustomerQrModal() {
+    if (!user?.email) return
+    try {
+      const url = await QRCode.toDataURL(user.email, {
+        width: 280,
+        margin: 2,
+        color: {
+          dark: '#0F2B2A',
+          light: '#FFFFFF',
+        },
+      })
+      setCustomerQrDataUrl(url)
+      setShowCustomerQrModal(true)
+    } catch (err) {
+      console.error('Failed to generate customer QR code:', err)
+    }
+  }
+
   // Handle Account Deletion
   async function handleDeleteAccount() {
     if (deleteConfirmText.trim() !== 'PADAM') return
@@ -517,6 +538,29 @@ export default function CustomerCardPage() {
                   />
                 </button>
               )}
+
+              {/* CUSTOMER PROFILE QR CODE BUTTON */}
+              <button
+                type="button"
+                onClick={handleOpenCustomerQrModal}
+                title={t.topbar.qrTooltip}
+                className="w-8 h-8 rounded-full border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.06] text-[#E5A43B] hover:bg-[#FAF2E2]/15 transition flex items-center justify-center cursor-pointer shadow-sm active:scale-95"
+              >
+                <svg
+                  className="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                  <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                  <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                  <path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v.01" />
+                </svg>
+              </button>
 
               <button
                 onClick={() => fetchLoyalty(activeStoreId)}
@@ -1219,6 +1263,69 @@ export default function CustomerCardPage() {
           </div>
         )
       })()}
+
+      {/* ── CUSTOMER EMAIL QR CODE MODAL ────────────────────────────────────── */}
+      {showCustomerQrModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 anim-fade">
+          <div className="w-full max-w-[340px] bg-[#FAF2E2] rounded-[28px] p-6 shadow-2xl border border-[#E5A43B]/30 text-[#1C2624] relative text-center anim-scale">
+            <button
+              onClick={() => setShowCustomerQrModal(false)}
+              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-[#1C2624]/10 hover:bg-[#1C2624]/20 flex items-center justify-center text-sm font-bold text-[#1C2624] transition cursor-pointer"
+            >
+              ✕
+            </button>
+
+            <div className="w-11 h-11 rounded-2xl bg-[#1E5E53]/15 text-[#1E5E53] flex items-center justify-center mx-auto mb-3">
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                <path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v.01" />
+              </svg>
+            </div>
+
+            <div className="font-fraunces font-bold text-xl text-[#0A1716] mb-1 leading-tight">
+              {t.qrModal.title}
+            </div>
+            <p className="text-xs text-[#5E6F68] mb-3 leading-relaxed">
+              {t.qrModal.desc}
+            </p>
+
+            {/* QR Code Card */}
+            <div className="bg-white p-3.5 rounded-2xl border border-[#E4D9BE] shadow-sm inline-block mb-3">
+              {customerQrDataUrl ? (
+                <img
+                  src={customerQrDataUrl}
+                  alt="Customer Email QR Code"
+                  className="w-48 h-48 sm:w-52 sm:h-52 object-contain mx-auto"
+                />
+              ) : (
+                <div className="w-48 h-48 flex items-center justify-center text-gray-400 text-xs">
+                  Memuatkan QR...
+                </div>
+              )}
+            </div>
+
+            {/* Customer Email Pill */}
+            <div className="bg-[#1E5E53]/10 border border-[#1E5E53]/20 rounded-xl py-2 px-3 mb-4 text-center">
+              <div className="text-[10px] text-[#5E6F68] font-semibold uppercase tracking-wider font-space">
+                {t.qrModal.emailLabel}
+              </div>
+              <div className="text-xs font-bold text-[#0F2B2A] break-all font-mono mt-0.5">
+                {user?.email}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowCustomerQrModal(false)}
+              className="w-full py-2.5 bg-[#1E5E53] hover:bg-[#2D786B] active:scale-98 text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-sm"
+            >
+              {t.qrModal.closeBtn}
+            </button>
+          </div>
+        </div>
+      )}
       {/* POPUP MODAL: PENGESAHAN PADAM AKAUN */}
       {showDeleteAccountModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">

@@ -4,6 +4,7 @@ export interface CardTranslation {
   topbar: {
     refreshTooltip: string
     logoutTooltip: string
+    qrTooltip: string
   }
   login: {
     digitalStampCard: string
@@ -50,6 +51,12 @@ export interface CardTranslation {
     stampsRequiredBadge: (count: number) => string
     closeBtn: string
   }
+  qrModal: {
+    title: string
+    desc: string
+    emailLabel: string
+    closeBtn: string
+  }
   reviewNavbarBtn: string
   reviewModal: {
     title: string
@@ -88,6 +95,7 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
     topbar: {
       refreshTooltip: 'Muat semula',
       logoutTooltip: 'Log keluar',
+      qrTooltip: 'QR Kod Emel Saya',
     },
     login: {
       digitalStampCard: 'Kad Cop Digital',
@@ -125,13 +133,19 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
       title: '💡 Cara Penebusan',
       step1: 'Kumpul cop sehingga kad cop anda penuh.',
       step2: 'Maklumkan staff kaunter ingin menebus ganjaran.',
-      step3: (email) => `Sebut emel akaun (${email || 'emel anda'}).`,
+      step3: (email) => `Beri emel (${email || 'emel anda'}) ATAU tunjukkan QR Kod di atas untuk diimbas oleh staff.`,
       step4: 'Staff sahkan & serahkan ganjaran serta-merta!',
       gotItBtn: 'Faham',
     },
     rewardsModal: {
       title: '🎁 Hadiah & Ganjaran',
       stampsRequiredBadge: (count) => `⚡ ${count} Cop Diperlukan`,
+      closeBtn: 'Tutup',
+    },
+    qrModal: {
+      title: 'QR Kod Pelanggan',
+      desc: 'Tunjukkan QR kod ini kepada staff kaunter untuk imbasan emel pantas tanpa perlu menaip.',
+      emailLabel: 'Emel Akaun Anda:',
       closeBtn: 'Tutup',
     },
     reviewNavbarBtn: '⭐ Review Kami',
@@ -170,6 +184,7 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
     topbar: {
       refreshTooltip: 'Refresh',
       logoutTooltip: 'Log out',
+      qrTooltip: 'My Email QR Code',
     },
     login: {
       digitalStampCard: 'Digital Stamp Card',
@@ -207,13 +222,19 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
       title: '💡 How to Redeem',
       step1: 'Collect stamps until your card is full.',
       step2: 'Inform the cashier you would like to redeem a reward.',
-      step3: (email) => `State your registered email (${email || 'your email'}).`,
+      step3: (email) => `Provide your email (${email || 'your email'}) OR show the QR Code at the top to be scanned by staff.`,
       step4: 'Staff verifies & hands over your reward immediately!',
       gotItBtn: 'Got it',
     },
     rewardsModal: {
       title: '🎁 Rewards & Gifts',
       stampsRequiredBadge: (count) => `⚡ ${count} Stamps Required`,
+      closeBtn: 'Close',
+    },
+    qrModal: {
+      title: 'Customer QR Code',
+      desc: 'Show this QR code to the cashier for quick email scanning without manual typing.',
+      emailLabel: 'Your Account Email:',
       closeBtn: 'Close',
     },
     reviewNavbarBtn: '⭐ Review Us',

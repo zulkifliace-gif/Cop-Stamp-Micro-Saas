@@ -87,6 +87,12 @@ export interface DashboardTranslation {
     receiptTime: string
     printClaimReceiptBtn: string
     printingClaim: string
+    scanQrBtn: string
+    scanModalTitle: string
+    scanModalDesc: string
+    scanCameraError: string
+    scanCloseBtn: string
+    scanSuccessMsg: string
   }
   generator: {
     title: string
@@ -288,6 +294,12 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       receiptTime: 'Masa & Tarikh:',
       printClaimReceiptBtn: 'Cetak Resit Penebusan (Bluetooth)',
       printingClaim: 'Mencetak Resit...',
+      scanQrBtn: 'Imbas QR Kod Pelanggan',
+      scanModalTitle: 'Imbas QR Kod Pelanggan',
+      scanModalDesc: 'Halakan kamera ke skrin telefon pelanggan yang memaparkan QR kod profil mereka.',
+      scanCameraError: 'Tidak dapat mengakses kamera. Sila benarkan kebenaran kamera pada pelayar anda.',
+      scanCloseBtn: 'Tutup Kamera',
+      scanSuccessMsg: 'QR kod berjaya diimbas! Emel dimasukkan.',
     },
     generator: {
       title: 'Bagi Cop Stamp',
@@ -487,6 +499,12 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       receiptTime: 'Time & Date:',
       printClaimReceiptBtn: 'Print Redemption Receipt (Bluetooth)',
       printingClaim: 'Printing Receipt...',
+      scanQrBtn: 'Scan Customer QR Code',
+      scanModalTitle: 'Scan Customer QR Code',
+      scanModalDesc: 'Point the camera at the customer’s phone screen displaying their profile QR code.',
+      scanCameraError: 'Cannot access camera. Please allow camera permissions in your browser.',
+      scanCloseBtn: 'Close Camera',
+      scanSuccessMsg: 'QR code scanned successfully! Email populated.',
     },
     generator: {
       title: 'Issue Stamp Tokens',
