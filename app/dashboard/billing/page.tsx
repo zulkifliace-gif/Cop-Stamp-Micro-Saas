@@ -86,8 +86,11 @@ function BillingContent() {
   }
 
   const isPro = planType === 'pro' && subscriptionStatus === 'active'
+  const isGrowth = planType === 'growth' && subscriptionStatus === 'active'
+  const isStarter = planType === 'starter' && subscriptionStatus === 'active'
+  const isFree = !isPro && !isGrowth && !isStarter
 
-  async function handleCheckout(planChoice: 'monthly' | 'yearly') {
+  async function handleCheckout(planChoice: 'starter' | 'growth' | 'monthly' | 'yearly') {
     setIsProcessing(true)
     setErrorMsg('')
     try {
@@ -146,7 +149,7 @@ function BillingContent() {
 
   return (
     <div className="min-h-screen bg-[#0A1716] text-[#FAF2E2] font-jakarta antialiased p-4 sm:p-6 md:p-8 flex flex-col items-center">
-      <div className="w-full max-w-4xl mx-auto flex flex-col">
+      <div className="w-full max-w-6xl mx-auto flex flex-col">
         {/* TOAST NOTIFICATION */}
         {toastMsg && (
           <div
@@ -206,22 +209,28 @@ function BillingContent() {
           </div>
         </header>
 
-        {/* HERO TITLE (Matching Landing Page) */}
+        {/* HERO TITLE */}
         <div className="text-center max-w-xl mx-auto mb-8">
           <h1 className="font-fraunces text-3xl sm:text-4xl md:text-5xl font-bold text-[#FAF2E2] leading-tight mb-2">
             {lang === 'en' ? 'Choose The Best Plan For Your Business' : 'Pilih Pelan Terbaik Untuk Kedai Anda'}
           </h1>
           <p className="text-xs sm:text-sm text-[#C4B897] leading-relaxed">
             {lang === 'en'
-              ? 'Start free. Upgrade as your business grows and scales.'
-              : 'Bermula percuma. Naik taraf bila perniagaan anda semakin berkembang pesat.'}
+              ? 'Start free. Upgrade as your customer base expands.'
+              : 'Bermula percuma. Naik taraf mengikut saiz pelanggan kedai anda.'}
           </p>
 
           {/* STORE CURRENT STATUS PILL */}
           <div className="mt-4 inline-flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 rounded-full bg-[#FAF2E2]/[0.05] border border-[#FAF2E2]/10">
             <span className="text-[#8E9B95]">{storeName || (lang === 'en' ? 'Your Store' : 'Kedai Anda')}:</span>
-            <span className={isPro ? 'text-[#E5A43B] font-bold' : 'text-emerald-400 font-bold'}>
-              {isPro ? '⭐ Pro Active' : (lang === 'en' ? `Free Plan (${totalCustomers}/20 Customers)` : `Pelan Percuma (${totalCustomers}/20 Pelanggan)`)}
+            <span className={isPro ? 'text-[#E5A43B] font-bold' : isGrowth ? 'text-blue-400 font-bold' : isStarter ? 'text-amber-400 font-bold' : 'text-emerald-400 font-bold'}>
+              {isPro
+                ? '⭐ Pelan Pro (Tanpa Had)'
+                : isGrowth
+                ? `🚀 Pelan Growth (${totalCustomers}/120 Pelanggan)`
+                : isStarter
+                ? `✦ Pelan Starter (${totalCustomers}/50 Pelanggan)`
+                : `✦ Pelan Percuma (${totalCustomers}/20 Pelanggan)`}
             </span>
           </div>
         </div>
@@ -233,114 +242,259 @@ function BillingContent() {
           </div>
         )}
 
-        {/* PRICING CARDS GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch mb-10">
-          {/* 1. FREE PLAN (Exact Landing Page Wording) */}
+        {/* PRICING CARDS GRID (4 TIERS) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch mb-10">
+          {/* 1. FREE PLAN */}
           <div
-            className={`rounded-[28px] p-6 sm:p-7 flex flex-col justify-between transition-all ${
-              !isPro
-                ? 'bg-[#FAF2E2]/[0.08] border-2 border-[#E5A43B]/40 shadow-xl ring-1 ring-[#E5A43B]/20'
-                : 'bg-[#FAF2E2]/[0.04] border border-[#FAF2E2]/10 opacity-90'
+            className={`rounded-[26px] p-5 sm:p-6 flex flex-col justify-between transition-all ${
+              isFree
+                ? 'bg-[#FAF2E2]/[0.08] border-2 border-emerald-500/50 shadow-xl ring-1 ring-emerald-500/30'
+                : 'bg-[#FAF2E2]/[0.04] border border-[#FAF2E2]/10 opacity-80'
             }`}
           >
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-space text-xs uppercase tracking-wider font-bold text-[#8E9B95]">
-                  {lang === 'en' ? 'Starter' : 'Permulaan'}
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-space text-[11px] uppercase tracking-wider font-bold text-[#8E9B95]">
+                  {lang === 'en' ? 'Free' : 'Percuma'}
                 </span>
-                {!isPro && (
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                    {lang === 'en' ? 'Current Plan' : 'Pelan Semasa'}
+                {isFree && (
+                  <span className="px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    {lang === 'en' ? 'Active' : 'Aktif'}
                   </span>
                 )}
               </div>
 
-              <div className="font-fraunces text-2xl font-bold text-[#FAF2E2] mb-1">
+              <div className="font-fraunces text-xl font-bold text-[#FAF2E2] mb-1">
                 {lang === 'en' ? 'Free Plan' : 'Pelan Percuma'}
               </div>
-              <p className="text-xs text-[#C4B897] mb-5">
+              <p className="text-[11px] text-[#C4B897] mb-4">
                 {lang === 'en'
-                  ? 'Perfect for starting your digital stamp card system.'
+                  ? 'Great for testing out digital stamp cards.'
                   : 'Sesuai untuk memulakan sistem kad cop digital.'}
               </p>
 
-              <div className="flex items-baseline gap-1 mb-6 pb-6 border-b border-[#FAF2E2]/10">
-                <span className="font-fraunces text-4xl font-bold text-[#FAF2E2]">RM0</span>
-                <span className="text-xs text-[#8E9B95]">/{lang === 'en' ? 'month' : 'bulan'}</span>
+              <div className="flex items-baseline gap-1 mb-5 pb-5 border-b border-[#FAF2E2]/10">
+                <span className="font-fraunces text-3xl font-bold text-[#FAF2E2]">RM0</span>
+                <span className="text-xs text-[#8E9B95]">/{lang === 'en' ? 'mo' : 'bln'}</span>
               </div>
 
-              {/* FEATURES LIST (Matching Landing Page) */}
-              <ul className="space-y-3.5 text-xs mb-6">
-                <li className="flex items-center gap-2.5 text-[#FAF2E2]">
-                  <span className="w-5 h-5 rounded-full bg-[#1E5E53]/40 text-[#4EB89D] flex items-center justify-center text-[11px] font-bold shrink-0">✓</span>
-                  <span>{lang === 'en' ? 'Up to 20 new customer capacity' : 'Terhad sehingga 20 pelanggan baharu'}</span>
+              <ul className="space-y-2.5 text-xs mb-6">
+                <li className="flex items-center gap-2 text-[#FAF2E2]">
+                  <span className="w-4.5 h-4.5 rounded-full bg-[#1E5E53]/40 text-[#4EB89D] flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                  <span><strong>20 pelanggan</strong></span>
                 </li>
-                <li className="flex items-center gap-2.5 text-[#FAF2E2]">
-                  <span className="w-5 h-5 rounded-full bg-[#1E5E53]/40 text-[#4EB89D] flex items-center justify-center text-[11px] font-bold shrink-0">✓</span>
-                  <span>{lang === 'en' ? 'Full access to all essential features' : 'Akses penuh ke semua ciri asas'}</span>
+                <li className="flex items-center gap-2 text-[#FAF2E2]">
+                  <span className="w-4.5 h-4.5 rounded-full bg-[#1E5E53]/40 text-[#4EB89D] flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                  <span>Akses portal staf & QR</span>
                 </li>
-                <li className="flex items-center gap-2.5 text-[#8E9B95]/50">
-                  <span className="w-5 h-5 rounded-full bg-slate-800 text-slate-500 flex items-center justify-center text-[11px] font-bold shrink-0">–</span>
-                  <span className="line-through opacity-75">{lang === 'en' ? 'Email token dispatch (Pro exclusive)' : 'Hantar kad cop melalui emel (eksklusif Pro)'}</span>
+                <li className="flex items-center gap-2 text-[#FAF2E2]">
+                  <span className="w-4.5 h-4.5 rounded-full bg-[#1E5E53]/40 text-[#4EB89D] flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                  <span>Google Review 5-Bintang</span>
+                </li>
+                <li className="flex items-center gap-2 text-[#8E9B95]/50">
+                  <span className="w-4.5 h-4.5 rounded-full bg-slate-800 text-slate-500 flex items-center justify-center text-[10px] font-bold shrink-0">–</span>
+                  <span className="line-through opacity-75">Hantar cop via emel</span>
                 </li>
               </ul>
             </div>
 
             <div>
-              {!isPro ? (
-                <div className="w-full py-3.5 text-center text-xs font-bold text-[#8E9B95] bg-[#FAF2E2]/[0.06] rounded-xl border border-[#FAF2E2]/10">
-                  {lang === 'en' ? 'Active on this Store' : 'Aktif pada Kedai Ini'}
+              {isFree ? (
+                <div className="w-full py-3 text-center text-xs font-bold text-emerald-400 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                  {lang === 'en' ? 'Current Plan' : 'Pelan Semasa'}
                 </div>
               ) : (
                 <button
                   type="button"
                   onClick={handleOpenCustomerPortal}
                   disabled={isProcessing}
-                  className="w-full py-3.5 text-center text-xs font-bold text-[#FAF2E2]/80 hover:text-white bg-[#FAF2E2]/[0.08] hover:bg-[#FAF2E2]/15 rounded-xl border border-[#FAF2E2]/15 transition cursor-pointer"
+                  className="w-full py-3 text-center text-xs font-bold text-[#FAF2E2]/70 hover:text-white bg-[#FAF2E2]/[0.06] hover:bg-[#FAF2E2]/12 rounded-xl border border-[#FAF2E2]/10 transition cursor-pointer"
                 >
-                  {lang === 'en' ? 'Downgrade via Stripe Portal' : 'Tukar Pelan di Portal Stripe'}
+                  {lang === 'en' ? 'Manage in Portal' : 'Tukar di Portal'}
                 </button>
               )}
             </div>
           </div>
 
-          {/* 2. PRO PLAN (With Toggle Inside Card & Exact Landing Page Wording) */}
+          {/* 2. STARTER PLAN (RM15/bln - 50 Pelanggan) */}
           <div
-            className={`rounded-[28px] p-6 sm:p-7 flex flex-col justify-between relative transition-all ${
-              isPro
-                ? 'bg-gradient-to-b from-[#2A1A02] to-[#141F1D] border-2 border-emerald-400/50 shadow-2xl ring-2 ring-emerald-400/20'
-                : 'bg-gradient-to-b from-[#2A1A02] to-[#1A1008] border-2 border-[#E5A43B]/80 shadow-[0_20px_50px_rgba(229,164,59,0.18)] ring-2 ring-[#E5A43B]/30'
+            className={`rounded-[26px] p-5 sm:p-6 flex flex-col justify-between transition-all ${
+              isStarter
+                ? 'bg-[#FAF2E2]/[0.08] border-2 border-amber-400/60 shadow-xl ring-1 ring-amber-400/30'
+                : 'bg-[#FAF2E2]/[0.05] border border-[#FAF2E2]/15 hover:border-amber-400/40'
             }`}
           >
-            {/* BADGE */}
-            <div className="absolute -top-3.5 right-6 bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] text-[#1A2422] text-[10.5px] font-black uppercase tracking-wider py-1 px-3 rounded-full shadow-md font-space">
-              {isPro
-                ? (lang === 'en' ? '⭐ Your Current Plan' : '⭐ Pelan Anda Sekarang')
-                : (lang === 'en' ? '🔥 Most Popular' : '🔥 Paling Popular')}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-space text-[11px] uppercase tracking-wider font-bold text-amber-400">
+                  Starter
+                </span>
+                {isStarter && (
+                  <span className="px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                    {lang === 'en' ? 'Active' : 'Aktif'}
+                  </span>
+                )}
+              </div>
+
+              <div className="font-fraunces text-xl font-bold text-[#FAF2E2] mb-1">
+                {lang === 'en' ? 'Starter Plan' : 'Pelan Starter'}
+              </div>
+              <p className="text-[11px] text-[#C4B897] mb-4">
+                {lang === 'en'
+                  ? 'Extra capacity for small cafes and growing shops.'
+                  : 'Kapasiti tambahan untuk gerai dan kedai kecil.'}
+              </p>
+
+              <div className="flex items-baseline gap-1 mb-5 pb-5 border-b border-[#FAF2E2]/10">
+                <span className="font-fraunces text-3xl font-bold text-amber-400">RM15</span>
+                <span className="text-xs text-[#8E9B95]">/{lang === 'en' ? 'mo' : 'bln'}</span>
+              </div>
+
+              <ul className="space-y-2.5 text-xs mb-6">
+                <li className="flex items-center gap-2 text-[#FAF2E2]">
+                  <span className="w-4.5 h-4.5 rounded-full bg-amber-400/20 text-amber-400 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                  <span><strong>50 Pelanggan</strong> <span className="text-[10px] text-[#8E9B95]">(20+30)</span></span>
+                </li>
+                <li className="flex items-center gap-2 text-[#FAF2E2]">
+                  <span className="w-4.5 h-4.5 rounded-full bg-amber-400/20 text-amber-400 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                  <span>Semua ciri asas & kaunter</span>
+                </li>
+                <li className="flex items-center gap-2 text-[#FAF2E2]">
+                  <span className="w-4.5 h-4.5 rounded-full bg-amber-400/20 text-amber-400 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                  <span>Bluetooth Print & Review</span>
+                </li>
+                <li className="flex items-center gap-2 text-[#8E9B95]/50">
+                  <span className="w-4.5 h-4.5 rounded-full bg-slate-800 text-slate-500 flex items-center justify-center text-[10px] font-bold shrink-0">–</span>
+                  <span className="line-through opacity-75">Hantar cop via emel</span>
+                </li>
+              </ul>
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-space text-xs uppercase tracking-wider font-bold text-[#E5A43B]">
-                  {lang === 'en' ? 'Pro Plan' : 'Pelan Pro'}
+              {isStarter ? (
+                <div className="w-full py-3 text-center text-xs font-bold text-amber-400 bg-amber-400/10 rounded-xl border border-amber-400/20">
+                  {lang === 'en' ? 'Current Plan' : 'Pelan Semasa'}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleCheckout('starter')}
+                  disabled={isProcessing}
+                  className="w-full py-3 text-center text-xs font-bold text-[#1A2422] bg-gradient-to-r from-amber-400 to-amber-500 hover:brightness-110 active:scale-[0.98] rounded-xl shadow-md transition cursor-pointer disabled:opacity-50"
+                >
+                  {isProcessing ? '...' : lang === 'en' ? 'Select Starter RM15' : 'Langgan Starter RM15'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* 3. GROWTH PLAN (RM35/bln - 120 Pelanggan) */}
+          <div
+            className={`rounded-[26px] p-5 sm:p-6 flex flex-col justify-between transition-all ${
+              isGrowth
+                ? 'bg-[#FAF2E2]/[0.08] border-2 border-blue-400/60 shadow-xl ring-1 ring-blue-400/30'
+                : 'bg-[#FAF2E2]/[0.05] border border-[#FAF2E2]/15 hover:border-blue-400/40'
+            }`}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-space text-[11px] uppercase tracking-wider font-bold text-blue-400">
+                  Growth
+                </span>
+                {isGrowth && (
+                  <span className="px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-blue-400/20 text-blue-300 border border-blue-400/30">
+                    {lang === 'en' ? 'Active' : 'Aktif'}
+                  </span>
+                )}
+              </div>
+
+              <div className="font-fraunces text-xl font-bold text-[#FAF2E2] mb-1">
+                {lang === 'en' ? 'Growth Plan' : 'Pelan Growth'}
+              </div>
+              <p className="text-[11px] text-[#C4B897] mb-4">
+                {lang === 'en'
+                  ? 'For active stores with consistent daily customer flow.'
+                  : 'Untuk kedai dengan aliran pelanggan aktif setiap hari.'}
+              </p>
+
+              <div className="flex items-baseline gap-1 mb-5 pb-5 border-b border-[#FAF2E2]/10">
+                <span className="font-fraunces text-3xl font-bold text-blue-400">RM35</span>
+                <span className="text-xs text-[#8E9B95]">/{lang === 'en' ? 'mo' : 'bln'}</span>
+              </div>
+
+              <ul className="space-y-2.5 text-xs mb-6">
+                <li className="flex items-center gap-2 text-[#FAF2E2]">
+                  <span className="w-4.5 h-4.5 rounded-full bg-blue-400/20 text-blue-400 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                  <span><strong>120 Pelanggan</strong> <span className="text-[10px] text-[#8E9B95]">(20+100)</span></span>
+                </li>
+                <li className="flex items-center gap-2 text-[#FAF2E2]">
+                  <span className="w-4.5 h-4.5 rounded-full bg-blue-400/20 text-blue-400 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                  <span>Eksport Log Aktiviti (.CSV)</span>
+                </li>
+                <li className="flex items-center gap-2 text-[#FAF2E2]">
+                  <span className="w-4.5 h-4.5 rounded-full bg-blue-400/20 text-blue-400 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                  <span>Semua ciri asas & kaunter</span>
+                </li>
+                <li className="flex items-center gap-2 text-[#8E9B95]/50">
+                  <span className="w-4.5 h-4.5 rounded-full bg-slate-800 text-slate-500 flex items-center justify-center text-[10px] font-bold shrink-0">–</span>
+                  <span className="line-through opacity-75">Hantar cop via emel</span>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              {isGrowth ? (
+                <div className="w-full py-3 text-center text-xs font-bold text-blue-400 bg-blue-400/10 rounded-xl border border-blue-400/20">
+                  {lang === 'en' ? 'Current Plan' : 'Pelan Semasa'}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleCheckout('growth')}
+                  disabled={isProcessing}
+                  className="w-full py-3 text-center text-xs font-bold text-[#1A2422] bg-gradient-to-r from-blue-400 to-cyan-400 hover:brightness-110 active:scale-[0.98] rounded-xl shadow-md transition cursor-pointer disabled:opacity-50"
+                >
+                  {isProcessing ? '...' : lang === 'en' ? 'Select Growth RM35' : 'Langgan Growth RM35'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* 4. PRO PLAN (UNLIMITED) */}
+          <div
+            className={`rounded-[26px] p-5 sm:p-6 flex flex-col justify-between relative transition-all ${
+              isPro
+                ? 'bg-gradient-to-b from-[#2A1A02] to-[#141F1D] border-2 border-emerald-400/60 shadow-2xl ring-2 ring-emerald-400/30'
+                : 'bg-gradient-to-b from-[#2A1A02] to-[#1A1008] border-2 border-[#E5A43B] shadow-[0_15px_40px_rgba(229,164,59,0.2)] ring-1 ring-[#E5A43B]/40'
+            }`}
+          >
+            {/* BADGE */}
+            <div className="absolute -top-3 right-4 bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] text-[#1A2422] text-[9.5px] font-black uppercase tracking-wider py-0.5 px-2.5 rounded-full shadow-md font-space">
+              {isPro ? '⭐ Aktif' : '🔥 Unlimited'}
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-space text-[11px] uppercase tracking-wider font-bold text-[#E5A43B]">
+                  Pro
                 </span>
               </div>
 
-              <div className="font-fraunces text-2xl font-bold text-[#FAF2E2] mb-1">
+              <div className="font-fraunces text-xl font-bold text-[#FAF2E2] mb-1">
                 {lang === 'en' ? 'Pro Plan' : 'Pelan Pro'}
               </div>
-              <p className="text-xs text-[#C4B897] mb-4">
+              <p className="text-[11px] text-[#C4B897] mb-3">
                 {lang === 'en'
-                  ? 'For growing businesses requiring unlimited power and features.'
-                  : 'Untuk perniagaan yang berkembang tanpa sebarang had.'}
+                  ? 'Unlimited power and email dispatch.'
+                  : 'Kapasiti tanpa had & hantar cop via emel.'}
               </p>
 
               {/* TOGGLE INSIDE PRO CARD */}
-              <div className="mb-4 bg-[#0A1716]/60 border border-[#FAF2E2]/15 p-1 rounded-xl flex items-center gap-1 shadow-inner">
+              <div className="mb-3 bg-[#0A1716]/60 border border-[#FAF2E2]/15 p-1 rounded-lg flex items-center gap-1">
                 <button
                   type="button"
                   onClick={() => setBillingCycle('monthly')}
-                  className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`flex-1 py-1 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
                     billingCycle === 'monthly'
                       ? 'bg-[#E5A43B] text-[#1A2422] shadow-sm'
                       : 'text-[#FAF2E2]/70 hover:text-[#FAF2E2]'
@@ -351,53 +505,45 @@ function BillingContent() {
                 <button
                   type="button"
                   onClick={() => setBillingCycle('yearly')}
-                  className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  className={`flex-1 py-1 rounded text-[10.5px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1 ${
                     billingCycle === 'yearly'
                       ? 'bg-[#E5A43B] text-[#1A2422] shadow-sm'
                       : 'text-[#FAF2E2]/70 hover:text-[#FAF2E2]'
                   }`}
                 >
                   <span>{lang === 'en' ? 'Yearly' : 'Tahunan'}</span>
-                  <span className={`text-[9.5px] font-black px-1.5 py-0.2 rounded-full ${
+                  <span className={`text-[8.5px] font-black px-1 rounded-full ${
                     billingCycle === 'yearly' ? 'bg-[#1A2422]/20 text-[#1A2422]' : 'bg-emerald-500/20 text-emerald-400'
                   }`}>
-                    {lang === 'en' ? 'SAVE RM20' : 'JIMAT RM20'}
+                    -RM20
                   </span>
                 </button>
               </div>
 
               {/* PRICE DISPLAY */}
-              <div className="flex flex-col mb-6 pb-6 border-b border-[#FAF2E2]/15">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="font-fraunces text-4xl sm:text-5xl font-black text-[#E5A43B]">
+              <div className="flex flex-col mb-4 pb-4 border-b border-[#FAF2E2]/15">
+                <div className="flex items-baseline gap-1">
+                  <span className="font-fraunces text-3xl font-black text-[#E5A43B]">
                     {billingCycle === 'yearly' ? 'RM616' : 'RM53'}
                   </span>
                   <span className="text-xs text-[#C4B897]">
-                    /{billingCycle === 'yearly' ? (lang === 'en' ? 'year' : 'tahun') : (lang === 'en' ? 'month' : 'bulan')}
+                    /{billingCycle === 'yearly' ? (lang === 'en' ? 'yr' : 'thn') : (lang === 'en' ? 'mo' : 'bln')}
                   </span>
                 </div>
-                {billingCycle === 'yearly' && (
-                  <p className="text-emerald-400 text-xs font-bold mt-1 font-space">
-                    {lang === 'en'
-                      ? '≈ RM51.33/mo • Save RM20 compared to monthly billing'
-                      : '≈ RM51.33/bln • Jimat RM20 berbanding bayaran bulanan'}
-                  </p>
-                )}
               </div>
 
-              {/* PRO FEATURES LIST (Matching Landing Page) */}
-              <ul className="space-y-3.5 text-xs mb-6">
-                <li className="flex items-center gap-2.5 text-[#FAF2E2]">
-                  <span className="w-5 h-5 rounded-full bg-[#E5A43B]/20 text-[#E5A43B] flex items-center justify-center text-[11px] font-bold shrink-0">✓</span>
-                  <span><strong>{lang === 'en' ? 'Unlimited customer capacity' : 'Pelanggan tanpa had'}</strong></span>
+              <ul className="space-y-2.5 text-xs mb-6">
+                <li className="flex items-center gap-2 text-[#FAF2E2]">
+                  <span className="w-4.5 h-4.5 rounded-full bg-[#E5A43B]/20 text-[#E5A43B] flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                  <span><strong>Pelanggan Tanpa Had</strong></span>
                 </li>
-                <li className="flex items-center gap-2.5 text-[#FAF2E2]">
-                  <span className="w-5 h-5 rounded-full bg-[#E5A43B]/20 text-[#E5A43B] flex items-center justify-center text-[11px] font-bold shrink-0">✓</span>
-                  <span>{lang === 'en' ? 'Unlimited email stamp dispatch' : 'Hantar kad cop melalui emel tanpa had'}</span>
+                <li className="flex items-center gap-2 text-[#FAF2E2]">
+                  <span className="w-4.5 h-4.5 rounded-full bg-[#E5A43B]/20 text-[#E5A43B] flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                  <span>Hantar cop via emel</span>
                 </li>
-                <li className="flex items-center gap-2.5 text-[#FAF2E2]">
-                  <span className="w-5 h-5 rounded-full bg-[#E5A43B]/20 text-[#E5A43B] flex items-center justify-center text-[11px] font-bold shrink-0">✓</span>
-                  <span>{lang === 'en' ? 'Full access to all premium features' : 'Akses penuh ke semua ciri premium'}</span>
+                <li className="flex items-center gap-2 text-[#FAF2E2]">
+                  <span className="w-4.5 h-4.5 rounded-full bg-[#E5A43B]/20 text-[#E5A43B] flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                  <span>Sokongan Keutamaan</span>
                 </li>
               </ul>
             </div>
@@ -408,24 +554,20 @@ function BillingContent() {
                   type="button"
                   onClick={handleOpenCustomerPortal}
                   disabled={isProcessing}
-                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:brightness-110 active:scale-[0.98] text-white font-jakarta font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-lg disabled:opacity-50"
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:brightness-110 active:scale-[0.98] text-white font-bold text-xs transition flex items-center justify-center gap-1 cursor-pointer shadow-lg disabled:opacity-50"
                 >
-                  <span>{isProcessing ? (lang === 'en' ? 'Processing...' : 'Memproses...') : (lang === 'en' ? 'Manage Billing & Invoices (Stripe Portal) ↗' : 'Urus Langganan & Invois (Stripe Portal) ↗')}</span>
+                  <span>{lang === 'en' ? 'Manage Billing ↗' : 'Urus Langganan ↗'}</span>
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={() => handleCheckout(billingCycle)}
                   disabled={isProcessing}
-                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] hover:brightness-110 active:scale-[0.98] text-[#1A2422] font-jakarta font-black text-sm transition flex items-center justify-center gap-2 cursor-pointer shadow-[0_4px_20px_rgba(229,164,59,0.4)] hover:shadow-[0_4px_28px_rgba(229,164,59,0.55)] disabled:opacity-50"
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] hover:brightness-110 active:scale-[0.98] text-[#1A2422] font-black text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md disabled:opacity-50"
                 >
-                  <span>{isProcessing ? (lang === 'en' ? 'Redirecting to Stripe...' : 'Menghubungkan ke Stripe...') : (lang === 'en' ? 'Subscribe to Pro Now ⚡' : 'Langgan Pelan Pro Sekarang ⚡')}</span>
+                  <span>{isProcessing ? '...' : lang === 'en' ? 'Select Pro ⚡' : 'Langgan Pro ⚡'}</span>
                 </button>
               )}
-
-              <p className="text-center text-[11px] text-[#8E9B95] mt-3">
-                {lang === 'en' ? 'Secure payments via Stripe • Cancel anytime' : 'Bayaran selamat melalui Stripe • Batal bila-bila masa'}
-              </p>
             </div>
           </div>
         </div>

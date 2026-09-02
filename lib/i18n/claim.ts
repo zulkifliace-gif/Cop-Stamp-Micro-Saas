@@ -113,7 +113,7 @@ export const I18N_CLAIM: Record<Lang, ClaimTranslation> = {
         unsuccessfulTitle: 'Penebusan Tidak Berjaya',
         defaultError: 'Token ini tidak sah atau telah tamat tempoh.',
         customerLimitReached:
-          'Kedai ini telah mencapai had maksimum pelanggan bagi Pelan Percuma. Sila maklumkan kepada pihak kedai untuk menaik taraf pelan mereka.',
+          'Kedai ini telah mencapai had maksimum pelanggan bagi pelan semasa. Sila maklumkan kepada pihak kedai untuk menaik taraf pelan mereka.',
         connError: 'Ralat sambungan. Sila cuba lagi.',
         viewMyCard: 'Lihat Kad Cop Saya',
         useAtYourStore: 'Guna sistem cop di kedai anda',
@@ -209,7 +209,7 @@ export const I18N_CLAIM: Record<Lang, ClaimTranslation> = {
         unsuccessfulTitle: 'Claim Unsuccessful',
         defaultError: 'This token is invalid or has expired.',
         customerLimitReached:
-          'This store has reached the maximum customer limit for the Free Plan. Please inform the store owner to upgrade their plan.',
+          'This store has reached the maximum customer capacity for their current plan. Please inform the store owner to upgrade their plan.',
         connError: 'Connection error. Please try again.',
         viewMyCard: 'View My Stamp Card',
         useAtYourStore: 'Use digital stamp system for your store',

@@ -9,27 +9,37 @@ export const stripe = new Stripe(
 )
 
 /**
- * Auto-creates LajuS Pro products & prices in Stripe if they do not exist yet.
- * Called once during first API request. Price IDs cached in process.env.
+ * Auto-creates LajuS products & prices in Stripe if they do not exist yet.
+ * Supports:
+ * - Starter: RM 15/month (50 customers)
+ * - Growth: RM 35/month (120 customers)
+ * - Pro Monthly: RM 53/month (Unlimited)
+ * - Pro Yearly: RM 616/year (Unlimited)
  */
 export async function ensureStripeProducts(): Promise<{
+  starterPriceId: string
+  growthPriceId: string
   monthlyPriceId: string
   yearlyPriceId: string
 }> {
   if (
+    process.env.STRIPE_PRICE_STARTER &&
+    process.env.STRIPE_PRICE_GROWTH &&
     process.env.STRIPE_PRICE_MONTHLY &&
     process.env.STRIPE_PRICE_YEARLY
   ) {
     return {
+      starterPriceId: process.env.STRIPE_PRICE_STARTER,
+      growthPriceId: process.env.STRIPE_PRICE_GROWTH,
       monthlyPriceId: process.env.STRIPE_PRICE_MONTHLY,
       yearlyPriceId: process.env.STRIPE_PRICE_YEARLY,
     }
   }
 
-  // 1. Find or create the product
+  // 1. Find or create the main product
   let product: Stripe.Product | null = null
   const existingProducts = await stripe.products.search({
-    query: 'name:"LajuS Pro" AND active:"true"',
+    query: 'name:"LajuS Pro" OR name:"LajuS Loyalty" AND active:"true"',
     limit: 1,
   })
 
@@ -38,59 +48,99 @@ export async function ensureStripeProducts(): Promise<{
     console.log('[Stripe Setup] Found existing product:', product.id)
   } else {
     product = await stripe.products.create({
-      name: 'LajuS Pro',
+      name: 'LajuS Loyalty',
       description:
-        'Pelan Pro LajuS - Sistem Loyalty Stamp Digital tanpa had pelanggan, QR resit, Bluetooth print, analitik & log aktiviti.',
-      metadata: { app: 'lajus', tier: 'pro' },
+        'Sistem Kad Kesetiaan & Cop Stamp Digital LajuS untuk peniaga.',
+      metadata: { app: 'lajus' },
     })
     console.log('[Stripe Setup] Created new product:', product.id)
   }
 
-  // 2. Find or create Monthly price (RM 53 = 5300 cents)
-  let monthlyPrice: Stripe.Price | null = null
-  const allPrices = await stripe.prices.list({ product: product.id, active: true, limit: 20 })
+  const allPrices = await stripe.prices.list({ product: product.id, active: true, limit: 50 })
 
+  // 2. Starter Price (RM 15 = 1500 cents / month)
+  let starterPrice: Stripe.Price | null = null
+  const foundStarter = allPrices.data.find(
+    (p) => p.recurring?.interval === 'month' && p.unit_amount === 1500 && p.currency === 'myr'
+  )
+  if (foundStarter) {
+    starterPrice = foundStarter
+  } else {
+    starterPrice = await stripe.prices.create({
+      product: product.id,
+      unit_amount: 1500,
+      currency: 'myr',
+      recurring: { interval: 'month', interval_count: 1 },
+      nickname: 'LajuS Starter - Bulanan RM15 (50 Pelanggan)',
+      metadata: { plan: 'starter', app: 'lajus' },
+    })
+  }
+
+  // 3. Growth Price (RM 35 = 3500 cents / month)
+  let growthPrice: Stripe.Price | null = null
+  const foundGrowth = allPrices.data.find(
+    (p) => p.recurring?.interval === 'month' && p.unit_amount === 3500 && p.currency === 'myr'
+  )
+  if (foundGrowth) {
+    growthPrice = foundGrowth
+  } else {
+    growthPrice = await stripe.prices.create({
+      product: product.id,
+      unit_amount: 3500,
+      currency: 'myr',
+      recurring: { interval: 'month', interval_count: 1 },
+      nickname: 'LajuS Growth - Bulanan RM35 (120 Pelanggan)',
+      metadata: { plan: 'growth', app: 'lajus' },
+    })
+  }
+
+  // 4. Pro Monthly Price (RM 53 = 5300 cents / month)
+  let monthlyPrice: Stripe.Price | null = null
   const foundMonthly = allPrices.data.find(
     (p) => p.recurring?.interval === 'month' && p.unit_amount === 5300 && p.currency === 'myr'
   )
   if (foundMonthly) {
     monthlyPrice = foundMonthly
-    console.log('[Stripe Setup] Found existing monthly price:', monthlyPrice.id)
   } else {
     monthlyPrice = await stripe.prices.create({
       product: product.id,
       unit_amount: 5300,
       currency: 'myr',
       recurring: { interval: 'month', interval_count: 1 },
-      nickname: 'LajuS Pro - Bulanan RM53',
+      nickname: 'LajuS Pro - Bulanan RM53 (Tanpa Had)',
       metadata: { plan: 'monthly', app: 'lajus' },
     })
-    console.log('[Stripe Setup] Created monthly price:', monthlyPrice.id)
   }
 
-  // 3. Find or create Yearly price (RM 616 = 61600 cents)
+  // 5. Pro Yearly Price (RM 616 = 61600 cents / year)
   let yearlyPrice: Stripe.Price | null = null
   const foundYearly = allPrices.data.find(
     (p) => p.recurring?.interval === 'year' && p.unit_amount === 61600 && p.currency === 'myr'
   )
   if (foundYearly) {
     yearlyPrice = foundYearly
-    console.log('[Stripe Setup] Found existing yearly price:', yearlyPrice.id)
   } else {
     yearlyPrice = await stripe.prices.create({
       product: product.id,
       unit_amount: 61600,
       currency: 'myr',
       recurring: { interval: 'year', interval_count: 1 },
-      nickname: 'LajuS Pro - Tahunan RM616',
+      nickname: 'LajuS Pro - Tahunan RM616 (Tanpa Had)',
       metadata: { plan: 'yearly', app: 'lajus' },
     })
-    console.log('[Stripe Setup] Created yearly price:', yearlyPrice.id)
   }
 
+  process.env.STRIPE_PRICE_STARTER = starterPrice.id
+  process.env.STRIPE_PRICE_GROWTH = growthPrice.id
   process.env.STRIPE_PRICE_MONTHLY = monthlyPrice.id
   process.env.STRIPE_PRICE_YEARLY = yearlyPrice.id
-  console.log('[Stripe Setup] Ready - Monthly:', monthlyPrice.id, '| Yearly:', yearlyPrice.id)
 
-  return { monthlyPriceId: monthlyPrice.id, yearlyPriceId: yearlyPrice.id }
+  console.log('[Stripe Setup] Ready - Starter:', starterPrice.id, '| Growth:', growthPrice.id, '| Pro M:', monthlyPrice.id, '| Pro Y:', yearlyPrice.id)
+
+  return {
+    starterPriceId: starterPrice.id,
+    growthPriceId: growthPrice.id,
+    monthlyPriceId: monthlyPrice.id,
+    yearlyPriceId: yearlyPrice.id,
+  }
 }

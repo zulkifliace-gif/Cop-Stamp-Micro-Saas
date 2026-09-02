@@ -212,7 +212,7 @@ export default function LandingPage() {
   const t = I18N_LANDING[lang]
   const currentRotatingWords = t.rotatingWords
 
-  async function handleSelectPlan(plan: 'free' | 'monthly' | 'yearly') {
+  async function handleSelectPlan(plan: 'free' | 'starter' | 'growth' | 'monthly' | 'yearly') {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
       setAuthOpen(true)
@@ -751,91 +751,182 @@ export default function LandingPage() {
             </div>
           </ScrollReveal>
 
-          {/* Plan Cards */}
-          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          {/* Plan Cards (4 Tiers) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto items-stretch">
 
-            {/* FREE PLAN */}
+            {/* 1. FREE PLAN */}
             <ScrollReveal delay={0}>
-              <div className="h-full flex flex-col bg-slate-900 border border-slate-700 rounded-3xl p-7 shadow-xl hover:border-slate-500 transition-all duration-300">
-                <div className="mb-6">
-                  <div className="font-black text-white text-2xl mb-1">{t.pricing.freeTitle}</div>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-5xl font-black text-white">RM0</span>
-                    <span className="text-slate-400 text-sm">{t.pricing.freePeriod}</span>
+              <div className="h-full flex flex-col bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-xl hover:border-slate-500 transition-all duration-300 justify-between">
+                <div>
+                  <div className="mb-4">
+                    <div className="font-black text-white text-xl mb-1">{t.pricing.freeTitle}</div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-4xl font-black text-white">RM0</span>
+                      <span className="text-slate-400 text-xs">{t.pricing.freePeriod}</span>
+                    </div>
+                    <p className="text-slate-400 text-xs mt-2">{t.pricing.freeDesc}</p>
                   </div>
-                  <p className="text-slate-400 text-sm mt-2">{t.pricing.freeDesc}</p>
-                </div>
 
-                <ul className="space-y-3.5 flex-1 mb-7">
-                  {t.pricing.freeFeatures.map(([icon, label, active]) => (
-                    <li key={String(label)} className={`flex items-center gap-2.5 text-sm ${active ? 'text-slate-200' : 'text-slate-500'}`}>
-                      <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${active ? 'bg-[#1E5E53]/30 text-[#4EB89D]' : 'bg-slate-800 text-slate-500'}`}>
-                        {String(icon)}
-                      </span>
-                      <span className={active ? '' : 'line-through opacity-75'}>{String(label)}</span>
-                    </li>
-                  ))}
-                </ul>
+                  <ul className="space-y-3 mb-6">
+                    {t.pricing.freeFeatures.map(([icon, label, active]) => (
+                      <li key={String(label)} className={`flex items-center gap-2 text-xs ${active ? 'text-slate-200' : 'text-slate-500'}`}>
+                        <span className={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${active ? 'bg-[#1E5E53]/30 text-[#4EB89D]' : 'bg-slate-800 text-slate-500'}`}>
+                          {String(icon)}
+                        </span>
+                        <span className={active ? '' : 'line-through opacity-75'}>{String(label)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
                 <button
                   onClick={() => handleSelectPlan('free')}
                   disabled={planLoading === 'free'}
-                  className="w-full py-3.5 rounded-2xl border-2 border-[#1E5E53] text-[#4EB89D] font-bold text-sm hover:bg-[#1E5E53]/20 transition cursor-pointer disabled:opacity-60 active:scale-[0.98]"
+                  className="w-full py-3 rounded-2xl border-2 border-[#1E5E53] text-[#4EB89D] font-bold text-xs hover:bg-[#1E5E53]/20 transition cursor-pointer disabled:opacity-60 active:scale-[0.98]"
                 >
                   {planLoading === 'free' ? (lang === 'en' ? 'Processing...' : 'Memproses...') : t.pricing.freeCta}
                 </button>
               </div>
             </ScrollReveal>
 
-            {/* PRO PLAN */}
-            <ScrollReveal delay={80}>
-              <div className="h-full flex flex-col bg-gradient-to-b from-[#2A1A02] to-[#1A1008] border-2 border-[#E5A43B]/60 rounded-3xl p-7 shadow-[0_0_40px_rgba(229,164,59,0.15)] relative overflow-hidden hover:shadow-[0_0_60px_rgba(229,164,59,0.25)] transition-all duration-300">
-                <div className="mb-6">
-                  <div className="font-black text-white text-2xl mb-1">{t.pricing.proTitle}</div>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-5xl font-black text-[#E5A43B]">
-                      {billingCycle === 'yearly' ? 'RM616' : 'RM53'}
-                    </span>
-                    <span className="text-slate-400 text-sm">
-                      {billingCycle === 'yearly' ? t.pricing.proPeriodYearly : t.pricing.proPeriodMonthly}
-                    </span>
+            {/* 2. STARTER PLAN (RM15/bln - 50 Pelanggan) */}
+            <ScrollReveal delay={40}>
+              <div className="h-full flex flex-col bg-slate-900/90 border-2 border-amber-500/40 hover:border-amber-400 rounded-3xl p-6 shadow-xl transition-all duration-300 justify-between">
+                <div>
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-black text-white text-xl">{t.pricing.starterTitle}</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                        RM15/bln
+                      </span>
+                    </div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-4xl font-black text-amber-400">RM15</span>
+                      <span className="text-slate-400 text-xs">{t.pricing.starterPeriod}</span>
+                    </div>
+                    <p className="text-slate-400 text-xs mt-2">{t.pricing.starterDesc}</p>
                   </div>
-                  {billingCycle === 'yearly' && (
-                    <p className="text-emerald-400 text-xs font-bold mt-1">
-                      {t.pricing.proYearlyNote}
-                    </p>
-                  )}
-                  <p className="text-slate-400 text-sm mt-2">{t.pricing.proDesc}</p>
+
+                  <ul className="space-y-3 mb-6">
+                    {t.pricing.starterFeatures.map(([icon, label, active]) => (
+                      <li key={String(label)} className={`flex items-center gap-2 text-xs ${active ? 'text-slate-200' : 'text-slate-500'}`}>
+                        <span className={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${active ? 'bg-amber-400/20 text-amber-400' : 'bg-slate-800 text-slate-500'}`}>
+                          {String(icon)}
+                        </span>
+                        <span className={active ? '' : 'line-through opacity-75'}>{String(label)}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
 
-                <ul className="space-y-3.5 flex-1 mb-7">
-                  {t.pricing.proFeatures.map((label) => (
-                    <li key={label} className="flex items-center gap-2.5 text-sm text-slate-200">
-                      <span className="w-5 h-5 rounded-full bg-[#E5A43B]/20 text-[#E5A43B] flex items-center justify-center text-[11px] font-bold shrink-0">
-                        ✓
+                <button
+                  onClick={() => handleSelectPlan('starter')}
+                  disabled={planLoading === 'starter'}
+                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 hover:brightness-110 text-slate-900 font-bold text-xs transition cursor-pointer disabled:opacity-60 active:scale-[0.98] shadow-md"
+                >
+                  {planLoading === 'starter' ? (lang === 'en' ? 'Processing...' : 'Memproses...') : t.pricing.starterCta}
+                </button>
+              </div>
+            </ScrollReveal>
+
+            {/* 3. GROWTH PLAN (RM35/bln - 120 Pelanggan) */}
+            <ScrollReveal delay={80}>
+              <div className="h-full flex flex-col bg-slate-900/90 border-2 border-blue-500/40 hover:border-blue-400 rounded-3xl p-6 shadow-xl transition-all duration-300 justify-between">
+                <div>
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-black text-white text-xl">{t.pricing.growthTitle}</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-400/20 text-blue-300 border border-blue-400/30">
+                        RM35/bln
                       </span>
-                      {label}
-                    </li>
-                  ))}
-                </ul>
+                    </div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-4xl font-black text-blue-400">RM35</span>
+                      <span className="text-slate-400 text-xs">{t.pricing.growthPeriod}</span>
+                    </div>
+                    <p className="text-slate-400 text-xs mt-2">{t.pricing.growthDesc}</p>
+                  </div>
+
+                  <ul className="space-y-3 mb-6">
+                    {t.pricing.growthFeatures.map(([icon, label, active]) => (
+                      <li key={String(label)} className={`flex items-center gap-2 text-xs ${active ? 'text-slate-200' : 'text-slate-500'}`}>
+                        <span className={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${active ? 'bg-blue-400/20 text-blue-400' : 'bg-slate-800 text-slate-500'}`}>
+                          {String(icon)}
+                        </span>
+                        <span className={active ? '' : 'line-through opacity-75'}>{String(label)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
                 <button
-                  onClick={() => handleSelectPlan(billingCycle)}
-                  disabled={planLoading === billingCycle}
-                  className="w-full py-4 rounded-2xl bg-gradient-to-b from-[#E7A33E] to-[#C77B1B] text-slate-900 font-black text-sm shadow-[0_4px_20px_rgba(229,164,59,0.4)] hover:shadow-[0_4px_28px_rgba(229,164,59,0.55)] hover:-translate-y-0.5 transition-all cursor-pointer disabled:opacity-60 active:scale-[0.98] flex items-center justify-center gap-2"
+                  onClick={() => handleSelectPlan('growth')}
+                  disabled={planLoading === 'growth'}
+                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-blue-400 to-cyan-400 hover:brightness-110 text-slate-900 font-bold text-xs transition cursor-pointer disabled:opacity-60 active:scale-[0.98] shadow-md"
                 >
-                  {planLoading === billingCycle ? (
-                    lang === 'en' ? 'Processing...' : 'Memproses...'
-                  ) : (
-                    <>
-                      {t.pricing.proCta}
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    </>
-                  )}
+                  {planLoading === 'growth' ? (lang === 'en' ? 'Processing...' : 'Memproses...') : t.pricing.growthCta}
                 </button>
-                <p className="text-center text-[11px] text-slate-500 mt-3">
-                  {t.pricing.proSecurity}
-                </p>
+              </div>
+            </ScrollReveal>
+
+            {/* 4. PRO PLAN (UNLIMITED) */}
+            <ScrollReveal delay={120}>
+              <div className="h-full flex flex-col bg-gradient-to-b from-[#2A1A02] to-[#1A1008] border-2 border-[#E5A43B] rounded-3xl p-6 shadow-[0_0_40px_rgba(229,164,59,0.2)] relative overflow-hidden hover:shadow-[0_0_60px_rgba(229,164,59,0.3)] transition-all duration-300 justify-between">
+                <div>
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-black text-white text-xl">{t.pricing.proTitle}</span>
+                      <span className="px-2 py-0.5 rounded-full text-[9.5px] font-black bg-[#E5A43B] text-slate-900">
+                        UNLIMITED
+                      </span>
+                    </div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-4xl font-black text-[#E5A43B]">
+                        {billingCycle === 'yearly' ? 'RM616' : 'RM53'}
+                      </span>
+                      <span className="text-slate-400 text-xs">
+                        {billingCycle === 'yearly' ? t.pricing.proPeriodYearly : t.pricing.proPeriodMonthly}
+                      </span>
+                    </div>
+                    {billingCycle === 'yearly' && (
+                      <p className="text-emerald-400 text-[11px] font-bold mt-1">
+                        {t.pricing.proYearlyNote}
+                      </p>
+                    )}
+                    <p className="text-slate-400 text-xs mt-2">{t.pricing.proDesc}</p>
+                  </div>
+
+                  <ul className="space-y-3 mb-6">
+                    {t.pricing.proFeatures.map((label) => (
+                      <li key={label} className="flex items-center gap-2 text-xs text-slate-200">
+                        <span className="w-4.5 h-4.5 rounded-full bg-[#E5A43B]/20 text-[#E5A43B] flex items-center justify-center text-[10px] font-bold shrink-0">
+                          ✓
+                        </span>
+                        <span>{label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <button
+                    onClick={() => handleSelectPlan(billingCycle)}
+                    disabled={planLoading === billingCycle}
+                    className="w-full py-3.5 rounded-2xl bg-gradient-to-b from-[#E7A33E] to-[#C77B1B] text-slate-900 font-black text-xs shadow-[0_4px_20px_rgba(229,164,59,0.4)] hover:shadow-[0_4px_28px_rgba(229,164,59,0.55)] hover:-translate-y-0.5 transition-all cursor-pointer disabled:opacity-60 active:scale-[0.98] flex items-center justify-center gap-1.5"
+                  >
+                    {planLoading === billingCycle ? (
+                      lang === 'en' ? 'Processing...' : 'Memproses...'
+                    ) : (
+                      <>
+                        <span>{t.pricing.proCta}</span>
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                      </>
+                    )}
+                  </button>
+                  <p className="text-center text-[10px] text-slate-500 mt-2">
+                    {t.pricing.proSecurity}
+                  </p>
+                </div>
               </div>
             </ScrollReveal>
           </div>

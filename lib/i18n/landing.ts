@@ -95,6 +95,16 @@ export interface LandingTranslation {
     freeDesc: string
     freeFeatures: [string, string, boolean][]
     freeCta: string
+    starterTitle: string
+    starterPeriod: string
+    starterDesc: string
+    starterFeatures: [string, string, boolean][]
+    starterCta: string
+    growthTitle: string
+    growthPeriod: string
+    growthDesc: string
+    growthFeatures: [string, string, boolean][]
+    growthCta: string
     proTitle: string
     proPeriodMonthly: string
     proPeriodYearly: string
@@ -225,7 +235,7 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
       badge: '💳 Pricing & Plans',
       titlePrefix: 'Pilih Pelan ',
       titleHighlight: 'Terbaik Untuk Kedai Anda',
-      subtitle: 'Bermula percuma. Naik taraf bila perniagaan anda semakin berkembang pesat.',
+      subtitle: 'Bermula percuma. Naik taraf mengikut bilangan pelanggan kedai anda.',
       monthly: 'Bulanan',
       yearly: 'Tahunan',
       saveBadge: 'JIMAT RM20',
@@ -238,15 +248,33 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
         ['–', 'Hantar kad cop melalui emel (eksklusif Pro)', false],
       ],
       freeCta: 'Mula Percuma Sekarang →',
+      starterTitle: 'Pelan Starter',
+      starterPeriod: '/bulan',
+      starterDesc: 'Kapasiti tambahan untuk kedai kecil & gerai.',
+      starterFeatures: [
+        ['✓', 'Sehingga 50 pelanggan (20 Percuma + 30)', true],
+        ['✓', 'Semua ciri asas, kaunter & Bluetooth Print', true],
+        ['–', 'Hantar kad cop melalui emel (eksklusif Pro)', false],
+      ],
+      starterCta: 'Langgan Starter RM15',
+      growthTitle: 'Pelan Growth',
+      growthPeriod: '/bulan',
+      growthDesc: 'Paling popular untuk kedai dengan trafik aktif.',
+      growthFeatures: [
+        ['✓', 'Sehingga 120 pelanggan (20 Percuma + 100)', true],
+        ['✓', 'Eksport laporan log aktiviti (.CSV)', true],
+        ['–', 'Hantar kad cop melalui emel (eksklusif Pro)', false],
+      ],
+      growthCta: 'Langgan Growth RM35',
       proTitle: 'Pelan Pro',
       proPeriodMonthly: '/bulan',
       proPeriodYearly: '/tahun',
       proYearlyNote: '≈ RM51.33/bln • Jimat RM20 berbanding bayaran bulanan',
       proDesc: 'Untuk perniagaan yang berkembang tanpa sebarang had.',
       proFeatures: [
-        'Pelanggan tanpa had',
+        'Pelanggan tanpa had (Unlimited)',
         'Hantar kad cop melalui emel tanpa had',
-        'Akses penuh ke semua ciri premium',
+        'Akses penuh semua ciri premium & sokongan keutamaan',
       ],
       proCta: 'Langgan Pelan Pro Sekarang',
       proSecurity: 'Bayaran selamat melalui Stripe • Batal bila-bila masa',
@@ -260,7 +288,7 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
       },
       {
         q: 'Berapa kos untuk menggunakan LajuS?',
-        a: 'LajuS menawarkan Pelan Percuma (sehingga 20 pelanggan) untuk bermula tanpa sebarang kos. Pelan Pro pula berharga RM53/bulan atau RM616/tahun (jimat RM20) untuk pelanggan tanpa had, cetak resit Bluetooth, analitik lanjut, dan sokongan keutamaan.',
+        a: 'LajuS menawarkan Pelan Percuma (sehingga 20 pelanggan). Untuk kuota tambahan, anda boleh melanggan Pelan Starter (RM15/bln, sehingga 50 pelanggan), Pelan Growth (RM35/bln, sehingga 120 pelanggan), atau Pelan Pro (RM53/bln atau RM616/thn) untuk pelanggan tanpa had dan ciri penghantaran emel.',
       },
       {
         q: 'Bolehkah lebih dari satu staff gunakan sistem ini?',
@@ -391,7 +419,7 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
       badge: '💳 Pricing & Plans',
       titlePrefix: 'Choose The Best Plan ',
       titleHighlight: 'For Your Business',
-      subtitle: 'Start free. Upgrade as your business grows and scales.',
+      subtitle: 'Start free. Upgrade as your customer base expands.',
       monthly: 'Monthly',
       yearly: 'Yearly',
       saveBadge: 'SAVE RM20',
@@ -400,19 +428,37 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
       freeDesc: 'Perfect for starting your digital stamp card system.',
       freeFeatures: [
         ['✓', 'Up to 20 new customer capacity', true],
-        ['✓', 'Full access to all essential features', true],
+        ['✓', 'Full access to essential features & counter', true],
         ['–', 'Email token dispatch (Pro exclusive)', false],
       ],
       freeCta: 'Start Free Now →',
+      starterTitle: 'Starter Plan',
+      starterPeriod: '/month',
+      starterDesc: 'Extra capacity for small shops and cafes.',
+      starterFeatures: [
+        ['✓', 'Up to 50 customers (20 Free + 30)', true],
+        ['✓', 'Full access to counter & Bluetooth Print', true],
+        ['–', 'Email token dispatch (Pro exclusive)', false],
+      ],
+      starterCta: 'Subscribe Starter RM15',
+      growthTitle: 'Growth Plan',
+      growthPeriod: '/month',
+      growthDesc: 'Most popular for stores with active traffic.',
+      growthFeatures: [
+        ['✓', 'Up to 120 customers (20 Free + 100)', true],
+        ['✓', 'Export activity report (.CSV)', true],
+        ['–', 'Email token dispatch (Pro exclusive)', false],
+      ],
+      growthCta: 'Subscribe Growth RM35',
       proTitle: 'Pro Plan',
       proPeriodMonthly: '/month',
       proPeriodYearly: '/year',
       proYearlyNote: '≈ RM51.33/mo • Save RM20 compared to monthly billing',
-      proDesc: 'For growing businesses requiring unlimited power and features.',
+      proDesc: 'For growing businesses requiring unlimited power.',
       proFeatures: [
         'Unlimited customer capacity',
         'Unlimited email stamp dispatch',
-        'Full access to all premium features',
+        'Full access to all premium features & priority support',
       ],
       proCta: 'Subscribe to Pro Now',
       proSecurity: 'Secure payments via Stripe • Cancel anytime',
@@ -426,7 +472,7 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
       },
       {
         q: 'How much does LajuS cost?',
-        a: 'LajuS offers a Free Plan (up to 20 customers) to get started with zero cost. The Pro Plan is RM53/month or RM616/year (save RM20) for unlimited customers, Bluetooth receipt printing, advanced analytics, and priority support.',
+        a: 'LajuS offers a Free Plan (up to 20 customers). For extra capacity, you can subscribe to Starter (RM15/mo, up to 50 customers), Growth (RM35/mo, up to 120 customers), or Pro (RM53/mo or RM616/yr) for unlimited customers and email stamp dispatch.',
       },
       {
         q: 'Can multiple staff members use the system?',
