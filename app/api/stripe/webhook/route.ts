@@ -60,17 +60,10 @@ export async function POST(req: NextRequest) {
       case 'checkout.session.completed': {
         const session = event.data.object
         const storeId = session.metadata?.store_id
-        const rawPlanType = session.metadata?.plan_type || 'monthly'
+        const planType = session.metadata?.plan_type || 'monthly'
         processedStoreId = storeId || null
 
-        const targetPlan =
-          rawPlanType === 'starter'
-            ? 'starter'
-            : rawPlanType === 'growth'
-            ? 'growth'
-            : 'pro'
-
-        console.log(`[Stripe Webhook] Checkout completed for store: ${storeId}, plan: ${targetPlan}`)
+        console.log(`[Stripe Webhook] Checkout completed for store: ${storeId}, plan: ${planType}`)
 
         if (storeId) {
           await admin
@@ -79,7 +72,7 @@ export async function POST(req: NextRequest) {
               subscription_status: 'active',
               stripe_customer_id: session.customer || null,
               stripe_subscription_id: session.subscription || null,
-              plan_type: targetPlan,
+              plan_type: 'pro',
             })
             .eq('id', storeId)
         }
@@ -96,35 +89,17 @@ export async function POST(req: NextRequest) {
         if (status === 'past_due' || status === 'unpaid') mappedStatus = 'past_due'
         if (status === 'canceled') mappedStatus = 'cancelled'
 
-        // Determine plan_type from price amount or metadata
-        const priceAmount = sub.items?.data?.[0]?.price?.unit_amount
-        const metaPlan = sub.metadata?.plan_type
-        let updatedPlanType: string | undefined = undefined
-
-        if (metaPlan === 'starter' || priceAmount === 1500) {
-          updatedPlanType = 'starter'
-        } else if (metaPlan === 'growth' || priceAmount === 3500) {
-          updatedPlanType = 'growth'
-        } else if (metaPlan === 'monthly' || metaPlan === 'yearly' || metaPlan === 'pro' || priceAmount === 5300 || priceAmount === 61600) {
-          updatedPlanType = 'pro'
-        }
-
-        console.log(`[Stripe Webhook] Subscription updated for store: ${storeId}, status: ${status}, plan: ${updatedPlanType || 'unchanged'}`)
-
-        const updates: any = { subscription_status: mappedStatus }
-        if (updatedPlanType) {
-          updates.plan_type = updatedPlanType
-        }
+        console.log(`[Stripe Webhook] Subscription updated for store: ${storeId}, status: ${status}`)
 
         if (storeId) {
           await admin
             .from('stores')
-            .update(updates)
+            .update({ subscription_status: mappedStatus, plan_type: mappedStatus === 'active' ? 'pro' : 'free' })
             .eq('id', storeId)
         } else if (sub.id) {
           await admin
             .from('stores')
-            .update(updates)
+            .update({ subscription_status: mappedStatus, plan_type: mappedStatus === 'active' ? 'pro' : 'free' })
             .eq('stripe_subscription_id', sub.id)
         }
         break

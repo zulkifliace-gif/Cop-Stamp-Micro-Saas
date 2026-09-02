@@ -212,7 +212,7 @@ export default function LandingPage() {
   const t = I18N_LANDING[lang]
   const currentRotatingWords = t.rotatingWords
 
-  async function handleSelectPlan(plan: 'free' | 'starter' | 'growth' | 'monthly' | 'yearly') {
+  async function handleSelectPlan(plan: 'free' | 'monthly' | 'yearly') {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
       setAuthOpen(true)
@@ -751,26 +751,26 @@ export default function LandingPage() {
             </div>
           </ScrollReveal>
 
-          {/* Plan Cards (4 Tiers) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto items-stretch">
+          {/* Plan Cards (2 Tiers: Free & Pro) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto items-stretch">
 
             {/* 1. FREE PLAN */}
             <ScrollReveal delay={0}>
-              <div className="h-full flex flex-col bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-xl hover:border-slate-500 transition-all duration-300 justify-between">
+              <div className="h-full flex flex-col bg-slate-900 border border-slate-700 rounded-3xl p-8 shadow-xl hover:border-slate-500 transition-all duration-300 justify-between">
                 <div>
-                  <div className="mb-4">
-                    <div className="font-black text-white text-xl mb-1">{t.pricing.freeTitle}</div>
+                  <div className="mb-6">
+                    <div className="font-black text-white text-2xl mb-1">{t.pricing.freeTitle}</div>
                     <div className="flex items-baseline gap-1.5">
-                      <span className="text-4xl font-black text-white">RM0</span>
-                      <span className="text-slate-400 text-xs">{t.pricing.freePeriod}</span>
+                      <span className="text-5xl font-black text-white">RM0</span>
+                      <span className="text-slate-400 text-sm">{t.pricing.freePeriod}</span>
                     </div>
                     <p className="text-slate-400 text-xs mt-2">{t.pricing.freeDesc}</p>
                   </div>
 
-                  <ul className="space-y-3 mb-6">
+                  <ul className="space-y-3.5 mb-8">
                     {t.pricing.freeFeatures.map(([icon, label, active]) => (
-                      <li key={String(label)} className={`flex items-center gap-2 text-xs ${active ? 'text-slate-200' : 'text-slate-500'}`}>
-                        <span className={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${active ? 'bg-[#1E5E53]/30 text-[#4EB89D]' : 'bg-slate-800 text-slate-500'}`}>
+                      <li key={String(label)} className={`flex items-center gap-2.5 text-xs ${active ? 'text-slate-200' : 'text-slate-500'}`}>
+                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${active ? 'bg-[#1E5E53]/30 text-[#4EB89D]' : 'bg-slate-800 text-slate-500'}`}>
                           {String(icon)}
                         </span>
                         <span className={active ? '' : 'line-through opacity-75'}>{String(label)}</span>
@@ -782,96 +782,16 @@ export default function LandingPage() {
                 <button
                   onClick={() => handleSelectPlan('free')}
                   disabled={planLoading === 'free'}
-                  className="w-full py-3 rounded-2xl border-2 border-[#1E5E53] text-[#4EB89D] font-bold text-xs hover:bg-[#1E5E53]/20 transition cursor-pointer disabled:opacity-60 active:scale-[0.98]"
+                  className="w-full py-3.5 rounded-2xl border-2 border-[#1E5E53] text-[#4EB89D] font-bold text-xs hover:bg-[#1E5E53]/20 transition cursor-pointer disabled:opacity-60 active:scale-[0.98]"
                 >
                   {planLoading === 'free' ? (lang === 'en' ? 'Processing...' : 'Memproses...') : t.pricing.freeCta}
                 </button>
               </div>
             </ScrollReveal>
 
-            {/* 2. STARTER PLAN (RM15/bln - 50 Pelanggan) */}
-            <ScrollReveal delay={40}>
-              <div className="h-full flex flex-col bg-slate-900/90 border-2 border-amber-500/40 hover:border-amber-400 rounded-3xl p-6 shadow-xl transition-all duration-300 justify-between">
-                <div>
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-black text-white text-xl">{t.pricing.starterTitle}</span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                        RM15/bln
-                      </span>
-                    </div>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-4xl font-black text-amber-400">RM15</span>
-                      <span className="text-slate-400 text-xs">{t.pricing.starterPeriod}</span>
-                    </div>
-                    <p className="text-slate-400 text-xs mt-2">{t.pricing.starterDesc}</p>
-                  </div>
-
-                  <ul className="space-y-3 mb-6">
-                    {t.pricing.starterFeatures.map(([icon, label, active]) => (
-                      <li key={String(label)} className={`flex items-center gap-2 text-xs ${active ? 'text-slate-200' : 'text-slate-500'}`}>
-                        <span className={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${active ? 'bg-amber-400/20 text-amber-400' : 'bg-slate-800 text-slate-500'}`}>
-                          {String(icon)}
-                        </span>
-                        <span className={active ? '' : 'line-through opacity-75'}>{String(label)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <button
-                  onClick={() => handleSelectPlan('starter')}
-                  disabled={planLoading === 'starter'}
-                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 hover:brightness-110 text-slate-900 font-bold text-xs transition cursor-pointer disabled:opacity-60 active:scale-[0.98] shadow-md"
-                >
-                  {planLoading === 'starter' ? (lang === 'en' ? 'Processing...' : 'Memproses...') : t.pricing.starterCta}
-                </button>
-              </div>
-            </ScrollReveal>
-
-            {/* 3. GROWTH PLAN (RM35/bln - 120 Pelanggan) */}
-            <ScrollReveal delay={80}>
-              <div className="h-full flex flex-col bg-slate-900/90 border-2 border-blue-500/40 hover:border-blue-400 rounded-3xl p-6 shadow-xl transition-all duration-300 justify-between">
-                <div>
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-black text-white text-xl">{t.pricing.growthTitle}</span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-400/20 text-blue-300 border border-blue-400/30">
-                        RM35/bln
-                      </span>
-                    </div>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-4xl font-black text-blue-400">RM35</span>
-                      <span className="text-slate-400 text-xs">{t.pricing.growthPeriod}</span>
-                    </div>
-                    <p className="text-slate-400 text-xs mt-2">{t.pricing.growthDesc}</p>
-                  </div>
-
-                  <ul className="space-y-3 mb-6">
-                    {t.pricing.growthFeatures.map(([icon, label, active]) => (
-                      <li key={String(label)} className={`flex items-center gap-2 text-xs ${active ? 'text-slate-200' : 'text-slate-500'}`}>
-                        <span className={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${active ? 'bg-blue-400/20 text-blue-400' : 'bg-slate-800 text-slate-500'}`}>
-                          {String(icon)}
-                        </span>
-                        <span className={active ? '' : 'line-through opacity-75'}>{String(label)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <button
-                  onClick={() => handleSelectPlan('growth')}
-                  disabled={planLoading === 'growth'}
-                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-blue-400 to-cyan-400 hover:brightness-110 text-slate-900 font-bold text-xs transition cursor-pointer disabled:opacity-60 active:scale-[0.98] shadow-md"
-                >
-                  {planLoading === 'growth' ? (lang === 'en' ? 'Processing...' : 'Memproses...') : t.pricing.growthCta}
-                </button>
-              </div>
-            </ScrollReveal>
-
-            {/* 4. PRO PLAN (UNLIMITED) */}
-            <ScrollReveal delay={120}>
-              <div className="h-full flex flex-col bg-gradient-to-b from-[#2A1A02] to-[#1A1008] border-2 border-[#E5A43B] rounded-3xl p-6 shadow-[0_0_40px_rgba(229,164,59,0.2)] relative overflow-hidden hover:shadow-[0_0_60px_rgba(229,164,59,0.3)] transition-all duration-300 justify-between">
+            {/* 2. PRO PLAN (UNLIMITED) */}
+            <ScrollReveal delay={100}>
+              <div className="h-full flex flex-col bg-gradient-to-b from-[#2A1A02] to-[#1A1008] border-2 border-[#E5A43B] rounded-3xl p-8 shadow-[0_0_40px_rgba(229,164,59,0.2)] relative overflow-hidden hover:shadow-[0_0_60px_rgba(229,164,59,0.3)] transition-all duration-300 justify-between">
                 <div>
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-1">

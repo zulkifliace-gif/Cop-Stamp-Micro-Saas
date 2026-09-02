@@ -47,8 +47,6 @@ export interface DashboardTranslation {
   }
   planQuota: {
     proActive: string
-    growthActive: string
-    starterActive: string
     freeStarter: string
     upgrade: string
     quotaTitle: string
@@ -271,14 +269,12 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       registering: 'Mendaftarkan Kedai...',
     },
     planQuota: {
-      proActive: '⚡ Pelan Pro – Aktif (Tanpa Had)',
-      growthActive: '🚀 Pelan Growth – Aktif (Had 120)',
-      starterActive: '✦ Pelan Starter – Aktif (Had 50)',
-      freeStarter: '✦ Pelan Percuma (Had 20)',
-      upgrade: 'Naik Taraf / Urus Pelan →',
-      quotaTitle: 'Had Kapasiti Pelanggan',
-      quotaFull: 'Had pelanggan pelan ini telah dicapai. Pelanggan baharu tidak dapat menerima cop.',
-      upgradeToPro: 'Naik taraf pelan',
+      proActive: '⚡ Pelan Pro – Aktif',
+      freeStarter: '✦ Pelan Percuma (Starter)',
+      upgrade: 'Naik Taraf →',
+      quotaTitle: 'Had Pelanggan Percuma',
+      quotaFull: 'Had pelanggan dicapai. Pelanggan baharu tidak dapat menerima cop.',
+      upgradeToPro: 'Naik taraf ke Pro',
       quotaWarning: (left) => `Hampir penuh — ${left} slot pelanggan berbaki.`,
     },
     stats: {
@@ -494,14 +490,12 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       registering: 'Registering Store...',
     },
     planQuota: {
-      proActive: '⚡ Pro Plan – Active (Unlimited)',
-      growthActive: '🚀 Growth Plan – Active (120 Limit)',
-      starterActive: '✦ Starter Plan – Active (50 Limit)',
-      freeStarter: '✦ Free Plan (20 Limit)',
-      upgrade: 'Upgrade / Manage Plan →',
-      quotaTitle: 'Customer Capacity Limit',
-      quotaFull: 'Plan customer capacity reached. New customers cannot receive stamps.',
-      upgradeToPro: 'Upgrade plan',
+      proActive: '⚡ Pro Plan – Active',
+      freeStarter: '✦ Free Plan (Starter)',
+      upgrade: 'Upgrade →',
+      quotaTitle: 'Free Customer Capacity',
+      quotaFull: 'Customer capacity reached. New customers cannot receive stamps.',
+      upgradeToPro: 'Upgrade to Pro',
       quotaWarning: (left) => `Almost full — ${left} customer slots remaining.`,
     },
     stats: {

@@ -1832,40 +1832,19 @@ export default function CashierDashboard() {
       ) : (
         /* 3. CASHIER COUNTER / STATS / REWARD SEARCH / SETTINGS / ACTIVITY */
         <>
-          {/* PLAN STATUS BADGE + TIER QUOTA BAR */}
+          {/* PLAN STATUS BADGE + FREE TIER QUOTA BAR */}
           {(() => {
             const isPro = planType === 'pro' && subscriptionStatus === 'active'
-            const isGrowth = planType === 'growth' && subscriptionStatus === 'active'
-            const isStarter = planType === 'starter' && subscriptionStatus === 'active'
-
-            const planLimit = isPro ? Infinity : isGrowth ? 120 : isStarter ? 50 : 20
             const totalCustomers = storeStats.totalCustomers
-            const quotaPct = isPro ? 0 : Math.min(100, Math.round((totalCustomers / planLimit) * 100))
-            const quotaWarning = !isPro && totalCustomers >= planLimit - Math.max(2, Math.round(planLimit * 0.1))
-            const quotaFull = !isPro && totalCustomers >= planLimit
-
-            const planBadgeText = isPro
-              ? t.planQuota.proActive
-              : isGrowth
-              ? t.planQuota.growthActive
-              : isStarter
-              ? t.planQuota.starterActive
-              : t.planQuota.freeStarter
-
-            const badgeColorClass = isPro
-              ? 'bg-[#E5A43B]/20 text-[#E5A43B]'
-              : isGrowth
-              ? 'bg-blue-500/20 text-blue-400'
-              : isStarter
-              ? 'bg-amber-400/20 text-amber-300'
-              : 'bg-[#FAF2E2]/10 text-[#5E6F68]'
-
+            const quotaPct = Math.min(100, (totalCustomers / 20) * 100)
+            const quotaWarning = !isPro && totalCustomers >= 18
+            const quotaFull = !isPro && totalCustomers >= 20
             return (
               <div className="mb-4 flex flex-col gap-2">
                 {/* Plan Badge */}
                 <div className="flex items-center justify-between">
-                  <div className={`inline-flex items-center gap-1.5 text-[11px] font-bold font-space px-3 py-1 rounded-full ${badgeColorClass}`}>
-                    {planBadgeText}
+                  <div className={`inline-flex items-center gap-1.5 text-[11px] font-bold font-space px-3 py-1 rounded-full ${isPro ? 'bg-[#E5A43B]/20 text-[#E5A43B]' : 'bg-[#FAF2E2]/10 text-[#5E6F68]'}`}>
+                    {isPro ? t.planQuota.proActive : t.planQuota.freeStarter}
                   </div>
                   {!isPro && (
                     <Link href="/dashboard/billing" className="text-[10.5px] font-semibold text-[#E5A43B] hover:underline">
@@ -1874,7 +1853,7 @@ export default function CashierDashboard() {
                   )}
                 </div>
 
-                {/* Tier Customer Quota Bar (Shown if not Unlimited/Pro) */}
+                {/* Free Tier Customer Quota Bar (Free plan only) */}
                 {!isPro && (
                   <div className="bg-[#FAF2E2]/[0.05] border border-[#FAF2E2]/10 rounded-xl px-3.5 py-2.5">
                     <div className="flex items-center justify-between mb-1.5">
@@ -1883,7 +1862,7 @@ export default function CashierDashboard() {
                         <div className="h-4 w-12 bg-white/20 rounded animate-pulse" />
                       ) : (
                         <span className={`text-[11px] font-bold font-space ${quotaFull ? 'text-red-400' : quotaWarning ? 'text-amber-400' : 'text-[#FAF2E2]'}`}>
-                          {totalCustomers} / {planLimit}
+                          {totalCustomers} / 20
                         </span>
                       )}
                     </div>
@@ -1901,7 +1880,7 @@ export default function CashierDashboard() {
                     )}
                     {quotaWarning && !quotaFull && (
                       <div className="mt-1.5 text-[10px] text-amber-400 font-space font-semibold">
-                        {t.planQuota.quotaWarning(planLimit - totalCustomers)}
+                        {t.planQuota.quotaWarning(20 - totalCustomers)}
                       </div>
                     )}
                   </div>

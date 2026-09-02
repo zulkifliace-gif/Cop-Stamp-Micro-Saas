@@ -60,15 +60,8 @@ export async function POST(req: NextRequest) {
       }, { status: 400 })
     }
 
-    const { starterPriceId, growthPriceId, monthlyPriceId, yearlyPriceId } = await ensureStripeProducts()
-    let selectedPriceId = monthlyPriceId
-    if (plan === 'starter') {
-      selectedPriceId = starterPriceId
-    } else if (plan === 'growth') {
-      selectedPriceId = growthPriceId
-    } else if (plan === 'yearly') {
-      selectedPriceId = yearlyPriceId
-    }
+    const { monthlyPriceId, yearlyPriceId } = await ensureStripeProducts()
+    const selectedPriceId = plan === 'yearly' ? yearlyPriceId : monthlyPriceId
 
     const sessionParams: any = {
       payment_method_types: ['card'],
@@ -76,7 +69,7 @@ export async function POST(req: NextRequest) {
       allow_promotion_codes: true,
       line_items: [{ price: selectedPriceId, quantity: 1 }],
       metadata: { store_id: storeId, plan_type: plan },
-      subscription_data: { metadata: { store_id: storeId, plan_type: plan } },
+      subscription_data: { metadata: { store_id: storeId } },
       success_url: `${appUrl}/dashboard?subscription=success&store_id=${storeId}`,
       cancel_url: `${appUrl}/dashboard?subscription=cancelled`,
     }

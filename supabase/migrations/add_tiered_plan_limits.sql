@@ -1,8 +1,4 @@
--- Migration: Kemaskini RPC claim_stamp_token untuk menyokong had bertingkat (Tiered Customer Limits)
--- Pelan Percuma: 20 Pelanggan
--- Pelan Starter (RM15/bln): 50 Pelanggan (20 Percuma + 30 Starter)
--- Pelan Growth (RM35/bln): 120 Pelanggan (20 Percuma + 100 Growth)
--- Pelan Pro (RM53/bln / RM616/thn): Tanpa Had Pelanggan (Unlimited)
+-- Migration: Kembalikan fungsi claim_stamp_token kepada Pelan Percuma (20 Pelanggan) & Pelan Pro (Unlimited)
 
 create or replace function public.claim_stamp_token(p_token text)
 returns jsonb as $$
@@ -14,11 +10,8 @@ declare
     v_new_stamps int := 0;
     v_is_existing_customer boolean := false;
     v_customer_count int := 0;
-    v_store_plan text := 'free';
-    v_store_sub_status text := 'active';
-    v_max_allowed int := 20;
 begin
-    -- 1. Semak pengguna yang disahkan
+    -- 1. Check authenticated user
     v_customer_id := auth.uid();
     if v_customer_id is null then
         return jsonb_build_object(
@@ -28,7 +21,7 @@ begin
         );
     end if;
 
-    -- 2. Kunci & dapatkan maklumat token
+    -- 2. Lock & fetch token (#1 Token Single-Use Enforcement: FOR UPDATE row lock)
     select * into v_token_row
     from public.stamp_tokens
     where token = p_token
@@ -42,7 +35,7 @@ begin
         );
     end if;
 
-    -- 3. Sahkan status token
+    -- 3. Validate token status
     if v_token_row.status = 'claimed' then
         return jsonb_build_object(
             'success', false,
@@ -63,13 +56,13 @@ begin
         );
     end if;
 
-    -- 4. Dapatkan & kunci maklumat kedai
+    -- 4. Get & lock store information
     select * into v_store_row
     from public.stores
     where id = v_token_row.store_id
     for update;
 
-    -- 5. Semak status kesetiaan pelanggan
+    -- 5. Check customer loyalty status (is this customer already registered for this store?)
     select coalesce(total_stamps, 0) into v_prev_stamps
     from public.customer_loyalty
     where customer_id = v_customer_id
@@ -88,41 +81,25 @@ begin
         end if;
     end if;
 
-    -- 6. Had Limit Pelanggan mengikut Pelan Langganan (Hanya untuk pelanggan baharu)
-    v_store_plan := coalesce(v_store_row.plan_type, 'free');
-    v_store_sub_status := coalesce(v_store_row.subscription_status, 'active');
-
-    if v_store_sub_status = 'active' then
-        if v_store_plan = 'pro' then
-            v_max_allowed := -1; -- Unlimited
-        elsif v_store_plan = 'growth' then
-            v_max_allowed := 120; -- 20 Free + 100 Growth
-        elsif v_store_plan = 'starter' then
-            v_max_allowed := 50; -- 20 Free + 30 Starter
-        else
-            v_max_allowed := 20; -- Free Plan
-        end if;
-    else
-        v_max_allowed := 20; -- Pelan tidak aktif / dibatalkan kembali ke had percuma
-    end if;
-
-    if not v_is_existing_customer and v_max_allowed > 0 then
+    -- 6. Enforce Free Tier 20-Customer Limit for NEW customers
+    -- If store is NOT on active Pro plan, check if adding a new customer exceeds 20
+    if not v_is_existing_customer and (coalesce(v_store_row.plan_type, 'free') != 'pro' or coalesce(v_store_row.subscription_status, 'active') != 'active') then
         select count(*) into v_customer_count
         from public.customer_loyalty
         where store_id = v_token_row.store_id;
 
-        if v_customer_count >= v_max_allowed then
+        if v_customer_count >= 20 then
             return jsonb_build_object(
                 'success', false,
                 'error', 'customer_limit_reached',
-                'message', format('Kedai ini telah mencapai had maksimum %s pelanggan bagi pelan semasa. Sila hubungi peniaga untuk menaik taraf pelan.', v_max_allowed)
+                'message', 'Kedai ini telah mencapai had maksimum 20 pelanggan bagi Pelan Percuma. Sila hubungi peniaga untuk menaik taraf ke Pelan Pro.'
             );
         end if;
     end if;
 
     v_new_stamps := v_prev_stamps + v_token_row.stamp_count;
 
-    -- 7. Tandakan token sebagai telah ditebus
+    -- 7. Mark token as claimed (#1 Single-Use Enforcement: atomic state update)
     update public.stamp_tokens
     set
         status = 'claimed',
@@ -130,7 +107,7 @@ begin
         claimed_at = now()
     where id = v_token_row.id;
 
-    -- 8. Kemaskini baki cop pelanggan
+    -- 8. Upsert customer loyalty balance
     insert into public.customer_loyalty (customer_id, store_id, total_stamps, updated_at)
     values (v_customer_id, v_token_row.store_id, v_new_stamps, now())
     on conflict (customer_id, store_id)
@@ -138,7 +115,7 @@ begin
         total_stamps = public.customer_loyalty.total_stamps + v_token_row.stamp_count,
         updated_at = now();
 
-    -- 9. Pulangkan hasil penebusan
+    -- 9. Return comprehensive payload for frontend animations
     return jsonb_build_object(
         'success', true,
         'storeId', v_token_row.store_id,

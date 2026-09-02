@@ -408,41 +408,21 @@ begin
         end if;
     end if;
 
-    -- 6. Enforce Tier Customer Limits for NEW customers
-    -- Free: 20 | Starter (RM15): 50 (20 free + 30) | Growth (RM35): 120 (20 free + 100) | Pro: Unlimited
-    declare
-        v_store_plan text := coalesce(v_store_row.plan_type, 'free');
-        v_store_sub_status text := coalesce(v_store_row.subscription_status, 'active');
-        v_max_allowed int := 20;
-    begin
-        if v_store_sub_status = 'active' then
-            if v_store_plan = 'pro' then
-                v_max_allowed := -1; -- Unlimited
-            elsif v_store_plan = 'growth' then
-                v_max_allowed := 120; -- 20 Free + 100 Growth
-            elsif v_store_plan = 'starter' then
-                v_max_allowed := 50; -- 20 Free + 30 Starter
-            else
-                v_max_allowed := 20; -- Free plan
-            end if;
-        else
-            v_max_allowed := 20; -- Cancelled/inactive plan fallback
-        end if;
+    -- 6. Enforce Free Tier 20-Customer Limit for NEW customers
+    -- If store is NOT on active Pro plan, check if adding a new customer exceeds 20
+    if not v_is_existing_customer and (coalesce(v_store_row.plan_type, 'free') != 'pro' or coalesce(v_store_row.subscription_status, 'active') != 'active') then
+        select count(*) into v_customer_count
+        from public.customer_loyalty
+        where store_id = v_token_row.store_id;
 
-        if not v_is_existing_customer and v_max_allowed > 0 then
-            select count(*) into v_customer_count
-            from public.customer_loyalty
-            where store_id = v_token_row.store_id;
-
-            if v_customer_count >= v_max_allowed then
-                return jsonb_build_object(
-                    'success', false,
-                    'error', 'customer_limit_reached',
-                    'message', format('Kedai ini telah mencapai had maksimum %s pelanggan bagi pelan semasa. Sila hubungi peniaga untuk menaik taraf pelan.', v_max_allowed)
-                );
-            end if;
+        if v_customer_count >= 20 then
+            return jsonb_build_object(
+                'success', false,
+                'error', 'customer_limit_reached',
+                'message', 'Kedai ini telah mencapai had maksimum 20 pelanggan bagi Pelan Percuma. Sila hubungi peniaga untuk menaik taraf ke Pelan Pro.'
+            );
         end if;
-    end;
+    end if;
 
     v_new_stamps := v_prev_stamps + v_token_row.stamp_count;
 
