@@ -181,6 +181,16 @@ export default function CashierDashboard() {
   const [saveToast, setSaveToast] = useState<boolean>(false)
   const [settingsError, setSettingsError] = useState<string>('')
 
+  // Settings Share & Scan State
+  const [showSettingsQrModal, setShowSettingsQrModal] = useState<boolean>(false)
+  const [settingsQrDataUrl, setSettingsQrDataUrl] = useState<string | null>(null)
+  const [isGeneratingSettingsQr, setIsGeneratingSettingsQr] = useState<boolean>(false)
+  const [configCopied, setConfigCopied] = useState<boolean>(false)
+  const [showSettingsScanner, setShowSettingsScanner] = useState<boolean>(false)
+  const [settingsScanError, setSettingsScanError] = useState<string>('')
+  const [settingsScanSuccess, setSettingsScanSuccess] = useState<string>('')
+  const settingsScannerRef = useRef<any>(null)
+
   // Store Overview Stats
   const [storeStats, setStoreStats] = useState({
     totalCustomers: 0,
@@ -1047,6 +1057,181 @@ export default function CashierDashboard() {
     }
     scannerRef.current = null
     setShowQrScanner(false)
+  }
+
+  // 12.1 Settings Camera QR Scanner Lifecycle
+  useEffect(() => {
+    let html5QrCodeInstance: any = null
+    let isMounted = true
+
+    async function startSettingsCamera() {
+      if (!showSettingsScanner) return
+      setSettingsScanError('')
+
+      try {
+        const { Html5Qrcode } = await import('html5-qrcode')
+        if (!isMounted) return
+
+        const readerElem = document.getElementById('settings-qr-reader')
+        if (!readerElem) return
+
+        html5QrCodeInstance = new Html5Qrcode('settings-qr-reader')
+        settingsScannerRef.current = html5QrCodeInstance
+
+        await html5QrCodeInstance.start(
+          { facingMode: 'environment' },
+          {
+            fps: 10,
+            qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+              const edge = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.75)
+              return { width: edge, height: edge }
+            },
+            aspectRatio: 1.0,
+          },
+          (decodedText: string) => {
+            try {
+              const parsed = JSON.parse(decodedText.trim())
+              if (!parsed || (parsed.type !== 'LAJUS_CONFIG_V1' && !parsed.storeName && !parsed.rewards)) {
+                setSettingsScanError(t.settings.settingsScanInvalidMsg || 'QR ini bukan kod tetapan kedai LajuS.')
+                return
+              }
+
+              // Auto-fill all store configuration fields
+              if (parsed.storeName) setStoreName(parsed.storeName)
+              if (parsed.logoUrl !== undefined) setLogoUrl(parsed.logoUrl)
+              if (parsed.stampIcon) setStampIcon(parsed.stampIcon)
+              if (parsed.rewardImageUrl !== undefined) setRewardImageUrl(parsed.rewardImageUrl)
+              if (parsed.stampsRequired) setStampsRequired(Number(parsed.stampsRequired))
+              if (parsed.rewardDesc !== undefined) setRewardDesc(parsed.rewardDesc)
+              if (Array.isArray(parsed.rewards)) setRewardsList(parsed.rewards)
+              if (parsed.googleReviewMode) setGoogleReviewMode(parsed.googleReviewMode)
+              if (parsed.googleReviewUrl !== undefined) setGoogleReviewUrl(parsed.googleReviewUrl)
+              if (parsed.googlePlaceId !== undefined) setGooglePlaceId(parsed.googlePlaceId)
+              if (parsed.googleReviewInput !== undefined) setGoogleReviewInput(parsed.googleReviewInput)
+              if (Array.isArray(parsed.socialLinks)) setSocialLinks(parsed.socialLinks)
+
+              // Play chime
+              try {
+                const audio = new Audio('/new notification.mp3')
+                audio.volume = 0.8
+                audio.play().catch(() => {})
+              } catch (_e) {}
+
+              setSettingsScanSuccess(t.settings.settingsScanSuccessMsg || 'Semua tetapan berjaya disalin! Sila semak & simpan.')
+              setTimeout(() => setSettingsScanSuccess(''), 6000)
+
+              handleCloseSettingsScanner(html5QrCodeInstance)
+            } catch (jsonErr) {
+              setSettingsScanError(t.settings.settingsScanInvalidMsg || 'Gagal membaca format data tetapan.')
+            }
+          },
+          () => {
+            // ignore continuous scanning frame
+          }
+        )
+      } catch (err: any) {
+        console.error('Settings QR Scanner error:', err)
+        if (isMounted) {
+          setSettingsScanError(
+            t.searchSection.scanCameraError ||
+              'Tidak dapat mengakses kamera. Sila benarkan kebenaran kamera.'
+          )
+        }
+      }
+    }
+
+    if (showSettingsScanner) {
+      const timer = setTimeout(() => {
+        startSettingsCamera()
+      }, 150)
+      return () => {
+        clearTimeout(timer)
+        isMounted = false
+        handleCloseSettingsScanner(html5QrCodeInstance || settingsScannerRef.current)
+      }
+    }
+  }, [showSettingsScanner])
+
+  function handleCloseSettingsScanner(instance?: any) {
+    const scanner = instance || settingsScannerRef.current
+    if (scanner) {
+      try {
+        if (scanner.isScanning) {
+          scanner
+            .stop()
+            .then(() => {
+              try {
+                scanner.clear()
+              } catch {}
+            })
+            .catch(() => {})
+        }
+      } catch {}
+    }
+    settingsScannerRef.current = null
+    setShowSettingsScanner(false)
+  }
+
+  async function handleOpenSettingsQr() {
+    setIsGeneratingSettingsQr(true)
+    setConfigCopied(false)
+    try {
+      const configPayload = {
+        type: 'LAJUS_CONFIG_V1',
+        v: 1,
+        storeName,
+        logoUrl,
+        stampIcon,
+        rewardImageUrl,
+        stampsRequired,
+        rewardDesc,
+        rewards: rewardsList,
+        googleReviewMode,
+        googleReviewUrl,
+        googlePlaceId,
+        googleReviewInput,
+        socialLinks,
+      }
+      const jsonStr = JSON.stringify(configPayload)
+      const qrUrl = await QRCode.toDataURL(jsonStr, {
+        width: 360,
+        margin: 1,
+        color: {
+          dark: '#1C2624',
+          light: '#FFFFFF',
+        },
+      })
+      setSettingsQrDataUrl(qrUrl)
+      setShowSettingsQrModal(true)
+    } catch (err) {
+      console.error('Error generating settings QR:', err)
+    } finally {
+      setIsGeneratingSettingsQr(false)
+    }
+  }
+
+  function handleCopySettingsConfig() {
+    try {
+      const configPayload = {
+        type: 'LAJUS_CONFIG_V1',
+        v: 1,
+        storeName,
+        logoUrl,
+        stampIcon,
+        rewardImageUrl,
+        stampsRequired,
+        rewardDesc,
+        rewards: rewardsList,
+        googleReviewMode,
+        googleReviewUrl,
+        googlePlaceId,
+        googleReviewInput,
+        socialLinks,
+      }
+      navigator.clipboard.writeText(JSON.stringify(configPayload, null, 2))
+      setConfigCopied(true)
+      setTimeout(() => setConfigCopied(false), 2500)
+    } catch (_e) {}
   }
 
   // 13. Rewards List Helpers in Settings
@@ -2218,6 +2403,13 @@ export default function CashierDashboard() {
                 </button>
               </div>
               <div className="bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-[24px] shadow-[0_24px_50px_rgba(0,0,0,0.45),0_0_0_1px_rgba(229,164,59,0.15)]">
+                {settingsScanSuccess && (
+                  <div className="mb-3.5 p-3 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-semibold leading-relaxed flex items-center gap-2 anim-scale">
+                    <span className="text-base">✅</span>
+                    <span>{settingsScanSuccess}</span>
+                  </div>
+                )}
+
                 {settingsError && (
                   <div className="mb-3 p-2.5 rounded-lg bg-red-100 text-[#B53629] text-xs font-semibold">
                     {settingsError}
@@ -2569,6 +2761,48 @@ export default function CashierDashboard() {
                   }`}
                 >
                   {t.settings.savedToast}
+                </div>
+
+                {/* SALIN / PINDAH TETAPAN KEDAI DENGAN QR */}
+                <div className="border-t border-[#E4D9BE] pt-3.5 mt-2">
+                  <div className="text-[11px] font-bold text-[#5E6F68] uppercase tracking-wider text-center mb-2 font-space">
+                    {t.settings.shareCloneTitle}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Butang 1: Papar QR Tetapan */}
+                    <button
+                      type="button"
+                      onClick={handleOpenSettingsQr}
+                      disabled={isGeneratingSettingsQr}
+                      className="py-2.5 px-2.5 rounded-xl bg-white hover:bg-[#FAF2E2] border border-[#E4D9BE] text-[#0A1716] font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs cursor-pointer"
+                      title="Papar QR untuk disalin oleh kedai lain"
+                    >
+                      <svg className="w-4 h-4 text-[#1E5E53] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                        <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                        <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                        <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                      </svg>
+                      <span className="truncate">{t.settings.showSettingsQrBtn}</span>
+                    </button>
+
+                    {/* Butang 2: Imbas QR Tetapan */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSettingsScanError('')
+                        setShowSettingsScanner(true)
+                      }}
+                      className="py-2.5 px-2.5 rounded-xl bg-[#1E5E53] hover:bg-[#2D786B] text-[#FAF2E2] font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs cursor-pointer"
+                      title="Imbas QR dari kedai lain untuk auto-isi semua tetapan"
+                    >
+                      <svg className="w-4 h-4 text-[#E5A43B] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                      </svg>
+                      <span className="truncate">{t.settings.scanSettingsQrBtn}</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* ZON BAHAYA: PADAM AKAUN */}
@@ -3166,6 +3400,104 @@ export default function CashierDashboard() {
               <span className="text-[#E5A43B] font-bold">{generatedToken}</span>
               <span className="text-[#B53629] font-bold">{timeLeftStr}</span>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── SETTINGS QR EXPORT MODAL ────────────────────────────────────────── */}
+      {showSettingsQrModal && settingsQrDataUrl && (
+        <div
+          onClick={() => setShowSettingsQrModal(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4 animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-[380px] sm:max-w-[420px] bg-[#0A1716] border-2 border-[#E5A43B]/60 rounded-[32px] p-6 sm:p-7 text-center shadow-[0_0_60px_rgba(229,164,59,0.25)] flex flex-col items-center anim-scale"
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setShowSettingsQrModal(false)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#FAF2E2]/10 hover:bg-[#FAF2E2]/20 text-[#FAF2E2] flex items-center justify-center font-bold text-sm cursor-pointer transition active:scale-95"
+            >
+              ✕
+            </button>
+
+            {/* Title & Store Name */}
+            <div className="inline-flex items-center gap-1.5 bg-[#E5A43B] text-[#1A2422] font-black text-xs font-space px-3.5 py-1 rounded-full mb-3 shadow-sm">
+              <span>📱 {t.settings.settingsQrModalTitle}</span>
+            </div>
+
+            <h3 className="font-fraunces font-bold text-xl text-[#FAF2E2] mb-1">
+              {storeName || 'Kedai Anda'}
+            </h3>
+            <p className="text-xs text-[#C4B897] mb-4 leading-relaxed px-2">
+              {t.settings.settingsQrModalDesc}
+            </p>
+
+            {/* QR Code Container */}
+            <div className="w-[240px] sm:w-[270px] h-[240px] sm:h-[270px] rounded-2xl bg-white p-2.5 shadow-2xl flex items-center justify-center border-2 border-[#E5A43B]/40 mb-4">
+              <img src={settingsQrDataUrl} alt="Settings QR Code" className="w-full h-full object-contain" />
+            </div>
+
+            {/* Actions: Copy Config Text */}
+            <div className="w-full flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={handleCopySettingsConfig}
+                className="w-full py-2.5 rounded-xl bg-[#FAF2E2]/10 hover:bg-[#FAF2E2]/20 border border-[#FAF2E2]/20 text-[#FAF2E2] text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+              >
+                <span>📋</span>
+                <span>{configCopied ? `✓ ${t.settings.configCopiedMsg}` : t.settings.copyConfigBtn}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── SETTINGS QR CAMERA SCANNER MODAL ─────────────────────────────────── */}
+      {showSettingsScanner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 anim-fade">
+          <div className="w-full max-w-[360px] bg-[#FAF2E2] rounded-[28px] p-5 sm:p-6 shadow-2xl border border-[#E5A43B]/30 text-[#1C2624] relative text-center anim-scale">
+            <button
+              onClick={() => handleCloseSettingsScanner()}
+              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-[#1C2624]/10 hover:bg-[#1C2624]/20 flex items-center justify-center text-sm font-bold text-[#1C2624] transition cursor-pointer z-10"
+            >
+              ✕
+            </button>
+
+            <div className="w-10 h-10 rounded-2xl bg-[#1E5E53]/20 text-[#1E5E53] flex items-center justify-center mx-auto mb-2.5">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                <circle cx="12" cy="13" r="4" />
+              </svg>
+            </div>
+
+            <div className="font-fraunces font-bold text-lg text-[#0A1716] mb-1 leading-tight">
+              {t.settings.settingsScanModalTitle}
+            </div>
+            <p className="text-xs text-[#5E6F68] mb-3 leading-relaxed">
+              {t.settings.settingsScanModalDesc}
+            </p>
+
+            {/* Video Viewport Container */}
+            <div className="relative w-full aspect-square bg-black rounded-2xl overflow-hidden mb-3 border-2 border-[#1E5E53]/30 shadow-inner flex items-center justify-center">
+              <div id="settings-qr-reader" className="w-full h-full" />
+
+              {settingsScanError && (
+                <div className="absolute inset-0 bg-black/90 p-4 flex flex-col items-center justify-center text-center text-red-300 text-xs font-semibold">
+                  <span className="text-2xl mb-1">⚠️</span>
+                  <span>{settingsScanError}</span>
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => handleCloseSettingsScanner()}
+              className="w-full py-2.5 bg-gray-200 hover:bg-gray-300 active:scale-98 text-[#1C2624] font-bold text-xs rounded-xl transition cursor-pointer"
+            >
+              {t.settings.close}
+            </button>
           </div>
         </div>
       )}

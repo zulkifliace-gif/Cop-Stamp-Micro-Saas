@@ -159,6 +159,17 @@ export interface DashboardTranslation {
     dangerZone: string
     dangerZoneDesc: string
     deleteAccountBtn: string
+    shareCloneTitle: string
+    showSettingsQrBtn: string
+    scanSettingsQrBtn: string
+    settingsQrModalTitle: string
+    settingsQrModalDesc: string
+    settingsScanModalTitle: string
+    settingsScanModalDesc: string
+    settingsScanSuccessMsg: string
+    settingsScanInvalidMsg: string
+    copyConfigBtn: string
+    configCopiedMsg: string
   }
   activity: {
     title: string
@@ -371,6 +382,17 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       dangerZone: 'Zon Bahaya',
       dangerZoneDesc: 'Padam akaun anda secara kekal',
       deleteAccountBtn: 'Padam Akaun Saya',
+      shareCloneTitle: 'Salin / Pindah Tetapan Kedai',
+      showSettingsQrBtn: 'Papar QR Tetapan',
+      scanSettingsQrBtn: 'Imbas QR Tetapan',
+      settingsQrModalTitle: 'QR Tetapan Kedai',
+      settingsQrModalDesc: 'Buka kamera imbas di kedai lain untuk menyalin semua maklumat secara automatik.',
+      settingsScanModalTitle: 'Imbas QR Tetapan Kedai Lain',
+      settingsScanModalDesc: 'Halakan kamera ke QR Tetapan dari kedai pertama untuk auto-isi semua tetapan.',
+      settingsScanSuccessMsg: 'Semua tetapan berjaya disalin! Sila semak dan tekan Simpan.',
+      settingsScanInvalidMsg: 'QR ini bukan kod tetapan kedai LajuS yang sah.',
+      copyConfigBtn: 'Salin Kod Teks',
+      configCopiedMsg: 'Kod tetapan telah disalin!',
     },
     activity: {
       title: 'Log Aktiviti',
@@ -581,6 +603,17 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       dangerZone: 'Danger Zone',
       dangerZoneDesc: 'Permanently delete your account',
       deleteAccountBtn: 'Delete My Account',
+      shareCloneTitle: 'Clone / Transfer Store Settings',
+      showSettingsQrBtn: 'Show Settings QR',
+      scanSettingsQrBtn: 'Scan Settings QR',
+      settingsQrModalTitle: 'Store Settings QR',
+      settingsQrModalDesc: 'Open camera scanner on another store to copy all configuration automatically.',
+      settingsScanModalTitle: 'Scan Other Store Settings QR',
+      settingsScanModalDesc: 'Point camera at the Settings QR from another store to auto-fill all configuration.',
+      settingsScanSuccessMsg: 'All settings copied successfully! Please review and click Save.',
+      settingsScanInvalidMsg: 'This QR code is not a valid LajuS store configuration.',
+      copyConfigBtn: 'Copy Text Code',
+      configCopiedMsg: 'Configuration code copied!',
     },
     activity: {
       title: 'Activity Logs',
