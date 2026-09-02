@@ -6,20 +6,41 @@ export const dynamic = 'force-dynamic'
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
-    const storeId = searchParams.get('storeId')?.trim()
+    const rawInput = searchParams.get('storeId')?.trim() || ''
 
-    if (!storeId) {
+    if (!rawInput) {
       return NextResponse.json({ error: 'Store ID diperlukan.' }, { status: 400 })
     }
 
-    const admin = createAdminClient()
-    const { data: store, error } = await admin
-      .from('stores')
-      .select('name, logo_url, reward_image_url, stamps_required, reward_description, stamp_icon, rewards, social_links, google_review_mode, google_review_url, google_place_id')
-      .eq('id', storeId)
-      .maybeSingle()
+    // Extract UUID if full URL or encoded string was passed
+    const uuidMatch = rawInput.match(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/)
+    const cleanId = uuidMatch ? uuidMatch[0] : rawInput
 
-    if (error || !store) {
+    const admin = createAdminClient()
+    let store: any = null
+
+    // 1. If valid UUID, search by ID
+    if (uuidMatch) {
+      const { data: byId } = await admin
+        .from('stores')
+        .select('name, logo_url, reward_image_url, stamps_required, reward_description, stamp_icon, rewards, social_links, google_review_mode, google_review_url, google_place_id')
+        .eq('id', cleanId)
+        .maybeSingle()
+      store = byId
+    }
+
+    // 2. Fallback: Search by slug or name if not found
+    if (!store) {
+      const { data: bySlugOrName } = await admin
+        .from('stores')
+        .select('name, logo_url, reward_image_url, stamps_required, reward_description, stamp_icon, rewards, social_links, google_review_mode, google_review_url, google_place_id')
+        .or(`slug.eq."${cleanId}",name.eq."${cleanId}"`)
+        .limit(1)
+        .maybeSingle()
+      store = bySlugOrName
+    }
+
+    if (!store) {
       return NextResponse.json({ error: 'Kedai rujukan tidak dijumpai.' }, { status: 404 })
     }
 

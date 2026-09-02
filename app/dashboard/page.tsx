@@ -1060,11 +1060,67 @@ export default function CashierDashboard() {
     setShowQrScanner(false)
   }
 
-  // 12.1 Apply Store Template from Link / Store ID
-  async function applyStoreTemplate(targetStoreId: string) {
-    if (!targetStoreId) return false
+  // 12.1 Apply Store Template from Compact Payload, URL, or Store ID
+  async function applyStoreTemplate(input: string) {
+    if (!input) return false
     try {
-      const res = await fetch(`/api/store/clone-template?storeId=${encodeURIComponent(targetStoreId.trim())}`)
+      let rawText = input.trim()
+
+      // A. Check if input is a URL or query string with ?c= (instant compact payload)
+      let compactParam: string | null = null
+      let storeIdParam: string | null = null
+
+      if (rawText.includes('c=') || rawText.includes('importStore=') || rawText.includes('s=')) {
+        try {
+          const urlObj = new URL(rawText.startsWith('http') ? rawText : `https://dummy.com/${rawText.startsWith('?') ? '' : '?'}${rawText}`)
+          compactParam = urlObj.searchParams.get('c')
+          storeIdParam = urlObj.searchParams.get('importStore') || urlObj.searchParams.get('s')
+        } catch {
+          const cMatch = rawText.match(/[?&]c=([^&#]+)/)
+          if (cMatch) compactParam = decodeURIComponent(cMatch[1])
+          const sMatch = rawText.match(/[?&](?:importStore|s)=([^&#]+)/)
+          if (sMatch) storeIdParam = decodeURIComponent(sMatch[1])
+        }
+      }
+
+      // Method 1: Instant decode from compact payload (100% offline & zero failure)
+      if (compactParam) {
+        try {
+          const jsonStr = decodeURIComponent(atob(compactParam))
+          const c = JSON.parse(jsonStr)
+
+          if (c.n !== undefined) setStoreName(c.n)
+          if (c.l !== undefined) setLogoUrl(c.l)
+          if (c.i) setStampIcon(c.i)
+          if (c.img !== undefined) setRewardImageUrl(c.img)
+          if (c.req) setStampsRequired(Number(c.req))
+          if (c.rd !== undefined) setRewardDesc(c.rd)
+          if (Array.isArray(c.rw)) setRewardsList(c.rw)
+          if (c.gm) setGoogleReviewMode(c.gm)
+          if (c.gu !== undefined) setGoogleReviewUrl(c.gu || null)
+          if (c.gp !== undefined) setGooglePlaceId(c.gp || null)
+          if (c.gi !== undefined || c.gu !== undefined) setGoogleReviewInput(c.gi || c.gu || '')
+          if (Array.isArray(c.soc)) setSocialLinks(c.soc)
+
+          setShowSettings(true)
+
+          try {
+            const audio = new Audio('/new notification.mp3')
+            audio.volume = 0.8
+            audio.play().catch(() => {})
+          } catch (_e) {}
+
+          setSettingsScanSuccess(t.settings.settingsScanSuccessMsg || 'Semua maklumat berjaya disalin! Sila semak dan tekan Simpan.')
+          setTimeout(() => setSettingsScanSuccess(''), 7000)
+          return true
+        } catch (compactErr) {
+          console.warn('Compact decode error, falling back to API:', compactErr)
+        }
+      }
+
+      // Method 2: Fallback to API lookup using storeId
+      const targetStoreId = storeIdParam || rawText
+      const res = await fetch(`/api/store/clone-template?storeId=${encodeURIComponent(targetStoreId)}`)
       if (!res.ok) {
         const errData = await res.json()
         throw new Error(errData.error || 'Gagal memuat turun tetapan kedai.')
@@ -1104,13 +1160,14 @@ export default function CashierDashboard() {
     }
   }
 
-  // 12.2 Auto-detect ?importStore=XYZ URL parameter on load
+  // 12.2 Auto-detect ?importStore=XYZ or ?c=XYZ URL parameter on load
   useEffect(() => {
     if (typeof window === 'undefined') return
     const urlParams = new URLSearchParams(window.location.search)
-    const importStoreId = urlParams.get('importStore')
-    if (importStoreId && importStoreId !== storeId) {
-      applyStoreTemplate(importStoreId)
+    const compactCode = urlParams.get('c')
+    const importStoreId = urlParams.get('importStore') || urlParams.get('s')
+    if (compactCode || (importStoreId && importStoreId !== storeId)) {
+      applyStoreTemplate(window.location.href)
       const cleanUrl = window.location.pathname
       window.history.replaceState({}, '', cleanUrl)
     }
@@ -1146,39 +1203,7 @@ export default function CashierDashboard() {
             aspectRatio: 1.0,
           },
           async (decodedText: string) => {
-            let targetId = decodedText.trim()
-            if (targetId.includes('importStore=')) {
-              try {
-                const parsedUrl = new URL(targetId)
-                targetId = parsedUrl.searchParams.get('importStore') || targetId
-              } catch {
-                const match = targetId.match(/importStore=([^&]+)/)
-                if (match) targetId = match[1]
-              }
-            } else if (targetId.startsWith('{')) {
-              // Backward compatibility for raw json
-              try {
-                const parsed = JSON.parse(targetId)
-                if (parsed.storeName) setStoreName(parsed.storeName)
-                if (parsed.logoUrl !== undefined) setLogoUrl(parsed.logoUrl)
-                if (parsed.stampIcon) setStampIcon(parsed.stampIcon)
-                if (parsed.rewardImageUrl !== undefined) setRewardImageUrl(parsed.rewardImageUrl)
-                if (parsed.stampsRequired) setStampsRequired(Number(parsed.stampsRequired))
-                if (parsed.rewardDesc !== undefined) setRewardDesc(parsed.rewardDesc)
-                if (Array.isArray(parsed.rewards)) setRewardsList(parsed.rewards)
-                if (parsed.googleReviewMode) setGoogleReviewMode(parsed.googleReviewMode)
-                if (parsed.googleReviewUrl !== undefined) setGoogleReviewUrl(parsed.googleReviewUrl)
-                if (parsed.googlePlaceId !== undefined) setGooglePlaceId(parsed.googlePlaceId)
-                if (parsed.googleReviewInput !== undefined) setGoogleReviewInput(parsed.googleReviewInput)
-                if (Array.isArray(parsed.socialLinks)) setSocialLinks(parsed.socialLinks)
-                setShowSettings(true)
-                setSettingsScanSuccess(t.settings.settingsScanSuccessMsg || 'Semua maklumat berjaya disalin!')
-                handleCloseSettingsScanner(html5QrCodeInstance)
-                return
-              } catch {}
-            }
-
-            const ok = await applyStoreTemplate(targetId)
+            const ok = await applyStoreTemplate(decodedText)
             if (ok) {
               handleCloseSettingsScanner(html5QrCodeInstance)
             }
@@ -1231,15 +1256,28 @@ export default function CashierDashboard() {
   }
 
   async function handleOpenSettingsQr() {
-    if (!storeId) {
-      showBtToast('Sila simpan tetapan kedai terlebih dahulu.', 'error')
-      return
-    }
     setIsGeneratingSettingsQr(true)
     setConfigCopied(false)
     try {
       const origin = typeof window !== 'undefined' ? window.location.origin : ''
-      const linkUrl = `${origin}/dashboard?importStore=${encodeURIComponent(storeId)}`
+      
+      // Build lightweight compact JSON payload
+      const compactObj = {
+        n: storeName || '',
+        l: logoUrl || '',
+        i: stampIcon || '',
+        img: rewardImageUrl || '',
+        req: Number(stampsRequired) || 10,
+        rd: rewardDesc || '',
+        rw: rewardsList || [],
+        gm: googleReviewMode || 'manual',
+        gu: googleReviewUrl || '',
+        gp: googlePlaceId || '',
+        gi: googleReviewInput || '',
+        soc: socialLinks || [],
+      }
+      const compactB64 = btoa(encodeURIComponent(JSON.stringify(compactObj)))
+      const linkUrl = `${origin}/dashboard?c=${encodeURIComponent(compactB64)}${storeId ? `&s=${encodeURIComponent(storeId)}` : ''}`
       setSettingsShareUrl(linkUrl)
 
       // Generate low-density, large-block, highly-scannable QR
