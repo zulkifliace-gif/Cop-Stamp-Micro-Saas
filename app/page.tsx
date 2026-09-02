@@ -851,6 +851,29 @@ export default function LandingPage() {
             </ScrollReveal>
           </div>
 
+          {/* One-Off Card Topup Banner */}
+          <ScrollReveal delay={110} className="mt-8">
+            <div className="max-w-2xl mx-auto p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">💳</span>
+                <div className="text-left">
+                  <div className="text-xs font-bold text-white">
+                    {lang === 'en' ? 'Want to buy cards on-demand without monthly bills?' : 'Nak beli kad ikut keperluan tanpa bil bulanan?'}
+                  </div>
+                  <div className="text-[11px] text-emerald-400">
+                    {lang === 'en' ? 'Top up digital cards starting from RM0.50/card (min. 35 cards) inside your dashboard anytime.' : 'Top-up kad cop serendah RM0.50 sekeping (minima 35 kad) terus dalam dashboard bila-bila masa.'}
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setAuthOpen(true)}
+                className="shrink-0 text-[11px] font-bold py-2 px-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition cursor-pointer"
+              >
+                {lang === 'en' ? 'Get Started' : 'Mula Sekarang'}
+              </button>
+            </div>
+          </ScrollReveal>
+
           {/* Bottom note */}
           <ScrollReveal delay={120}>
             <p className="text-center text-slate-500 text-xs mt-10">

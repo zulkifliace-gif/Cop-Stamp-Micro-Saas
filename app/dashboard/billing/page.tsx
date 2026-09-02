@@ -23,6 +23,9 @@ function BillingContent() {
   const [subscriptionStatus, setSubscriptionStatus] = useState<string>('active')
   const [totalCustomers, setTotalCustomers] = useState<number>(0)
 
+  const [purchasedCardQuota, setPurchasedCardQuota] = useState<number>(0)
+  const [cardCount, setCardCount] = useState<number>(35)
+
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly')
   const [isProcessing, setIsProcessing] = useState<boolean>(false)
   const [errorMsg, setErrorMsg] = useState<string>('')
@@ -48,12 +51,20 @@ function BillingContent() {
         const res = await fetch('/api/store/settings')
         if (res.ok) {
           const data = await res.json()
-          if (data.registered && data.store) {
-            setStoreId(data.store.id || '')
-            setStoreName(data.store.name || '')
-            setPlanType(data.store.plan_type || 'free')
-            setSubscriptionStatus(data.store.subscription_status || 'active')
-            setTotalCustomers(data.store.total_customers || 0)
+          if (!data.needsRegistration && data.storeId) {
+            setStoreId(data.storeId)
+            setStoreName(data.name || '')
+            setPlanType(data.planType || 'free')
+            setSubscriptionStatus(data.subscriptionStatus || 'active')
+            setPurchasedCardQuota(data.purchasedCardQuota || 0)
+          }
+        }
+
+        const actRes = await fetch('/api/store/activity?limit=1')
+        if (actRes.ok) {
+          const actData = await actRes.json()
+          if (actData.stats?.totalCustomers !== undefined) {
+            setTotalCustomers(actData.stats.totalCustomers)
           }
         }
       } catch (err: any) {
@@ -67,6 +78,9 @@ function BillingContent() {
 
     // Check query params feedback
     const subParam = searchParams.get('subscription')
+    const topupParam = searchParams.get('topup')
+    const cardsParam = searchParams.get('cards')
+
     if (subParam === 'success') {
       setToastMsg({
         text: lang === 'en' ? '🎉 Subscription successful! Welcome to Pro.' : '🎉 Pembayaran berjaya! Selamat datang ke Pelan Pro.',
@@ -74,7 +88,19 @@ function BillingContent() {
       })
     } else if (subParam === 'cancelled') {
       setToastMsg({
-        text: lang === 'en' ? 'Payment was cancelled.' : 'Pembayaran dibatalkan.',
+        text: lang === 'en' ? 'Subscription was cancelled.' : 'Langganan dibatalkan.',
+        type: 'info',
+      })
+    } else if (topupParam === 'success') {
+      setToastMsg({
+        text: lang === 'en'
+          ? `🎉 Card top-up successful! +${cardsParam || 35} digital cards added to your store.`
+          : `🎉 Pembelian berjaya! +${cardsParam || 35} kad digital telah ditambah ke kedai anda.`,
+        type: 'success',
+      })
+    } else if (topupParam === 'cancelled') {
+      setToastMsg({
+        text: lang === 'en' ? 'Card top-up payment was cancelled.' : 'Pembayaran pembelian kad dibatalkan.',
         type: 'info',
       })
     }
@@ -86,6 +112,41 @@ function BillingContent() {
   }
 
   const isPro = planType === 'pro' && subscriptionStatus === 'active'
+  const currentTotalCapacity = 20 + (purchasedCardQuota || 0)
+  const remainingSlots = Math.max(0, currentTotalCapacity - totalCustomers)
+
+  function handleCardPreset(count: number) {
+    setCardCount(Math.max(35, count))
+  }
+
+  function handleCardChange(val: number) {
+    if (isNaN(val)) setCardCount(35)
+    else setCardCount(Math.max(35, Math.floor(val)))
+  }
+
+  async function handleBuyCards() {
+    if (cardCount < 35) return
+    setIsProcessing(true)
+    setErrorMsg('')
+    try {
+      const res = await fetch('/api/stripe/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: 'one_off_cards', cardCount }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || (lang === 'en' ? 'Failed to start card purchase.' : 'Gagal memulakan pembelian kad.'))
+      }
+      if (data.url) {
+        window.location.href = data.url
+      }
+    } catch (err: any) {
+      console.error('Card purchase error:', err)
+      setErrorMsg(err.message || (lang === 'en' ? 'Error connecting to payment processor.' : 'Ralat berlaku semasa menyambung ke pembayaran.'))
+      setIsProcessing(false)
+    }
+  }
 
   async function handleCheckout(planChoice: 'monthly' | 'yearly') {
     setIsProcessing(true)
@@ -146,7 +207,7 @@ function BillingContent() {
 
   return (
     <div className="min-h-screen bg-[#0A1716] text-[#FAF2E2] font-jakarta antialiased p-4 sm:p-6 md:p-8 flex flex-col items-center">
-      <div className="w-full max-w-4xl mx-auto flex flex-col">
+      <div className="w-full max-w-5xl mx-auto flex flex-col">
         {/* TOAST NOTIFICATION */}
         {toastMsg && (
           <div
@@ -206,22 +267,24 @@ function BillingContent() {
           </div>
         </header>
 
-        {/* HERO TITLE (Matching Landing Page) */}
+        {/* HERO TITLE */}
         <div className="text-center max-w-xl mx-auto mb-8">
           <h1 className="font-fraunces text-3xl sm:text-4xl md:text-5xl font-bold text-[#FAF2E2] leading-tight mb-2">
-            {lang === 'en' ? 'Choose The Best Plan For Your Business' : 'Pilih Pelan Terbaik Untuk Kedai Anda'}
+            {lang === 'en' ? 'Upgrade or Top-Up Cards' : 'Tambah Kuota Kad & Langganan'}
           </h1>
           <p className="text-xs sm:text-sm text-[#C4B897] leading-relaxed">
             {lang === 'en'
-              ? 'Start free. Upgrade as your business grows and scales.'
-              : 'Bermula percuma. Naik taraf bila perniagaan anda semakin berkembang pesat.'}
+              ? 'Buy digital cards on-demand without monthly commitments, or subscribe to Pro for unlimited access.'
+              : 'Beli kad cop digital mengikut keperluan tanpa komitmen bulanan, atau langgan Pro untuk akses tanpa had.'}
           </p>
 
           {/* STORE CURRENT STATUS PILL */}
-          <div className="mt-4 inline-flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 rounded-full bg-[#FAF2E2]/[0.05] border border-[#FAF2E2]/10">
+          <div className="mt-4 inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-full bg-[#FAF2E2]/[0.05] border border-[#FAF2E2]/10 shadow-inner">
             <span className="text-[#8E9B95]">{storeName || (lang === 'en' ? 'Your Store' : 'Kedai Anda')}:</span>
             <span className={isPro ? 'text-[#E5A43B] font-bold' : 'text-emerald-400 font-bold'}>
-              {isPro ? '⭐ Pro Active' : (lang === 'en' ? `Free Plan (${totalCustomers}/20 Customers)` : `Pelan Percuma (${totalCustomers}/20 Pelanggan)`)}
+              {isPro
+                ? '⭐ Pelan Pro Aktif (Tanpa Had)'
+                : `${totalCustomers} / ${currentTotalCapacity} Pelanggan (${remainingSlots} baki slot)`}
             </span>
           </div>
         </div>
@@ -233,78 +296,148 @@ function BillingContent() {
           </div>
         )}
 
-        {/* PRICING CARDS GRID */}
+        {/* PRICING CARDS GRID (2 CARDS: ONE-OFF CARDS TOP-UP & PRO PLAN) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch mb-10">
-          {/* 1. FREE PLAN (Exact Landing Page Wording) */}
-          <div
-            className={`rounded-[28px] p-6 sm:p-7 flex flex-col justify-between transition-all ${
-              !isPro
-                ? 'bg-[#FAF2E2]/[0.08] border-2 border-[#E5A43B]/40 shadow-xl ring-1 ring-[#E5A43B]/20'
-                : 'bg-[#FAF2E2]/[0.04] border border-[#FAF2E2]/10 opacity-90'
-            }`}
-          >
+
+          {/* 1. ONE-OFF CARD TOP-UP CARD */}
+          <div className="rounded-[28px] p-6 sm:p-7 flex flex-col justify-between transition-all bg-gradient-to-b from-[#102320] to-[#0A1716] border-2 border-emerald-500/50 shadow-xl relative ring-1 ring-emerald-500/20">
+            {/* BADGE */}
+            <div className="absolute -top-3.5 left-6 bg-emerald-500 text-slate-950 text-[10px] font-black uppercase tracking-wider py-1 px-3 rounded-full shadow-md font-space">
+              {lang === 'en' ? '⚡ One-Off Payment' : '⚡ Sekali Bayar • Sah Selamanya'}
+            </div>
+
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-space text-xs uppercase tracking-wider font-bold text-[#8E9B95]">
-                  {lang === 'en' ? 'Starter' : 'Permulaan'}
+              <div className="flex items-center justify-between mb-2 pt-1">
+                <span className="font-space text-xs uppercase tracking-wider font-bold text-emerald-400">
+                  {lang === 'en' ? 'Pay-As-You-Go' : 'Beli Kad Ikut Keperluan'}
                 </span>
-                {!isPro && (
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                    {lang === 'en' ? 'Current Plan' : 'Pelan Semasa'}
-                  </span>
-                )}
+                <span className="text-[11px] font-bold text-[#8E9B95]">
+                  RM0.50 / {lang === 'en' ? 'card' : 'kad'}
+                </span>
               </div>
 
               <div className="font-fraunces text-2xl font-bold text-[#FAF2E2] mb-1">
-                {lang === 'en' ? 'Free Plan' : 'Pelan Percuma'}
+                {lang === 'en' ? 'Digital Stamp Cards' : 'Pek Kad Cop Digital'}
               </div>
-              <p className="text-xs text-[#C4B897] mb-5">
+              <p className="text-xs text-[#C4B897] mb-5 leading-relaxed">
                 {lang === 'en'
-                  ? 'Perfect for starting your digital stamp card system.'
-                  : 'Sesuai untuk memulakan sistem kad cop digital.'}
+                  ? 'Top up customer cards like physical cards. No monthly fees, lifetime validity.'
+                  : 'Sama seperti beli kad cop kertas. Tambah kuota bila perlu tanpa sebarang caj bulanan.'}
               </p>
 
-              <div className="flex items-baseline gap-1 mb-6 pb-6 border-b border-[#FAF2E2]/10">
-                <span className="font-fraunces text-4xl font-bold text-[#FAF2E2]">RM0</span>
-                <span className="text-xs text-[#8E9B95]">/{lang === 'en' ? 'month' : 'bulan'}</span>
+              {/* INTERACTIVE CARD SELECTOR */}
+              <div className="bg-[#0A1716]/80 border border-[#FAF2E2]/15 rounded-2xl p-4 mb-5 space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-[#FAF2E2]">
+                    {lang === 'en' ? 'Select Card Quantity:' : 'Pilih Bilangan Kad:'}
+                  </span>
+                  <span className="text-[10px] text-amber-300 font-space font-semibold">
+                    {lang === 'en' ? 'Min. 35 Cards' : 'Minima 35 Kad'}
+                  </span>
+                </div>
+
+                {/* PRESET CHIPS */}
+                <div className="grid grid-cols-4 gap-1.5">
+                  {[35, 50, 100, 200].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => handleCardPreset(preset)}
+                      className={`py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all cursor-pointer font-space border ${
+                        cardCount === preset
+                          ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-sm'
+                          : 'bg-[#FAF2E2]/[0.06] hover:bg-[#FAF2E2]/12 text-[#FAF2E2] border-[#FAF2E2]/10'
+                      }`}
+                    >
+                      {preset} {lang === 'en' ? 'Cards' : 'Kad'}
+                    </button>
+                  ))}
+                </div>
+
+                {/* STEPPER COUNTER */}
+                <div className="flex items-center justify-between gap-3 pt-1">
+                  <div className="flex items-center gap-2 flex-1">
+                    <button
+                      type="button"
+                      disabled={cardCount <= 35 || isProcessing}
+                      onClick={() => handleCardChange(Math.max(35, cardCount - 5))}
+                      className="w-9 h-9 rounded-xl bg-[#FAF2E2]/10 hover:bg-[#FAF2E2]/20 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center font-bold text-lg text-white transition cursor-pointer"
+                    >
+                      –
+                    </button>
+                    <div className="relative flex-1">
+                      <input
+                        type="number"
+                        min="35"
+                        step="1"
+                        value={cardCount}
+                        onChange={(e) => handleCardChange(parseInt(e.target.value) || 35)}
+                        className="w-full py-1.5 px-3 bg-slate-900 border border-[#FAF2E2]/20 rounded-xl text-center text-base font-bold font-space text-white focus:outline-none focus:border-emerald-400"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      disabled={isProcessing}
+                      onClick={() => handleCardChange(cardCount + 5)}
+                      className="w-9 h-9 rounded-xl bg-[#FAF2E2]/10 hover:bg-[#FAF2E2]/20 active:scale-95 disabled:opacity-40 flex items-center justify-center font-bold text-lg text-white transition cursor-pointer"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {/* COMPUTED PRICE */}
+                  <div className="text-right">
+                    <div className="text-[10px] text-[#8E9B95] uppercase font-space font-bold">
+                      {lang === 'en' ? 'Total One-Off' : 'Jumlah Bayaran'}
+                    </div>
+                    <div className="font-fraunces text-2xl sm:text-3xl font-black text-emerald-400">
+                      RM {(cardCount * 0.5).toFixed(2)}
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* FEATURES LIST (Matching Landing Page) */}
-              <ul className="space-y-3.5 text-xs mb-6">
+              {/* FEATURES LIST */}
+              <ul className="space-y-3 text-xs mb-6">
                 <li className="flex items-center gap-2.5 text-[#FAF2E2]">
-                  <span className="w-5 h-5 rounded-full bg-[#1E5E53]/40 text-[#4EB89D] flex items-center justify-center text-[11px] font-bold shrink-0">✓</span>
-                  <span>{lang === 'en' ? 'Up to 20 new customer capacity' : 'Terhad sehingga 20 pelanggan baharu'}</span>
+                  <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[11px] font-bold shrink-0">✓</span>
+                  <span><strong>+{cardCount} {lang === 'en' ? 'New customer capacity' : 'Kapasiti pelanggan baharu'}</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5 text-[#FAF2E2]">
-                  <span className="w-5 h-5 rounded-full bg-[#1E5E53]/40 text-[#4EB89D] flex items-center justify-center text-[11px] font-bold shrink-0">✓</span>
-                  <span>{lang === 'en' ? 'Full access to all essential features' : 'Akses penuh ke semua ciri asas'}</span>
+                  <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[11px] font-bold shrink-0">✓</span>
+                  <span><strong>{lang === 'en' ? 'Lifetime validity (No monthly fees)' : 'Sah selamanya (Tiada caj bulanan)'}</strong></span>
                 </li>
-                <li className="flex items-center gap-2.5 text-[#8E9B95]/50">
-                  <span className="w-5 h-5 rounded-full bg-slate-800 text-slate-500 flex items-center justify-center text-[11px] font-bold shrink-0">–</span>
-                  <span className="line-through opacity-75">{lang === 'en' ? 'Email token dispatch (Pro exclusive)' : 'Hantar kad cop melalui emel (eksklusif Pro)'}</span>
+                <li className="flex items-center gap-2.5 text-[#FAF2E2]">
+                  <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[11px] font-bold shrink-0">✓</span>
+                  <span>{lang === 'en' ? 'Full features: QR token, Bluetooth print, Google Review' : 'Semua ciri kaunter: QR token, Cetak resit Bluetooth, Google Review'}</span>
+                </li>
+                <li className="flex items-center gap-2.5 text-[#8E9B95]/60">
+                  <span className="w-5 h-5 rounded-full bg-red-500/10 text-red-400 flex items-center justify-center text-[10px] font-bold shrink-0">✕</span>
+                  <span className="line-through">{lang === 'en' ? 'Email token dispatch (Pro exclusive)' : 'Hantar cop melalui emel (Eksklusif Pro sahaja)'}</span>
                 </li>
               </ul>
             </div>
 
             <div>
-              {!isPro ? (
-                <div className="w-full py-3.5 text-center text-xs font-bold text-[#8E9B95] bg-[#FAF2E2]/[0.06] rounded-xl border border-[#FAF2E2]/10">
-                  {lang === 'en' ? 'Active on this Store' : 'Aktif pada Kedai Ini'}
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleOpenCustomerPortal}
-                  disabled={isProcessing}
-                  className="w-full py-3.5 text-center text-xs font-bold text-[#FAF2E2]/80 hover:text-white bg-[#FAF2E2]/[0.08] hover:bg-[#FAF2E2]/15 rounded-xl border border-[#FAF2E2]/15 transition cursor-pointer"
-                >
-                  {lang === 'en' ? 'Downgrade via Stripe Portal' : 'Tukar Pelan di Portal Stripe'}
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleBuyCards}
+                disabled={isProcessing || cardCount < 35}
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:brightness-110 active:scale-[0.98] text-slate-950 font-jakarta font-black text-sm transition flex items-center justify-center gap-2 cursor-pointer shadow-[0_4px_20px_rgba(16,185,129,0.35)] disabled:opacity-50"
+              >
+                <span>
+                  {isProcessing
+                    ? (lang === 'en' ? 'Connecting to Stripe...' : 'Menghubungkan ke Stripe...')
+                    : (lang === 'en' ? `Buy ${cardCount} Cards (RM ${(cardCount * 0.5).toFixed(2)}) ⚡` : `Beli ${cardCount} Kad (RM ${(cardCount * 0.5).toFixed(2)}) ⚡`)}
+                </span>
+              </button>
+              <p className="text-center text-[10.5px] text-[#8E9B95] mt-2.5">
+                {lang === 'en' ? 'One-time secure payment • Lifetime card quota' : 'Bayaran sekali sahaja • Kuota sah selamanya'}
+              </p>
             </div>
           </div>
 
-          {/* 2. PRO PLAN (With Toggle Inside Card & Exact Landing Page Wording) */}
+          {/* 2. PRO PLAN (UNLIMITED & EMAIL DISPATCH) */}
           <div
             className={`rounded-[28px] p-6 sm:p-7 flex flex-col justify-between relative transition-all ${
               isPro
@@ -316,23 +449,26 @@ function BillingContent() {
             <div className="absolute -top-3.5 right-6 bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] text-[#1A2422] text-[10.5px] font-black uppercase tracking-wider py-1 px-3 rounded-full shadow-md font-space">
               {isPro
                 ? (lang === 'en' ? '⭐ Your Current Plan' : '⭐ Pelan Anda Sekarang')
-                : (lang === 'en' ? '🔥 Most Popular' : '🔥 Paling Popular')}
+                : (lang === 'en' ? '🔥 Unlimited Customers' : '🔥 Pelanggan Tanpa Had')}
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-2 pt-1">
                 <span className="font-space text-xs uppercase tracking-wider font-bold text-[#E5A43B]">
-                  {lang === 'en' ? 'Pro Plan' : 'Pelan Pro'}
+                  {lang === 'en' ? 'Pro Subscription' : 'Langganan Pro'}
+                </span>
+                <span className="text-[11px] font-bold text-amber-300">
+                  {lang === 'en' ? 'Unlimited' : 'Tanpa Had'}
                 </span>
               </div>
 
               <div className="font-fraunces text-2xl font-bold text-[#FAF2E2] mb-1">
                 {lang === 'en' ? 'Pro Plan' : 'Pelan Pro'}
               </div>
-              <p className="text-xs text-[#C4B897] mb-4">
+              <p className="text-xs text-[#C4B897] mb-4 leading-relaxed">
                 {lang === 'en'
-                  ? 'For growing businesses requiring unlimited power and features.'
-                  : 'Untuk perniagaan yang berkembang tanpa sebarang had.'}
+                  ? 'For high-volume stores needing unlimited customer capacity and email stamp delivery.'
+                  : 'Untuk perniagaan aktif yang perlukan kapasiti tanpa had & ciri hantar cop melalui emel.'}
               </p>
 
               {/* TOGGLE INSIDE PRO CARD */}
@@ -367,7 +503,7 @@ function BillingContent() {
               </div>
 
               {/* PRICE DISPLAY */}
-              <div className="flex flex-col mb-6 pb-6 border-b border-[#FAF2E2]/15">
+              <div className="flex flex-col mb-5 pb-5 border-b border-[#FAF2E2]/15">
                 <div className="flex items-baseline gap-1.5">
                   <span className="font-fraunces text-4xl sm:text-5xl font-black text-[#E5A43B]">
                     {billingCycle === 'yearly' ? 'RM616' : 'RM53'}
@@ -385,19 +521,19 @@ function BillingContent() {
                 )}
               </div>
 
-              {/* PRO FEATURES LIST (Matching Landing Page) */}
-              <ul className="space-y-3.5 text-xs mb-6">
+              {/* PRO FEATURES LIST */}
+              <ul className="space-y-3 text-xs mb-6">
                 <li className="flex items-center gap-2.5 text-[#FAF2E2]">
                   <span className="w-5 h-5 rounded-full bg-[#E5A43B]/20 text-[#E5A43B] flex items-center justify-center text-[11px] font-bold shrink-0">✓</span>
-                  <span><strong>{lang === 'en' ? 'Unlimited customer capacity' : 'Pelanggan tanpa had'}</strong></span>
+                  <span><strong>{lang === 'en' ? 'Unlimited customer capacity' : 'Pelanggan tanpa had (Unlimited)'}</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5 text-[#FAF2E2]">
                   <span className="w-5 h-5 rounded-full bg-[#E5A43B]/20 text-[#E5A43B] flex items-center justify-center text-[11px] font-bold shrink-0">✓</span>
-                  <span>{lang === 'en' ? 'Unlimited email stamp dispatch' : 'Hantar kad cop melalui emel tanpa had'}</span>
+                  <span><strong>{lang === 'en' ? 'Unlimited email stamp dispatch' : 'Boleh hantar cop melalui emel tanpa had'}</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5 text-[#FAF2E2]">
                   <span className="w-5 h-5 rounded-full bg-[#E5A43B]/20 text-[#E5A43B] flex items-center justify-center text-[11px] font-bold shrink-0">✓</span>
-                  <span>{lang === 'en' ? 'Full access to all premium features' : 'Akses penuh ke semua ciri premium'}</span>
+                  <span>{lang === 'en' ? 'All features & priority customer support' : 'Semua ciri kaunter, cetak resit & sokongan keutamaan'}</span>
                 </li>
               </ul>
             </div>
@@ -408,7 +544,7 @@ function BillingContent() {
                   type="button"
                   onClick={handleOpenCustomerPortal}
                   disabled={isProcessing}
-                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:brightness-110 active:scale-[0.98] text-white font-jakarta font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-lg disabled:opacity-50"
+                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:brightness-110 active:scale-[0.98] text-white font-jakarta font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-lg disabled:opacity-50"
                 >
                   <span>{isProcessing ? (lang === 'en' ? 'Processing...' : 'Memproses...') : (lang === 'en' ? 'Manage Billing & Invoices (Stripe Portal) ↗' : 'Urus Langganan & Invois (Stripe Portal) ↗')}</span>
                 </button>
@@ -423,7 +559,7 @@ function BillingContent() {
                 </button>
               )}
 
-              <p className="text-center text-[11px] text-[#8E9B95] mt-3">
+              <p className="text-center text-[10.5px] text-[#8E9B95] mt-2.5">
                 {lang === 'en' ? 'Secure payments via Stripe • Cancel anytime' : 'Bayaran selamat melalui Stripe • Batal bila-bila masa'}
               </p>
             </div>
@@ -433,8 +569,8 @@ function BillingContent() {
         {/* BOTTOM NOTE */}
         <div className="text-center text-xs text-[#8E9B95] mb-8">
           {lang === 'en'
-            ? 'All plans include counter staff portal, QR token system, and customer digital cards.'
-            : 'Semua pelan merangkumi portal staff kaunter, sistem token QR, dan kad cop digital pelanggan.'}
+            ? 'All digital cards and plans include counter staff portal, dynamic QR codes, receipt printing, and customer web cards.'
+            : 'Setiap pek kad dan pelan merangkumi portal staff kaunter, token QR 30 minit, cetak resit Bluetooth, dan kad cop digital pelanggan.'}
         </div>
 
         {/* FOOTER */}

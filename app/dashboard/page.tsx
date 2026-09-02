@@ -177,6 +177,7 @@ export default function CashierDashboard() {
   const [staffRole, setStaffRole] = useState<string>('cashier')
   const [planType, setPlanType] = useState<string>('free')
   const [subscriptionStatus, setSubscriptionStatus] = useState<string>('active')
+  const [purchasedCardQuota, setPurchasedCardQuota] = useState<number>(0)
   const [isSavingSettings, setIsSavingSettings] = useState<boolean>(false)
   const [saveToast, setSaveToast] = useState<boolean>(false)
   const [settingsError, setSettingsError] = useState<string>('')
@@ -316,6 +317,7 @@ export default function CashierDashboard() {
           setStaffRole(data.role || 'cashier')
           setPlanType(data.planType || 'free')
           setSubscriptionStatus(data.subscriptionStatus || 'active')
+          setPurchasedCardQuota(data.purchasedCardQuota || 0)
 
           // Only overwrite user-editable form fields if forced (e.g. initial load, save, QR clone)
           // or if the settings panel is NOT currently opened/being edited by the user
@@ -1832,37 +1834,47 @@ export default function CashierDashboard() {
       ) : (
         /* 3. CASHIER COUNTER / STATS / REWARD SEARCH / SETTINGS / ACTIVITY */
         <>
-          {/* PLAN STATUS BADGE + FREE TIER QUOTA BAR */}
+          {/* PLAN STATUS BADGE + DYNAMIC CUSTOMER QUOTA BAR */}
           {(() => {
             const isPro = planType === 'pro' && subscriptionStatus === 'active'
             const totalCustomers = storeStats.totalCustomers
-            const quotaPct = Math.min(100, (totalCustomers / 20) * 100)
-            const quotaWarning = !isPro && totalCustomers >= 18
-            const quotaFull = !isPro && totalCustomers >= 20
+            const planLimit = isPro ? Infinity : 20 + (purchasedCardQuota || 0)
+            const quotaPct = isPro ? 0 : Math.min(100, Math.round((totalCustomers / planLimit) * 100))
+            const quotaWarning = !isPro && totalCustomers >= planLimit - Math.max(2, Math.round(planLimit * 0.1))
+            const quotaFull = !isPro && totalCustomers >= planLimit
+
+            const badgeText = isPro
+              ? t.planQuota.proActive
+              : purchasedCardQuota > 0
+              ? (lang === 'en' ? `✦ Card Top-Up (${planLimit} Limit)` : `✦ Top-Up Kad (Had ${planLimit})`)
+              : t.planQuota.freeStarter
+
             return (
               <div className="mb-4 flex flex-col gap-2">
                 {/* Plan Badge */}
                 <div className="flex items-center justify-between">
-                  <div className={`inline-flex items-center gap-1.5 text-[11px] font-bold font-space px-3 py-1 rounded-full ${isPro ? 'bg-[#E5A43B]/20 text-[#E5A43B]' : 'bg-[#FAF2E2]/10 text-[#5E6F68]'}`}>
-                    {isPro ? t.planQuota.proActive : t.planQuota.freeStarter}
+                  <div className={`inline-flex items-center gap-1.5 text-[11px] font-bold font-space px-3 py-1 rounded-full ${isPro ? 'bg-[#E5A43B]/20 text-[#E5A43B]' : purchasedCardQuota > 0 ? 'bg-amber-400/20 text-amber-300' : 'bg-[#FAF2E2]/10 text-[#5E6F68]'}`}>
+                    {badgeText}
                   </div>
                   {!isPro && (
                     <Link href="/dashboard/billing" className="text-[10.5px] font-semibold text-[#E5A43B] hover:underline">
-                      {t.planQuota.upgrade}
+                      {purchasedCardQuota > 0 ? (lang === 'en' ? 'Top-Up Cards →' : 'Top-Up Kad →') : t.planQuota.upgrade}
                     </Link>
                   )}
                 </div>
 
-                {/* Free Tier Customer Quota Bar (Free plan only) */}
+                {/* Customer Capacity Quota Bar (Non-Pro only) */}
                 {!isPro && (
                   <div className="bg-[#FAF2E2]/[0.05] border border-[#FAF2E2]/10 rounded-xl px-3.5 py-2.5">
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-[10px] font-space uppercase text-[#5E6F68] font-bold tracking-wider">{t.planQuota.quotaTitle}</span>
+                      <span className="text-[10px] font-space uppercase text-[#5E6F68] font-bold tracking-wider">
+                        {purchasedCardQuota > 0 ? (lang === 'en' ? 'Customer Capacity' : 'Kapasiti Pelanggan') : t.planQuota.quotaTitle}
+                      </span>
                       {statsLoading ? (
                         <div className="h-4 w-12 bg-white/20 rounded animate-pulse" />
                       ) : (
                         <span className={`text-[11px] font-bold font-space ${quotaFull ? 'text-red-400' : quotaWarning ? 'text-amber-400' : 'text-[#FAF2E2]'}`}>
-                          {totalCustomers} / 20
+                          {totalCustomers} / {planLimit}
                         </span>
                       )}
                     </div>
@@ -1875,12 +1887,14 @@ export default function CashierDashboard() {
                     {quotaFull && (
                       <div className="mt-1.5 text-[10px] text-red-400 font-space font-semibold">
                         {t.planQuota.quotaFull}{' '}
-                        <Link href="/dashboard/billing" className="underline text-[#E5A43B]">{t.planQuota.upgradeToPro}</Link>
+                        <Link href="/dashboard/billing" className="underline text-[#E5A43B]">
+                          {lang === 'en' ? 'Top-up cards or Upgrade' : 'Top-up kad atau Naik taraf'}
+                        </Link>
                       </div>
                     )}
                     {quotaWarning && !quotaFull && (
                       <div className="mt-1.5 text-[10px] text-amber-400 font-space font-semibold">
-                        {t.planQuota.quotaWarning(20 - totalCustomers)}
+                        {t.planQuota.quotaWarning(planLimit - totalCustomers)}
                       </div>
                     )}
                   </div>

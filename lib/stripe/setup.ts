@@ -15,14 +15,17 @@ export const stripe = new Stripe(
 export async function ensureStripeProducts(): Promise<{
   monthlyPriceId: string
   yearlyPriceId: string
+  cardUnitPriceId: string
 }> {
   if (
     process.env.STRIPE_PRICE_MONTHLY &&
-    process.env.STRIPE_PRICE_YEARLY
+    process.env.STRIPE_PRICE_YEARLY &&
+    process.env.STRIPE_PRICE_CARD_UNIT
   ) {
     return {
       monthlyPriceId: process.env.STRIPE_PRICE_MONTHLY,
       yearlyPriceId: process.env.STRIPE_PRICE_YEARLY,
+      cardUnitPriceId: process.env.STRIPE_PRICE_CARD_UNIT,
     }
   }
 
@@ -88,12 +91,33 @@ export async function ensureStripeProducts(): Promise<{
     console.log('[Stripe Setup] Created yearly price:', yearlyPrice.id)
   }
 
+  // 4. One-Off Card Unit Price (RM0.50 = 50 cents / card, one-time payment)
+  let cardUnitPrice: Stripe.Price | null = null
+  const foundCardUnit = allPrices.data.find(
+    (p) => !p.recurring && p.unit_amount === 50 && p.currency === 'myr'
+  )
+  if (foundCardUnit) {
+    cardUnitPrice = foundCardUnit
+    console.log('[Stripe Setup] Found existing card unit price:', cardUnitPrice.id)
+  } else {
+    cardUnitPrice = await stripe.prices.create({
+      product: product.id,
+      unit_amount: 50,
+      currency: 'myr',
+      nickname: 'Kad Cop Digital LajuS - RM0.50 Sekeping (One-Off)',
+      metadata: { plan: 'one_off_card', app: 'lajus' },
+    })
+    console.log('[Stripe Setup] Created card unit price:', cardUnitPrice.id)
+  }
+
   process.env.STRIPE_PRICE_MONTHLY = monthlyPrice.id
   process.env.STRIPE_PRICE_YEARLY = yearlyPrice.id
-  console.log('[Stripe Setup] Ready - Monthly:', monthlyPrice.id, '| Yearly:', yearlyPrice.id)
+  process.env.STRIPE_PRICE_CARD_UNIT = cardUnitPrice.id
+  console.log('[Stripe Setup] Ready - Monthly:', monthlyPrice.id, '| Yearly:', yearlyPrice.id, '| Card Unit:', cardUnitPrice.id)
 
   return {
     monthlyPriceId: monthlyPrice.id,
     yearlyPriceId: yearlyPrice.id,
+    cardUnitPriceId: cardUnitPrice.id,
   }
 }

@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
     const { data: store, error: storeError } = await admin
       .from('stores')
       .select(
-        'id, name, stamps_required, reward_description, logo_url, reward_image_url, rewards, plan_type, subscription_status, google_review_url, google_place_id, google_review_mode'
+        'id, name, stamps_required, reward_description, logo_url, reward_image_url, rewards, plan_type, subscription_status, purchased_card_quota, google_review_url, google_place_id, google_review_mode'
       )
       .eq('id', activeStoreId)
       .single()
@@ -103,6 +103,7 @@ export async function GET(req: NextRequest) {
       socialLinks: parsedSocialLinks,
       planType: store.plan_type || 'free',
       subscriptionStatus: store.subscription_status || 'active',
+      purchasedCardQuota: store.purchased_card_quota || 0,
       role: activeRole,
       googleReviewMode: store.google_review_mode || 'manual',
       googleReviewUrl: store.google_review_url || null,

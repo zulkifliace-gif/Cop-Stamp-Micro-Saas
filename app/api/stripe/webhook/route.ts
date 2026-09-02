@@ -60,10 +60,40 @@ export async function POST(req: NextRequest) {
       case 'checkout.session.completed': {
         const session = event.data.object
         const storeId = session.metadata?.store_id
-        const planType = session.metadata?.plan_type || 'monthly'
+        const checkoutType = session.metadata?.type
         processedStoreId = storeId || null
 
-        console.log(`[Stripe Webhook] Checkout completed for store: ${storeId}, plan: ${planType}`)
+        // A. Handle One-off Card Top-up
+        if (checkoutType === 'card_topup') {
+          const cardsCount = parseInt(session.metadata?.cards_count || '0', 10)
+          console.log(`[Stripe Webhook] Card top-up completed for store: ${storeId}, cards: ${cardsCount}`)
+
+          if (storeId && cardsCount > 0) {
+            const { error: rpcErr } = await admin.rpc('add_purchased_card_quota', {
+              p_store_id: storeId,
+              p_count: cardsCount,
+            })
+
+            if (rpcErr) {
+              console.warn('[Stripe Webhook] RPC add_purchased_card_quota error, fallback to direct update:', rpcErr.message)
+              const { data: storeRow } = await admin
+                .from('stores')
+                .select('purchased_card_quota')
+                .eq('id', storeId)
+                .single()
+              const currentQuota = storeRow?.purchased_card_quota || 0
+              await admin
+                .from('stores')
+                .update({ purchased_card_quota: currentQuota + cardsCount })
+                .eq('id', storeId)
+            }
+          }
+          break
+        }
+
+        // B. Handle Pro Subscription Checkout
+        const planType = session.metadata?.plan_type || 'monthly'
+        console.log(`[Stripe Webhook] Subscription checkout completed for store: ${storeId}, plan: ${planType}`)
 
         if (storeId) {
           await admin

@@ -29,6 +29,7 @@ alter table public.stores add column if not exists subscription_status text defa
 alter table public.stores add column if not exists stripe_customer_id text;
 alter table public.stores add column if not exists stripe_subscription_id text;
 alter table public.stores add column if not exists subscription_end_date timestamptz;
+alter table public.stores add column if not exists purchased_card_quota int not null default 0;
 
 -- Ownership & routing columns (wujud dalam DB production sebelum schema.sql
 -- ni ditulis, jadi mesti dinyatakan di sini supaya fresh-install pun ada)
@@ -408,21 +409,33 @@ begin
         end if;
     end if;
 
-    -- 6. Enforce Free Tier 20-Customer Limit for NEW customers
-    -- If store is NOT on active Pro plan, check if adding a new customer exceeds 20
-    if not v_is_existing_customer and (coalesce(v_store_row.plan_type, 'free') != 'pro' or coalesce(v_store_row.subscription_status, 'active') != 'active') then
-        select count(*) into v_customer_count
-        from public.customer_loyalty
-        where store_id = v_token_row.store_id;
-
-        if v_customer_count >= 20 then
-            return jsonb_build_object(
-                'success', false,
-                'error', 'customer_limit_reached',
-                'message', 'Kedai ini telah mencapai had maksimum 20 pelanggan bagi Pelan Percuma. Sila hubungi peniaga untuk menaik taraf ke Pelan Pro.'
-            );
+    -- 6. Enforce Dynamic Customer Capacity for NEW customers
+    -- Pro Active = Unlimited (-1)
+    -- Non-Pro (Free / Top-Up) = 20 Asas Percuma + purchased_card_quota
+    declare
+        v_store_plan text := coalesce(v_store_row.plan_type, 'free');
+        v_store_sub_status text := coalesce(v_store_row.subscription_status, 'active');
+        v_purchased_quota int := coalesce(v_store_row.purchased_card_quota, 0);
+        v_max_allowed int := 20 + v_purchased_quota;
+    begin
+        if v_store_sub_status = 'active' and v_store_plan = 'pro' then
+            v_max_allowed := -1; -- Unlimited
         end if;
-    end if;
+
+        if not v_is_existing_customer and v_max_allowed > 0 then
+            select count(*) into v_customer_count
+            from public.customer_loyalty
+            where store_id = v_token_row.store_id;
+
+            if v_customer_count >= v_max_allowed then
+                return jsonb_build_object(
+                    'success', false,
+                    'error', 'customer_limit_reached',
+                    'message', format('Kedai ini telah mencapai had kapasiti %s pelanggan. Sila tambah kuota kad digital atau langgan Pelan Pro.', v_max_allowed)
+                );
+            end if;
+        end if;
+    end;
 
     v_new_stamps := v_prev_stamps + v_token_row.stamp_count;
 
@@ -453,6 +466,18 @@ begin
         'stampsRequired', coalesce(v_store_row.stamps_required, 10),
         'rewardDescription', coalesce(v_store_row.reward_description, '1 ganjaran istimewa')
     );
+end;
+$$ language plpgsql security definer
+set search_path = public, pg_temp;
+
+-- Fungsi atomic untuk menambah kuota kad digital (One-Off Topup)
+create or replace function public.add_purchased_card_quota(p_store_id uuid, p_count int)
+returns void as $$
+begin
+    update public.stores
+    set purchased_card_quota = coalesce(purchased_card_quota, 0) + p_count,
+        updated_at = now()
+    where id = p_store_id;
 end;
 $$ language plpgsql security definer
 set search_path = public, pg_temp;

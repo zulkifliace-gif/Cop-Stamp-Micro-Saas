@@ -260,7 +260,7 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
       },
       {
         q: 'Berapa kos untuk menggunakan LajuS?',
-        a: 'LajuS menawarkan Pelan Percuma (sehingga 20 pelanggan baharu). Untuk perniagaan yang berkembang pesat, anda boleh melanggan Pelan Pro (RM53/bulan atau RM616/tahun) untuk kapasiti pelanggan tanpa had dan ciri penghantaran cop via emel.',
+        a: 'LajuS menawarkan Pelan Percuma (sehingga 20 pelanggan baharu). Anda boleh menambah kuota kad secara fleksibel serendah RM0.50 sekeping (minima 35 kad = RM17.50, sekali bayar tanpa caj bulanan), atau melanggan Pelan Pro (RM53/bulan atau RM616/tahun) untuk kapasiti pelanggan tanpa had dan ciri penghantaran cop via emel.',
       },
       {
         q: 'Bolehkah lebih dari satu staff gunakan sistem ini?',
@@ -426,7 +426,7 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
       },
       {
         q: 'How much does LajuS cost?',
-        a: 'LajuS offers a Free Plan (up to 20 new customers). For growing businesses, you can subscribe to Pro (RM53/month or RM616/year) for unlimited customers and email stamp dispatch.',
+        a: 'LajuS offers a Free Plan (up to 20 new customers). You can top up cards on-demand starting at RM0.50/card (minimum 35 cards = RM17.50, one-time payment with no monthly commitment), or subscribe to Pro (RM53/month or RM616/year) for unlimited customers and email stamp dispatch.',
       },
       {
         q: 'Can multiple staff members use the system?',
