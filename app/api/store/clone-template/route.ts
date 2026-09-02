@@ -190,11 +190,39 @@ export async function POST(req: NextRequest) {
         )
       }
 
-      // DIRECTLY UPDATE KEDAI B in Supabase stores table!
+      // Extract all nested fields correctly
       const storeNameA = (sourceData.name || sourceData.storeName || '').trim()
+
+      let extractedRewards: any[] = []
+      if (Array.isArray(sourceData.rewards)) {
+        extractedRewards = sourceData.rewards
+      } else if (Array.isArray(sourceData.rewards?.list)) {
+        extractedRewards = sourceData.rewards.list
+      } else if (Array.isArray(sourceData.rewardsList)) {
+        extractedRewards = sourceData.rewardsList
+      }
+
+      let extractedStampIcon = '/icons/stamps/makanan.svg'
+      if (typeof sourceData.stamp_icon === 'string' && sourceData.stamp_icon) {
+        extractedStampIcon = sourceData.stamp_icon
+      } else if (typeof sourceData.stampIcon === 'string' && sourceData.stampIcon) {
+        extractedStampIcon = sourceData.stampIcon
+      } else if (sourceData.rewards?.stampIcon) {
+        extractedStampIcon = sourceData.rewards.stampIcon
+      }
+
+      let extractedSocialLinks: any[] = []
+      if (Array.isArray(sourceData.social_links)) {
+        extractedSocialLinks = sourceData.social_links
+      } else if (Array.isArray(sourceData.socialLinks)) {
+        extractedSocialLinks = sourceData.socialLinks
+      } else if (Array.isArray(sourceData.rewards?.socialLinks)) {
+        extractedSocialLinks = sourceData.rewards.socialLinks
+      }
+
+      // DIRECTLY UPDATE KEDAI B in Supabase stores table with full schema compatibility!
       const updatePayload: Record<string, any> = {
         logo_url: sourceData.logo_url || sourceData.logoUrl || null,
-        stamp_icon: sourceData.stamp_icon || sourceData.stampIcon || '/icons/stamps/makanan.svg',
         reward_image_url: sourceData.reward_image_url || sourceData.rewardImageUrl || null,
         stamps_required: Number(sourceData.stamps_required || sourceData.stampsRequired || 10),
         reward_description: (
@@ -202,13 +230,14 @@ export async function POST(req: NextRequest) {
           sourceData.rewardDesc ||
           'Ganjaran Percuma'
         ).trim(),
-        rewards: Array.isArray(sourceData.rewards) ? sourceData.rewards : [],
+        rewards: {
+          list: extractedRewards,
+          stampIcon: extractedStampIcon,
+          socialLinks: extractedSocialLinks,
+        },
         google_review_mode: sourceData.google_review_mode || sourceData.googleReviewMode || 'manual',
         google_review_url: sourceData.google_review_url || sourceData.googleReviewUrl || null,
         google_place_id: sourceData.google_place_id || sourceData.googlePlaceId || null,
-        social_links: Array.isArray(sourceData.social_links || sourceData.socialLinks)
-          ? sourceData.social_links || sourceData.socialLinks
-          : [],
         updated_at: new Date().toISOString(),
       }
 
