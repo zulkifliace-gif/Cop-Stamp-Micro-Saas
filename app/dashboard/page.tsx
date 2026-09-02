@@ -184,6 +184,7 @@ export default function CashierDashboard() {
   // Settings Share & Scan State
   const [showSettingsQrModal, setShowSettingsQrModal] = useState<boolean>(false)
   const [settingsQrDataUrl, setSettingsQrDataUrl] = useState<string | null>(null)
+  const [settingsShareUrl, setSettingsShareUrl] = useState<string>('')
   const [isGeneratingSettingsQr, setIsGeneratingSettingsQr] = useState<boolean>(false)
   const [configCopied, setConfigCopied] = useState<boolean>(false)
   const [showSettingsScanner, setShowSettingsScanner] = useState<boolean>(false)
@@ -1059,7 +1060,63 @@ export default function CashierDashboard() {
     setShowQrScanner(false)
   }
 
-  // 12.1 Settings Camera QR Scanner Lifecycle
+  // 12.1 Apply Store Template from Link / Store ID
+  async function applyStoreTemplate(targetStoreId: string) {
+    if (!targetStoreId) return false
+    try {
+      const res = await fetch(`/api/store/clone-template?storeId=${encodeURIComponent(targetStoreId.trim())}`)
+      if (!res.ok) {
+        const errData = await res.json()
+        throw new Error(errData.error || 'Gagal memuat turun tetapan kedai.')
+      }
+      const parsed = await res.json()
+
+      // Auto-fill all store configuration fields
+      if (parsed.storeName) setStoreName(parsed.storeName)
+      if (parsed.logoUrl !== undefined) setLogoUrl(parsed.logoUrl)
+      if (parsed.stampIcon) setStampIcon(parsed.stampIcon)
+      if (parsed.rewardImageUrl !== undefined) setRewardImageUrl(parsed.rewardImageUrl)
+      if (parsed.stampsRequired) setStampsRequired(Number(parsed.stampsRequired))
+      if (parsed.rewardDesc !== undefined) setRewardDesc(parsed.rewardDesc)
+      if (Array.isArray(parsed.rewards)) setRewardsList(parsed.rewards)
+      if (parsed.googleReviewMode) setGoogleReviewMode(parsed.googleReviewMode)
+      if (parsed.googleReviewUrl !== undefined) setGoogleReviewUrl(parsed.googleReviewUrl)
+      if (parsed.googlePlaceId !== undefined) setGooglePlaceId(parsed.googlePlaceId)
+      if (parsed.googleReviewInput !== undefined) setGoogleReviewInput(parsed.googleReviewInput || parsed.googleReviewUrl || '')
+      if (Array.isArray(parsed.socialLinks)) setSocialLinks(parsed.socialLinks)
+
+      // Ensure settings modal is opened for review
+      setShowSettings(true)
+
+      // Play chime
+      try {
+        const audio = new Audio('/new notification.mp3')
+        audio.volume = 0.8
+        audio.play().catch(() => {})
+      } catch (_e) {}
+
+      setSettingsScanSuccess(t.settings.settingsScanSuccessMsg || 'Semua maklumat berjaya dimuatkan dari pautan kedai! Sila semak dan tekan Simpan.')
+      setTimeout(() => setSettingsScanSuccess(''), 7000)
+      return true
+    } catch (e: any) {
+      setSettingsScanError(e.message || 'Gagal membaca data dari pautan kedai.')
+      return false
+    }
+  }
+
+  // 12.2 Auto-detect ?importStore=XYZ URL parameter on load
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const urlParams = new URLSearchParams(window.location.search)
+    const importStoreId = urlParams.get('importStore')
+    if (importStoreId && importStoreId !== storeId) {
+      applyStoreTemplate(importStoreId)
+      const cleanUrl = window.location.pathname
+      window.history.replaceState({}, '', cleanUrl)
+    }
+  }, [storeId])
+
+  // 12.3 Settings Camera QR Scanner Lifecycle
   useEffect(() => {
     let html5QrCodeInstance: any = null
     let isMounted = true
@@ -1088,41 +1145,42 @@ export default function CashierDashboard() {
             },
             aspectRatio: 1.0,
           },
-          (decodedText: string) => {
-            try {
-              const parsed = JSON.parse(decodedText.trim())
-              if (!parsed || (parsed.type !== 'LAJUS_CONFIG_V1' && !parsed.storeName && !parsed.rewards)) {
-                setSettingsScanError(t.settings.settingsScanInvalidMsg || 'QR ini bukan kod tetapan kedai LajuS.')
-                return
-              }
-
-              // Auto-fill all store configuration fields
-              if (parsed.storeName) setStoreName(parsed.storeName)
-              if (parsed.logoUrl !== undefined) setLogoUrl(parsed.logoUrl)
-              if (parsed.stampIcon) setStampIcon(parsed.stampIcon)
-              if (parsed.rewardImageUrl !== undefined) setRewardImageUrl(parsed.rewardImageUrl)
-              if (parsed.stampsRequired) setStampsRequired(Number(parsed.stampsRequired))
-              if (parsed.rewardDesc !== undefined) setRewardDesc(parsed.rewardDesc)
-              if (Array.isArray(parsed.rewards)) setRewardsList(parsed.rewards)
-              if (parsed.googleReviewMode) setGoogleReviewMode(parsed.googleReviewMode)
-              if (parsed.googleReviewUrl !== undefined) setGoogleReviewUrl(parsed.googleReviewUrl)
-              if (parsed.googlePlaceId !== undefined) setGooglePlaceId(parsed.googlePlaceId)
-              if (parsed.googleReviewInput !== undefined) setGoogleReviewInput(parsed.googleReviewInput)
-              if (Array.isArray(parsed.socialLinks)) setSocialLinks(parsed.socialLinks)
-
-              // Play chime
+          async (decodedText: string) => {
+            let targetId = decodedText.trim()
+            if (targetId.includes('importStore=')) {
               try {
-                const audio = new Audio('/new notification.mp3')
-                audio.volume = 0.8
-                audio.play().catch(() => {})
-              } catch (_e) {}
+                const parsedUrl = new URL(targetId)
+                targetId = parsedUrl.searchParams.get('importStore') || targetId
+              } catch {
+                const match = targetId.match(/importStore=([^&]+)/)
+                if (match) targetId = match[1]
+              }
+            } else if (targetId.startsWith('{')) {
+              // Backward compatibility for raw json
+              try {
+                const parsed = JSON.parse(targetId)
+                if (parsed.storeName) setStoreName(parsed.storeName)
+                if (parsed.logoUrl !== undefined) setLogoUrl(parsed.logoUrl)
+                if (parsed.stampIcon) setStampIcon(parsed.stampIcon)
+                if (parsed.rewardImageUrl !== undefined) setRewardImageUrl(parsed.rewardImageUrl)
+                if (parsed.stampsRequired) setStampsRequired(Number(parsed.stampsRequired))
+                if (parsed.rewardDesc !== undefined) setRewardDesc(parsed.rewardDesc)
+                if (Array.isArray(parsed.rewards)) setRewardsList(parsed.rewards)
+                if (parsed.googleReviewMode) setGoogleReviewMode(parsed.googleReviewMode)
+                if (parsed.googleReviewUrl !== undefined) setGoogleReviewUrl(parsed.googleReviewUrl)
+                if (parsed.googlePlaceId !== undefined) setGooglePlaceId(parsed.googlePlaceId)
+                if (parsed.googleReviewInput !== undefined) setGoogleReviewInput(parsed.googleReviewInput)
+                if (Array.isArray(parsed.socialLinks)) setSocialLinks(parsed.socialLinks)
+                setShowSettings(true)
+                setSettingsScanSuccess(t.settings.settingsScanSuccessMsg || 'Semua maklumat berjaya disalin!')
+                handleCloseSettingsScanner(html5QrCodeInstance)
+                return
+              } catch {}
+            }
 
-              setSettingsScanSuccess(t.settings.settingsScanSuccessMsg || 'Semua tetapan berjaya disalin! Sila semak & simpan.')
-              setTimeout(() => setSettingsScanSuccess(''), 6000)
-
+            const ok = await applyStoreTemplate(targetId)
+            if (ok) {
               handleCloseSettingsScanner(html5QrCodeInstance)
-            } catch (jsonErr) {
-              setSettingsScanError(t.settings.settingsScanInvalidMsg || 'Gagal membaca format data tetapan.')
             }
           },
           () => {
@@ -1173,29 +1231,22 @@ export default function CashierDashboard() {
   }
 
   async function handleOpenSettingsQr() {
+    if (!storeId) {
+      showBtToast('Sila simpan tetapan kedai terlebih dahulu.', 'error')
+      return
+    }
     setIsGeneratingSettingsQr(true)
     setConfigCopied(false)
     try {
-      const configPayload = {
-        type: 'LAJUS_CONFIG_V1',
-        v: 1,
-        storeName,
-        logoUrl,
-        stampIcon,
-        rewardImageUrl,
-        stampsRequired,
-        rewardDesc,
-        rewards: rewardsList,
-        googleReviewMode,
-        googleReviewUrl,
-        googlePlaceId,
-        googleReviewInput,
-        socialLinks,
-      }
-      const jsonStr = JSON.stringify(configPayload)
-      const qrUrl = await QRCode.toDataURL(jsonStr, {
-        width: 360,
-        margin: 1,
+      const origin = typeof window !== 'undefined' ? window.location.origin : ''
+      const linkUrl = `${origin}/dashboard?importStore=${encodeURIComponent(storeId)}`
+      setSettingsShareUrl(linkUrl)
+
+      // Generate low-density, large-block, highly-scannable QR
+      const qrUrl = await QRCode.toDataURL(linkUrl, {
+        width: 320,
+        margin: 2,
+        errorCorrectionLevel: 'M',
         color: {
           dark: '#1C2624',
           light: '#FFFFFF',
@@ -1211,24 +1262,9 @@ export default function CashierDashboard() {
   }
 
   function handleCopySettingsConfig() {
+    if (!settingsShareUrl) return
     try {
-      const configPayload = {
-        type: 'LAJUS_CONFIG_V1',
-        v: 1,
-        storeName,
-        logoUrl,
-        stampIcon,
-        rewardImageUrl,
-        stampsRequired,
-        rewardDesc,
-        rewards: rewardsList,
-        googleReviewMode,
-        googleReviewUrl,
-        googlePlaceId,
-        googleReviewInput,
-        socialLinks,
-      }
-      navigator.clipboard.writeText(JSON.stringify(configPayload, null, 2))
+      navigator.clipboard.writeText(settingsShareUrl)
       setConfigCopied(true)
       setTimeout(() => setConfigCopied(false), 2500)
     } catch (_e) {}
@@ -3439,14 +3475,21 @@ export default function CashierDashboard() {
               <img src={settingsQrDataUrl} alt="Settings QR Code" className="w-full h-full object-contain" />
             </div>
 
-            {/* Actions: Copy Config Text */}
+            {/* Direct Link Preview */}
+            {settingsShareUrl && (
+              <div className="w-full mb-3 bg-[#FAF2E2]/[0.08] border border-[#FAF2E2]/15 px-3 py-1.5 rounded-xl text-[11px] font-mono text-[#E5A43B] truncate select-all">
+                {settingsShareUrl}
+              </div>
+            )}
+
+            {/* Actions: Copy Config Link */}
             <div className="w-full flex flex-col gap-2">
               <button
                 type="button"
                 onClick={handleCopySettingsConfig}
-                className="w-full py-2.5 rounded-xl bg-[#FAF2E2]/10 hover:bg-[#FAF2E2]/20 border border-[#FAF2E2]/20 text-[#FAF2E2] text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] text-[#1A2422] text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer active:scale-98 shadow-md"
               >
-                <span>📋</span>
+                <span>🔗</span>
                 <span>{configCopied ? `✓ ${t.settings.configCopiedMsg}` : t.settings.copyConfigBtn}</span>
               </button>
             </div>
