@@ -613,7 +613,7 @@ export default function LandingPage() {
             <div className="relative mx-auto bg-gradient-to-tr from-[#E5A43B] via-[#C77B1B] to-[#1E5E53] p-[2px] sm:p-[3px] rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_30px_rgba(229,164,59,0.15)]">
               <div className="relative w-full aspect-video bg-slate-900 rounded-[14px] sm:rounded-[21px] overflow-hidden">
                 <iframe
-                  src="https://www.youtube-nocookie.com/embed/Mh4ZoUJnums?rel=0&modestbranding=1"
+                  src="https://www.youtube-nocookie.com/embed/6Cly7g3cv2g?rel=0&modestbranding=1"
                   title="LajuS Video Demo"
                   className="w-full h-full border-0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
