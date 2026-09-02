@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import QRCode from 'qrcode'
@@ -193,6 +193,23 @@ export default function CashierDashboard() {
   const [settingsScanError, setSettingsScanError] = useState<string>('')
   const [settingsScanSuccess, setSettingsScanSuccess] = useState<string>('')
   const settingsScannerRef = useRef<any>(null)
+  const isProcessingSettingsScanRef = useRef<boolean>(false)
+  const handledClaimTokensRef = useRef<Set<string>>(new Set())
+
+  // Single Notification Audio Sound Player with strict anti-spam throttle
+  const lastAudioPlayedAtRef = useRef<number>(0)
+  const playNotificationSound = useCallback((volume = 0.8) => {
+    const now = Date.now()
+    if (now - lastAudioPlayedAtRef.current < 2500) {
+      return // Prevent spamming sound if triggered multiple times
+    }
+    lastAudioPlayedAtRef.current = now
+    try {
+      const audio = new Audio('/new notification.mp3')
+      audio.volume = volume
+      audio.play().catch(() => {})
+    } catch (_e) {}
+  }, [])
 
   // Store Overview Stats
   const [storeStats, setStoreStats] = useState({
@@ -474,21 +491,19 @@ export default function CashierDashboard() {
   useEffect(() => {
     if (!generatedToken || mode !== 'qr' || isTokenClaimed) return
 
+    const currentToken = generatedToken
     let isMounted = true
     let pollTimer: NodeJS.Timeout | null = null
     let autoCloseTimer: NodeJS.Timeout | null = null
 
     function triggerClaimSuccess(count: number) {
-      if (!isMounted || isTokenClaimed) return
+      if (!isMounted || isTokenClaimed || handledClaimTokensRef.current.has(currentToken)) return
+      handledClaimTokensRef.current.add(currentToken)
       setIsTokenClaimed(true)
       setClaimedStampCount(count)
 
-      // 🔔 Play pleasant notification chime
-      try {
-        const audio = new Audio('/new notification.mp3')
-        audio.volume = 0.8
-        audio.play().catch(() => {})
-      } catch (_e) {}
+      // 🔔 Play notification chime strictly ONCE
+      playNotificationSound(0.8)
 
       // Refresh dashboard stats & activity in background
       loadActivity(1)
@@ -502,10 +517,10 @@ export default function CashierDashboard() {
     }
 
     async function checkStatus() {
-      if (!generatedToken || !isMounted || isTokenClaimed) return
+      if (!currentToken || !isMounted || isTokenClaimed || handledClaimTokensRef.current.has(currentToken)) return
       try {
         const res = await fetch(
-          `/api/tokens/status?token=${encodeURIComponent(generatedToken)}${
+          `/api/tokens/status?token=${encodeURIComponent(currentToken)}${
             storeId ? `&storeId=${encodeURIComponent(storeId)}` : ''
           }`
         )
@@ -522,14 +537,14 @@ export default function CashierDashboard() {
 
     // 1. Supabase Realtime channel
     const channel = supabase
-      .channel(`claim-token-${generatedToken}`)
+      .channel(`claim-token-${currentToken}`)
       .on(
         'postgres_changes',
         {
           event: 'UPDATE',
           schema: 'public',
           table: 'stamp_tokens',
-          filter: `token=eq.${generatedToken}`,
+          filter: `token=eq.${currentToken}`,
         },
         (payload: any) => {
           if (payload.new && payload.new.status === 'claimed' && isMounted) {
@@ -548,7 +563,7 @@ export default function CashierDashboard() {
       if (autoCloseTimer) clearTimeout(autoCloseTimer)
       supabase.removeChannel(channel)
     }
-  }, [generatedToken, mode, isTokenClaimed, storeId, stampCount])
+  }, [generatedToken, mode, isTokenClaimed, storeId, stampCount, playNotificationSound])
 
   // 5. Handle Google-Only Cashier Login
   async function handleGoogleLogin() {
@@ -689,11 +704,7 @@ export default function CashierDashboard() {
       showBtToast(`Printer disambung: ${conn.name}`, 'success')
 
       // 🔔 Play notification sound on successful BT connection
-      try {
-        const audio = new Audio('/new notification.mp3')
-        audio.volume = 0.7
-        audio.play().catch(() => {/* autoplay policy — ignore silently */})
-      } catch (_e) { /* ignore */ }
+      playNotificationSound(0.7)
 
       conn.device.addEventListener('gattserverdisconnected', () => {
         setBtPrinter(null)
@@ -1117,12 +1128,8 @@ export default function CashierDashboard() {
       // Ensure settings modal is opened for review
       setShowSettings(true)
 
-      // Play chime
-      try {
-        const audio = new Audio('/new notification.mp3')
-        audio.volume = 0.8
-        audio.play().catch(() => {})
-      } catch (_e) {}
+      // 🔔 Play notification chime strictly ONCE
+      playNotificationSound(0.8)
 
       setSettingsScanSuccess(
         data.message || 'Semua tetapan berjaya disalin dan disimpan terus ke Kedai B!'
@@ -1155,6 +1162,7 @@ export default function CashierDashboard() {
     async function startSettingsCamera() {
       if (!showSettingsScanner) return
       setSettingsScanError('')
+      isProcessingSettingsScanRef.current = false
 
       try {
         const { Html5Qrcode } = await import('html5-qrcode')
@@ -1177,9 +1185,19 @@ export default function CashierDashboard() {
             aspectRatio: 1.0,
           },
           async (decodedText: string) => {
-            const ok = await applyStoreTemplate(decodedText)
-            if (ok) {
-              handleCloseSettingsScanner(html5QrCodeInstance)
+            // Anti-spam lock: Ignore subsequent video frames while processing
+            if (isProcessingSettingsScanRef.current) return
+            isProcessingSettingsScanRef.current = true
+
+            try {
+              const ok = await applyStoreTemplate(decodedText)
+              if (ok) {
+                handleCloseSettingsScanner(html5QrCodeInstance)
+              }
+            } finally {
+              setTimeout(() => {
+                isProcessingSettingsScanRef.current = false
+              }, 2000)
             }
           },
           () => {
