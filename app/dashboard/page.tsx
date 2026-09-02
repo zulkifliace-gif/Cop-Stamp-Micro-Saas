@@ -185,6 +185,8 @@ export default function CashierDashboard() {
   const [showSettingsQrModal, setShowSettingsQrModal] = useState<boolean>(false)
   const [settingsQrDataUrl, setSettingsQrDataUrl] = useState<string | null>(null)
   const [settingsShareUrl, setSettingsShareUrl] = useState<string>('')
+  const [settingsCloneCode, setSettingsCloneCode] = useState<string>('')
+  const [manualClonePin, setManualClonePin] = useState<string>('')
   const [isGeneratingSettingsQr, setIsGeneratingSettingsQr] = useState<boolean>(false)
   const [configCopied, setConfigCopied] = useState<boolean>(false)
   const [showSettingsScanner, setShowSettingsScanner] = useState<boolean>(false)
@@ -1060,86 +1062,57 @@ export default function CashierDashboard() {
     setShowQrScanner(false)
   }
 
-  // 12.1 Apply Store Template from Compact Payload, URL, or Store ID
+  // 12.1 Apply Store Template from Short PIN / Link / Code
   async function applyStoreTemplate(input: string) {
     if (!input) return false
     try {
       let rawText = input.trim()
 
-      // A. Check if input is a URL or query string with ?c= (instant compact payload)
-      let compactParam: string | null = null
-      let storeIdParam: string | null = null
-
-      if (rawText.includes('c=') || rawText.includes('importStore=') || rawText.includes('s=')) {
+      // Extract code from URL if scanned or visited as full URL
+      let codeToUse = rawText
+      if (rawText.includes('clone=')) {
         try {
-          const urlObj = new URL(rawText.startsWith('http') ? rawText : `https://dummy.com/${rawText.startsWith('?') ? '' : '?'}${rawText}`)
-          compactParam = urlObj.searchParams.get('c')
-          storeIdParam = urlObj.searchParams.get('importStore') || urlObj.searchParams.get('s')
+          const urlObj = new URL(
+            rawText.startsWith('http')
+              ? rawText
+              : `https://dummy.com/${rawText.startsWith('?') ? '' : '?'}${rawText}`
+          )
+          codeToUse = urlObj.searchParams.get('clone') || codeToUse
         } catch {
-          const cMatch = rawText.match(/[?&]c=([^&#]+)/)
-          if (cMatch) compactParam = decodeURIComponent(cMatch[1])
-          const sMatch = rawText.match(/[?&](?:importStore|s)=([^&#]+)/)
-          if (sMatch) storeIdParam = decodeURIComponent(sMatch[1])
+          const match = rawText.match(/[?&]clone=([^&#]+)/)
+          if (match) codeToUse = decodeURIComponent(match[1])
         }
-      }
-
-      // Method 1: Instant decode from compact payload (100% offline & zero failure)
-      if (compactParam) {
+      } else if (rawText.includes('importStore=')) {
         try {
-          const jsonStr = decodeURIComponent(atob(compactParam))
-          const c = JSON.parse(jsonStr)
-
-          if (c.n !== undefined) setStoreName(c.n)
-          if (c.l !== undefined) setLogoUrl(c.l)
-          if (c.i) setStampIcon(c.i)
-          if (c.img !== undefined) setRewardImageUrl(c.img)
-          if (c.req) setStampsRequired(Number(c.req))
-          if (c.rd !== undefined) setRewardDesc(c.rd)
-          if (Array.isArray(c.rw)) setRewardsList(c.rw)
-          if (c.gm) setGoogleReviewMode(c.gm)
-          if (c.gu !== undefined) setGoogleReviewUrl(c.gu || null)
-          if (c.gp !== undefined) setGooglePlaceId(c.gp || null)
-          if (c.gi !== undefined || c.gu !== undefined) setGoogleReviewInput(c.gi || c.gu || '')
-          if (Array.isArray(c.soc)) setSocialLinks(c.soc)
-
-          setShowSettings(true)
-
-          try {
-            const audio = new Audio('/new notification.mp3')
-            audio.volume = 0.8
-            audio.play().catch(() => {})
-          } catch (_e) {}
-
-          setSettingsScanSuccess(t.settings.settingsScanSuccessMsg || 'Semua maklumat berjaya disalin! Sila semak dan tekan Simpan.')
-          setTimeout(() => setSettingsScanSuccess(''), 7000)
-          return true
-        } catch (compactErr) {
-          console.warn('Compact decode error, falling back to API:', compactErr)
+          const urlObj = new URL(
+            rawText.startsWith('http')
+              ? rawText
+              : `https://dummy.com/${rawText.startsWith('?') ? '' : '?'}${rawText}`
+          )
+          codeToUse = urlObj.searchParams.get('importStore') || codeToUse
+        } catch {
+          const match = rawText.match(/[?&]importStore=([^&#]+)/)
+          if (match) codeToUse = decodeURIComponent(match[1])
         }
       }
 
-      // Method 2: Fallback to API lookup using storeId
-      const targetStoreId = storeIdParam || rawText
-      const res = await fetch(`/api/store/clone-template?storeId=${encodeURIComponent(targetStoreId)}`)
-      if (!res.ok) {
-        const errData = await res.json()
-        throw new Error(errData.error || 'Gagal memuat turun tetapan kedai.')
-      }
-      const parsed = await res.json()
+      // Call backend POST /api/store/clone-template with action: 'apply'
+      const res = await fetch('/api/store/clone-template', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'apply',
+          code: codeToUse,
+        }),
+      })
 
-      // Auto-fill all store configuration fields
-      if (parsed.storeName) setStoreName(parsed.storeName)
-      if (parsed.logoUrl !== undefined) setLogoUrl(parsed.logoUrl)
-      if (parsed.stampIcon) setStampIcon(parsed.stampIcon)
-      if (parsed.rewardImageUrl !== undefined) setRewardImageUrl(parsed.rewardImageUrl)
-      if (parsed.stampsRequired) setStampsRequired(Number(parsed.stampsRequired))
-      if (parsed.rewardDesc !== undefined) setRewardDesc(parsed.rewardDesc)
-      if (Array.isArray(parsed.rewards)) setRewardsList(parsed.rewards)
-      if (parsed.googleReviewMode) setGoogleReviewMode(parsed.googleReviewMode)
-      if (parsed.googleReviewUrl !== undefined) setGoogleReviewUrl(parsed.googleReviewUrl)
-      if (parsed.googlePlaceId !== undefined) setGooglePlaceId(parsed.googlePlaceId)
-      if (parsed.googleReviewInput !== undefined) setGoogleReviewInput(parsed.googleReviewInput || parsed.googleReviewUrl || '')
-      if (Array.isArray(parsed.socialLinks)) setSocialLinks(parsed.socialLinks)
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal menyalin tetapan kedai.')
+      }
+
+      // Automatically reload settings from database to display fresh saved data!
+      await loadSettings()
 
       // Ensure settings modal is opened for review
       setShowSettings(true)
@@ -1151,27 +1124,28 @@ export default function CashierDashboard() {
         audio.play().catch(() => {})
       } catch (_e) {}
 
-      setSettingsScanSuccess(t.settings.settingsScanSuccessMsg || 'Semua maklumat berjaya dimuatkan dari pautan kedai! Sila semak dan tekan Simpan.')
-      setTimeout(() => setSettingsScanSuccess(''), 7000)
+      setSettingsScanSuccess(
+        data.message || 'Semua tetapan berjaya disalin dan disimpan terus ke Kedai B!'
+      )
+      setTimeout(() => setSettingsScanSuccess(''), 8000)
       return true
     } catch (e: any) {
-      setSettingsScanError(e.message || 'Gagal membaca data dari pautan kedai.')
+      setSettingsScanError(e.message || 'Gagal membaca data dari kod pautan kedai.')
       return false
     }
   }
 
-  // 12.2 Auto-detect ?importStore=XYZ or ?c=XYZ URL parameter on load
+  // 12.2 Auto-detect ?clone=XYZ or ?importStore=XYZ URL parameter on load
   useEffect(() => {
     if (typeof window === 'undefined') return
     const urlParams = new URLSearchParams(window.location.search)
-    const compactCode = urlParams.get('c')
-    const importStoreId = urlParams.get('importStore') || urlParams.get('s')
-    if (compactCode || (importStoreId && importStoreId !== storeId)) {
-      applyStoreTemplate(window.location.href)
+    const cloneCode = urlParams.get('clone') || urlParams.get('importStore')
+    if (cloneCode) {
+      applyStoreTemplate(cloneCode)
       const cleanUrl = window.location.pathname
       window.history.replaceState({}, '', cleanUrl)
     }
-  }, [storeId])
+  }, [])
 
   // 12.3 Settings Camera QR Scanner Lifecycle
   useEffect(() => {
@@ -1259,32 +1233,46 @@ export default function CashierDashboard() {
     setIsGeneratingSettingsQr(true)
     setConfigCopied(false)
     try {
-      const origin = typeof window !== 'undefined' ? window.location.origin : ''
-      
-      // Build lightweight compact JSON payload
-      const compactObj = {
-        n: storeName || '',
-        l: logoUrl || '',
-        i: stampIcon || '',
-        img: rewardImageUrl || '',
-        req: Number(stampsRequired) || 10,
-        rd: rewardDesc || '',
-        rw: rewardsList || [],
-        gm: googleReviewMode || 'manual',
-        gu: googleReviewUrl || '',
-        gp: googlePlaceId || '',
-        gi: googleReviewInput || '',
-        soc: socialLinks || [],
-      }
-      const compactB64 = btoa(encodeURIComponent(JSON.stringify(compactObj)))
-      const linkUrl = `${origin}/dashboard?c=${encodeURIComponent(compactB64)}${storeId ? `&s=${encodeURIComponent(storeId)}` : ''}`
-      setSettingsShareUrl(linkUrl)
+      // 1. Call backend to generate a clean 6-digit permission code for Store A
+      const res = await fetch('/api/store/clone-template', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate',
+          storeId,
+          currentSettings: {
+            name: storeName,
+            logo_url: logoUrl,
+            stamp_icon: stampIcon,
+            reward_image_url: rewardImageUrl,
+            stamps_required: stampsRequired,
+            reward_description: rewardDesc,
+            rewards: rewardsList,
+            google_review_mode: googleReviewMode,
+            google_review_url: googleReviewUrl,
+            google_place_id: googlePlaceId,
+            social_links: socialLinks,
+          },
+        }),
+      })
 
-      // Generate low-density, large-block, highly-scannable QR
-      const qrUrl = await QRCode.toDataURL(linkUrl, {
-        width: 320,
-        margin: 2,
-        errorCorrectionLevel: 'M',
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal menjana kod kebenaran tetapan.')
+      }
+
+      const shortCode = data.code // 6-digit code like "849201"
+      setSettingsCloneCode(shortCode)
+
+      const origin = typeof window !== 'undefined' ? window.location.origin : ''
+      const shortUrl = `${origin}/dashboard?clone=${shortCode}`
+      setSettingsShareUrl(shortUrl)
+
+      // 2. Generate ULTRA LOW-DENSITY QR: only ~35 characters -> huge bold blocks!
+      const qrUrl = await QRCode.toDataURL(shortUrl, {
+        width: 300,
+        margin: 3,
+        errorCorrectionLevel: 'L',
         color: {
           dark: '#1C2624',
           light: '#FFFFFF',
@@ -1292,8 +1280,9 @@ export default function CashierDashboard() {
       })
       setSettingsQrDataUrl(qrUrl)
       setShowSettingsQrModal(true)
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error generating settings QR:', err)
+      showBtToast(err.message || 'Ralat menjana QR tetapan.', 'error')
     } finally {
       setIsGeneratingSettingsQr(false)
     }
@@ -3504,12 +3493,33 @@ export default function CashierDashboard() {
             <h3 className="font-fraunces font-bold text-xl text-[#FAF2E2] mb-1">
               {storeName || 'Kedai Anda'}
             </h3>
-            <p className="text-xs text-[#C4B897] mb-4 leading-relaxed px-2">
+            <p className="text-xs text-[#C4B897] mb-3 leading-relaxed px-2">
               {t.settings.settingsQrModalDesc}
             </p>
 
+            {/* 6-Digit PIN Code Box */}
+            {settingsCloneCode && (
+              <div className="w-full max-w-[280px] bg-[#FAF2E2]/[0.08] border border-[#E5A43B]/40 px-4 py-2 rounded-2xl mb-3 flex items-center justify-between shadow-inner">
+                <div className="text-left">
+                  <div className="text-[9px] uppercase font-bold text-[#E5A43B] tracking-wider">KOD PIN 6-DIGIT</div>
+                  <div className="text-2xl font-mono font-black text-[#FAF2E2] tracking-widest">{settingsCloneCode}</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(settingsCloneCode)
+                    setConfigCopied(true)
+                    setTimeout(() => setConfigCopied(false), 2000)
+                  }}
+                  className="px-3 py-1 bg-[#E5A43B] text-[#0A1716] text-[11px] font-black rounded-lg cursor-pointer active:scale-95 shadow-sm"
+                >
+                  {configCopied ? '✓ Disalin' : 'Salin PIN'}
+                </button>
+              </div>
+            )}
+
             {/* QR Code Container */}
-            <div className="w-[240px] sm:w-[270px] h-[240px] sm:h-[270px] rounded-2xl bg-white p-2.5 shadow-2xl flex items-center justify-center border-2 border-[#E5A43B]/40 mb-4">
+            <div className="w-[220px] sm:w-[250px] h-[220px] sm:h-[250px] rounded-2xl bg-white p-2.5 shadow-2xl flex items-center justify-center border-2 border-[#E5A43B]/40 mb-3">
               <img src={settingsQrDataUrl} alt="Settings QR Code" className="w-full h-full object-contain" />
             </div>
 
@@ -3565,11 +3575,41 @@ export default function CashierDashboard() {
               <div id="settings-qr-reader" className="w-full h-full" />
 
               {settingsScanError && (
-                <div className="absolute inset-0 bg-black/90 p-4 flex flex-col items-center justify-center text-center text-red-300 text-xs font-semibold">
+                <div className="absolute inset-0 bg-black/90 p-4 flex flex-col items-center justify-center text-center text-red-300 text-xs font-semibold z-20">
                   <span className="text-2xl mb-1">⚠️</span>
                   <span>{settingsScanError}</span>
                 </div>
               )}
+            </div>
+
+            {/* Manual PIN Input Option */}
+            <div className="mb-3 p-3 bg-white/70 border border-[#1E5E53]/20 rounded-2xl">
+              <div className="text-[11px] font-bold text-gray-600 mb-1.5 uppercase tracking-wider">
+                Atau Masukkan Kod PIN 6-Digit
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  maxLength={6}
+                  placeholder="cth. 849201"
+                  value={manualClonePin}
+                  onChange={(e) => setManualClonePin(e.target.value.replace(/\D/g, ''))}
+                  className="flex-1 px-3 py-2 text-center text-base font-mono font-black tracking-widest bg-white border border-[#1E5E53]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E5E53] text-[#0A1716]"
+                />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (manualClonePin.length >= 6) {
+                      const ok = await applyStoreTemplate(manualClonePin)
+                      if (ok) handleCloseSettingsScanner()
+                    }
+                  }}
+                  disabled={manualClonePin.length < 6}
+                  className="px-4 py-2 bg-[#1E5E53] hover:bg-[#16483f] disabled:opacity-40 text-white font-bold text-xs rounded-xl cursor-pointer transition active:scale-95 shadow-sm"
+                >
+                  Salin
+                </button>
+              </div>
             </div>
 
             <button
