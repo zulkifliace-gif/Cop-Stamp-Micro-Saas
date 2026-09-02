@@ -95,6 +95,15 @@ export interface LandingTranslation {
     freeDesc: string
     freeFeatures: [string, string, boolean][]
     freeCta: string
+    cardTopupTitle: string
+    cardTopupPrice: string
+    cardTopupUnit: string
+    cardTopupMin: string
+    cardTopupDesc: string
+    cardTopupBadge: string
+    cardTopupFeatures: string[]
+    cardTopupCta: string
+    cardTopupSecurity: string
     proTitle: string
     proPeriodMonthly: string
     proPeriodYearly: string
@@ -103,6 +112,9 @@ export interface LandingTranslation {
     proFeatures: string[]
     proCta: string
     proSecurity: string
+    proNoteTitle: string
+    proNoteDesc: string
+    proNoteBtn: string
     bottomNote: string
     contactText: string
   }
@@ -222,22 +234,37 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
       button: 'Buka Kaunter Staff',
     },
     pricing: {
-      badge: '💳 Pricing & Plans',
-      titlePrefix: 'Pilih Pelan ',
-      titleHighlight: 'Terbaik Untuk Kedai Anda',
-      subtitle: 'Bermula percuma. Naik taraf mengikut bilangan pelanggan kedai anda.',
+      badge: '💳 Pilihan Fleksibel',
+      titlePrefix: 'Harga Fleksibel, ',
+      titleHighlight: 'Tanpa Bil Bulanan',
+      subtitle: 'Bermula percuma dengan 20 kad. Tambah kuota kad bila-bila masa mengikut keperluan sebenar kedai anda.',
       monthly: 'Bulanan',
       yearly: 'Tahunan',
       saveBadge: 'JIMAT RM20',
-      freeTitle: 'Pelan Percuma',
-      freePeriod: '/bulan',
-      freeDesc: 'Sesuai untuk memulakan sistem kad cop digital.',
+      freeTitle: 'Pek Permulaan',
+      freePeriod: 'percuma',
+      freeDesc: 'Daftar dan terima 20 kad digital pertama untuk mula uji sistem di kedai anda.',
       freeFeatures: [
-        ['✓', 'Terhad sehingga 20 pelanggan baharu', true],
-        ['✓', 'Akses penuh ke semua ciri asas', true],
+        ['✓', '20 kad digital percuma sedia diguna', true],
+        ['✓', 'Akses penuh portal staff & imbas QR', true],
+        ['✓', 'Google Review 5-Bintang automatik', true],
         ['–', 'Hantar kad cop melalui emel (eksklusif Pro)', false],
       ],
       freeCta: 'Mula Percuma Sekarang →',
+      cardTopupTitle: 'Pek Kad Cop Digital',
+      cardTopupPrice: 'RM0.50',
+      cardTopupUnit: '/ kad',
+      cardTopupMin: 'Minima 35 kad = RM17.50 sahaja',
+      cardTopupDesc: 'Beli kad ikut keperluan pelanggan. Bayar sekali, sah selamanya tanpa komitmen bulanan.',
+      cardTopupBadge: '🔥 PALING POPULAR • TIADA BIL BULANAN',
+      cardTopupFeatures: [
+        'Tambah kuota mengikut keperluan (Mulai 35 kad)',
+        'Sah selamanya — tiada tarikh luput & tiada bil bulanan',
+        'Semua ciri kaunter, QR 30 minit & Google Review',
+        'Top-up serta-merta terus dari dalam dashboard',
+      ],
+      cardTopupCta: 'Daftar & Beli Kad ⚡',
+      cardTopupSecurity: 'Bayaran sekali sahaja • Dijamin selamat oleh Stripe',
       proTitle: 'Pelan Pro',
       proPeriodMonthly: '/bulan',
       proPeriodYearly: '/tahun',
@@ -250,7 +277,10 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
       ],
       proCta: 'Langgan Pelan Pro Sekarang',
       proSecurity: 'Bayaran selamat melalui Stripe • Batal bila-bila masa',
-      bottomNote: 'Semua pelan merangkumi portal staff kaunter, sistem token QR, dan kad cop digital pelanggan.',
+      proNoteTitle: 'Perlukan kapasiti tanpa had & ciri hantar cop via emel?',
+      proNoteDesc: 'Pelan Pro Langganan (RM53/bulan) disediakan khas untuk perniagaan berskala besar.',
+      proNoteBtn: 'Ketahui Pelan Pro →',
+      bottomNote: 'Semua pilihan merangkumi portal staff kaunter, sistem token QR, dan kad cop digital pelanggan.',
       contactText: 'Sebarang pertanyaan? Hubungi kami di',
     },
     faqs: [
@@ -388,22 +418,37 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
       button: 'Open Staff Counter',
     },
     pricing: {
-      badge: '💳 Pricing & Plans',
-      titlePrefix: 'Choose The Best Plan ',
-      titleHighlight: 'For Your Business',
-      subtitle: 'Start free. Upgrade as your business grows and scales.',
+      badge: '💳 Flexible Pricing',
+      titlePrefix: 'Flexible Pricing, ',
+      titleHighlight: 'No Monthly Commitments',
+      subtitle: 'Start free with 20 cards. Top up anytime on-demand as your customer base grows.',
       monthly: 'Monthly',
       yearly: 'Yearly',
       saveBadge: 'SAVE RM20',
-      freeTitle: 'Free Plan',
-      freePeriod: '/month',
-      freeDesc: 'Perfect for starting your digital stamp card system.',
+      freeTitle: 'Starter Pack',
+      freePeriod: 'free',
+      freeDesc: 'Register and receive your first 20 digital cards as a free welcome gift.',
       freeFeatures: [
-        ['✓', 'Up to 20 new customer capacity', true],
-        ['✓', 'Full access to essential features & counter', true],
+        ['✓', '20 Free digital cards ready to use', true],
+        ['✓', 'Full access to staff counter & QR tokens', true],
+        ['✓', 'Automated 5-Star Google Reviews', true],
         ['–', 'Email token dispatch (Pro exclusive)', false],
       ],
       freeCta: 'Start Free Now →',
+      cardTopupTitle: 'Digital Stamp Cards',
+      cardTopupPrice: 'RM0.50',
+      cardTopupUnit: '/ card',
+      cardTopupMin: 'Minimum 35 cards = only RM17.50',
+      cardTopupDesc: 'Buy cards on-demand. Pay once, lifetime validity with zero monthly commitment.',
+      cardTopupBadge: '🔥 MOST POPULAR • NO MONTHLY BILLS',
+      cardTopupFeatures: [
+        'Add card quota as needed (Min. 35 cards)',
+        'Lifetime validity — never expires & no monthly fees',
+        'Full counter features, 30-min QR & Google Review',
+        'Instant top-up anytime directly from your dashboard',
+      ],
+      cardTopupCta: 'Sign Up & Top Up Cards ⚡',
+      cardTopupSecurity: 'One-time secure payment • Powered by Stripe',
       proTitle: 'Pro Plan',
       proPeriodMonthly: '/month',
       proPeriodYearly: '/year',
@@ -416,7 +461,10 @@ export const I18N_LANDING: Record<Lang, LandingTranslation> = {
       ],
       proCta: 'Subscribe to Pro Now',
       proSecurity: 'Secure payments via Stripe • Cancel anytime',
-      bottomNote: 'All plans include counter staff portal, QR token system, and customer digital cards.',
+      proNoteTitle: 'Need unlimited capacity & email stamp dispatch?',
+      proNoteDesc: 'Pro Subscription (RM53/mo) is available for high-volume enterprises.',
+      proNoteBtn: 'View Pro Details →',
+      bottomNote: 'All options include counter staff portal, QR token system, and customer digital cards.',
       contactText: 'Have questions? Contact us at',
     },
     faqs: [

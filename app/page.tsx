@@ -720,41 +720,12 @@ export default function LandingPage() {
             <p className="text-slate-400 text-base max-w-xl mx-auto">
               {t.pricing.subtitle}
             </p>
-
-            {/* Billing Toggle */}
-            <div className="inline-flex items-center gap-1 bg-slate-800 border border-slate-700 rounded-2xl p-1 mt-4">
-              <button
-                onClick={() => setBillingCycle('monthly')}
-                className={`px-5 py-2 rounded-xl text-sm font-bold transition cursor-pointer ${
-                  billingCycle === 'monthly'
-                    ? 'bg-[#E5A43B] text-slate-900'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                {t.pricing.monthly}
-              </button>
-              <button
-                onClick={() => setBillingCycle('yearly')}
-                className={`px-5 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 cursor-pointer ${
-                  billingCycle === 'yearly'
-                    ? 'bg-[#E5A43B] text-slate-900'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                {t.pricing.yearly}
-                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${
-                  billingCycle === 'yearly' ? 'bg-slate-900/30 text-slate-900' : 'bg-emerald-500/20 text-emerald-400'
-                }`}>
-                  {t.pricing.saveBadge}
-                </span>
-              </button>
-            </div>
           </ScrollReveal>
 
-          {/* Plan Cards (2 Tiers: Free & Pro) */}
+          {/* Pricing Cards (Card 1: Free Starter Pack, Card 2: One-Off Digital Cards Top-Up) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto items-stretch">
 
-            {/* 1. FREE PLAN */}
+            {/* 1. FREE STARTER PACK */}
             <ScrollReveal delay={0}>
               <div className="h-full flex flex-col bg-slate-900 border border-slate-700 rounded-3xl p-8 shadow-xl hover:border-slate-500 transition-all duration-300 justify-between">
                 <div>
@@ -762,7 +733,9 @@ export default function LandingPage() {
                     <div className="font-black text-white text-2xl mb-1">{t.pricing.freeTitle}</div>
                     <div className="flex items-baseline gap-1.5">
                       <span className="text-5xl font-black text-white">RM0</span>
-                      <span className="text-slate-400 text-sm">{t.pricing.freePeriod}</span>
+                      <span className="text-emerald-400 text-xs font-bold uppercase tracking-wider font-space">
+                        {t.pricing.freePeriod}
+                      </span>
                     </div>
                     <p className="text-slate-400 text-xs mt-2">{t.pricing.freeDesc}</p>
                   </div>
@@ -789,37 +762,39 @@ export default function LandingPage() {
               </div>
             </ScrollReveal>
 
-            {/* 2. PRO PLAN (UNLIMITED) */}
+            {/* 2. ONE-OFF CARDS TOP-UP (MAIN FEATURED CARD - MOST POPULAR) */}
             <ScrollReveal delay={100}>
-              <div className="h-full flex flex-col bg-gradient-to-b from-[#2A1A02] to-[#1A1008] border-2 border-[#E5A43B] rounded-3xl p-8 shadow-[0_0_40px_rgba(229,164,59,0.2)] relative overflow-hidden hover:shadow-[0_0_60px_rgba(229,164,59,0.3)] transition-all duration-300 justify-between">
+              <div className="h-full flex flex-col bg-gradient-to-b from-[#102320] to-[#0A1716] border-2 border-emerald-500 rounded-3xl p-8 shadow-[0_0_40px_rgba(16,185,129,0.2)] relative overflow-hidden hover:shadow-[0_0_60px_rgba(16,185,129,0.3)] transition-all duration-300 justify-between">
+                {/* Popular Badge */}
+                <div className="absolute top-4 right-5 bg-emerald-500 text-slate-950 text-[9.5px] font-black uppercase tracking-wider py-1 px-3 rounded-full shadow-md font-space">
+                  {t.pricing.cardTopupBadge}
+                </div>
+
                 <div>
-                  <div className="mb-4">
+                  <div className="mb-4 pt-1">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-black text-white text-xl">{t.pricing.proTitle}</span>
-                      <span className="px-2 py-0.5 rounded-full text-[9.5px] font-black bg-[#E5A43B] text-slate-900">
-                        UNLIMITED
-                      </span>
+                      <span className="font-black text-white text-xl">{t.pricing.cardTopupTitle}</span>
                     </div>
                     <div className="flex items-baseline gap-1.5">
-                      <span className="text-4xl font-black text-[#E5A43B]">
-                        {billingCycle === 'yearly' ? 'RM616' : 'RM53'}
+                      <span className="text-4xl font-black text-emerald-400">
+                        {t.pricing.cardTopupPrice}
                       </span>
                       <span className="text-slate-400 text-xs">
-                        {billingCycle === 'yearly' ? t.pricing.proPeriodYearly : t.pricing.proPeriodMonthly}
+                        {t.pricing.cardTopupUnit}
                       </span>
                     </div>
-                    {billingCycle === 'yearly' && (
-                      <p className="text-emerald-400 text-[11px] font-bold mt-1">
-                        {t.pricing.proYearlyNote}
-                      </p>
-                    )}
-                    <p className="text-slate-400 text-xs mt-2">{t.pricing.proDesc}</p>
+                    <p className="text-amber-300 text-xs font-bold mt-1 font-space">
+                      {t.pricing.cardTopupMin}
+                    </p>
+                    <p className="text-slate-400 text-xs mt-2 leading-relaxed">
+                      {t.pricing.cardTopupDesc}
+                    </p>
                   </div>
 
                   <ul className="space-y-3 mb-6">
-                    {t.pricing.proFeatures.map((label) => (
+                    {t.pricing.cardTopupFeatures.map((label) => (
                       <li key={label} className="flex items-center gap-2 text-xs text-slate-200">
-                        <span className="w-4.5 h-4.5 rounded-full bg-[#E5A43B]/20 text-[#E5A43B] flex items-center justify-center text-[10px] font-bold shrink-0">
+                        <span className="w-4.5 h-4.5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold shrink-0">
                           ✓
                         </span>
                         <span>{label}</span>
@@ -830,53 +805,43 @@ export default function LandingPage() {
 
                 <div>
                   <button
-                    onClick={() => handleSelectPlan(billingCycle)}
-                    disabled={planLoading === billingCycle}
-                    className="w-full py-3.5 rounded-2xl bg-gradient-to-b from-[#E7A33E] to-[#C77B1B] text-slate-900 font-black text-xs shadow-[0_4px_20px_rgba(229,164,59,0.4)] hover:shadow-[0_4px_28px_rgba(229,164,59,0.55)] hover:-translate-y-0.5 transition-all cursor-pointer disabled:opacity-60 active:scale-[0.98] flex items-center justify-center gap-1.5"
+                    onClick={() => setAuthOpen(true)}
+                    className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-xs shadow-[0_4px_20px_rgba(16,185,129,0.4)] hover:shadow-[0_4px_28px_rgba(16,185,129,0.55)] hover:-translate-y-0.5 transition-all cursor-pointer active:scale-[0.98] flex items-center justify-center gap-1.5"
                   >
-                    {planLoading === billingCycle ? (
-                      lang === 'en' ? 'Processing...' : 'Memproses...'
-                    ) : (
-                      <>
-                        <span>{t.pricing.proCta}</span>
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                      </>
-                    )}
+                    <span>{t.pricing.cardTopupCta}</span>
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                   </button>
                   <p className="text-center text-[10px] text-slate-500 mt-2">
-                    {t.pricing.proSecurity}
+                    {t.pricing.cardTopupSecurity}
                   </p>
                 </div>
               </div>
             </ScrollReveal>
           </div>
 
-          {/* One-Off Card Topup Banner */}
+          {/* De-emphasized Pro Subscription Callout for High-Volume Businesses */}
           <ScrollReveal delay={110} className="mt-8">
-            <div className="max-w-2xl mx-auto p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">💳</span>
-                <div className="text-left">
-                  <div className="text-xs font-bold text-white">
-                    {lang === 'en' ? 'Want to buy cards on-demand without monthly bills?' : 'Nak beli kad ikut keperluan tanpa bil bulanan?'}
-                  </div>
-                  <div className="text-[11px] text-emerald-400">
-                    {lang === 'en' ? 'Top up digital cards starting from RM0.50/card (min. 35 cards) inside your dashboard anytime.' : 'Top-up kad cop serendah RM0.50 sekeping (minima 35 kad) terus dalam dashboard bila-bila masa.'}
-                  </div>
+            <div className="max-w-3xl mx-auto p-4 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+              <div>
+                <div className="text-xs font-bold text-slate-200">
+                  {t.pricing.proNoteTitle}
+                </div>
+                <div className="text-[11px] text-slate-400 mt-0.5">
+                  {t.pricing.proNoteDesc}
                 </div>
               </div>
               <button
                 onClick={() => setAuthOpen(true)}
-                className="shrink-0 text-[11px] font-bold py-2 px-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition cursor-pointer"
+                className="shrink-0 text-xs font-bold py-2 px-4 rounded-xl border border-[#E5A43B]/40 text-[#E5A43B] hover:bg-[#E5A43B]/10 transition cursor-pointer"
               >
-                {lang === 'en' ? 'Get Started' : 'Mula Sekarang'}
+                {t.pricing.proNoteBtn}
               </button>
             </div>
           </ScrollReveal>
 
           {/* Bottom note */}
           <ScrollReveal delay={120}>
-            <p className="text-center text-slate-500 text-xs mt-10">
+            <p className="text-center text-slate-500 text-xs mt-8">
               {t.pricing.bottomNote}<br/>
               {t.pricing.contactText}{' '}
               <a href="mailto:akubotaman@gmail.com" className="text-[#E5A43B] hover:underline">akubotaman@gmail.com</a>
