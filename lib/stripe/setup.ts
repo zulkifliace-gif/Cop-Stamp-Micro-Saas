@@ -38,13 +38,13 @@ export async function ensureStripeProducts(): Promise<{
 
   // 1. Find or create the main product
   let product: Stripe.Product | null = null
-  const existingProducts = await stripe.products.search({
-    query: 'name:"LajuS Pro" OR name:"LajuS Loyalty" AND active:"true"',
-    limit: 1,
-  })
+  const productList = await stripe.products.list({ active: true, limit: 100 })
+  const foundProduct = productList.data.find(
+    (p) => p.name === 'LajuS Pro' || p.name === 'LajuS Loyalty' || p.metadata?.app === 'lajus'
+  )
 
-  if (existingProducts.data.length > 0) {
-    product = existingProducts.data[0]
+  if (foundProduct) {
+    product = foundProduct
     console.log('[Stripe Setup] Found existing product:', product.id)
   } else {
     product = await stripe.products.create({
