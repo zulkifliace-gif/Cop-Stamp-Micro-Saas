@@ -195,12 +195,15 @@ export default function CustomerCardPage() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null)
-      if (session?.user) {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      const currentUser = session?.user || null
+      setUser(currentUser)
+      if (event === 'SIGNED_IN' && currentUser) {
         const params = new URLSearchParams(window.location.search)
         const initialStoreId = params.get('storeId') || undefined
         fetchLoyalty(initialStoreId)
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null)
       }
     })
 

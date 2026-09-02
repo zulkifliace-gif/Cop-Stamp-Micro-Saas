@@ -264,6 +264,11 @@ export default function CashierDashboard() {
   const [deleteAccountError, setDeleteAccountError] = useState<string>('')
 
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const showSettingsRef = useRef<boolean>(false)
+
+  useEffect(() => {
+    showSettingsRef.current = showSettings
+  }, [showSettings])
 
   // 1. Check current cashier session
   useEffect(() => {
@@ -276,7 +281,7 @@ export default function CashierDashboard() {
       setAuthLoading(false)
 
       if (session?.user) {
-        loadSettings()
+        loadSettings(true)
         loadActivity(1)
       }
     }
@@ -284,11 +289,14 @@ export default function CashierDashboard() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null)
-      if (session?.user) {
-        loadSettings()
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      const currentUser = session?.user || null
+      setUser(currentUser)
+      if (event === 'SIGNED_IN' && currentUser) {
+        loadSettings(true)
         loadActivity(1)
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null)
       }
     })
 
@@ -296,7 +304,7 @@ export default function CashierDashboard() {
   }, [])
 
   // 2. Fetch Store Settings & Check Registration Status
-  async function loadSettings() {
+  async function loadSettings(force = false) {
     setSettingsLoading(true)
     try {
       const res = await fetch('/api/store/settings')
@@ -305,22 +313,27 @@ export default function CashierDashboard() {
         setNeedsRegistration(data.needsRegistration)
         if (!data.needsRegistration) {
           setStoreId(data.storeId)
-          setStoreName(data.name || '')
-          setLogoUrl(data.logoUrl || '')
-          setRewardImageUrl(data.rewardImageUrl || '')
-          setRewardsList(Array.isArray(data.rewards) ? data.rewards : [])
-          setStampIcon(data.stampIcon || '/icons/stamps/makanan.svg')
-          setSocialLinks(Array.isArray(data.socialLinks) ? data.socialLinks : [])
-          setStampsRequired(data.stampsRequired || 10)
-          setRewardDesc(data.rewardDescription || '')
           setStaffRole(data.role || 'cashier')
           setPlanType(data.planType || 'free')
           setSubscriptionStatus(data.subscriptionStatus || 'active')
-          const isGoogleMode = data.googleReviewMode === 'google' || Boolean(data.googleReviewUrl)
-          setGoogleReviewMode(isGoogleMode ? 'google' : 'manual')
-          setGoogleReviewUrl(data.googleReviewUrl || null)
-          setGooglePlaceId(data.googlePlaceId || null)
-          setGoogleReviewInput(data.googleReviewUrl || '')
+
+          // Only overwrite user-editable form fields if forced (e.g. initial load, save, QR clone)
+          // or if the settings panel is NOT currently opened/being edited by the user
+          if (force || !showSettingsRef.current) {
+            setStoreName(data.name || '')
+            setLogoUrl(data.logoUrl || '')
+            setRewardImageUrl(data.rewardImageUrl || '')
+            setRewardsList(Array.isArray(data.rewards) ? data.rewards : [])
+            setStampIcon(data.stampIcon || '/icons/stamps/makanan.svg')
+            setSocialLinks(Array.isArray(data.socialLinks) ? data.socialLinks : [])
+            setStampsRequired(data.stampsRequired || 10)
+            setRewardDesc(data.rewardDescription || '')
+            const isGoogleMode = data.googleReviewMode === 'google' || Boolean(data.googleReviewUrl)
+            setGoogleReviewMode(isGoogleMode ? 'google' : 'manual')
+            setGoogleReviewUrl(data.googleReviewUrl || null)
+            setGooglePlaceId(data.googlePlaceId || null)
+            setGoogleReviewInput(data.googleReviewUrl || '')
+          }
         }
       }
     } catch (e) {
@@ -1123,7 +1136,7 @@ export default function CashierDashboard() {
       }
 
       // Automatically reload settings from database to display fresh saved data!
-      await loadSettings()
+      await loadSettings(true)
 
       // Ensure settings modal is opened for review
       setShowSettings(true)
