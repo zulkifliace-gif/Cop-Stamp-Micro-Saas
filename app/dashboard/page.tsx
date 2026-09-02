@@ -145,6 +145,9 @@ export default function CashierDashboard() {
   const [expiresAtDate, setExpiresAtDate] = useState<Date | null>(null)
   const [timeLeftStr, setTimeLeftStr] = useState<string>('30:00')
   const [emailSentNote, setEmailSentNote] = useState<string>('')
+  const [showLargeQr, setShowLargeQr] = useState<boolean>(false)
+  const [isTokenClaimed, setIsTokenClaimed] = useState<boolean>(false)
+  const [claimedStampCount, setClaimedStampCount] = useState<number>(1)
 
   // Bluetooth Printer State
   const [btPrinter, setBtPrinter] = useState<BluetoothPrinterConnection | null>(null)
@@ -454,6 +457,86 @@ export default function CashierDashboard() {
     }
   }, [expiresAtDate, lang])
 
+  // 4.1 Real-time Detection: Auto detect when customer claims active QR code
+  useEffect(() => {
+    if (!generatedToken || mode !== 'qr' || isTokenClaimed) return
+
+    let isMounted = true
+    let pollTimer: NodeJS.Timeout | null = null
+    let autoCloseTimer: NodeJS.Timeout | null = null
+
+    function triggerClaimSuccess(count: number) {
+      if (!isMounted || isTokenClaimed) return
+      setIsTokenClaimed(true)
+      setClaimedStampCount(count)
+
+      // 🔔 Play pleasant notification chime
+      try {
+        const audio = new Audio('/new notification.mp3')
+        audio.volume = 0.8
+        audio.play().catch(() => {})
+      } catch (_e) {}
+
+      // Refresh dashboard stats & activity in background
+      loadActivity(1)
+
+      // Auto close large modal & cleanup after 2.3 seconds
+      autoCloseTimer = setTimeout(() => {
+        if (isMounted) {
+          setShowLargeQr(false)
+        }
+      }, 2300)
+    }
+
+    async function checkStatus() {
+      if (!generatedToken || !isMounted || isTokenClaimed) return
+      try {
+        const res = await fetch(
+          `/api/tokens/status?token=${encodeURIComponent(generatedToken)}${
+            storeId ? `&storeId=${encodeURIComponent(storeId)}` : ''
+          }`
+        )
+        if (res.ok) {
+          const data = await res.json()
+          if (data.claimed && isMounted) {
+            triggerClaimSuccess(data.stampCount || stampCount)
+          }
+        }
+      } catch (_e) {
+        // silent catch
+      }
+    }
+
+    // 1. Supabase Realtime channel
+    const channel = supabase
+      .channel(`claim-token-${generatedToken}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'stamp_tokens',
+          filter: `token=eq.${generatedToken}`,
+        },
+        (payload: any) => {
+          if (payload.new && payload.new.status === 'claimed' && isMounted) {
+            triggerClaimSuccess(payload.new.stamp_count || stampCount)
+          }
+        }
+      )
+      .subscribe()
+
+    // 2. High-speed Polling fallback (every 1.5s)
+    pollTimer = setInterval(checkStatus, 1500)
+
+    return () => {
+      isMounted = false
+      if (pollTimer) clearInterval(pollTimer)
+      if (autoCloseTimer) clearTimeout(autoCloseTimer)
+      supabase.removeChannel(channel)
+    }
+  }, [generatedToken, mode, isTokenClaimed, storeId, stampCount])
+
   // 5. Handle Google-Only Cashier Login
   async function handleGoogleLogin() {
     setIsLoggingIn(true)
@@ -667,6 +750,8 @@ export default function CashierDashboard() {
   async function handleGenerateToken() {
     setIsGenerating(true)
     setGenError('')
+    setIsTokenClaimed(false)
+    setShowLargeQr(false)
 
     try {
       const res = await fetch('/api/tokens/generate', {
@@ -692,7 +777,7 @@ export default function CashierDashboard() {
 
       if (mode === 'qr') {
         const qrUrl = await QRCode.toDataURL(data.claimUrl, {
-          width: 260,
+          width: 320,
           margin: 1,
           color: {
             dark: '#1C2624',
@@ -737,6 +822,8 @@ export default function CashierDashboard() {
     setClaimUrl(null)
     setQrDataUrl(null)
     setExpiresAtDate(null)
+    setIsTokenClaimed(false)
+    setShowLargeQr(false)
   }
 
   // 10. Search Customer by Email for Reward Claim
@@ -1973,13 +2060,41 @@ export default function CashierDashboard() {
                 {/* RESULT: QR PANEL */}
                 {generatedToken && mode === 'qr' && (
                   <div className="mt-5 flex flex-col items-center text-center border-t-2 border-dashed border-[#E2CE9E] pt-5 anim-result">
-                    <div className="w-[170px] h-[170px] rounded-[16px] bg-white p-2.5 mb-3 shadow-[0_6px_18px_rgba(0,0,0,0.15)] flex items-center justify-center">
-                      {qrDataUrl && (
-                        <img
-                          src={qrDataUrl}
-                          alt="QR Code Cop"
-                          className="w-full h-full object-contain"
-                        />
+                    {/* Clickable QR Code with Enlarge Feature & Claimed Animation Overlay */}
+                    <div
+                      onClick={() => setShowLargeQr(true)}
+                      className="relative group cursor-pointer flex flex-col items-center"
+                      title={t.generator.tapToEnlarge}
+                    >
+                      <div className="w-[180px] h-[180px] rounded-[20px] bg-white p-2.5 mb-2 shadow-[0_8px_24px_rgba(0,0,0,0.16)] flex items-center justify-center transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-[0_12px_28px_rgba(229,164,59,0.3)] relative overflow-hidden border border-[#E2CE9E]">
+                        {qrDataUrl && (
+                          <img
+                            src={qrDataUrl}
+                            alt="QR Code Cop"
+                            className="w-full h-full object-contain"
+                          />
+                        )}
+
+                        {/* Centered Checkmark Animation if Claimed */}
+                        {isTokenClaimed && (
+                          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xs flex flex-col items-center justify-center anim-scale z-20">
+                            <div className="w-14 h-14 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-[0_0_24px_rgba(16,185,129,0.85)] mb-1.5 animate-bounce">
+                              <svg className="w-8 h-8 stroke-white" viewBox="0 0 24 24" fill="none" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                            </div>
+                            <div className="text-white font-extrabold text-[11.5px] px-2 text-center">
+                              {t.generator.claimedAnimationTitle}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Tap to Enlarge Hint Badge */}
+                      {!isTokenClaimed && (
+                        <div className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1E5E53] group-hover:text-[#2D786B] transition mb-2 bg-[#1E5E53]/10 px-2.5 py-0.5 rounded-full">
+                          <span>{t.generator.tapToEnlarge}</span>
+                        </div>
                       )}
                     </div>
                     <div className="font-space text-[14px] tracking-[0.05em] text-[#1A2422] bg-[#EFE3C4] py-1.5 px-3 rounded-[8px] mb-2 font-bold select-all">
@@ -2989,6 +3104,67 @@ export default function CashierDashboard() {
               >
                 {isDeletingAccount ? t.deleteModal.deleting : t.deleteModal.confirmDelete}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── LARGE FULLSCREEN QR MODAL ── */}
+      {showLargeQr && generatedToken && qrDataUrl && (
+        <div
+          onClick={() => setShowLargeQr(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4 animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-[380px] sm:max-w-[440px] bg-[#0A1716] border-2 border-[#E5A43B]/60 rounded-[32px] p-6 sm:p-8 text-center shadow-[0_0_60px_rgba(229,164,59,0.25)] flex flex-col items-center anim-scale"
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setShowLargeQr(false)}
+              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-[#FAF2E2]/10 hover:bg-[#FAF2E2]/20 text-[#FAF2E2] flex items-center justify-center font-bold text-sm cursor-pointer transition active:scale-95"
+            >
+              ✕
+            </button>
+
+            {/* Stamp Count Badge */}
+            <div className="inline-flex items-center gap-1.5 bg-[#E5A43B] text-[#1A2422] font-black text-xs sm:text-sm font-space px-4 py-1.5 rounded-full mb-3 shadow-md">
+              <span>⚡ +{stampCount} {t.generator.stampsUnit || 'COP STAMP'}</span>
+            </div>
+
+            <h3 className="font-fraunces font-bold text-xl sm:text-2xl text-[#FAF2E2] mb-1">
+              {storeName || t.generator.largeQrModalTitle}
+            </h3>
+            <p className="text-xs text-[#C4B897] mb-5">
+              {t.generator.largeQrScanPrompt}
+            </p>
+
+            {/* Large QR Code Container */}
+            <div className="relative w-[260px] sm:w-[310px] h-[260px] sm:h-[310px] rounded-3xl bg-white p-3 shadow-2xl flex items-center justify-center overflow-hidden border-2 border-[#E5A43B]/30">
+              <img src={qrDataUrl} alt="Large QR Cop" className="w-full h-full object-contain" />
+
+              {/* Claimed Animation Overlay */}
+              {isTokenClaimed && (
+                <div className="absolute inset-0 bg-[#0A1716]/90 backdrop-blur-xs flex flex-col items-center justify-center anim-scale z-20">
+                  <div className="w-20 h-20 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-[0_0_35px_rgba(16,185,129,0.9)] mb-3 animate-bounce">
+                    <svg className="w-12 h-12 stroke-white" viewBox="0 0 24 24" fill="none" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </div>
+                  <div className="text-white font-black text-base sm:text-lg">
+                    {t.generator.claimedAnimationTitle}
+                  </div>
+                  <p className="text-emerald-300 text-xs mt-1">
+                    {t.generator.claimedSuccessMsg}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Token Code & Expiry */}
+            <div className="mt-5 flex items-center justify-between w-full max-w-[280px] bg-[#FAF2E2]/[0.08] border border-[#FAF2E2]/15 px-4 py-2 rounded-xl text-xs font-space">
+              <span className="text-[#E5A43B] font-bold">{generatedToken}</span>
+              <span className="text-[#B53629] font-bold">{timeLeftStr}</span>
             </div>
           </div>
         </div>

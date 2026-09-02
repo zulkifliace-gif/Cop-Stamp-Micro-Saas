@@ -114,6 +114,11 @@ export interface DashboardTranslation {
     emailSentTitle: string
     expiredMsg: string
     expiresIn: (m: string, s: string) => string
+    tapToEnlarge: string
+    largeQrModalTitle: string
+    largeQrScanPrompt: string
+    claimedAnimationTitle: string
+    claimedSuccessMsg: string
   }
   settings: {
     title: string
@@ -321,6 +326,11 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       emailSentTitle: 'Emel Dihantar',
       expiredMsg: 'Token tamat tempoh',
       expiresIn: (m, s) => `Tamat dalam ${m}:${s}`,
+      tapToEnlarge: '🔍 Tekan QR untuk besarkan skrin',
+      largeQrModalTitle: 'Imbas QR di Kaunter',
+      largeQrScanPrompt: 'Pelanggan imbas untuk terima cop stamp',
+      claimedAnimationTitle: 'Cop Berjaya Diterima!',
+      claimedSuccessMsg: 'Pelanggan telah berjaya menebus cop.',
     },
     settings: {
       title: 'Tetapan Kedai',
@@ -526,6 +536,11 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       emailSentTitle: 'Email Sent',
       expiredMsg: 'Token expired',
       expiresIn: (m, s) => `Expires in ${m}:${s}`,
+      tapToEnlarge: '🔍 Tap QR to enlarge fullscreen',
+      largeQrModalTitle: 'Scan QR at Counter',
+      largeQrScanPrompt: 'Customer scans to collect digital stamps',
+      claimedAnimationTitle: 'Stamps Claimed Successfully!',
+      claimedSuccessMsg: 'Customer has claimed their stamps.',
     },
     settings: {
       title: 'Store Settings',
