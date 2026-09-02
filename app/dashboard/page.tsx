@@ -2593,7 +2593,7 @@ export default function CashierDashboard() {
                       {t.settings.logoUrlLabel}
                     </label>
                     <a
-                      href="https://www.imghippo.com/"
+                      href="https://catbox.moe/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-[11px] font-semibold text-[#1E5E53] hover:text-[#E5A43B] underline flex items-center gap-1 cursor-pointer"
@@ -2670,7 +2670,7 @@ export default function CashierDashboard() {
                       {t.settings.rewardsTitle}
                     </div>
                     <a
-                      href="https://www.imghippo.com/"
+                      href="https://catbox.moe/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-[11px] font-semibold text-[#1E5E53] hover:text-[#E5A43B] underline flex items-center gap-1 cursor-pointer"
