@@ -1846,7 +1846,7 @@ export default function CashierDashboard() {
             const badgeText = isPro
               ? t.planQuota.proActive
               : purchasedCardQuota > 0
-              ? (lang === 'en' ? `✦ Card Top-Up (${planLimit} Limit)` : `✦ Top-Up Kad (Had ${planLimit})`)
+              ? (lang === 'en' ? `✦ Card Quota (${planLimit} Cards)` : `✦ Kuota Kad (${planLimit} Kad)`)
               : t.planQuota.freeStarter
 
             return (
@@ -1858,23 +1858,23 @@ export default function CashierDashboard() {
                   </div>
                   {!isPro && (
                     <Link href="/dashboard/billing" className="text-[10.5px] font-semibold text-[#E5A43B] hover:underline">
-                      {purchasedCardQuota > 0 ? (lang === 'en' ? 'Top-Up Cards →' : 'Top-Up Kad →') : t.planQuota.upgrade}
+                      {t.planQuota.upgrade}
                     </Link>
                   )}
                 </div>
 
-                {/* Customer Capacity Quota Bar (Non-Pro only) */}
+                {/* Card Capacity Quota Bar (Non-Pro only) */}
                 {!isPro && (
                   <div className="bg-[#FAF2E2]/[0.05] border border-[#FAF2E2]/10 rounded-xl px-3.5 py-2.5">
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-[10px] font-space uppercase text-[#5E6F68] font-bold tracking-wider">
-                        {purchasedCardQuota > 0 ? (lang === 'en' ? 'Customer Capacity' : 'Kapasiti Pelanggan') : t.planQuota.quotaTitle}
+                        {t.planQuota.quotaTitle}
                       </span>
                       {statsLoading ? (
                         <div className="h-4 w-12 bg-white/20 rounded animate-pulse" />
                       ) : (
                         <span className={`text-[11px] font-bold font-space ${quotaFull ? 'text-red-400' : quotaWarning ? 'text-amber-400' : 'text-[#FAF2E2]'}`}>
-                          {totalCustomers} / {planLimit}
+                          {totalCustomers} / {planLimit} {lang === 'en' ? 'Cards' : 'Kad'}
                         </span>
                       )}
                     </div>
@@ -1888,7 +1888,7 @@ export default function CashierDashboard() {
                       <div className="mt-1.5 text-[10px] text-red-400 font-space font-semibold">
                         {t.planQuota.quotaFull}{' '}
                         <Link href="/dashboard/billing" className="underline text-[#E5A43B]">
-                          {lang === 'en' ? 'Top-up cards or Upgrade' : 'Top-up kad atau Naik taraf'}
+                          {t.planQuota.upgradeToPro} →
                         </Link>
                       </div>
                     )}

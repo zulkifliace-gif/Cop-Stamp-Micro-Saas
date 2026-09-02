@@ -283,8 +283,10 @@ function BillingContent() {
             <span className="text-[#8E9B95]">{storeName || (lang === 'en' ? 'Your Store' : 'Kedai Anda')}:</span>
             <span className={isPro ? 'text-[#E5A43B] font-bold' : 'text-emerald-400 font-bold'}>
               {isPro
-                ? '⭐ Pelan Pro Aktif (Tanpa Had)'
-                : `${totalCustomers} / ${currentTotalCapacity} Pelanggan (${remainingSlots} baki slot)`}
+                ? (lang === 'en' ? '⭐ Pro Plan Active (Unlimited)' : '⭐ Pelan Pro Aktif (Tanpa Had)')
+                : (lang === 'en'
+                    ? `${totalCustomers} / ${currentTotalCapacity} Cards in Use (${remainingSlots} remaining)`
+                    : `${totalCustomers} / ${currentTotalCapacity} Kad Diguna (${remainingSlots} baki kad)`)}
             </span>
           </div>
         </div>
@@ -401,7 +403,7 @@ function BillingContent() {
               <ul className="space-y-3 text-xs mb-6">
                 <li className="flex items-center gap-2.5 text-[#FAF2E2]">
                   <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[11px] font-bold shrink-0">✓</span>
-                  <span><strong>+{cardCount} {lang === 'en' ? 'New customer capacity' : 'Kapasiti pelanggan baharu'}</strong></span>
+                  <span><strong>+{cardCount} {lang === 'en' ? 'Digital Cards Quota' : 'Kapasiti Kad Baharu'}</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5 text-[#FAF2E2]">
                   <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[11px] font-bold shrink-0">✓</span>
