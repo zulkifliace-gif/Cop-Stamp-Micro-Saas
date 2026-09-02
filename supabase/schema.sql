@@ -36,6 +36,11 @@ alter table public.stores add column if not exists owner_id uuid references auth
 alter table public.stores add column if not exists slug text;
 alter table public.stores add column if not exists updated_at timestamptz not null default now();
 
+-- Clone Template columns (Kedai A -> Kedai B settings copy, lihat
+-- app/api/store/clone-template/route.ts)
+alter table public.stores add column if not exists stamp_icon text default '/icons/stamps/makanan.svg';
+alter table public.stores add column if not exists social_links jsonb default '[]'::jsonb;
+
 
 -- 3. Store Staff Table (cashiers and owners)
 create table if not exists public.store_staff (
@@ -129,6 +134,23 @@ create table if not exists public.stamp_redemptions (
 
 create index if not exists idx_stamp_redemptions_store on public.stamp_redemptions(store_id, created_at desc);
 
+-- 8. Store Clone Tokens Table (Kedai A -> Kedai B settings-copy PIN codes)
+create table if not exists public.store_clone_tokens (
+    code text primary key,
+    store_id uuid not null references public.stores(id) on delete cascade,
+    store_data jsonb not null default '{}'::jsonb,
+    expires_at timestamptz not null,
+    created_at timestamptz not null default now()
+);
+
+create index if not exists idx_store_clone_tokens_expires_at
+    on public.store_clone_tokens (expires_at);
+
+-- Table ni hanya diakses melalui service-role client (admin) dari server,
+-- jadi tak perlu RLS/anon access. Enable RLS tanpa policy = deny-by-default
+-- untuk anon/authenticated; service role sentiasa bypass RLS.
+alter table public.store_clone_tokens enable row level security;
+
 -- ==============================================================================
 -- Row Level Security (RLS) Policies
 -- ==============================================================================
@@ -141,6 +163,7 @@ alter table public.customer_loyalty enable row level security;
 alter table public.stamp_redemptions enable row level security;
 
 -- Stores policies
+drop policy if exists "Allow anyone to read store info" on public.stores;
 create policy "Allow anyone to read store info"
     on public.stores for select
     using (true);
@@ -153,6 +176,7 @@ create policy "Allow anyone to read store info"
 -- SESIAPA authenticated insert terus ke stores via PostgREST, bypass
 -- app sepenuhnya.
 
+drop policy if exists "Allow store owners to update store settings" on public.stores;
 create policy "Allow store owners to update store settings"
     on public.stores for update
     using (
@@ -165,6 +189,7 @@ create policy "Allow store owners to update store settings"
     );
 
 -- Store Staff policies
+drop policy if exists "Allow staff to see their own store memberships" on public.store_staff;
 create policy "Allow staff to see their own store memberships"
     on public.store_staff for select
     using (user_id = auth.uid());
@@ -179,19 +204,23 @@ create policy "Allow staff to see their own store memberships"
 -- kritikal, exploitable terus via PostgREST anon key).
 
 -- Customer Profiles policies
+drop policy if exists "Allow users to view customer profiles" on public.customer_profiles;
 create policy "Allow users to view customer profiles"
     on public.customer_profiles for select
     using (true);
 
+drop policy if exists "Allow users to update own profile" on public.customer_profiles;
 create policy "Allow users to update own profile"
     on public.customer_profiles for update
     using (id = auth.uid());
 
+drop policy if exists "Allow users to insert own profile" on public.customer_profiles;
 create policy "Allow users to insert own profile"
     on public.customer_profiles for insert
     with check (id = auth.uid());
 
 -- Stamp Tokens policies
+drop policy if exists "Allow store staff to view store tokens" on public.stamp_tokens;
 create policy "Allow store staff to view store tokens"
     on public.stamp_tokens for select
     using (
@@ -204,10 +233,12 @@ create policy "Allow store staff to view store tokens"
 
 -- KEKAL SENGAJA: policy ni memang design "sesiapa dengan link/token
 -- boleh claim". Dibincang & disahkan oleh pemilik projek — tidak ditukar.
+drop policy if exists "Allow anyone to view token validation status" on public.stamp_tokens;
 create policy "Allow anyone to view token validation status"
     on public.stamp_tokens for select
     using (true);
 
+drop policy if exists "Allow store staff to insert tokens" on public.stamp_tokens;
 create policy "Allow store staff to insert tokens"
     on public.stamp_tokens for insert
     with check (
@@ -219,10 +250,12 @@ create policy "Allow store staff to insert tokens"
     );
 
 -- Customer Loyalty policies
+drop policy if exists "Customers can view their own loyalty balance" on public.customer_loyalty;
 create policy "Customers can view their own loyalty balance"
     on public.customer_loyalty for select
     using (customer_id = auth.uid());
 
+drop policy if exists "Staff can view loyalty of customers in their store" on public.customer_loyalty;
 create policy "Staff can view loyalty of customers in their store"
     on public.customer_loyalty for select
     using (
@@ -234,10 +267,12 @@ create policy "Staff can view loyalty of customers in their store"
     );
 
 -- Stamp Redemptions policies
+drop policy if exists "Customers can view their own redemptions" on public.stamp_redemptions;
 create policy "Customers can view their own redemptions"
     on public.stamp_redemptions for select
     using (customer_id = auth.uid());
 
+drop policy if exists "Staff can view redemptions in their store" on public.stamp_redemptions;
 create policy "Staff can view redemptions in their store"
     on public.stamp_redemptions for select
     using (
@@ -278,7 +313,7 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_customer();
 
--- 8. Stripe Webhook Events Table (Idempotency Tracking)
+-- 9. Stripe Webhook Events Table (Idempotency Tracking)
 create table if not exists public.stripe_webhook_events (
     event_id text primary key,
     event_type text not null,

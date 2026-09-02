@@ -191,7 +191,8 @@ export async function POST(req: NextRequest) {
       }
 
       // DIRECTLY UPDATE KEDAI B in Supabase stores table!
-      const updatePayload = {
+      const storeNameA = (sourceData.name || sourceData.storeName || '').trim()
+      const updatePayload: Record<string, any> = {
         logo_url: sourceData.logo_url || sourceData.logoUrl || null,
         stamp_icon: sourceData.stamp_icon || sourceData.stampIcon || '/icons/stamps/makanan.svg',
         reward_image_url: sourceData.reward_image_url || sourceData.rewardImageUrl || null,
@@ -209,6 +210,10 @@ export async function POST(req: NextRequest) {
           ? sourceData.social_links || sourceData.socialLinks
           : [],
         updated_at: new Date().toISOString(),
+      }
+
+      if (storeNameA) {
+        updatePayload.name = storeNameA
       }
 
       const { error: updateErr } = await admin
