@@ -181,6 +181,29 @@ export default function CashierDashboard() {
   const [isSavingSettings, setIsSavingSettings] = useState<boolean>(false)
   const [saveToast, setSaveToast] = useState<boolean>(false)
   const [settingsError, setSettingsError] = useState<string>('')
+  const [openSettingSection, setOpenSettingSection] = useState<string | null>(null)
+  const initialSettingsLoadedRef = useRef<boolean>(false)
+  const [baselineSettings, setBaselineSettings] = useState<{
+    storeName: string
+    stampsRequired: number
+    rewardDesc: string
+    googleReviewMode: 'google' | 'manual'
+    googleReviewInput: string
+    logoUrl: string
+    stampIcon: string
+    rewardsList: RewardItem[]
+    socialLinks: SocialLinkItem[]
+  }>({
+    storeName: '',
+    stampsRequired: 10,
+    rewardDesc: '',
+    googleReviewMode: 'manual',
+    googleReviewInput: '',
+    logoUrl: '',
+    stampIcon: '/icons/stamps/makanan.svg',
+    rewardsList: [],
+    socialLinks: [],
+  })
 
   // Settings Share & Scan State
   const [showSettingsQrModal, setShowSettingsQrModal] = useState<boolean>(false)
@@ -281,7 +304,7 @@ export default function CashierDashboard() {
       setUser(session?.user || null)
       setAuthLoading(false)
 
-      if (session?.user) {
+      if (session?.user && !initialSettingsLoadedRef.current) {
         loadSettings(true)
         loadActivity(1)
       }
@@ -294,8 +317,11 @@ export default function CashierDashboard() {
       const currentUser = session?.user || null
       setUser(currentUser)
       if (event === 'SIGNED_IN' && currentUser) {
-        loadSettings(true)
-        loadActivity(1)
+        // Prevent wiping user form fields when switching apps/tabs
+        if (!initialSettingsLoadedRef.current) {
+          loadSettings(true)
+          loadActivity(1)
+        }
       } else if (event === 'SIGNED_OUT') {
         setUser(null)
       }
@@ -318,6 +344,10 @@ export default function CashierDashboard() {
           setPlanType(data.planType || 'free')
           setSubscriptionStatus(data.subscriptionStatus || 'active')
           setPurchasedCardQuota(data.purchasedCardQuota || 0)
+          initialSettingsLoadedRef.current = true
+
+          const isGoogleMode = data.googleReviewMode === 'google' || Boolean(data.googleReviewUrl)
+          const resolvedReviewInput = data.googleReviewUrl || ''
 
           // Only overwrite user-editable form fields if forced (e.g. initial load, save, QR clone)
           // or if the settings panel is NOT currently opened/being edited by the user
@@ -330,11 +360,22 @@ export default function CashierDashboard() {
             setSocialLinks(Array.isArray(data.socialLinks) ? data.socialLinks : [])
             setStampsRequired(data.stampsRequired || 10)
             setRewardDesc(data.rewardDescription || '')
-            const isGoogleMode = data.googleReviewMode === 'google' || Boolean(data.googleReviewUrl)
             setGoogleReviewMode(isGoogleMode ? 'google' : 'manual')
             setGoogleReviewUrl(data.googleReviewUrl || null)
             setGooglePlaceId(data.googlePlaceId || null)
-            setGoogleReviewInput(data.googleReviewUrl || '')
+            setGoogleReviewInput(resolvedReviewInput)
+
+            setBaselineSettings({
+              storeName: data.name || '',
+              stampsRequired: data.stampsRequired || 10,
+              rewardDesc: data.rewardDescription || '',
+              googleReviewMode: isGoogleMode ? 'google' : 'manual',
+              googleReviewInput: resolvedReviewInput,
+              logoUrl: data.logoUrl || '',
+              stampIcon: data.stampIcon || '/icons/stamps/makanan.svg',
+              rewardsList: Array.isArray(data.rewards) ? data.rewards : [],
+              socialLinks: Array.isArray(data.socialLinks) ? data.socialLinks : [],
+            })
           }
         }
       }
@@ -1368,8 +1409,35 @@ export default function CashierDashboard() {
     setSocialLinks((prev) => prev.filter((_, i) => i !== idx))
   }
 
-  // 13. Save Store Settings
-  async function handleSaveSettings() {
+  // Check if a specific settings section has unsaved changes
+  function isSectionDirty(sectionId: string): boolean {
+    switch (sectionId) {
+      case 'storeInfo':
+        return (
+          storeName.trim() !== baselineSettings.storeName.trim() ||
+          Number(stampsRequired) !== Number(baselineSettings.stampsRequired) ||
+          rewardDesc.trim() !== baselineSettings.rewardDesc.trim()
+        )
+      case 'googleReview':
+        return (
+          googleReviewMode !== baselineSettings.googleReviewMode ||
+          googleReviewInput.trim() !== baselineSettings.googleReviewInput.trim()
+        )
+      case 'logo':
+        return logoUrl.trim() !== baselineSettings.logoUrl.trim()
+      case 'stampIcon':
+        return stampIcon !== baselineSettings.stampIcon
+      case 'rewards':
+        return JSON.stringify(rewardsList) !== JSON.stringify(baselineSettings.rewardsList)
+      case 'social':
+        return JSON.stringify(socialLinks) !== JSON.stringify(baselineSettings.socialLinks)
+      default:
+        return false
+    }
+  }
+
+  // 13. Save Store Settings (Section-specific or whole)
+  async function handleSaveSection(sectionId?: string) {
     setIsSavingSettings(true)
     setSettingsError('')
 
@@ -1418,19 +1486,39 @@ export default function CashierDashboard() {
       setGoogleReviewMode(data.googleReviewMode || 'manual')
       setGoogleReviewUrl(data.googleReviewUrl || null)
       setGooglePlaceId(data.googlePlaceId || null)
-      setGoogleReviewInput(data.googleReviewUrl || (data.googleReviewMode === 'manual' ? '' : googleReviewInput))
+      const resolvedReviewInput = data.googleReviewUrl || (data.googleReviewMode === 'manual' ? '' : googleReviewInput)
+      setGoogleReviewInput(resolvedReviewInput)
+
+      // Update baseline settings so buttons become inactive (not dirty)
+      setBaselineSettings({
+        storeName: storeName.trim(),
+        stampsRequired: effectiveStamps,
+        rewardDesc: effectiveRewardDesc,
+        googleReviewMode: data.googleReviewMode || 'manual',
+        googleReviewInput: resolvedReviewInput,
+        logoUrl: logoUrl.trim(),
+        stampIcon,
+        rewardsList: [...rewardsList],
+        socialLinks: [...socialLinks],
+      })
 
       setSaveToast(true)
       setTimeout(() => {
         setSaveToast(false)
-        setShowSettings(false)
-      }, 800)
+      }, 2500)
+
+      // Auto-close this dropdown section on successful save!
+      if (sectionId && openSettingSection === sectionId) {
+        setOpenSettingSection(null)
+      }
     } catch (err: any) {
       setSettingsError(err.message || 'Ralat menyimpan tetapan.')
     } finally {
       setIsSavingSettings(false)
     }
   }
+
+  const handleSaveSettings = () => handleSaveSection(openSettingSection || undefined)
 
   if (authLoading || (user && settingsLoading && !storeName && !needsRegistration)) {
     return (
@@ -2510,429 +2598,892 @@ export default function CashierDashboard() {
                   <span className="text-sm leading-none font-bold">✕</span>
                 </button>
               </div>
-              <div className="bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-[24px] shadow-[0_24px_50px_rgba(0,0,0,0.45),0_0_0_1px_rgba(229,164,59,0.15)]">
-                {settingsScanSuccess && (
-                  <div className="mb-3.5 p-3 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-semibold leading-relaxed flex items-center gap-2 anim-scale">
-                    <span className="text-base">✅</span>
-                    <span>{settingsScanSuccess}</span>
-                  </div>
-                )}
-
-                {settingsError && (
-                  <div className="mb-3 p-2.5 rounded-lg bg-red-100 text-[#B53629] text-xs font-semibold">
-                    {settingsError}
-                  </div>
-                )}
-
-                <div className="mb-3.5">
-                  <label className="block text-xs font-semibold text-[#5E6F68] mb-1.5">
-                    {t.settings.storeNameLabel}
-                  </label>
-                  <input
-                    type="text"
-                    value={storeName}
-                    onChange={(e) => setStoreName(e.target.value)}
-                    maxLength={80}
-                    disabled={staffRole !== 'owner'}
-                    className="w-full border border-[#E4D9BE] rounded-[10px] p-2.5 font-jakarta text-sm text-[#1A2422] bg-white outline-none disabled:bg-gray-100"
-                  />
+              {/* SETTINGS NOTIFICATIONS & TOASTS */}
+              {saveToast && (
+                <div className="mb-3 p-3 rounded-2xl bg-emerald-600 text-white text-xs font-bold flex items-center justify-center gap-2 anim-scale shadow-lg">
+                  <span>✅</span>
+                  <span>{t.settings.savedToast}</span>
                 </div>
+              )}
 
-                {/* GOOGLE REVIEW CONNECTION (ON/OFF TOGGLE) */}
-                <div className="mb-3.5 p-3.5 rounded-xl bg-white border border-[#E4D9BE]">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <div className="text-xs font-bold text-[#0A1716] flex items-center gap-2">
-                        <span>{t.settings.reviewToggleLabel}</span>
-                        {googleReviewMode === 'google' && googleReviewUrl && (
-                          <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full">
-                            {t.settings.reviewConnectedBadge}
-                          </span>
+              {settingsScanSuccess && (
+                <div className="mb-3 p-3 rounded-2xl bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-semibold leading-relaxed flex items-center gap-2 anim-scale shadow-xs">
+                  <span className="text-base">✅</span>
+                  <span>{settingsScanSuccess}</span>
+                </div>
+              )}
+
+              {settingsError && (
+                <div className="mb-3 p-3 rounded-2xl bg-red-100 border border-red-300 text-[#B53629] text-xs font-semibold shadow-xs">
+                  {settingsError}
+                </div>
+              )}
+
+              {/* SETTINGS ACCORDION CARDS (NO CREAM BACKGROUND, PURE WHITE CARDS) */}
+              <div className="space-y-3">
+
+                {/* 1. CONNECT GOOGLE REVIEW ACCORDION */}
+                <div className="bg-white text-[#1A2422] rounded-2xl border border-gray-200 shadow-xs overflow-hidden transition-all">
+                  <button
+                    type="button"
+                    onClick={() => setOpenSettingSection((prev) => (prev === 'googleReview' ? null : 'googleReview'))}
+                    className="w-full py-3.5 px-4 flex items-center justify-between text-left hover:bg-gray-50 transition cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-base shrink-0">⭐</span>
+                      <span className="font-bold text-xs sm:text-sm text-[#0A1716] truncate">
+                        {lang === 'en' ? 'Connect Google Review' : 'Sambung Google Review'}
+                      </span>
+                      {googleReviewMode === 'google' && googleReviewUrl && (
+                        <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full shrink-0">
+                          {t.settings.reviewConnectedBadge}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isSectionDirty('googleReview') && (
+                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" title="Perubahan belum disimpan" />
+                      )}
+                      <svg
+                        className={`w-4 h-4 text-[#5E6F68] transition-transform duration-200 ${
+                          openSettingSection === 'googleReview' ? 'rotate-90 text-[#E5A43B]' : ''
+                        }`}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </div>
+                  </button>
+
+                  {openSettingSection === 'googleReview' && (
+                    <div className="p-4 pt-1 border-t border-gray-100 anim-result">
+                      <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 mb-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <div className="text-xs font-bold text-[#0A1716] flex items-center gap-2">
+                              <span>{t.settings.reviewToggleLabel}</span>
+                            </div>
+                            <div className="text-[11px] text-[#5E6F68] mt-0.5 leading-snug">
+                              {t.settings.reviewToggleDesc}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={staffRole !== 'owner'}
+                            onClick={() => setGoogleReviewMode(googleReviewMode === 'google' ? 'manual' : 'google')}
+                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${
+                              googleReviewMode === 'google' ? 'bg-[#E5A43B]' : 'bg-gray-300'
+                            }`}
+                            role="switch"
+                            aria-checked={googleReviewMode === 'google'}
+                          >
+                            <span
+                              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                                googleReviewMode === 'google' ? 'translate-x-5' : 'translate-x-0'
+                              }`}
+                            />
+                          </button>
+                        </div>
+
+                        {googleReviewMode === 'google' && (
+                          <div className="mt-3 pt-3 border-t border-gray-200/80 space-y-2 anim-result">
+                            <div className="flex items-center justify-between">
+                              <label className="text-[11px] font-bold text-[#0A1716]">
+                                {t.settings.reviewInputLabel}
+                              </label>
+                              <a
+                                href="https://productmate.com/google-review-link-generator"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10.5px] font-bold text-[#1E5E53] hover:text-[#E5A43B] underline flex items-center gap-0.5 cursor-pointer"
+                              >
+                                <span>{t.settings.reviewGeneratorHint}</span>
+                              </a>
+                            </div>
+                            <input
+                              type="text"
+                              value={googleReviewInput}
+                              onChange={(e) => setGoogleReviewInput(e.target.value)}
+                              placeholder={t.settings.reviewInputPlaceholder}
+                              disabled={staffRole !== 'owner'}
+                              className="w-full border border-gray-300 rounded-lg p-2.5 text-xs text-[#1A2422] bg-white outline-none disabled:bg-gray-100"
+                            />
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[10.5px] text-[#5E6F68]">
+                                {t.settings.reviewInputHint}
+                              </span>
+                              {(googleReviewUrl || googleReviewInput.trim()) && (
+                                <button
+                                  type="button"
+                                  onClick={() => window.open(googleReviewUrl || googleReviewInput.trim(), '_blank')}
+                                  className="text-[11px] font-bold text-[#1E5E53] hover:text-[#2D786B] underline cursor-pointer shrink-0"
+                                >
+                                  {t.settings.reviewTestButton}
+                                </button>
+                              )}
+                            </div>
+                          </div>
                         )}
                       </div>
-                      <div className="text-[11px] text-[#5E6F68] mt-0.5 leading-snug">
-                        {t.settings.reviewToggleDesc}
+
+                      {/* Section Save Button */}
+                      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+                        <span className="text-[11px] text-[#5E6F68]">
+                          {isSectionDirty('googleReview')
+                            ? (lang === 'en' ? '● Unsaved changes' : '● Perubahan belum disimpan')
+                            : (lang === 'en' ? '✓ No changes' : '✓ Tiada perubahan')}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={!isSectionDirty('googleReview') || isSavingSettings || staffRole !== 'owner'}
+                          onClick={() => handleSaveSection('googleReview')}
+                          className={`py-2 px-4 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                            isSectionDirty('googleReview') && staffRole === 'owner'
+                              ? 'bg-[#1E5E53] hover:bg-[#2D786B] text-white shadow-sm cursor-pointer active:scale-95'
+                              : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-75'
+                          }`}
+                        >
+                          {isSavingSettings ? (
+                            <span>{t.settings.saving}</span>
+                          ) : (
+                            <>
+                              <span>💾</span>
+                              <span>{isSectionDirty('googleReview') ? (lang === 'en' ? 'Save Changes' : 'Simpan Perubahan') : (lang === 'en' ? 'No Changes' : 'Tiada Perubahan')}</span>
+                            </>
+                          )}
+                        </button>
                       </div>
                     </div>
-                    {/* ON / OFF Switch Button */}
-                    <button
-                      type="button"
-                      disabled={staffRole !== 'owner'}
-                      onClick={() => setGoogleReviewMode(googleReviewMode === 'google' ? 'manual' : 'google')}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${
-                        googleReviewMode === 'google' ? 'bg-[#E5A43B]' : 'bg-gray-300'
-                      }`}
-                      role="switch"
-                      aria-checked={googleReviewMode === 'google'}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                          googleReviewMode === 'google' ? 'translate-x-5' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
-                  </div>
+                  )}
+                </div>
 
-                  {googleReviewMode === 'google' && (
-                    <div className="mt-3 pt-3 border-t border-[#E4D9BE]/60 space-y-2 anim-result">
-                      <div className="flex items-center justify-between">
-                        <label className="text-[11px] font-bold text-[#0A1716]">
-                          {t.settings.reviewInputLabel}
+                {/* 2. STORE LOGO ACCORDION */}
+                <div className="bg-white text-[#1A2422] rounded-2xl border border-gray-200 shadow-xs overflow-hidden transition-all">
+                  <button
+                    type="button"
+                    onClick={() => setOpenSettingSection((prev) => (prev === 'logo' ? null : 'logo'))}
+                    className="w-full py-3.5 px-4 flex items-center justify-between text-left hover:bg-gray-50 transition cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-base shrink-0">🖼️</span>
+                      <span className="font-bold text-xs sm:text-sm text-[#0A1716] truncate">
+                        {lang === 'en' ? 'Store Logo' : 'Logo Kedai'}
+                      </span>
+                      {logoUrl && (
+                        <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full shrink-0">
+                          {lang === 'en' ? 'Configured' : 'Ada Logo'}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isSectionDirty('logo') && (
+                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" title="Perubahan belum disimpan" />
+                      )}
+                      <svg
+                        className={`w-4 h-4 text-[#5E6F68] transition-transform duration-200 ${
+                          openSettingSection === 'logo' ? 'rotate-90 text-[#E5A43B]' : ''
+                        }`}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </div>
+                  </button>
+
+                  {openSettingSection === 'logo' && (
+                    <div className="p-4 pt-1 border-t border-gray-100 anim-result">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-xs font-semibold text-[#5E6F68]">
+                          {t.settings.logoUrlLabel}
                         </label>
                         <a
-                          href="https://productmate.com/google-review-link-generator"
+                          href="https://catbox.moe/"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[10.5px] font-bold text-[#1E5E53] hover:text-[#E5A43B] underline flex items-center gap-0.5 cursor-pointer"
+                          className="text-[11px] font-semibold text-[#1E5E53] hover:text-[#E5A43B] underline flex items-center gap-1 cursor-pointer"
                         >
-                          <span>{t.settings.reviewGeneratorHint}</span>
+                          <span>{t.settings.directUrlHint}</span>
                         </a>
                       </div>
                       <input
-                        type="text"
-                        value={googleReviewInput}
-                        onChange={(e) => setGoogleReviewInput(e.target.value)}
-                        placeholder={t.settings.reviewInputPlaceholder}
+                        type="url"
+                        value={logoUrl}
+                        onChange={(e) => setLogoUrl(e.target.value)}
+                        maxLength={500}
+                        placeholder="https://contoh.com/logo.png"
                         disabled={staffRole !== 'owner'}
-                        className="w-full border border-[#E4D9BE] rounded-lg p-2 text-xs text-[#1A2422] bg-white outline-none disabled:bg-gray-100"
+                        className="w-full border border-gray-300 rounded-xl p-2.5 font-jakarta text-xs text-[#1A2422] bg-white outline-none disabled:bg-gray-100"
                       />
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[10.5px] text-[#5E6F68]">
-                          {t.settings.reviewInputHint}
+                      {logoUrl && (
+                        <div className="mt-2.5 flex items-center gap-2.5 bg-gray-50 p-2.5 rounded-xl border border-gray-200">
+                          <img src={logoUrl} alt="Logo Preview" className="w-10 h-10 rounded-full object-cover border" />
+                          <span className="text-[11px] text-[#5E6F68]">{t.settings.logoPreview}</span>
+                        </div>
+                      )}
+
+                      {/* Section Save Button */}
+                      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+                        <span className="text-[11px] text-[#5E6F68]">
+                          {isSectionDirty('logo')
+                            ? (lang === 'en' ? '● Unsaved changes' : '● Perubahan belum disimpan')
+                            : (lang === 'en' ? '✓ No changes' : '✓ Tiada perubahan')}
                         </span>
-                        {(googleReviewUrl || googleReviewInput.trim()) && (
-                          <button
-                            type="button"
-                            onClick={() => window.open(googleReviewUrl || googleReviewInput.trim(), '_blank')}
-                            className="text-[11px] font-bold text-[#1E5E53] hover:text-[#2D786B] underline cursor-pointer shrink-0"
-                          >
-                            {t.settings.reviewTestButton}
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          disabled={!isSectionDirty('logo') || isSavingSettings || staffRole !== 'owner'}
+                          onClick={() => handleSaveSection('logo')}
+                          className={`py-2 px-4 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                            isSectionDirty('logo') && staffRole === 'owner'
+                              ? 'bg-[#1E5E53] hover:bg-[#2D786B] text-white shadow-sm cursor-pointer active:scale-95'
+                              : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-75'
+                          }`}
+                        >
+                          {isSavingSettings ? (
+                            <span>{t.settings.saving}</span>
+                          ) : (
+                            <>
+                              <span>💾</span>
+                              <span>{isSectionDirty('logo') ? (lang === 'en' ? 'Save Changes' : 'Simpan Perubahan') : (lang === 'en' ? 'No Changes' : 'Tiada Perubahan')}</span>
+                            </>
+                          )}
+                        </button>
                       </div>
                     </div>
                   )}
                 </div>
 
-                <div className="mb-3.5">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-xs font-semibold text-[#5E6F68]">
-                      {t.settings.logoUrlLabel}
-                    </label>
-                    <a
-                      href="https://catbox.moe/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[11px] font-semibold text-[#1E5E53] hover:text-[#E5A43B] underline flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>{t.settings.directUrlHint}</span>
-                    </a>
-                  </div>
-                  <input
-                    type="url"
-                    value={logoUrl}
-                    onChange={(e) => setLogoUrl(e.target.value)}
-                    maxLength={500}
-                    placeholder="https://contoh.com/logo.png"
-                    disabled={staffRole !== 'owner'}
-                    className="w-full border border-[#E4D9BE] rounded-[10px] p-2.5 font-jakarta text-sm text-[#1A2422] bg-white outline-none disabled:bg-gray-100"
-                  />
-                  {logoUrl && (
-                    <div className="mt-2 flex items-center gap-2 bg-white p-2 rounded-lg border border-[#E4D9BE]">
-                      <img src={logoUrl} alt="Logo Preview" className="w-8 h-8 rounded-full object-cover border" />
-                      <span className="text-[11px] text-[#5E6F68]">{t.settings.logoPreview}</span>
+                {/* 3. STAMP ICON ACCORDION */}
+                <div className="bg-white text-[#1A2422] rounded-2xl border border-gray-200 shadow-xs overflow-hidden transition-all">
+                  <button
+                    type="button"
+                    onClick={() => setOpenSettingSection((prev) => (prev === 'stampIcon' ? null : 'stampIcon'))}
+                    className="w-full py-3.5 px-4 flex items-center justify-between text-left hover:bg-gray-50 transition cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-base shrink-0">🏷️</span>
+                      <span className="font-bold text-xs sm:text-sm text-[#0A1716] truncate">
+                        {lang === 'en' ? 'Stamp Icon' : 'Ikon Cop (Kategori Kedai)'}
+                      </span>
+                      <span className="text-[10px] bg-gray-100 text-gray-700 font-semibold px-2 py-0.5 rounded-full shrink-0">
+                        {STAMP_ICON_OPTIONS.find((o) => o.icon === stampIcon)?.label.split('/')[0] || 'Ikon'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isSectionDirty('stampIcon') && (
+                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" title="Perubahan belum disimpan" />
+                      )}
+                      <svg
+                        className={`w-4 h-4 text-[#5E6F68] transition-transform duration-200 ${
+                          openSettingSection === 'stampIcon' ? 'rotate-90 text-[#E5A43B]' : ''
+                        }`}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </div>
+                  </button>
+
+                  {openSettingSection === 'stampIcon' && (
+                    <div className="p-4 pt-1 border-t border-gray-100 anim-result">
+                      <div className="text-xs text-[#5E6F68] mb-3">
+                        {t.settings.stampIconDesc}
+                      </div>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                        {STAMP_ICON_OPTIONS.map((opt) => {
+                          const isSelected = stampIcon === opt.icon
+                          return (
+                            <button
+                              key={opt.icon}
+                              type="button"
+                              onClick={() => staffRole === 'owner' && setStampIcon(opt.icon)}
+                              disabled={staffRole !== 'owner'}
+                              title={opt.label}
+                              className={`flex flex-col items-center justify-center p-2.5 rounded-xl border transition cursor-pointer text-center ${
+                                isSelected
+                                  ? 'border-[#E5A43B] bg-[#E5A43B]/20 shadow-sm ring-2 ring-[#E5A43B]'
+                                  : 'border-gray-200 bg-white hover:bg-gray-50'
+                              }`}
+                            >
+                              <div className="w-9 h-9 rounded-full bg-[#B53629] flex items-center justify-center mb-1 shadow-sm">
+                                <img
+                                  src={opt.icon}
+                                  alt={opt.label}
+                                  className="w-5 h-5 object-contain filter invert brightness-200"
+                                />
+                              </div>
+                              <span className="text-[10px] font-bold text-[#1A2422] truncate w-full">
+                                {opt.label.split('/')[0]}
+                              </span>
+                            </button>
+                          )
+                        })}
+                      </div>
+
+                      {/* Section Save Button */}
+                      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+                        <span className="text-[11px] text-[#5E6F68]">
+                          {isSectionDirty('stampIcon')
+                            ? (lang === 'en' ? '● Unsaved changes' : '● Perubahan belum disimpan')
+                            : (lang === 'en' ? '✓ No changes' : '✓ Tiada perubahan')}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={!isSectionDirty('stampIcon') || isSavingSettings || staffRole !== 'owner'}
+                          onClick={() => handleSaveSection('stampIcon')}
+                          className={`py-2 px-4 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                            isSectionDirty('stampIcon') && staffRole === 'owner'
+                              ? 'bg-[#1E5E53] hover:bg-[#2D786B] text-white shadow-sm cursor-pointer active:scale-95'
+                              : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-75'
+                          }`}
+                        >
+                          {isSavingSettings ? (
+                            <span>{t.settings.saving}</span>
+                          ) : (
+                            <>
+                              <span>💾</span>
+                              <span>{isSectionDirty('stampIcon') ? (lang === 'en' ? 'Save Changes' : 'Simpan Perubahan') : (lang === 'en' ? 'No Changes' : 'Tiada Perubahan')}</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {/* STAMP ICON SELECTOR (MULTI-CATEGORY) */}
-                <div className="mb-4 border-t border-[#E4D9BE] pt-3.5">
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-bold text-[#0A1716]">
-                      {t.settings.stampIconLabel}
-                    </label>
-                    <span className="text-[10.5px] text-[#1E5E53] font-semibold bg-[#1E5E53]/10 px-2 py-0.5 rounded-full">
-                      {t.settings.stampIconBadge}
-                    </span>
-                  </div>
-                  <div className="text-xs text-[#5E6F68] mb-2.5">
-                    {t.settings.stampIconDesc}
-                  </div>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    {STAMP_ICON_OPTIONS.map((opt) => {
-                      const isSelected = stampIcon === opt.icon
-                      return (
-                        <button
-                          key={opt.icon}
-                          type="button"
-                          onClick={() => staffRole === 'owner' && setStampIcon(opt.icon)}
-                          disabled={staffRole !== 'owner'}
-                          title={opt.label}
-                          className={`flex flex-col items-center justify-center p-2.5 rounded-xl border transition cursor-pointer text-center ${
-                            isSelected
-                              ? 'border-[#E5A43B] bg-[#E5A43B]/20 shadow-sm ring-2 ring-[#E5A43B]'
-                              : 'border-[#E4D9BE] bg-white hover:bg-gray-50'
-                          }`}
+                {/* 4. REWARDS & GIFTS CATALOG ACCORDION */}
+                <div className="bg-white text-[#1A2422] rounded-2xl border border-gray-200 shadow-xs overflow-hidden transition-all">
+                  <button
+                    type="button"
+                    onClick={() => setOpenSettingSection((prev) => (prev === 'rewards' ? null : 'rewards'))}
+                    className="w-full py-3.5 px-4 flex items-center justify-between text-left hover:bg-gray-50 transition cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-base shrink-0">🎁</span>
+                      <span className="font-bold text-xs sm:text-sm text-[#0A1716] truncate">
+                        {lang === 'en' ? 'Rewards & Gifts Catalog' : 'Katalog Ganjaran & Hadiah'}
+                      </span>
+                      <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full shrink-0">
+                        {rewardsList.length} {lang === 'en' ? 'Items' : 'Ganjaran'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isSectionDirty('rewards') && (
+                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" title="Perubahan belum disimpan" />
+                      )}
+                      <svg
+                        className={`w-4 h-4 text-[#5E6F68] transition-transform duration-200 ${
+                          openSettingSection === 'rewards' ? 'rotate-90 text-[#E5A43B]' : ''
+                        }`}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </div>
+                  </button>
+
+                  {openSettingSection === 'rewards' && (
+                    <div className="p-4 pt-1 border-t border-gray-100 anim-result">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="text-xs text-[#5E6F68]">
+                          {t.settings.rewardsDesc}
+                        </div>
+                        <a
+                          href="https://catbox.moe/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] font-semibold text-[#1E5E53] hover:text-[#E5A43B] underline flex items-center gap-1 cursor-pointer shrink-0"
                         >
-                          <div className="w-9 h-9 rounded-full bg-[#B53629] flex items-center justify-center mb-1 shadow-sm">
-                            <img
-                              src={opt.icon}
-                              alt={opt.label}
-                              className="w-5 h-5 object-contain filter invert brightness-200"
+                          <span>{t.settings.directUrlHint}</span>
+                        </a>
+                      </div>
+
+                      <div className="space-y-3 mt-3">
+                        {rewardsList.map((item, idx) => (
+                          <div
+                            key={item.id || idx}
+                            className="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-2"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-[#1A2422]">
+                                {t.settings.rewardItemNumber(idx + 1)}
+                              </span>
+                              {staffRole === 'owner' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteRewardItem(idx)}
+                                  className="text-[11px] text-red-600 hover:text-red-800 font-semibold cursor-pointer"
+                                >
+                                  {t.settings.deleteBtn}
+                                </button>
+                              )}
+                            </div>
+
+                            <input
+                              type="text"
+                              value={item.name}
+                              onChange={(e) => handleUpdateRewardItem(idx, 'name', e.target.value)}
+                              maxLength={80}
+                              placeholder={t.settings.rewardNamePlaceholder}
+                              disabled={staffRole !== 'owner'}
+                              className="w-full border border-gray-300 rounded-lg p-2 text-xs text-[#1A2422] bg-white outline-none"
+                            />
+
+                            <div className="flex gap-2">
+                              <input
+                                type="number"
+                                min="1"
+                                max="100"
+                                value={item.stampsRequired}
+                                onChange={(e) =>
+                                  handleUpdateRewardItem(idx, 'stampsRequired', Number(e.target.value))
+                                }
+                                placeholder={t.settings.stampsPlaceholder}
+                                disabled={staffRole !== 'owner'}
+                                className="w-24 border border-gray-300 rounded-lg p-2 text-xs text-[#1A2422] bg-white outline-none"
+                              />
+                              <input
+                                type="url"
+                                value={item.imageUrl}
+                                onChange={(e) => handleUpdateRewardItem(idx, 'imageUrl', e.target.value)}
+                                maxLength={500}
+                                placeholder={t.settings.rewardImgPlaceholder}
+                                disabled={staffRole !== 'owner'}
+                                className="flex-1 border border-gray-300 rounded-lg p-2 text-xs text-[#1A2422] bg-white outline-none"
+                              />
+                            </div>
+
+                            <textarea
+                              value={item.description || ''}
+                              onChange={(e) => handleUpdateRewardItem(idx, 'description', e.target.value)}
+                              maxLength={250}
+                              placeholder={t.settings.rewardDescPlaceholder}
+                              disabled={staffRole !== 'owner'}
+                              rows={2}
+                              className="w-full border border-gray-300 rounded-lg p-2 text-xs text-[#1A2422] bg-white outline-none resize-y min-h-[44px] disabled:bg-gray-100"
                             />
                           </div>
-                          <span className="text-[10px] font-bold text-[#1A2422] truncate w-full">
-                            {opt.label.split('/')[0]}
-                          </span>
+                        ))}
+                      </div>
+
+                      {staffRole === 'owner' && (
+                        <button
+                          type="button"
+                          onClick={handleAddRewardItem}
+                          className="w-full mt-3 py-2 px-3 border border-dashed border-[#1E5E53] rounded-xl text-xs font-bold text-[#1E5E53] bg-[#1E5E53]/[0.05] hover:bg-[#1E5E53]/10 transition flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <span>{t.settings.addRewardBtn}</span>
                         </button>
-                      )
-                    })}
-                  </div>
+                      )}
+
+                      {/* Section Save Button */}
+                      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+                        <span className="text-[11px] text-[#5E6F68]">
+                          {isSectionDirty('rewards')
+                            ? (lang === 'en' ? '● Unsaved changes' : '● Perubahan belum disimpan')
+                            : (lang === 'en' ? '✓ No changes' : '✓ Tiada perubahan')}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={!isSectionDirty('rewards') || isSavingSettings || staffRole !== 'owner'}
+                          onClick={() => handleSaveSection('rewards')}
+                          className={`py-2 px-4 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                            isSectionDirty('rewards') && staffRole === 'owner'
+                              ? 'bg-[#1E5E53] hover:bg-[#2D786B] text-white shadow-sm cursor-pointer active:scale-95'
+                              : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-75'
+                          }`}
+                        >
+                          {isSavingSettings ? (
+                            <span>{t.settings.saving}</span>
+                          ) : (
+                            <>
+                              <span>💾</span>
+                              <span>{isSectionDirty('rewards') ? (lang === 'en' ? 'Save Changes' : 'Simpan Perubahan') : (lang === 'en' ? 'No Changes' : 'Tiada Perubahan')}</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* DYNAMIC REWARDS LIST (BOLEH TAMBAH HADIAH) */}
-                <div className="border-t border-[#E4D9BE] pt-4 mt-4 mb-4">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="font-bold text-sm text-[#0A1716]">
-                      {t.settings.rewardsTitle}
+                {/* 5. STORE INFO & TARGET STAMPS ACCORDION */}
+                <div className="bg-white text-[#1A2422] rounded-2xl border border-gray-200 shadow-xs overflow-hidden transition-all">
+                  <button
+                    type="button"
+                    onClick={() => setOpenSettingSection((prev) => (prev === 'storeInfo' ? null : 'storeInfo'))}
+                    className="w-full py-3.5 px-4 flex items-center justify-between text-left hover:bg-gray-50 transition cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-base shrink-0">🏪</span>
+                      <span className="font-bold text-xs sm:text-sm text-[#0A1716] truncate">
+                        {lang === 'en' ? 'Store Info & Stamp Target' : 'Nama Kedai & Sasaran Cop'}
+                      </span>
+                      <span className="text-[10px] bg-gray-100 text-gray-700 font-semibold px-2 py-0.5 rounded-full shrink-0">
+                        {stampsRequired} Cop
+                      </span>
                     </div>
-                    <a
-                      href="https://catbox.moe/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[11px] font-semibold text-[#1E5E53] hover:text-[#E5A43B] underline flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>{t.settings.directUrlHint}</span>
-                    </a>
-                  </div>
-                  <div className="text-xs text-[#5E6F68] mb-3">
-                    {t.settings.rewardsDesc}
-                  </div>
-
-                  <div className="space-y-3">
-                    {rewardsList.map((item, idx) => (
-                      <div
-                        key={item.id || idx}
-                        className="bg-white p-3 rounded-xl border border-[#E4D9BE] space-y-2"
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isSectionDirty('storeInfo') && (
+                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" title="Perubahan belum disimpan" />
+                      )}
+                      <svg
+                        className={`w-4 h-4 text-[#5E6F68] transition-transform duration-200 ${
+                          openSettingSection === 'storeInfo' ? 'rotate-90 text-[#E5A43B]' : ''
+                        }`}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       >
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-[#1A2422]">
-                            {t.settings.rewardItemNumber(idx + 1)}
-                          </span>
-                          {staffRole === 'owner' && (
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteRewardItem(idx)}
-                              className="text-[11px] text-red-600 hover:text-red-800 font-semibold cursor-pointer"
-                            >
-                              {t.settings.deleteBtn}
-                            </button>
-                          )}
-                        </div>
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </div>
+                  </button>
 
+                  {openSettingSection === 'storeInfo' && (
+                    <div className="p-4 pt-1 border-t border-gray-100 anim-result space-y-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-[#5E6F68] mb-1">
+                          {t.settings.storeNameLabel}
+                        </label>
                         <input
                           type="text"
-                          value={item.name}
-                          onChange={(e) => handleUpdateRewardItem(idx, 'name', e.target.value)}
+                          value={storeName}
+                          onChange={(e) => setStoreName(e.target.value)}
                           maxLength={80}
-                          placeholder={t.settings.rewardNamePlaceholder}
                           disabled={staffRole !== 'owner'}
-                          className="w-full border border-[#E4D9BE] rounded-lg p-2 text-xs text-[#1A2422] outline-none"
+                          className="w-full border border-gray-300 rounded-xl p-2.5 font-jakarta text-xs text-[#1A2422] bg-white outline-none disabled:bg-gray-100"
                         />
+                      </div>
 
-                        <div className="flex gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-semibold text-[#5E6F68] mb-1">
+                            {lang === 'en' ? 'Target Stamps per Card' : 'Sasaran Bilangan Cop'}
+                          </label>
                           <input
                             type="number"
                             min="1"
                             max="100"
-                            value={item.stampsRequired}
-                            onChange={(e) =>
-                              handleUpdateRewardItem(idx, 'stampsRequired', Number(e.target.value))
-                            }
-                            placeholder={t.settings.stampsPlaceholder}
+                            value={stampsRequired}
+                            onChange={(e) => setStampsRequired(Number(e.target.value) || 10)}
                             disabled={staffRole !== 'owner'}
-                            className="w-24 border border-[#E4D9BE] rounded-lg p-2 text-xs text-[#1A2422] outline-none"
-                          />
-                          <input
-                            type="url"
-                            value={item.imageUrl}
-                            onChange={(e) => handleUpdateRewardItem(idx, 'imageUrl', e.target.value)}
-                            maxLength={500}
-                            placeholder={t.settings.rewardImgPlaceholder}
-                            disabled={staffRole !== 'owner'}
-                            className="flex-1 border border-[#E4D9BE] rounded-lg p-2 text-xs text-[#1A2422] outline-none"
+                            className="w-full border border-gray-300 rounded-xl p-2.5 font-jakarta text-xs text-[#1A2422] bg-white outline-none disabled:bg-gray-100"
                           />
                         </div>
-
-                        <textarea
-                          value={item.description || ''}
-                          onChange={(e) => handleUpdateRewardItem(idx, 'description', e.target.value)}
-                          maxLength={250}
-                          placeholder={t.settings.rewardDescPlaceholder}
-                          disabled={staffRole !== 'owner'}
-                          rows={2}
-                          className="w-full border border-[#E4D9BE] rounded-lg p-2 text-xs text-[#1A2422] outline-none resize-y min-h-[44px] disabled:bg-gray-100"
-                        />
+                        <div>
+                          <label className="block text-xs font-semibold text-[#5E6F68] mb-1">
+                            {lang === 'en' ? 'Base Reward Description' : 'Penerangan Ganjaran Asas'}
+                          </label>
+                          <input
+                            type="text"
+                            value={rewardDesc}
+                            onChange={(e) => setRewardDesc(e.target.value)}
+                            maxLength={100}
+                            placeholder="cth: 1 Kopi Percuma"
+                            disabled={staffRole !== 'owner'}
+                            className="w-full border border-gray-300 rounded-xl p-2.5 font-jakarta text-xs text-[#1A2422] bg-white outline-none disabled:bg-gray-100"
+                          />
+                        </div>
                       </div>
-                    ))}
-                  </div>
 
-                  {staffRole === 'owner' && (
-                    <button
-                      type="button"
-                      onClick={handleAddRewardItem}
-                      className="w-full mt-3 py-2 px-3 border border-dashed border-[#1E5E53] rounded-xl text-xs font-bold text-[#1E5E53] bg-[#1E5E53]/[0.05] hover:bg-[#1E5E53]/10 transition flex items-center justify-center gap-1.5 cursor-pointer"
-                    >
-                      <span>{t.settings.addRewardBtn}</span>
-                    </button>
-                  )}
-                </div>
-
-                {/* SOCIAL MEDIA & WEBSITE LINKS */}
-                <div className="border-t border-[#E4D9BE] pt-4 mt-4 mb-4">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="font-bold text-sm text-[#0A1716]">
-                      {t.settings.socialTitle}
-                    </div>
-                    {staffRole === 'owner' && (
-                      <button
-                        type="button"
-                        onClick={() => setShowSocialModal(true)}
-                        className="text-xs font-bold text-[#1E5E53] hover:text-[#E5A43B] underline cursor-pointer"
-                      >
-                        {t.settings.addLinkBtn}
-                      </button>
-                    )}
-                  </div>
-                  <div className="text-xs text-[#5E6F68] mb-3">
-                    {t.settings.socialDesc}
-                  </div>
-
-                  {socialLinks.length === 0 ? (
-                    <div className="bg-white/60 p-3 rounded-xl border border-dashed border-[#E4D9BE] text-center text-xs text-[#5E6F68]">
-                      {t.settings.noSocialLinks}
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {socialLinks.map((link, sIdx) => {
-                        const platformInfo = SOCIAL_PLATFORMS.find((p) => p.id === link.platform) || {
-                          label: link.platform,
-                          icon: '/sosial media/registration-web-icon.svg',
-                        }
-                        return (
-                          <div
-                            key={sIdx}
-                            className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-[#E4D9BE] gap-2"
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                              <div className="w-7 h-7 rounded-full bg-[#1A2422] flex items-center justify-center p-1.5 shrink-0 shadow-xs">
-                                <img src={platformInfo.icon} alt={platformInfo.label} className="w-full h-full object-contain" />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <div className="text-xs font-bold text-[#1A2422]">{platformInfo.label}</div>
-                                <div className="text-[11px] text-[#5E6F68] truncate">{link.url}</div>
-                              </div>
-                            </div>
-                            {staffRole === 'owner' && (
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteSocialLink(sIdx)}
-                                className="text-xs text-red-600 hover:text-red-800 font-semibold p-1 cursor-pointer shrink-0"
-                              >
-                                {t.settings.deleteBtn}
-                              </button>
-                            )}
-                          </div>
-                        )
-                      })}
+                      {/* Section Save Button */}
+                      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+                        <span className="text-[11px] text-[#5E6F68]">
+                          {isSectionDirty('storeInfo')
+                            ? (lang === 'en' ? '● Unsaved changes' : '● Perubahan belum disimpan')
+                            : (lang === 'en' ? '✓ No changes' : '✓ Tiada perubahan')}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={!isSectionDirty('storeInfo') || isSavingSettings || staffRole !== 'owner'}
+                          onClick={() => handleSaveSection('storeInfo')}
+                          className={`py-2 px-4 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                            isSectionDirty('storeInfo') && staffRole === 'owner'
+                              ? 'bg-[#1E5E53] hover:bg-[#2D786B] text-white shadow-sm cursor-pointer active:scale-95'
+                              : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-75'
+                          }`}
+                        >
+                          {isSavingSettings ? (
+                            <span>{t.settings.saving}</span>
+                          ) : (
+                            <>
+                              <span>💾</span>
+                              <span>{isSectionDirty('storeInfo') ? (lang === 'en' ? 'Save Changes' : 'Simpan Perubahan') : (lang === 'en' ? 'No Changes' : 'Tiada Perubahan')}</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {staffRole === 'owner' ? (
+                {/* 6. SOCIAL MEDIA & WEB LINKS ACCORDION */}
+                <div className="bg-white text-[#1A2422] rounded-2xl border border-gray-200 shadow-xs overflow-hidden transition-all">
                   <button
-                    onClick={handleSaveSettings}
-                    disabled={isSavingSettings}
-                    className="w-full border-none rounded-[12px] p-3 mt-1 bg-[#1E5E53] text-[#FAF2E2] font-bold text-sm cursor-pointer active:scale-[0.98] transition disabled:opacity-60 hover:bg-[#2D786B]"
+                    type="button"
+                    onClick={() => setOpenSettingSection((prev) => (prev === 'social' ? null : 'social'))}
+                    className="w-full py-3.5 px-4 flex items-center justify-between text-left hover:bg-gray-50 transition cursor-pointer"
                   >
-                    {isSavingSettings ? t.settings.saving : t.settings.saveBtn}
-                  </button>
-                ) : (
-                  <div className="text-xs text-[#5E6F68] bg-[#EFE3C4] p-2.5 rounded-lg text-center font-medium">
-                    {t.settings.ownerOnlyNote}
-                  </div>
-                )}
-
-                <div
-                  className={`text-center text-xs text-[#388E5F] font-semibold mt-2.5 transition-opacity duration-300 ${
-                    saveToast ? 'opacity-100' : 'opacity-0'
-                  }`}
-                >
-                  {t.settings.savedToast}
-                </div>
-
-                {/* SALIN / PINDAH TETAPAN KEDAI DENGAN QR */}
-                <div className="border-t border-[#E4D9BE] pt-3.5 mt-2">
-                  <div className="text-[11px] font-bold text-[#5E6F68] uppercase tracking-wider text-center mb-2 font-space">
-                    {t.settings.shareCloneTitle}
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {/* Butang 1: Papar QR Tetapan */}
-                    <button
-                      type="button"
-                      onClick={handleOpenSettingsQr}
-                      disabled={isGeneratingSettingsQr}
-                      className="py-2.5 px-2.5 rounded-xl bg-white hover:bg-[#FAF2E2] border border-[#E4D9BE] text-[#0A1716] font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs cursor-pointer"
-                      title="Papar QR untuk disalin oleh kedai lain"
-                    >
-                      <svg className="w-4 h-4 text-[#1E5E53] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
-                        <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
-                        <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
-                        <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
-                      </svg>
-                      <span className="truncate">{t.settings.showSettingsQrBtn}</span>
-                    </button>
-
-                    {/* Butang 2: Imbas QR Tetapan */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSettingsScanError('')
-                        setShowSettingsScanner(true)
-                      }}
-                      className="py-2.5 px-2.5 rounded-xl bg-[#1E5E53] hover:bg-[#2D786B] text-[#FAF2E2] font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs cursor-pointer"
-                      title="Imbas QR dari kedai lain untuk auto-isi semua tetapan"
-                    >
-                      <svg className="w-4 h-4 text-[#E5A43B] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                        <circle cx="12" cy="13" r="4"></circle>
-                      </svg>
-                      <span className="truncate">{t.settings.scanSettingsQrBtn}</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* ZON BAHAYA: PADAM AKAUN */}
-                <div className="border-t border-[#E4D9BE] pt-4 mt-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-xs font-bold text-red-600">{t.settings.dangerZone}</div>
-                      <div className="text-[11px] text-[#5E6F68]">{t.settings.dangerZoneDesc}</div>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-base shrink-0">🌐</span>
+                      <span className="font-bold text-xs sm:text-sm text-[#0A1716] truncate">
+                        {lang === 'en' ? 'Social Media & Web Links' : 'Media Sosial & Pautan Web'}
+                      </span>
+                      <span className="text-[10px] bg-gray-100 text-gray-700 font-semibold px-2 py-0.5 rounded-full shrink-0">
+                        {socialLinks.length} {lang === 'en' ? 'Links' : 'Pautan'}
+                      </span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDeleteConfirmText('')
-                        setDeleteAccountError('')
-                        setShowDeleteAccountModal(true)
-                      }}
-                      className="px-3 py-2 rounded-xl bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-bold transition cursor-pointer shadow-xs"
-                    >
-                      {t.settings.deleteAccountBtn}
-                    </button>
-                  </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isSectionDirty('social') && (
+                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" title="Perubahan belum disimpan" />
+                      )}
+                      <svg
+                        className={`w-4 h-4 text-[#5E6F68] transition-transform duration-200 ${
+                          openSettingSection === 'social' ? 'rotate-90 text-[#E5A43B]' : ''
+                        }`}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </div>
+                  </button>
+
+                  {openSettingSection === 'social' && (
+                    <div className="p-4 pt-1 border-t border-gray-100 anim-result">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-xs text-[#5E6F68]">
+                          {t.settings.socialDesc}
+                        </div>
+                        {staffRole === 'owner' && (
+                          <button
+                            type="button"
+                            onClick={() => setShowSocialModal(true)}
+                            className="text-xs font-bold text-[#1E5E53] hover:text-[#E5A43B] underline cursor-pointer shrink-0"
+                          >
+                            {t.settings.addLinkBtn}
+                          </button>
+                        )}
+                      </div>
+
+                      {socialLinks.length === 0 ? (
+                        <div className="bg-gray-50 p-3 rounded-xl border border-dashed border-gray-300 text-center text-xs text-[#5E6F68]">
+                          {t.settings.noSocialLinks}
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {socialLinks.map((link, sIdx) => {
+                            const platformInfo = SOCIAL_PLATFORMS.find((p) => p.id === link.platform) || {
+                              label: link.platform,
+                              icon: '/sosial media/registration-web-icon.svg',
+                            }
+                            return (
+                              <div
+                                key={sIdx}
+                                className="flex items-center justify-between bg-gray-50 p-2.5 rounded-xl border border-gray-200 gap-2"
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                  <div className="w-7 h-7 rounded-full bg-[#1A2422] flex items-center justify-center p-1.5 shrink-0 shadow-xs">
+                                    <img src={platformInfo.icon} alt={platformInfo.label} className="w-full h-full object-contain" />
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-xs font-bold text-[#1A2422]">{platformInfo.label}</div>
+                                    <div className="text-[11px] text-[#5E6F68] truncate">{link.url}</div>
+                                  </div>
+                                </div>
+                                {staffRole === 'owner' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteSocialLink(sIdx)}
+                                    className="text-xs text-red-600 hover:text-red-800 font-semibold p-1 cursor-pointer shrink-0"
+                                  >
+                                    {t.settings.deleteBtn}
+                                  </button>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+
+                      {/* Section Save Button */}
+                      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+                        <span className="text-[11px] text-[#5E6F68]">
+                          {isSectionDirty('social')
+                            ? (lang === 'en' ? '● Unsaved changes' : '● Perubahan belum disimpan')
+                            : (lang === 'en' ? '✓ No changes' : '✓ Tiada perubahan')}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={!isSectionDirty('social') || isSavingSettings || staffRole !== 'owner'}
+                          onClick={() => handleSaveSection('social')}
+                          className={`py-2 px-4 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                            isSectionDirty('social') && staffRole === 'owner'
+                              ? 'bg-[#1E5E53] hover:bg-[#2D786B] text-white shadow-sm cursor-pointer active:scale-95'
+                              : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-75'
+                          }`}
+                        >
+                          {isSavingSettings ? (
+                            <span>{t.settings.saving}</span>
+                          ) : (
+                            <>
+                              <span>💾</span>
+                              <span>{isSectionDirty('social') ? (lang === 'en' ? 'Save Changes' : 'Simpan Perubahan') : (lang === 'en' ? 'No Changes' : 'Tiada Perubahan')}</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
+
+                {/* 7. SYNC & CLONE SETTINGS (QR) ACCORDION */}
+                <div className="bg-white text-[#1A2422] rounded-2xl border border-gray-200 shadow-xs overflow-hidden transition-all">
+                  <button
+                    type="button"
+                    onClick={() => setOpenSettingSection((prev) => (prev === 'clone' ? null : 'clone'))}
+                    className="w-full py-3.5 px-4 flex items-center justify-between text-left hover:bg-gray-50 transition cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-base shrink-0">📱</span>
+                      <span className="font-bold text-xs sm:text-sm text-[#0A1716] truncate">
+                        {t.settings.shareCloneTitle}
+                      </span>
+                    </div>
+                    <svg
+                      className={`w-4 h-4 text-[#5E6F68] transition-transform duration-200 shrink-0 ${
+                        openSettingSection === 'clone' ? 'rotate-90 text-[#E5A43B]' : ''
+                      }`}
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </button>
+
+                  {openSettingSection === 'clone' && (
+                    <div className="p-4 pt-2 border-t border-gray-100 anim-result">
+                      <p className="text-xs text-[#5E6F68] mb-3 leading-relaxed">
+                        {lang === 'en'
+                          ? 'Quickly share your store setup with another branch or copy existing settings using QR scan or PIN.'
+                          : 'Salin atau pindahkan tetapan kedai ke cawangan lain dengan mudah menggunakan kod QR atau PIN 6-digit.'}
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={handleOpenSettingsQr}
+                          disabled={isGeneratingSettingsQr}
+                          className="py-2.5 px-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-[#0A1716] font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs cursor-pointer"
+                        >
+                          <svg className="w-4 h-4 text-[#1E5E53] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                            <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                            <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                            <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                          </svg>
+                          <span className="truncate">{t.settings.showSettingsQrBtn}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSettingsScanError('')
+                            setShowSettingsScanner(true)
+                          }}
+                          className="py-2.5 px-2.5 rounded-xl bg-[#1E5E53] hover:bg-[#2D786B] text-[#FAF2E2] font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs cursor-pointer"
+                        >
+                          <svg className="w-4 h-4 text-[#E5A43B] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                          </svg>
+                          <span className="truncate">{t.settings.scanSettingsQrBtn}</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 8. DANGER ZONE ACCORDION */}
+                <div className="bg-white text-[#1A2422] rounded-2xl border border-red-200 shadow-xs overflow-hidden transition-all">
+                  <button
+                    type="button"
+                    onClick={() => setOpenSettingSection((prev) => (prev === 'danger' ? null : 'danger'))}
+                    className="w-full py-3.5 px-4 flex items-center justify-between text-left hover:bg-red-50/50 transition cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-base shrink-0">⚠️</span>
+                      <span className="font-bold text-xs sm:text-sm text-red-600 truncate">
+                        {t.settings.dangerZone}
+                      </span>
+                    </div>
+                    <svg
+                      className={`w-4 h-4 text-red-400 transition-transform duration-200 shrink-0 ${
+                        openSettingSection === 'danger' ? 'rotate-90 text-red-600' : ''
+                      }`}
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </button>
+
+                  {openSettingSection === 'danger' && (
+                    <div className="p-4 pt-2 border-t border-red-100 anim-result">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div>
+                          <div className="text-xs font-bold text-red-600">{t.settings.dangerZone}</div>
+                          <div className="text-[11px] text-[#5E6F68]">{t.settings.dangerZoneDesc}</div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDeleteConfirmText('')
+                            setDeleteAccountError('')
+                            setShowDeleteAccountModal(true)
+                          }}
+                          className="px-3 py-2 rounded-xl bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-bold transition cursor-pointer shadow-xs shrink-0"
+                        >
+                          {t.settings.deleteAccountBtn}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
               </div>
             </div>
           )}
