@@ -1415,8 +1415,7 @@ export default function CashierDashboard() {
       case 'storeInfo':
         return (
           storeName.trim() !== baselineSettings.storeName.trim() ||
-          Number(stampsRequired) !== Number(baselineSettings.stampsRequired) ||
-          rewardDesc.trim() !== baselineSettings.rewardDesc.trim()
+          Number(stampsRequired) !== Number(baselineSettings.stampsRequired)
         )
       case 'googleReview':
         return (
@@ -1746,33 +1745,33 @@ export default function CashierDashboard() {
         </div>
       ) : needsRegistration ? (
         /* 2. ONBOARDING / DAFTAR KEDAI BAHARU */
-        <div className="bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-6 sm:p-7 shadow-[0_24px_50px_rgba(0,0,0,0.45),0_0_0_1px_rgba(229,164,59,0.15)] mb-6 anim-result">
+        <div className="bg-white text-[#1A2422] rounded-[24px] p-5 sm:p-6 shadow-xl border border-gray-200 mb-6 anim-result">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-2xl bg-[#E5A43B]/20 border border-[#E5A43B]/40 flex items-center justify-center text-xl">
+            <div className="w-10 h-10 rounded-2xl bg-[#1E5E53]/10 border border-[#1E5E53]/20 flex items-center justify-center text-xl">
               🏪
             </div>
             <div>
-              <div className="font-fraunces font-semibold text-[22px] text-[#0A1716] leading-tight">
+              <div className="font-fraunces font-semibold text-[20px] text-[#0A1716] leading-tight">
                 {t.onboarding.title}
               </div>
-              <div className="text-[11px] text-[#1E5E53] font-bold uppercase tracking-wider">
+              <div className="text-[10.5px] text-[#1E5E53] font-bold uppercase tracking-wider">
                 {t.onboarding.subtitle}
               </div>
             </div>
           </div>
-          <div className="text-[13px] text-[#5E6F68] mb-5 leading-relaxed">
+          <div className="text-xs text-[#5E6F68] mb-4 leading-relaxed">
             {t.onboarding.desc}
           </div>
 
           {regError && (
-            <div className="mb-4 p-3 rounded-xl bg-red-100 border border-red-300 text-[#B53629] text-xs font-semibold">
+            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-[#B53629] text-xs font-semibold">
               {regError}
             </div>
           )}
 
           <form onSubmit={handleRegisterStore}>
-            <div className="mb-4">
-              <label className="block text-xs font-semibold text-[#5E6F68] mb-1.5">
+            <div className="mb-3.5">
+              <label className="block text-xs font-semibold text-[#5E6F68] mb-1">
                 {t.onboarding.storeNameLabel} <span className="text-[#B53629]">*</span>
               </label>
               <input
@@ -1782,12 +1781,12 @@ export default function CashierDashboard() {
                 placeholder={t.onboarding.storeNamePlaceholder}
                 required
                 autoFocus
-                className="w-full border border-[#E4D9BE] rounded-[12px] p-3 font-jakarta text-sm text-[#1A2422] bg-white outline-none focus:ring-2 focus:ring-[#E5A43B] focus:border-transparent transition"
+                className="w-full border border-gray-300 rounded-xl p-2.5 font-jakarta text-xs text-[#1A2422] bg-white outline-none focus:ring-2 focus:ring-[#1E5E53] focus:border-transparent transition"
               />
             </div>
 
             {/* GOOGLE REVIEW CONNECTION (ON/OFF TOGGLE) */}
-            <div className="mb-4 p-3.5 rounded-2xl bg-white border border-[#E4D9BE]">
+            <div className="mb-3.5 p-3 rounded-xl bg-gray-50 border border-gray-200">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <div className="text-xs font-bold text-[#0A1716] flex items-center gap-1.5">
@@ -1816,7 +1815,7 @@ export default function CashierDashboard() {
               </div>
 
               {regGoogleReviewMode === 'google' && (
-                <div className="mt-3 pt-3 border-t border-[#E4D9BE]/60 space-y-2 anim-result">
+                <div className="mt-3 pt-3 border-t border-gray-200 space-y-2 anim-result">
                   <div className="flex items-center justify-between">
                     <label className="text-[11px] font-bold text-[#0A1716]">
                       {t.onboarding.reviewInputLabel}
@@ -1835,7 +1834,7 @@ export default function CashierDashboard() {
                     value={regGoogleReviewInput}
                     onChange={(e) => setRegGoogleReviewInput(e.target.value)}
                     placeholder={t.onboarding.reviewInputPlaceholder}
-                    className="w-full border border-[#E4D9BE] rounded-xl p-2.5 text-xs text-[#1A2422] bg-white outline-none focus:ring-1 focus:ring-[#E5A43B]"
+                    className="w-full border border-gray-300 rounded-lg p-2 text-xs text-[#1A2422] bg-white outline-none focus:ring-1 focus:ring-[#1E5E53]"
                   />
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[10.5px] text-[#5E6F68]">
@@ -1856,7 +1855,7 @@ export default function CashierDashboard() {
             </div>
 
             {/* STAMP ICON SELECTOR (MULTI-CATEGORY) */}
-            <div className="mb-5 border-t border-[#E4D9BE]/60 pt-3.5">
+            <div className="mb-4 border-t border-gray-100 pt-3">
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-xs font-bold text-[#0A1716]">
                   {t.onboarding.stampIconLabel}
@@ -1865,7 +1864,7 @@ export default function CashierDashboard() {
                   {t.onboarding.stampIconBadge}
                 </span>
               </div>
-              <div className="text-xs text-[#5E6F68] mb-2.5">
+              <div className="text-xs text-[#5E6F68] mb-2">
                 {t.onboarding.stampIconDesc}
               </div>
               <div className="grid grid-cols-4 gap-2">
@@ -1880,7 +1879,7 @@ export default function CashierDashboard() {
                       className={`flex flex-col items-center justify-center p-2 rounded-xl border transition cursor-pointer text-center ${
                         isSelected
                           ? 'border-[#E5A43B] bg-[#E5A43B]/20 shadow-sm ring-2 ring-[#E5A43B]'
-                          : 'border-[#E4D9BE] bg-white hover:bg-gray-50'
+                          : 'border-gray-200 bg-white hover:bg-gray-50'
                       }`}
                     >
                       <div className="w-8 h-8 rounded-full bg-[#B53629] flex items-center justify-center mb-1 shadow-sm">
@@ -1899,7 +1898,7 @@ export default function CashierDashboard() {
               </div>
             </div>
 
-            <div className="mb-5 p-3 rounded-xl bg-[#1E5E53]/10 border border-[#1E5E53]/20 flex items-start gap-2 text-xs text-[#1E5E53]">
+            <div className="mb-4 p-2.5 rounded-xl bg-gray-50 border border-gray-200 flex items-center gap-2 text-xs text-gray-600">
               <span className="text-sm shrink-0">💡</span>
               <span>{t.onboarding.hint}</span>
             </div>
@@ -1907,7 +1906,7 @@ export default function CashierDashboard() {
             <button
               type="submit"
               disabled={isRegisteringStore}
-              className="w-full border-none rounded-[12px] p-3.5 bg-gradient-to-b from-[#E5A43B] to-[#C77B1B] text-[#1A2422] font-jakarta font-bold text-[14.5px] cursor-pointer active:scale-[0.98] transition disabled:opacity-60 shadow-[0_4px_12px_rgba(229,164,59,0.3)] flex items-center justify-center gap-2"
+              className="w-full border-none rounded-xl p-3.5 bg-[#1E5E53] hover:bg-[#2D786B] text-white font-jakarta font-bold text-sm cursor-pointer active:scale-[0.98] transition disabled:opacity-60 shadow-md flex items-center justify-center gap-2"
             >
               {isRegisteringStore ? (
                 t.onboarding.registering
@@ -3178,35 +3177,19 @@ export default function CashierDashboard() {
                         />
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-semibold text-[#5E6F68] mb-1">
-                            {lang === 'en' ? 'Target Stamps per Card' : 'Sasaran Bilangan Cop'}
-                          </label>
-                          <input
-                            type="number"
-                            min="1"
-                            max="100"
-                            value={stampsRequired}
-                            onChange={(e) => setStampsRequired(Number(e.target.value) || 10)}
-                            disabled={staffRole !== 'owner'}
-                            className="w-full border border-gray-300 rounded-xl p-2.5 font-jakarta text-xs text-[#1A2422] bg-white outline-none disabled:bg-gray-100"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-[#5E6F68] mb-1">
-                            {lang === 'en' ? 'Base Reward Description' : 'Penerangan Ganjaran Asas'}
-                          </label>
-                          <input
-                            type="text"
-                            value={rewardDesc}
-                            onChange={(e) => setRewardDesc(e.target.value)}
-                            maxLength={100}
-                            placeholder="cth: 1 Kopi Percuma"
-                            disabled={staffRole !== 'owner'}
-                            className="w-full border border-gray-300 rounded-xl p-2.5 font-jakarta text-xs text-[#1A2422] bg-white outline-none disabled:bg-gray-100"
-                          />
-                        </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-[#5E6F68] mb-1">
+                          {lang === 'en' ? 'Target Stamps per Card' : 'Sasaran Bilangan Cop'}
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="100"
+                          value={stampsRequired}
+                          onChange={(e) => setStampsRequired(Number(e.target.value) || 10)}
+                          disabled={staffRole !== 'owner'}
+                          className="w-full border border-gray-300 rounded-xl p-2.5 font-jakarta text-xs text-[#1A2422] bg-white outline-none disabled:bg-gray-100"
+                        />
                       </div>
 
                       {/* Section Save Button */}
