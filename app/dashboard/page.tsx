@@ -218,9 +218,6 @@ export default function CashierDashboard() {
   // Custom Card Templates State (Card Studio)
   const [customTemplates, setCustomTemplates] = useState<CustomTemplateItem[]>([])
   const [cardTemplate, setCardTemplate] = useState<any>(null)
-  const [showNewTemplateModal, setShowNewTemplateModal] = useState<boolean>(false)
-  const [newTemplateName, setNewTemplateName] = useState<string>('')
-  const [newTemplateError, setNewTemplateError] = useState<string>('')
   const [isActivatingTemplateId, setIsActivatingTemplateId] = useState<string | null>(null)
   const [isDeletingTemplateId, setIsDeletingTemplateId] = useState<string | null>(null)
   const [deletingTemplateConfirm, setDeletingTemplateConfirm] = useState<CustomTemplateItem | null>(null)
@@ -1623,35 +1620,14 @@ export default function CashierDashboard() {
     }
   }
 
-  function handleOpenNewTemplateModal() {
+  function handleCreateTemplateDirect(slotIdx: number) {
     if (customTemplates.length >= 3) {
       showBtToast(t.settings.maxTemplatesReachedMsg, 'error')
       return
     }
-    setNewTemplateName(
-      lang === 'en'
-        ? `Template #${customTemplates.length + 1}`
-        : `Templat #${customTemplates.length + 1}`
-    )
-    setNewTemplateError('')
-    setShowNewTemplateModal(true)
-  }
-
-  function handleProceedToStudio(e: React.FormEvent) {
-    e.preventDefault()
-    const trimmed = newTemplateName.trim()
-    if (!trimmed) {
-      setNewTemplateError(
-        lang === 'en' ? 'Please enter a template name.' : 'Sila masukkan nama templat.'
-      )
-      return
-    }
-    if (customTemplates.length >= 3) {
-      setNewTemplateError(t.settings.maxTemplatesReachedMsg)
-      return
-    }
-    setShowNewTemplateModal(false)
-    router.push(`/card-studio?new=true&name=${encodeURIComponent(trimmed)}`)
+    const defaultName =
+      lang === 'en' ? `Template #${slotIdx + 1}` : `Templat #${slotIdx + 1}`
+    router.push(`/card-studio?new=true&name=${encodeURIComponent(defaultName)}`)
   }
 
   // Check if a specific settings section has unsaved changes
@@ -3831,228 +3807,115 @@ export default function CashierDashboard() {
                   </button>
 
                   {openSettingSection === 'cardStudio' && (
-                    <div className="p-4 pt-1 border-t border-gray-100 anim-result">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-                        <p className="text-xs text-[#5E6F68] leading-relaxed">
-                          {t.settings.customTemplatesDesc}
-                        </p>
-                      </div>
-
-                      {/* Quota visual slots bar */}
-                      <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-[#EDE5DA] mb-4">
-                        <div className="flex items-center justify-between text-xs font-bold text-stone-800 mb-2">
-                          <span className="flex items-center gap-1.5">
-                            <span>📦 Penggunaan Slot Templat</span>
-                            <span className="text-[10px] text-stone-400 font-normal">
-                              (Maksimum 3 templat)
-                            </span>
-                          </span>
-                          <span
-                            className={`font-mono text-xs ${
-                              customTemplates.length >= 3
-                                ? 'text-amber-700 font-bold'
-                                : 'text-emerald-700 font-bold'
-                            }`}
-                          >
-                            {customTemplates.length}/3 Slot
-                          </span>
-                        </div>
-
-                        {/* 3 Slot Indicator Pills */}
-                        <div className="grid grid-cols-3 gap-2">
-                          {[0, 1, 2].map((slotIdx) => {
-                            const tpl = customTemplates[slotIdx]
-                            const isLive =
-                              tpl &&
-                              cardTemplate &&
-                              JSON.stringify(cardTemplate) === JSON.stringify(tpl.config)
-
-                            return (
-                              <div
-                                key={slotIdx}
-                                className={`p-2 rounded-xl border text-center transition ${
-                                  tpl
-                                    ? isLive
-                                      ? 'bg-emerald-50 border-emerald-300 text-emerald-900 shadow-2xs'
-                                      : 'bg-white border-stone-200 text-stone-800 shadow-2xs'
-                                    : 'bg-stone-50/70 border-dashed border-stone-300 text-stone-400'
-                                }`}
-                              >
-                                <div className="text-[10px] uppercase font-bold tracking-wider mb-0.5">
-                                  Slot {slotIdx + 1}
-                                </div>
-                                <div className="text-xs font-bold truncate">
-                                  {tpl ? tpl.name : '(Kosong)'}
-                                </div>
-                                {tpl && (
-                                  <div className="mt-1">
-                                    {isLive ? (
-                                      <span className="text-[9px] bg-emerald-600 text-white font-bold px-1.5 py-0.5 rounded-md">
-                                        LIVE
-                                      </span>
-                                    ) : (
-                                      <span className="text-[9px] bg-stone-200 text-stone-600 font-semibold px-1.5 py-0.5 rounded-md">
-                                        Draf
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            )
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Action Bar: Create New Template or Open Studio */}
-                      <div className="flex flex-wrap items-center gap-2 mb-3">
-                        <button
-                          type="button"
-                          onClick={handleOpenNewTemplateModal}
-                          disabled={customTemplates.length >= 3 || staffRole !== 'owner'}
-                          className={`py-2 px-3.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-xs ${
-                            customTemplates.length >= 3 || staffRole !== 'owner'
-                              ? 'bg-stone-100 text-stone-400 border border-stone-200 cursor-not-allowed opacity-70'
-                              : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white cursor-pointer'
+                    <div className="p-4 pt-2 border-t border-gray-100 anim-result">
+                      {/* Header Ringkas */}
+                      <div className="flex items-center justify-between text-xs font-bold text-stone-800 mb-3 px-0.5">
+                        <span>Penggunaan Slot Templat</span>
+                        <span
+                          className={`font-mono text-xs ${
+                            customTemplates.length >= 3
+                              ? 'text-amber-700 font-bold'
+                              : 'text-emerald-700 font-bold'
                           }`}
                         >
-                          <span>+</span>
-                          <span>{t.settings.createTemplateBtn}</span>
-                        </button>
-
-                        <Link
-                          href="/card-studio"
-                          className="py-2 px-3.5 rounded-xl bg-stone-100 hover:bg-stone-200 border border-stone-200 text-stone-800 font-bold text-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-2xs"
-                        >
-                          <span>{t.settings.openCardStudioBtn}</span>
-                          <span className="text-[10px] text-stone-500">↗</span>
-                        </Link>
+                          {customTemplates.length}/3 Slot
+                        </span>
                       </div>
 
-                      {/* Template List */}
-                      {customTemplates.length === 0 ? (
-                        <div className="bg-stone-50 p-4 rounded-2xl border border-dashed border-stone-300 text-center text-xs text-[#5E6F68]">
-                          <div className="w-9 h-9 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center mx-auto mb-2 text-base">
-                            🎨
-                          </div>
-                          <p className="font-semibold text-stone-700 mb-1">
-                            {t.settings.noCustomTemplates}
-                          </p>
-                          <p className="text-[11px] text-stone-500 mb-3">
-                            Reka kad kesetiaan yang menarik pelanggan dengan palet warna dan fon kedai anda.
-                          </p>
-                          {staffRole === 'owner' && (
-                            <button
-                              type="button"
-                              onClick={handleOpenNewTemplateModal}
-                              className="py-2 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs transition cursor-pointer shadow-xs active:scale-95"
-                            >
-                              + Cipta Templat Pertama Anda
-                            </button>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="space-y-2.5">
-                          {customTemplates.map((tpl, tIdx) => {
-                            const isLive =
-                              cardTemplate &&
-                              JSON.stringify(cardTemplate) === JSON.stringify(tpl.config)
+                      {/* 3 Petak Slot Card Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        {[0, 1, 2].map((slotIdx) => {
+                          const tpl = customTemplates[slotIdx]
+                          const isLive =
+                            tpl &&
+                            cardTemplate &&
+                            JSON.stringify(cardTemplate) === JSON.stringify(tpl.config)
 
-                            const fontId = tpl.config?.blocks?.find(
-                              (b: any) => b.id === 'store_profile'
-                            )?.fontId || 'fraunces'
-                            const cardStyle = tpl.config?.blocks?.find(
-                              (b: any) => b.id === 'stamp_card_box'
-                            )?.cardStyle || 'kertas'
-
+                          // JIKA SLOT KOSONG: Petak butang tambah besar yang terus pergi ke Card Studio
+                          if (!tpl) {
                             return (
-                              <div
-                                key={tpl.id || tIdx}
-                                className={`p-3.5 rounded-2xl border transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                                  isLive
-                                    ? 'bg-emerald-50/50 border-emerald-200 shadow-xs ring-1 ring-emerald-300/60'
-                                    : 'bg-white border-stone-200 shadow-2xs hover:border-stone-300'
-                                }`}
+                              <button
+                                key={slotIdx}
+                                type="button"
+                                onClick={() => handleCreateTemplateDirect(slotIdx)}
+                                className="h-28 sm:h-32 rounded-2xl border-2 border-dashed border-stone-300 hover:border-amber-400 bg-stone-50/60 hover:bg-amber-50/40 p-3 flex flex-col items-center justify-center gap-1.5 transition active:scale-98 cursor-pointer group text-stone-500 hover:text-amber-800"
                               >
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                                    <span className="font-bold text-sm text-stone-900 truncate">
-                                      {tpl.name}
-                                    </span>
-                                    {isLive ? (
-                                      <span className="text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-md flex items-center gap-1 shadow-2xs">
-                                        <span>✨</span>
-                                        <span>{t.settings.activeLiveBadge}</span>
-                                      </span>
-                                    ) : (
-                                      <span className="text-[10px] bg-stone-100 text-stone-600 font-semibold px-2 py-0.5 rounded-md">
-                                        {t.settings.draftBadge}
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  <div className="flex items-center gap-2 flex-wrap text-[11px] text-stone-500">
-                                    <span>
-                                      Kemaskini:{' '}
-                                      {tpl.updatedAt
-                                        ? new Date(tpl.updatedAt).toLocaleDateString(
-                                            lang === 'en' ? 'en-US' : 'ms-MY'
-                                          )
-                                        : '-'}
-                                    </span>
-                                    <span>•</span>
-                                    <span className="capitalize bg-stone-100 text-stone-700 px-1.5 py-0.2 rounded">
-                                      Fon: {fontId}
-                                    </span>
-                                    <span>•</span>
-                                    <span className="capitalize bg-stone-100 text-stone-700 px-1.5 py-0.2 rounded">
-                                      Gaya: {cardStyle}
-                                    </span>
-                                  </div>
+                                <div className="w-10 h-10 rounded-full bg-white border border-stone-200 group-hover:border-amber-300 group-hover:bg-amber-500 group-hover:text-white flex items-center justify-center text-2xl font-bold transition shadow-2xs">
+                                  +
                                 </div>
+                                <span className="text-[11px] font-bold">
+                                  + Templat {slotIdx + 1}
+                                </span>
+                              </button>
+                            )
+                          }
 
-                                {/* Actions */}
-                                <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
-                                  {staffRole === 'owner' && !isLive && (
-                                    <button
-                                      type="button"
-                                      disabled={isActivatingTemplateId === tpl.id}
-                                      onClick={() => handleActivateTemplate(tpl)}
-                                      className="py-1.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition active:scale-95 shadow-xs cursor-pointer flex items-center gap-1 disabled:opacity-50"
-                                    >
-                                      {isActivatingTemplateId === tpl.id ? (
-                                        <>
-                                          <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                          <span>Mengaktifkan...</span>
-                                        </>
-                                      ) : (
-                                        <span>{t.settings.activateLiveBtn}</span>
-                                      )}
-                                    </button>
-                                  )}
-
-                                  <Link
-                                    href={`/card-studio?templateId=${encodeURIComponent(tpl.id)}`}
-                                    className="py-1.5 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 font-bold text-xs transition active:scale-95 cursor-pointer shadow-2xs flex items-center gap-1"
+                          // JIKA SLOT BERISI: Petak templat dengan nama, status Live & icon tindakan sahaja (Edit, Padam, Jadikan Live)
+                          return (
+                            <div
+                              key={tpl.id || slotIdx}
+                              className={`h-28 sm:h-32 rounded-2xl border p-3 flex flex-col justify-between transition ${
+                                isLive
+                                  ? 'bg-emerald-50/70 border-emerald-300 shadow-2xs ring-1 ring-emerald-300/60'
+                                  : 'bg-white border-stone-200 shadow-2xs hover:border-stone-300'
+                              }`}
+                            >
+                              {/* Top Bar: Slot label & Live badge / button */}
+                              <div className="flex items-center justify-between gap-1">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
+                                  Slot {slotIdx + 1}
+                                </span>
+                                {isLive ? (
+                                  <span className="text-[9px] bg-emerald-600 text-white font-bold px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-2xs">
+                                    <span>✨</span>
+                                    <span>LIVE</span>
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    disabled={isActivatingTemplateId === tpl.id || staffRole !== 'owner'}
+                                    onClick={() => handleActivateTemplate(tpl)}
+                                    className="text-[9px] bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold px-1.5 py-0.5 rounded-md transition cursor-pointer disabled:opacity-50"
+                                    title="Jadikan templat aktif pada kad pelanggan"
                                   >
-                                    <span>{t.settings.editInStudioBtn}</span>
-                                  </Link>
+                                    {isActivatingTemplateId === tpl.id ? '...' : 'Aktifkan'}
+                                  </button>
+                                )}
+                              </div>
 
-                                  {staffRole === 'owner' && (
-                                    <button
-                                      type="button"
-                                      disabled={isDeletingTemplateId === tpl.id}
-                                      onClick={() => setDeletingTemplateConfirm(tpl)}
-                                      className="py-1.5 px-2.5 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-bold text-xs transition active:scale-95 cursor-pointer shadow-2xs"
-                                    >
-                                      {isDeletingTemplateId === tpl.id ? '...' : t.settings.deleteTemplateBtn}
-                                    </button>
-                                  )}
+                              {/* Middle: Nama Templat */}
+                              <div className="min-w-0 my-0.5">
+                                <div className="font-bold text-xs sm:text-sm text-stone-900 truncate" title={tpl.name}>
+                                  {tpl.name}
                                 </div>
                               </div>
-                            )
-                          })}
-                        </div>
-                      )}
+
+                              {/* Bottom: Icon Action Buttons Only */}
+                              <div className="flex items-center justify-end gap-1.5 pt-1.5 border-t border-stone-100">
+                                <Link
+                                  href={`/card-studio?templateId=${encodeURIComponent(tpl.id)}`}
+                                  className="w-7 h-7 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 flex items-center justify-center text-xs transition cursor-pointer shadow-2xs"
+                                  title="Edit di Card Studio"
+                                >
+                                  ✏️
+                                </Link>
+
+                                {staffRole === 'owner' && (
+                                  <button
+                                    type="button"
+                                    disabled={isDeletingTemplateId === tpl.id}
+                                    onClick={() => setDeletingTemplateConfirm(tpl)}
+                                    className="w-7 h-7 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 flex items-center justify-center text-xs transition cursor-pointer shadow-2xs disabled:opacity-50"
+                                    title="Padam Templat"
+                                  >
+                                    {isDeletingTemplateId === tpl.id ? '...' : '🗑️'}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -5159,104 +5022,7 @@ export default function CashierDashboard() {
         </div>
       )}
 
-      {/* ── MODAL: CIPTA TEMPLAT BAHARU (CARD STUDIO) ── */}
-      {showNewTemplateModal && (
-        <div
-          onClick={() => setShowNewTemplateModal(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 anim-fade"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-[400px] bg-[#FFF7EA] text-[#2B1B12] rounded-[28px] p-6 shadow-2xl border border-[#F0DEC0] anim-scale font-jakarta"
-            style={{
-              backgroundColor: '#FFF7EA',
-              backgroundImage:
-                'radial-gradient(circle at 1px 1px, rgba(43,27,18,0.055) 1px, transparent 1px)',
-              backgroundSize: '20px 20px',
-            }}
-          >
-            {/* Close Button */}
-            <button
-              type="button"
-              onClick={() => setShowNewTemplateModal(false)}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-[#96806B] hover:text-[#2B1B12] text-lg font-bold transition cursor-pointer"
-            >
-              &times;
-            </button>
 
-            {/* Icon & Title */}
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl shadow-xs">
-                🎨
-              </div>
-              <div>
-                <h3 className="font-fraunces font-bold text-lg text-[#1B0F09] leading-tight">
-                  {t.settings.newTemplateModalTitle}
-                </h3>
-                <p className="text-[11px] text-[#96806B]">
-                  {t.settings.newTemplateModalDesc}
-                </p>
-              </div>
-            </div>
-
-            <form onSubmit={handleProceedToStudio} className="space-y-3.5 mt-4">
-              {newTemplateError && (
-                <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
-                  ⚠️ {newTemplateError}
-                </div>
-              )}
-
-              <div>
-                <label className="block text-xs font-bold text-stone-800 mb-1.5">
-                  {t.settings.newTemplateNameLabel} <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={newTemplateName}
-                  onChange={(e) => {
-                    setNewTemplateName(e.target.value)
-                    if (newTemplateError) setNewTemplateError('')
-                  }}
-                  placeholder={t.settings.newTemplateNamePlaceholder}
-                  maxLength={40}
-                  autoFocus
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-[#F0DEC0] rounded-xl outline-none focus:ring-2 focus:ring-[#FF7A45] font-jakarta placeholder:text-stone-400 text-stone-900 font-semibold"
-                />
-              </div>
-
-              {/* Quota Slot Indicator */}
-              <div className="bg-white/80 p-3 rounded-2xl border border-[#EDE5DA] text-xs">
-                <div className="flex items-center justify-between font-bold text-stone-800 mb-1">
-                  <span>Penggunaan Slot Akaun:</span>
-                  <span className="text-amber-800 font-mono">
-                    {Math.min(3, customTemplates.length + 1)}/3 Slot
-                  </span>
-                </div>
-                <p className="text-[11px] text-stone-500 leading-normal">
-                  Had 3 templat sahaja setiap akaun kedai. Anda boleh mengubah dan mengaktifkan bila-bila masa.
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="pt-2 flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowNewTemplateModal(false)}
-                  className="flex-1 py-2.5 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition cursor-pointer"
-                >
-                  {lang === 'en' ? 'Cancel' : 'Batal'}
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2.5 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
-                >
-                  <span>{t.settings.startDesigningBtn}</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* ── MODAL: PENGESAHAN PADAM TEMPLAT ── */}
       {deletingTemplateConfirm && (

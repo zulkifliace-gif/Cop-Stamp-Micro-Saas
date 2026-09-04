@@ -1826,19 +1826,6 @@ export default function CustomerCardPage() {
                           borderRadius: `${cardBoxBlock?.borderRadius || 28}px`,
                           backdropFilter: (cardBoxBlock?.cardStyle || 'kertas') === 'kaca' ? 'blur(22px) saturate(190%) contrast(105%)' : (cardBoxBlock?.cardStyle || 'kertas') === 'air' ? 'blur(16px) saturate(140%)' : 'none',
                           WebkitBackdropFilter: (cardBoxBlock?.cardStyle || 'kertas') === 'kaca' ? 'blur(22px) saturate(190%) contrast(105%)' : (cardBoxBlock?.cardStyle || 'kertas') === 'air' ? 'blur(16px) saturate(140%)' : 'none',
-                          boxShadow: cardBoxBlock?.shadowStyle === 'glow'
-                            ? '0 16px 36px -10px rgba(255,122,69,0.22)'
-                            : (cardBoxBlock?.cardStyle || 'kertas') === 'kaca'
-                            ? '0 24px 50px -12px rgba(0,0,0,0.22), inset 0 1.5px 2px rgba(255,255,255,0.85), inset 0 -1.5px 2px rgba(255,255,255,0.25)'
-                            : (cardBoxBlock?.cardStyle || 'kertas') === 'kayu'
-                            ? '0 14px 32px -6px rgba(45,20,5,0.4), inset 0 2px 4px rgba(255,255,255,0.35), inset 0 -3px 6px rgba(40,15,0,0.4)'
-                            : (cardBoxBlock?.cardStyle || 'kertas') === 'besi'
-                            ? '0 16px 36px -8px rgba(15,23,42,0.45), inset 0 2px 4px rgba(255,255,255,0.9), inset 0 -2px 5px rgba(0,0,0,0.35)'
-                            : (cardBoxBlock?.cardStyle || 'kertas') === 'batu'
-                            ? '0 16px 36px -8px rgba(30,41,59,0.35), inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.2)'
-                            : (cardBoxBlock?.cardStyle || 'kertas') === 'air'
-                            ? '0 18px 40px -8px rgba(0,188,212,0.35), inset 0 2px 6px rgba(255,255,255,0.9), inset 0 -2px 6px rgba(0,188,212,0.25)'
-                            : '0 14px 32px -8px rgba(43,27,18,0.08)',
                         }}
                       >
                         {/* MATERIAL TEXTURE OVERLAY */}
