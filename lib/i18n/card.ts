@@ -117,7 +117,7 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
     card: {
       stampsUnit: 'Cop',
       verifiedStoreTitle: 'Kedai Disahkan (Profil Lengkap)',
-      howToRedeemBtn: 'Cara Tebus (i)',
+      howToRedeemBtn: 'Cara Tebus',
       rewardsBtn: 'Hadiah',
       cardTab: (num) => `Kad #${num}`,
       fullBadge: 'Penuh ✓',
@@ -206,7 +206,7 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
     card: {
       stampsUnit: 'Stamps',
       verifiedStoreTitle: 'Verified Store (Complete Profile)',
-      howToRedeemBtn: 'How to Redeem (i)',
+      howToRedeemBtn: 'How to Redeem',
       rewardsBtn: 'Rewards',
       cardTab: (num) => `Card #${num}`,
       fullBadge: 'Full ✓',

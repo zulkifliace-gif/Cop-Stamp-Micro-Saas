@@ -205,6 +205,8 @@ export default function CustomerCardPage() {
   // Modals state
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [showRewardsModal, setShowRewardsModal] = useState(false)
+  const [rewardSlideIdx, setRewardSlideIdx] = useState(0)
+  const rewardTouchStartXRef = useRef(0)
   const [showCustomerQrModal, setShowCustomerQrModal] = useState(false)
   const [customerQrDataUrl, setCustomerQrDataUrl] = useState('')
   const [showReviewPopup, setShowReviewPopup] = useState<boolean>(false)
@@ -787,22 +789,26 @@ export default function CustomerCardPage() {
           display: flex;
           gap: 8px;
           justify-content: center;
+          align-items: center;
           margin-top: 16px;
+          flex-wrap: wrap;
         }
         .pill-btn {
           display: inline-flex;
           align-items: center;
+          justify-content: center;
           gap: 6px;
-          border: none;
-          background: #fff;
+          border: 1px solid var(--border-warm);
+          background: #ffffff;
           color: var(--ink-strong);
-          border-radius: var(--r-full);
-          padding: 9px 15px;
-          font-size: 12px;
+          border-radius: 12px;
+          padding: 8px 13px;
+          font-size: 11.5px;
           font-weight: 700;
-          box-shadow: 0 8px 16px rgba(0,0,0,0.14);
+          box-shadow: 0 4px 10px rgba(0,0,0,0.06);
           cursor: pointer;
-          transition: transform .15s;
+          transition: transform .15s, box-shadow .15s;
+          white-space: nowrap;
         }
         .pill-btn svg {
           width: 13px;
@@ -811,6 +817,7 @@ export default function CustomerCardPage() {
         }
         .pill-btn:hover {
           transform: translateY(-1px);
+          box-shadow: 0 6px 14px rgba(0,0,0,0.1);
         }
         .pill-btn:active {
           transform: translateY(0);
@@ -886,7 +893,6 @@ export default function CustomerCardPage() {
           color: var(--ink);
           border: 1px solid var(--border-warm);
           box-sizing: border-box;
-          box-shadow: 0 12px 28px -8px rgba(43,27,18,0.08);
         }
 
         .stamp-card-head {
@@ -1340,22 +1346,6 @@ export default function CustomerCardPage() {
                   </div>
 
                   <div className="top-actions">
-                    {/* 3. OFFICIAL GOOGLE REVIEW ICON (REPLACES GENERIC STAR) */}
-                    {googleReviewUrl && (
-                      <button
-                        type="button"
-                        className="icon-btn gold"
-                        title="Google Review"
-                        onClick={() => setShowReviewPopup(true)}
-                      >
-                        <img
-                          src="/Google-Review.svg"
-                          alt="Google Review"
-                          className="w-4 h-4 object-contain"
-                        />
-                      </button>
-                    )}
-
                     {/* CUSTOMER QR BUTTON */}
                     <button
                       type="button"
@@ -1468,8 +1458,23 @@ export default function CustomerCardPage() {
                     </div>
                   )}
 
-                  {/* PILL ROW: CARA TEBUS & GANJARAN */}
+                  {/* ACTION ROW: GOOGLE REVIEW, CARA TEBUS & GANJARAN (PETAK DENGAN BACKGROUND PUTIH) */}
                   <div className="pill-row">
+                    {googleReviewUrl && (
+                      <button
+                        type="button"
+                        className="pill-btn"
+                        title="Google Review"
+                        onClick={() => setShowReviewPopup(true)}
+                      >
+                        <img
+                          src="/Google-Review.svg"
+                          alt="Google Review"
+                          className="w-3.5 h-3.5 object-contain"
+                        />
+                        <span>Google Review</span>
+                      </button>
+                    )}
                     <button
                       type="button"
                       className="pill-btn"
@@ -1490,7 +1495,10 @@ export default function CustomerCardPage() {
                     <button
                       type="button"
                       className="pill-btn"
-                      onClick={() => setShowRewardsModal(true)}
+                      onClick={() => {
+                        setRewardSlideIdx(0)
+                        setShowRewardsModal(true)
+                      }}
                     >
                       <svg
                         viewBox="0 0 24 24"
@@ -1960,80 +1968,145 @@ export default function CustomerCardPage() {
         </div>
       )}
 
-      {/* 3. REWARDS MODAL (SENARAI GANJARAN) */}
-      {showRewardsModal && (
-        <div className="overlay" onClick={() => setShowRewardsModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              className="modal-close"
-              onClick={() => setShowRewardsModal(false)}
-            >
-              &times;
-            </button>
-            <div className="modal-title">🎁 {t.rewardsModal.title}</div>
-            <div className="modal-sub">
-              {lang === 'en'
-                ? 'Rewards you can redeem at this store.'
-                : 'Ganjaran yang boleh anda tebus di kedai ini.'}
-            </div>
+      {/* 3. REWARDS MODAL (FULL IMAGE SLIDER) */}
+      {showRewardsModal && (() => {
+        const effectiveRewards = rewardsList.length > 0 ? rewardsList : [
+          {
+            id: 'default',
+            name: rewardDesc || (lang === 'en' ? 'Free Reward' : 'Ganjaran Percuma'),
+            stampsRequired: TOTAL,
+            imageUrl: rewardImageUrl,
+            description: rewardDesc || '',
+          },
+        ]
+        const totalRewards = effectiveRewards.length
+        const currentReward = effectiveRewards[rewardSlideIdx] || effectiveRewards[0]
 
-            <div className="max-h-[300px] overflow-y-auto pr-1 space-y-2">
-              {rewardsList.length > 0 ? (
-                rewardsList.map((rw, rIdx) => (
-                  <div key={rw.id || rIdx} className="reward-item">
-                    <div className="reward-icon">
-                      {rw.imageUrl ? (
-                        <img
-                          src={rw.imageUrl}
-                          alt={rw.name}
-                          className="w-full h-full object-cover rounded-xl"
-                        />
-                      ) : (
-                        <span className="text-xl">🎁</span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="reward-name truncate">{rw.name}</div>
-                      <div className="reward-req">
-                        {t.rewardsModal.stampsRequiredBadge(rw.stampsRequired || TOTAL)}
-                      </div>
-                    </div>
+        return (
+          <div className="overlay" onClick={() => setShowRewardsModal(false)}>
+            <div
+              className="modal"
+              style={{ maxWidth: 360, padding: 0, overflow: 'hidden', borderRadius: 26 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* CLOSE BUTTON */}
+              <button
+                type="button"
+                className="modal-close"
+                style={{ zIndex: 20, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)' }}
+                onClick={() => setShowRewardsModal(false)}
+              >
+                &times;
+              </button>
+
+              {/* FULL IMAGE CONTAINER WITH TOUCH SWIPE & ARROWS */}
+              <div
+                className="relative w-full h-[240px] sm:h-[260px] bg-[#FFF7EA] flex items-center justify-center overflow-hidden border-b border-[#F0DEC0]"
+                onTouchStart={(e) => {
+                  rewardTouchStartXRef.current = e.touches[0].clientX
+                }}
+                onTouchEnd={(e) => {
+                  const diff = e.changedTouches[0].clientX - rewardTouchStartXRef.current
+                  if (diff < -40 && totalRewards > 1) {
+                    setRewardSlideIdx((prev) => (prev + 1) % totalRewards)
+                  } else if (diff > 40 && totalRewards > 1) {
+                    setRewardSlideIdx((prev) => (prev - 1 + totalRewards) % totalRewards)
+                  }
+                }}
+              >
+                {currentReward?.imageUrl ? (
+                  <img
+                    src={currentReward.imageUrl}
+                    alt={currentReward.name}
+                    className="w-full h-full object-cover select-none pointer-events-none"
+                    draggable={false}
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-b from-[#FFF7EA] to-[#FCE7D2] text-center p-4">
+                    <span className="text-6xl mb-2">🎁</span>
+                    <span className="text-xs font-semibold text-[#96806B]">
+                      {lang === 'en' ? 'No image available' : 'Tiada gambar disediakan'}
+                    </span>
                   </div>
-                ))
-              ) : (
-                <div className="reward-item">
-                  <div className="reward-icon">
-                    {rewardImageUrl ? (
-                      <img
-                        src={rewardImageUrl}
-                        alt={rewardDesc}
-                        className="w-full h-full object-cover rounded-xl"
-                      />
-                    ) : (
-                      <span className="text-xl">🎁</span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="reward-name truncate">{rewardDesc || 'Ganjaran Percuma'}</div>
-                    <div className="reward-req">
-                      {t.rewardsModal.stampsRequiredBadge(TOTAL)}
-                    </div>
-                  </div>
+                )}
+
+                {/* BADGE: PERLU X COP (TOP-LEFT ON IMAGE) */}
+                <div className="absolute top-3.5 left-3.5 z-10 bg-[#FF5A45] text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-md">
+                  {t.rewardsModal.stampsRequiredBadge(currentReward?.stampsRequired || TOTAL)}
                 </div>
-              )}
-            </div>
 
-            <button
-              type="button"
-              className="modal-btn"
-              onClick={() => setShowRewardsModal(false)}
-            >
-              {t.rewardsModal.closeBtn}
-            </button>
+                {/* SLIDE NAVIGATION ARROWS (IF > 1 REWARD) */}
+                {totalRewards > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setRewardSlideIdx((prev) => (prev - 1 + totalRewards) % totalRewards)}
+                      className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 hover:bg-black/65 text-white flex items-center justify-center text-lg font-bold transition shadow-md cursor-pointer select-none z-10"
+                      title="Sebelumnya"
+                    >
+                      ‹
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRewardSlideIdx((prev) => (prev + 1) % totalRewards)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 hover:bg-black/65 text-white flex items-center justify-center text-lg font-bold transition shadow-md cursor-pointer select-none z-10"
+                      title="Seterusnya"
+                    >
+                      ›
+                    </button>
+
+                    {/* SLIDE COUNTER BADGE */}
+                    <div className="absolute bottom-2.5 right-3 z-10 bg-black/55 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {rewardSlideIdx + 1} / {totalRewards}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* DETAILS & SLIDE DOTS */}
+              <div className="p-5 text-center">
+                <div className="font-fraunces font-bold text-xl text-[#1B0F09] mb-1.5 leading-tight">
+                  {currentReward?.name}
+                </div>
+
+                {currentReward?.description && (
+                  <div className="text-xs text-[#96806B] mb-3 leading-relaxed max-w-[90%] mx-auto">
+                    {currentReward.description}
+                  </div>
+                )}
+
+                {/* SLIDE DOTS (IF > 1 REWARD) */}
+                {totalRewards > 1 && (
+                  <div className="flex items-center justify-center gap-1.5 mb-4">
+                    {effectiveRewards.map((_, dotIdx) => (
+                      <button
+                        key={dotIdx}
+                        type="button"
+                        onClick={() => setRewardSlideIdx(dotIdx)}
+                        className={`transition-all rounded-full border-none p-0 cursor-pointer ${
+                          dotIdx === rewardSlideIdx
+                            ? 'w-5 h-2 bg-[#FF5A45]'
+                            : 'w-2 h-2 bg-[#F0DEC0] hover:bg-[#FF7A45]/50'
+                        }`}
+                        aria-label={`Ganjaran ${dotIdx + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  className="modal-btn"
+                  style={{ marginTop: 2 }}
+                  onClick={() => setShowRewardsModal(false)}
+                >
+                  {t.rewardsModal.closeBtn}
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* 4. CUSTOMER QR CODE MODAL */}
       {showCustomerQrModal && (
