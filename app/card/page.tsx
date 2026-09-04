@@ -24,6 +24,7 @@ interface StoreLocationItem {
   url: string
   address?: string
   coordinates?: string
+  embedUrl?: string
   embedQuery?: string
 }
 
@@ -62,11 +63,14 @@ function normalizeStampIcon(path?: string) {
 
 function getGoogleMapsEmbedUrl(loc?: StoreLocationItem, storeNameFallback?: string) {
   if (!loc) return ''
+  if (loc.embedUrl) {
+    return loc.embedUrl
+  }
   if (loc.coordinates) {
-    return `https://maps.google.com/maps?q=${encodeURIComponent(loc.coordinates)}&t=&z=16&ie=UTF8&iwloc=B&output=embed`
+    return `https://maps.google.com/maps?q=${encodeURIComponent(loc.coordinates)}&hl=ms&z=16&output=embed`
   }
   if (loc.embedQuery) {
-    return `https://maps.google.com/maps?q=${encodeURIComponent(loc.embedQuery)}&t=&z=16&ie=UTF8&iwloc=B&output=embed`
+    return `https://maps.google.com/maps?q=${encodeURIComponent(loc.embedQuery)}&hl=ms&z=16&output=embed`
   }
 
   const trimmed = (loc.url || '').trim()
@@ -76,23 +80,23 @@ function getGoogleMapsEmbedUrl(loc?: StoreLocationItem, storeNameFallback?: stri
 
   const coordMatch = trimmed.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || trimmed.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/)
   if (coordMatch) {
-    return `https://maps.google.com/maps?q=${coordMatch[1]},${coordMatch[2]}&t=&z=16&ie=UTF8&iwloc=B&output=embed`
+    return `https://maps.google.com/maps?q=${coordMatch[1]},${coordMatch[2]}&hl=ms&z=16&output=embed`
   }
   const placeMatch = trimmed.match(/\/place\/([^/@?]+)/)
   if (placeMatch && placeMatch[1]) {
     const place = decodeURIComponent(placeMatch[1].replace(/\+/g, ' '))
-    return `https://maps.google.com/maps?q=${encodeURIComponent(place)}&t=&z=16&ie=UTF8&iwloc=B&output=embed`
+    return `https://maps.google.com/maps?q=${encodeURIComponent(place)}&hl=ms&z=16&output=embed`
   }
   const qMatch = trimmed.match(/[?&]q=([^&]+)/)
   if (qMatch && qMatch[1]) {
-    return `https://maps.google.com/maps?q=${qMatch[1]}&t=&z=16&ie=UTF8&iwloc=B&output=embed`
+    return `https://maps.google.com/maps?q=${qMatch[1]}&hl=ms&z=16&output=embed`
   }
 
   const queryToUse = loc.address
     ? `${loc.name ? loc.name + ', ' : ''}${loc.address}`
     : (loc.name || storeNameFallback || '')
   if (!queryToUse) return ''
-  return `https://maps.google.com/maps?q=${encodeURIComponent(queryToUse)}&t=&z=16&ie=UTF8&iwloc=B&output=embed`
+  return `https://maps.google.com/maps?q=${encodeURIComponent(queryToUse)}&hl=ms&z=16&output=embed`
 }
 
 function formatStampDateTime(dateStr: string | null, lang: Lang) {
@@ -2494,27 +2498,16 @@ export default function CustomerCardPage() {
 
                 return (
                   <div className="space-y-3">
-                    {/* MINI GOOGLE MAP IFRAME (UI CONTROLS CLIPPED OUT & CENTERED PINPOINT) */}
-                    <div className="w-full h-[210px] rounded-2xl overflow-hidden border border-[#F0DEC0] relative bg-[#FFF7EA] shadow-inner select-none pointer-events-none">
+                    {/* MINI GOOGLE MAP IFRAME (AUTHENTIC PINPOINT FROM GOOGLE MAPS) */}
+                    <div className="w-full h-[220px] rounded-2xl overflow-hidden border border-[#F0DEC0] relative bg-[#FFF7EA] shadow-inner select-none pointer-events-none">
                       {embedUrl ? (
-                        <>
-                          <iframe
-                            title={currentLoc.name || 'Google Map'}
-                            src={embedUrl}
-                            className="w-[calc(100%+120px)] h-[calc(100%+140px)] -mt-[62px] -ml-[60px] border-0 pointer-events-none"
-                            loading="lazy"
-                            referrerPolicy="no-referrer-when-downgrade"
-                          />
-                          {/* CENTERED BOUNCING PINPOINT MARKER OVERLAY */}
-                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                            <div className="flex flex-col items-center -translate-y-3">
-                              <div className="w-8 h-8 rounded-full bg-[#FF5A45] text-white flex items-center justify-center shadow-lg border-2 border-white text-sm font-bold">
-                                📍
-                              </div>
-                              <div className="w-2.5 h-1 bg-black/25 rounded-full blur-[1px] mt-0.5" />
-                            </div>
-                          </div>
-                        </>
+                        <iframe
+                          title={currentLoc.name || 'Google Map'}
+                          src={embedUrl}
+                          className="w-[calc(100%+120px)] h-[calc(100%+130px)] -mt-[65px] -ml-[60px] border-0 pointer-events-none"
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                        />
                       ) : (
                         <div className="w-full h-full flex flex-col items-center justify-center text-center p-4">
                           <span className="text-3xl mb-1">🗺️</span>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { normalizeGoogleReviewUrl } from '@/lib/google-review'
+import { resolveGoogleMapsLocation } from '@/lib/maps'
 
 // GET: Dapatkan tetapan kedai bagi staf/pemilik semasa
 export async function GET(req: NextRequest) {
@@ -388,45 +389,32 @@ export async function PUT(req: NextRequest) {
       await Promise.all(
         rawLocations.map(async (item: any, idx: number) => {
           const rawUrl = String(item?.url || '').trim().slice(0, 500)
+          const name = String(item?.name || `Cawangan #${idx + 1}`).trim().slice(0, 80)
+          let address = String(item?.address || '').trim().slice(0, 200)
+
           let coordinates = String(item?.coordinates || '').trim().slice(0, 80)
+          let embedUrl = String(item?.embedUrl || '').trim().slice(0, 500)
           let embedQuery = String(item?.embedQuery || '').trim().slice(0, 150)
 
-          // Try extracting coordinates or resolving shortlinks
           if (rawUrl) {
-            const coordMatch = rawUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || rawUrl.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/)
-            if (coordMatch) {
-              coordinates = `${coordMatch[1]},${coordMatch[2]}`
-            } else if (rawUrl.includes('maps.app.goo.gl') || rawUrl.includes('goo.gl/maps')) {
-              try {
-                const res = await fetch(rawUrl, {
-                  method: 'HEAD',
-                  redirect: 'follow',
-                  headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
-                  signal: AbortSignal.timeout(3000),
-                })
-                const finalUrl = res.url || ''
-                if (finalUrl && finalUrl !== rawUrl) {
-                  const resolvedCoord = finalUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || finalUrl.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/)
-                  if (resolvedCoord) {
-                    coordinates = `${resolvedCoord[1]},${resolvedCoord[2]}`
-                  }
-                  const placeMatch = finalUrl.match(/\/place\/([^/@?]+)/)
-                  if (placeMatch && placeMatch[1]) {
-                    embedQuery = decodeURIComponent(placeMatch[1].replace(/\+/g, ' '))
-                  }
-                }
-              } catch {
-                // Graceful fallback if timeout
+            try {
+              const res = await resolveGoogleMapsLocation(rawUrl, address || name)
+              if (res.coordinates) coordinates = res.coordinates
+              if (res.embedUrl) embedUrl = res.embedUrl
+              if (res.placeName) {
+                embedQuery = res.placeName
+                if (!address) address = res.placeName
               }
-            }
+            } catch {}
           }
 
           return {
             id: String(item?.id || `loc_${idx}`),
-            name: String(item?.name || `Cawangan #${idx + 1}`).trim().slice(0, 80),
+            name,
             url: rawUrl,
-            address: String(item?.address || '').trim().slice(0, 200),
+            address,
             ...(coordinates ? { coordinates } : {}),
+            ...(embedUrl ? { embedUrl } : {}),
             ...(embedQuery ? { embedQuery } : {}),
           }
         })

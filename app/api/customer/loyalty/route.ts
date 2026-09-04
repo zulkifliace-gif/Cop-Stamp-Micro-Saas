@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { resolveGoogleMapsLocation } from '@/lib/maps'
 
 export async function GET(req: NextRequest) {
   try {
@@ -54,44 +55,65 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const allStores = (allLoyalties || []).map((item) => {
-      const storeObj = Array.isArray(item.stores) ? item.stores[0] : item.stores
-      const rawRewards = storeObj?.rewards
-      const parsedRewards = Array.isArray(rawRewards)
-        ? rawRewards
-        : Array.isArray(rawRewards?.list)
-        ? rawRewards.list
-        : []
-      const parsedStampIcon =
-        (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && rawRewards?.stampIcon) ||
-        '/icons/stamps/makanan.svg'
-      const parsedSocialLinks =
-        (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && Array.isArray(rawRewards?.socialLinks) && rawRewards.socialLinks) ||
-        []
-      const parsedLocations =
-        (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && Array.isArray(rawRewards?.locations) && rawRewards.locations) ||
-        (Array.isArray((storeObj as any)?.locations) && (storeObj as any).locations) ||
-        []
+    const allStores = await Promise.all(
+      (allLoyalties || []).map(async (item) => {
+        const storeObj = Array.isArray(item.stores) ? item.stores[0] : item.stores
+        const rawRewards = storeObj?.rewards
+        const parsedRewards = Array.isArray(rawRewards)
+          ? rawRewards
+          : Array.isArray(rawRewards?.list)
+          ? rawRewards.list
+          : []
+        const parsedStampIcon =
+          (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && rawRewards?.stampIcon) ||
+          '/icons/stamps/makanan.svg'
+        const parsedSocialLinks =
+          (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && Array.isArray(rawRewards?.socialLinks) && rawRewards.socialLinks) ||
+          []
+        const rawLocations =
+          (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && Array.isArray(rawRewards?.locations) && rawRewards.locations) ||
+          (Array.isArray((storeObj as any)?.locations) && (storeObj as any).locations) ||
+          []
 
-      // google_review_url akan NULL secara automatik kalau kedai guna MOD 2 (manual)
-      // — jadi frontend cuma perlu semak "if (googleReviewUrl)" untuk decide popup.
-      return {
-        storeId: item.store_id,
-        storeName: storeObj?.name || 'Kedai Tanpa Nama',
-        totalStamps: item.total_stamps || 0,
-        stampsRequired: storeObj?.stamps_required || 10,
-        rewardDescription: storeObj?.reward_description || '1 minuman percuma',
-        logoUrl: storeObj?.logo_url || '',
-        rewardImageUrl: storeObj?.reward_image_url || '',
-        rewards: parsedRewards,
-        stampIcon: parsedStampIcon,
-        socialLinks: parsedSocialLinks,
-        locations: parsedLocations,
-        updatedAt: item.updated_at,
-        googleReviewUrl: storeObj?.google_review_url || null,
-        googleReviewMode: storeObj?.google_review_mode || 'manual',
-      }
-    })
+        const parsedLocations = await Promise.all(
+          rawLocations.map(async (loc: any) => {
+            if (loc.coordinates && loc.embedUrl) return loc
+            if (!loc.url) return loc
+            try {
+              const res = await resolveGoogleMapsLocation(loc.url, loc.address || loc.name)
+              return {
+                ...loc,
+                coordinates: res.coordinates || loc.coordinates,
+                embedUrl: res.embedUrl || loc.embedUrl,
+                embedQuery: res.placeName || loc.embedQuery,
+                address: loc.address || res.placeName || '',
+              }
+            } catch {
+              return loc
+            }
+          })
+        )
+
+        // google_review_url akan NULL secara automatik kalau kedai guna MOD 2 (manual)
+        // — jadi frontend cuma perlu semak "if (googleReviewUrl)" untuk decide popup.
+        return {
+          storeId: item.store_id,
+          storeName: storeObj?.name || 'Kedai Tanpa Nama',
+          totalStamps: item.total_stamps || 0,
+          stampsRequired: storeObj?.stamps_required || 10,
+          rewardDescription: storeObj?.reward_description || '1 minuman percuma',
+          logoUrl: storeObj?.logo_url || '',
+          rewardImageUrl: storeObj?.reward_image_url || '',
+          rewards: parsedRewards,
+          stampIcon: parsedStampIcon,
+          socialLinks: parsedSocialLinks,
+          locations: parsedLocations,
+          updatedAt: item.updated_at,
+          googleReviewUrl: storeObj?.google_review_url || null,
+          googleReviewMode: storeObj?.google_review_mode || 'manual',
+        }
+      })
+    )
 
     if (allStores.length === 0) {
       // Customer has no loyalty cards yet — check if viewing a specific store
@@ -135,10 +157,28 @@ export async function GET(req: NextRequest) {
           defaultSocialLinks =
             (typeof rawStRewards === 'object' && !Array.isArray(rawStRewards) && Array.isArray(rawStRewards?.socialLinks) && rawStRewards.socialLinks) ||
             []
-          defaultLocations =
+          const rawDefLocs =
             (typeof rawStRewards === 'object' && !Array.isArray(rawStRewards) && Array.isArray(rawStRewards?.locations) && rawStRewards.locations) ||
             (Array.isArray((st as any)?.locations) && (st as any).locations) ||
             []
+          defaultLocations = await Promise.all(
+            rawDefLocs.map(async (loc: any) => {
+              if (loc.coordinates && loc.embedUrl) return loc
+              if (!loc.url) return loc
+              try {
+                const res = await resolveGoogleMapsLocation(loc.url, loc.address || loc.name)
+                return {
+                  ...loc,
+                  coordinates: res.coordinates || loc.coordinates,
+                  embedUrl: res.embedUrl || loc.embedUrl,
+                  embedQuery: res.placeName || loc.embedQuery,
+                  address: loc.address || res.placeName || '',
+                }
+              } catch {
+                return loc
+              }
+            })
+          )
           defaultGoogleReviewUrl = st.google_review_url || null
           defaultGoogleReviewMode = st.google_review_mode || 'manual'
         }
