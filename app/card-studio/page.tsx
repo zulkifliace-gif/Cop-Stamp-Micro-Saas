@@ -442,7 +442,7 @@ export const DEFAULT_4_BLOCKS: EditableBlockConfig[] = [
     borderRadius: 34,
     shadowStyle: 'glow',
     pattern: 'bubbles',
-    patternOpacity: 0.2,
+    patternOpacity: 0.25,
   },
   {
     id: 'store_profile',
@@ -520,64 +520,121 @@ export function normalizeStampIcon(path?: string) {
   return path.startsWith('/') ? path : `/${path}`
 }
 
-export function HeroHeaderPattern({ pattern = 'bubbles', opacity = 0.2 }: { pattern?: string; opacity?: number }) {
-  if (pattern === 'none') return null
+export function HeroHeaderPattern({ pattern = 'bubbles', opacity = 0.25 }: { pattern?: string; opacity?: number }) {
+  if (!pattern || pattern === 'none') return null
 
   if (pattern === 'bubbles') {
     return (
       <div className="absolute inset-0 pointer-events-none overflow-hidden select-none" style={{ opacity }}>
-        <div className="absolute -top-16 -right-12 w-48 h-48 rounded-full bg-white/20 blur-xs" />
-        <div className="absolute -bottom-14 -left-10 w-36 h-36 rounded-full bg-white/15" />
-        <div className="absolute top-1/2 left-1/4 w-12 h-12 rounded-full bg-white/10" />
-        <div className="absolute top-1/3 right-1/4 w-8 h-8 rounded-full bg-white/10" />
+        <div className="absolute -top-[90px] -right-[60px] w-[190px] h-[190px] rounded-full bg-white/20" />
+        <div className="absolute -bottom-[70px] -left-[40px] w-[130px] h-[130px] rounded-full bg-white/16" />
+        <div className="absolute top-[45%] left-[20%] w-[48px] h-[48px] rounded-full bg-white/10" />
+        <div className="absolute top-[35%] right-[22%] w-[32px] h-[32px] rounded-full bg-white/10" />
       </div>
     )
   }
 
   const svgPatterns: Record<string, React.ReactNode> = {
     kereta: (
-      <pattern id="pat-car" width="60" height="60" patternUnits="userSpaceOnUse" patternTransform="rotate(15)">
-        <path d="M10 35 L14 26 L36 26 L42 35 L48 35 C50 35 52 37 52 40 L52 44 L48 44 C48 47 45 50 42 50 C39 50 36 47 36 44 L24 44 C24 47 21 50 18 50 C15 50 12 47 12 44 L8 44 C6 44 4 42 4 40 L4 35 Z M18 28 L14 34 L26 34 L26 28 Z M30 28 L30 34 L38 34 L34 28 Z" fill="currentColor" />
+      <pattern id="pat-car" width="64" height="64" patternUnits="userSpaceOnUse" patternTransform="rotate(12)">
+        <g transform="translate(6, 12) scale(1.1)">
+          <path d="M4 22 L8 14 L24 14 L30 22 L36 22 C38 22 39 23 39 25 L39 28 L36 28 C36 30.5 34 32.5 31.5 32.5 C29 32.5 27 30.5 27 28 L15 28 C15 30.5 13 32.5 10.5 32.5 C8 32.5 6 30.5 6 28 L3 28 C1.5 28 0 26.5 0 25 L0 22 Z" fill="currentColor" />
+          <path d="M10 16 L22 16 L27 21 L10 21 Z" fill="#ffffff" opacity="0.6" />
+          <circle cx="10.5" cy="28.5" r="3.2" fill="#ffffff" />
+          <circle cx="31.5" cy="28.5" r="3.2" fill="#ffffff" />
+          <circle cx="10.5" cy="28.5" r="1.5" fill="currentColor" />
+          <circle cx="31.5" cy="28.5" r="1.5" fill="currentColor" />
+        </g>
       </pattern>
     ),
     salon: (
-      <pattern id="pat-salon" width="55" height="55" patternUnits="userSpaceOnUse" patternTransform="rotate(-15)">
-        <path d="M15 12 C12 12 10 14 10 17 C10 19.5 11.5 21.5 13.8 21.9 L24 30 L13.8 38.1 C11.5 38.5 10 40.5 10 43 C10 46 12 48 15 48 C17.5 48 19.5 46.5 19.9 44.2 L28 34 L36.1 44.2 C36.5 46.5 38.5 48 41 48 C44 48 46 46 46 43 C46 40.5 44.5 38.5 42.2 38.1 L32 30 L42.2 21.9 C44.5 21.5 46 19.5 46 17 C46 14 44 12 41 12 C38.5 12 36.5 13.5 36.1 15.8 L28 26 L19.9 15.8 C19.5 13.5 17.5 12 15 12 Z M15 15 C16 15 17 16 17 17 C17 18 16 19 15 19 C14 19 13 18 13 17 C13 16 14 15 15 15 Z M41 15 C42 15 43 16 43 17 C43 18 42 19 41 19 C40 19 39 18 39 17 C39 16 40 15 41 15 Z M15 41 C16 41 17 42 17 43 C17 44 16 45 15 45 C14 45 13 44 13 43 C13 42 14 41 15 41 Z M41 41 C42 41 43 42 43 43 C43 44 42 45 41 45 C40 45 39 44 39 43 C39 42 40 41 41 41 Z" fill="currentColor" />
+      <pattern id="pat-salon" width="56" height="56" patternUnits="userSpaceOnUse" patternTransform="rotate(-15)">
+        <g transform="translate(8, 8) scale(0.9)">
+          <path d="M12 10 C9.5 10 7.5 12 7.5 14.5 C7.5 16.5 8.8 18.2 10.7 18.8 L20 26 L10.7 33.2 C8.8 33.8 7.5 35.5 7.5 37.5 C7.5 40 9.5 42 12 42 C14.2 42 16 40.5 16.4 38.4 L24 30 L31.6 38.4 C32 40.5 33.8 42 36 42 C38.5 42 40.5 40 40.5 37.5 C40.5 35.5 39.2 33.8 37.3 33.2 L28 26 L37.3 18.8 C39.2 18.2 40.5 16.5 40.5 14.5 C40.5 12 38.5 10 36 10 C33.8 10 32 11.5 31.6 13.6 L24 22 L16.4 13.6 C16 11.5 14.2 10 12 10 Z" fill="currentColor" />
+          <circle cx="12" cy="14.5" r="2.5" fill="#ffffff" opacity="0.6" />
+          <circle cx="12" cy="37.5" r="2.5" fill="#ffffff" opacity="0.6" />
+          <circle cx="36" cy="14.5" r="2.5" fill="#ffffff" opacity="0.6" />
+          <circle cx="36" cy="37.5" r="2.5" fill="#ffffff" opacity="0.6" />
+        </g>
       </pattern>
     ),
     kek: (
-      <pattern id="pat-kek" width="50" height="50" patternUnits="userSpaceOnUse" patternTransform="rotate(10)">
-        <path d="M25 8 C25 6 26 5 26 5 C26 5 27 6 27 8 C27 9 26 10 25 10 C24 10 23 9 25 8 Z M24 11 H26 V16 H24 Z M14 18 H36 C37 18 38 19 38 20 V25 C38 26 37 27 36 27 H14 C13 27 12 26 12 25 V20 C12 19 13 18 14 18 Z M10 29 H40 C41 29 42 30 42 31 V40 C42 41 41 42 40 42 H10 C9 42 8 41 8 40 V31 C8 30 9 29 10 29 Z" fill="currentColor" />
+      <pattern id="pat-kek" width="54" height="54" patternUnits="userSpaceOnUse" patternTransform="rotate(10)">
+        <g transform="translate(8, 6) scale(0.95)">
+          <path d="M18 4 L20 4 L20 10 L18 10 Z M19 1 C19 1 20 2.5 19 4 C18 2.5 19 1 19 1 Z" fill="currentColor" />
+          <path d="M10 12 H28 C29.5 12 30 13 30 14.5 V20 H8 V14.5 C8 13 8.5 12 10 12 Z" fill="currentColor" />
+          <path d="M8 20 C10 22 13 22 15 20 C17 22 21 22 23 20 C25 22 28 22 30 20 V22 H8 Z" fill="#ffffff" opacity="0.5" />
+          <path d="M5 23 H33 C34.5 23 35 24 35 25.5 V34 H3 V25.5 C3 24 3.5 23 5 23 Z" fill="currentColor" />
+          <path d="M3 34 C6 37 10 37 13 34 C16 37 22 37 25 34 C28 37 32 37 35 34 V36 H3 Z" fill="#ffffff" opacity="0.5" />
+          <path d="M1 37 H37 V39 H1 Z" fill="currentColor" />
+        </g>
       </pattern>
     ),
     roti_manisan: (
-      <pattern id="pat-roti" width="55" height="55" patternUnits="userSpaceOnUse" patternTransform="rotate(-10)">
-        <path d="M28 14 C18 14 10 22 10 32 C10 37 14 41 18 41 C22 41 24 38 24 35 C24 31 22 28 22 24 C22 20 25 18 28 18 C31 18 34 20 34 24 C34 28 32 31 32 35 C32 38 34 41 38 41 C42 41 46 37 46 32 C46 22 38 14 28 14 Z M28 22 C26 22 25 24 25 26 H31 C31 24 30 22 28 22 Z" fill="currentColor" />
+      <pattern id="pat-roti" width="56" height="56" patternUnits="userSpaceOnUse" patternTransform="rotate(-12)">
+        <g transform="translate(6, 8) scale(1)">
+          <path d="M22 6 C13 6 5 14 5 23 C5 28 8.5 32 13 32 C17 32 19 29 19 26 C19 22.5 17 20 17 16.5 C17 13 20 11 23 11 C26 11 29 13 29 16.5 C29 20 27 22.5 27 26 C27 29 29 32 33 32 C37.5 32 41 28 41 23 C41 14 33 6 22 6 Z" fill="currentColor" />
+          <path d="M22 13 C19 13 18 15 18 17 H26 C26 15 25 13 22 13 Z" fill="#ffffff" opacity="0.5" />
+          <path d="M14 20 C12 21 11 23 11 25 H16 C16 23 15 21 14 20 Z" fill="#ffffff" opacity="0.5" />
+          <path d="M30 20 C29 21 28 23 28 25 H33 C33 23 32 21 30 20 Z" fill="#ffffff" opacity="0.5" />
+        </g>
       </pattern>
     ),
     pisang: (
-      <pattern id="pat-pisang" width="50" height="50" patternUnits="userSpaceOnUse" patternTransform="rotate(25)">
-        <path d="M12 12 C16 12 36 15 42 34 C44 40 40 44 36 44 C34 44 32 42 32 40 C32 26 20 18 12 16 C10 15 10 12 12 12 Z M10 11 L13 8 L16 11 Z" fill="currentColor" />
+      <pattern id="pat-pisang" width="52" height="52" patternUnits="userSpaceOnUse" patternTransform="rotate(22)">
+        <g transform="translate(8, 8) scale(0.95)">
+          <path d="M8 8 C14 8 28 12 34 26 C36 31 33 35 29 35 C27 35 25 33 25 31 C25 20 16 14 8 12 C6 11 6 8 8 8 Z" fill="currentColor" />
+          <path d="M12 12 C18 13 30 18 35 30 C37 34 34 38 30 38 C28 38 26 36 26 34 C26 24 18 18 11 16 C9 15 9 12 12 12 Z" fill="#ffffff" opacity="0.4" />
+          <path d="M6 7 L9 4 L12 7 Z" fill="currentColor" />
+        </g>
       </pattern>
     ),
     air_bungkus: (
-      <pattern id="pat-airbungkus" width="55" height="55" patternUnits="userSpaceOnUse" patternTransform="rotate(-20)">
-        <path d="M24 6 L32 24 L28 24 L22 10 Z M18 20 C14 20 12 24 14 28 L18 44 C19 47 22 49 26 49 C30 49 33 47 34 44 L38 28 C40 24 38 20 34 20 C32 20 30 22 28 24 C26 22 24 20 22 20 Z" fill="currentColor" />
+      <pattern id="pat-airbungkus" width="56" height="56" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
+        <g transform="translate(10, 6) scale(0.95)">
+          <path d="M22 2 L30 18 L26 18 L20 5 Z" fill="currentColor" />
+          <path d="M14 16 H28 V19 H14 Z" fill="#ffffff" opacity="0.7" />
+          <path d="M14 19 C10 19 8 23 9 27 L13 40 C14 43 17 45 21 45 C25 45 28 43 29 40 L33 27 C34 23 32 19 28 19 Z" fill="currentColor" />
+          <path d="M10.5 28 Q21 32 31.5 28 L29 40 C28 43 25 45 21 45 C17 45 14 43 13 40 Z" fill="#ffffff" opacity="0.4" />
+        </g>
       </pattern>
     ),
     air_cup: (
-      <pattern id="pat-aircup" width="50" height="50" patternUnits="userSpaceOnUse" patternTransform="rotate(15)">
-        <path d="M30 6 L34 16 H16 L20 6 Z M14 18 H36 L32 44 C32 46 30 48 27 48 H23 C20 48 18 46 18 44 Z M16 28 H34" fill="currentColor" />
+      <pattern id="pat-aircup" width="52" height="52" patternUnits="userSpaceOnUse" patternTransform="rotate(14)">
+        <g transform="translate(10, 6) scale(0.95)">
+          <path d="M20 2 L24 10 H21 L18 2 Z" fill="currentColor" />
+          <path d="M10 12 C10 9 14 7 19 7 C24 7 28 9 28 12 Z" fill="currentColor" />
+          <path d="M8 12 H30 V14 H8 Z" fill="currentColor" />
+          <path d="M10 15 H28 L25 38 C25 40 23 42 20 42 H18 C15 42 13 40 13 38 Z" fill="currentColor" />
+          <circle cx="16" cy="36" r="1.8" fill="#ffffff" opacity="0.6" />
+          <circle cx="21" cy="37" r="1.8" fill="#ffffff" opacity="0.6" />
+          <circle cx="19" cy="33" r="1.8" fill="#ffffff" opacity="0.6" />
+          <circle cx="23" cy="32" r="1.8" fill="#ffffff" opacity="0.6" />
+          <circle cx="15" cy="30" r="1.8" fill="#ffffff" opacity="0.6" />
+        </g>
       </pattern>
     ),
     haiwan: (
-      <pattern id="pat-haiwan" width="50" height="50" patternUnits="userSpaceOnUse" patternTransform="rotate(-15)">
-        <path d="M25 24 C21 24 17 28 17 33 C17 38 21 42 25 42 C29 42 33 38 33 33 C33 28 29 24 25 24 Z M14 22 C11.5 22 9.5 19.5 9.5 16.5 C9.5 13.5 11.5 11 14 11 C16.5 11 18.5 13.5 18.5 16.5 C18.5 19.5 16.5 22 14 22 Z M36 22 C33.5 22 31.5 19.5 31.5 16.5 C31.5 13.5 33.5 11 36 11 C38.5 11 40.5 13.5 40.5 16.5 C40.5 19.5 38.5 22 36 22 Z M20 14 C18.5 14 17 12 17 9.5 C17 7 18.5 5 20 5 C21.5 5 23 7 23 9.5 C23 12 21.5 14 20 14 Z M30 14 C28.5 14 27 12 27 9.5 C27 7 28.5 5 30 5 C31.5 5 33 7 33 9.5 C33 12 31.5 14 30 14 Z" fill="currentColor" />
+      <pattern id="pat-haiwan" width="52" height="52" patternUnits="userSpaceOnUse" patternTransform="rotate(-14)">
+        <g transform="translate(8, 8) scale(0.95)">
+          <path d="M18 19 C14.5 19 11 23 11 27 C11 31.5 14.5 35 18 35 C21.5 35 25 31.5 25 27 C25 23 21.5 19 18 19 Z" fill="currentColor" />
+          <ellipse cx="8.5" cy="18" rx="3.5" ry="4.5" fill="currentColor" />
+          <ellipse cx="14" cy="11.5" rx="3.5" ry="4.5" fill="currentColor" />
+          <ellipse cx="22" cy="11.5" rx="3.5" ry="4.5" fill="currentColor" />
+          <ellipse cx="27.5" cy="18" rx="3.5" ry="4.5" fill="currentColor" />
+        </g>
       </pattern>
     ),
     bunga: (
-      <pattern id="pat-bunga" width="50" height="50" patternUnits="userSpaceOnUse" patternTransform="rotate(12)">
-        <path d="M25 18 C25 13 22 10 19 13 C16 16 19 19 23 21 C19 19 16 22 19 25 C22 28 25 25 25 20 C25 25 28 28 31 25 C34 22 31 19 27 21 C31 19 34 16 31 13 C28 10 25 13 25 18 Z M25 20 C24 20 23 21 23 22 C23 23 24 24 25 24 C26 24 27 23 27 22 C27 21 26 20 25 20 Z" fill="currentColor" />
+      <pattern id="pat-bunga" width="52" height="52" patternUnits="userSpaceOnUse" patternTransform="rotate(12)">
+        <g transform="translate(8, 8) scale(0.95)">
+          <circle cx="18" cy="9" r="6" fill="currentColor" />
+          <circle cx="26.5" cy="15" r="6" fill="currentColor" />
+          <circle cx="23.5" cy="25" r="6" fill="currentColor" />
+          <circle cx="12.5" cy="25" r="6" fill="currentColor" />
+          <circle cx="9.5" cy="15" r="6" fill="currentColor" />
+          <circle cx="18" cy="17" r="4.5" fill="#ffffff" opacity="0.7" />
+        </g>
       </pattern>
     ),
   }
@@ -1005,28 +1062,6 @@ export default function CardStudioPage() {
           position: relative;
           overflow: hidden;
           padding: 16px 16px 26px;
-        }
-        .hero::before {
-          content: '';
-          position: absolute;
-          width: 190px;
-          height: 190px;
-          border-radius: 50%;
-          background: rgba(255,255,255,0.16);
-          top: -90px;
-          right: -60px;
-          pointer-events: none;
-        }
-        .hero::after {
-          content: '';
-          position: absolute;
-          width: 130px;
-          height: 130px;
-          border-radius: 50%;
-          background: rgba(255,255,255,0.13);
-          bottom: -70px;
-          left: -40px;
-          pointer-events: none;
         }
         .hero-inner {
           position: relative;
@@ -1532,14 +1567,14 @@ export default function CardStudioPage() {
                       <div>
                         <div className="flex justify-between text-xs text-gray-300 font-semibold mb-1">
                           <span>Kepekatan Corak (Opacity):</span>
-                          <span className="font-mono text-amber-400">{Math.round((heroBlock.patternOpacity ?? 0.2) * 100)}%</span>
+                          <span className="font-mono text-amber-400">{Math.round((heroBlock.patternOpacity ?? 0.25) * 100)}%</span>
                         </div>
                         <input
                           type="range"
                           min="0"
                           max="1"
                           step="0.05"
-                          value={heroBlock.patternOpacity ?? 0.2}
+                          value={heroBlock.patternOpacity ?? 0.25}
                           onChange={(e) => updateBlock('hero_header', { patternOpacity: parseFloat(e.target.value) })}
                           className="w-full accent-amber-500 cursor-pointer"
                         />
@@ -2108,7 +2143,7 @@ export default function CardStudioPage() {
                   {/* PATTERN WATERMARK */}
                   <HeroHeaderPattern
                     pattern={heroBlock.pattern || 'bubbles'}
-                    opacity={heroBlock.patternOpacity ?? 0.2}
+                    opacity={heroBlock.patternOpacity ?? 0.25}
                   />
 
                   <div className="hero-inner">

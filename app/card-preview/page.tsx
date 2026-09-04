@@ -148,28 +148,6 @@ export default function LiveCardPreviewPage() {
           overflow: hidden;
           padding: 16px 16px 26px;
         }
-        .hero::before {
-          content: '';
-          position: absolute;
-          width: 190px;
-          height: 190px;
-          border-radius: 50%;
-          background: rgba(255,255,255,0.16);
-          top: -90px;
-          right: -60px;
-          pointer-events: none;
-        }
-        .hero::after {
-          content: '';
-          position: absolute;
-          width: 130px;
-          height: 130px;
-          border-radius: 50%;
-          background: rgba(255,255,255,0.13);
-          bottom: -70px;
-          left: -40px;
-          pointer-events: none;
-        }
         .hero-inner {
           position: relative;
           z-index: 1;
@@ -587,7 +565,7 @@ export default function LiveCardPreviewPage() {
             {/* CORAK MOTIF WATERMARK */}
             <HeroHeaderPattern
               pattern={heroBlock.pattern || 'bubbles'}
-              opacity={heroBlock.patternOpacity ?? 0.2}
+              opacity={heroBlock.patternOpacity ?? 0.25}
             />
 
             <div className="hero-inner">
