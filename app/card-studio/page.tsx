@@ -220,6 +220,180 @@ export const PROGRESS_STYLE_OPTIONS: ProgressStyleOption[] = [
   },
 ]
 
+export interface ThemePreset {
+  name: string
+  category: string
+  pattern: string
+  fontId: string
+  cardStyle: 'kertas' | 'kaca' | 'batu' | 'besi' | 'kayu' | 'air'
+  progressStyle: 'gradient' | 'water_wave' | 'striped'
+  pageBg: string
+  pageDot: string
+  hero1: string
+  hero2: string
+  cardBg: string
+  cardBorder: string
+  progressFill1: string
+  progressFill2: string
+  desc: string
+}
+
+export const LIVE_PRESETS: ThemePreset[] = [
+  {
+    name: 'Warm Sunset (Asal LajuS)',
+    category: 'Universal / Asal',
+    pattern: 'bubbles',
+    fontId: 'fraunces',
+    cardStyle: 'kertas',
+    progressStyle: 'gradient',
+    pageBg: '#FFF7EA',
+    pageDot: 'rgba(43,27,18,0.055)',
+    hero1: '#FF7A45',
+    hero2: '#FFC24D',
+    cardBg: '#FFFDF8',
+    cardBorder: '#F0DEC0',
+    progressFill1: '#FF5A45',
+    progressFill2: '#FFB238',
+    desc: 'Warna hangat oren & krim klasik asal LajuS',
+  },
+  {
+    name: 'Royal Emerald (Cafe & Kopi)',
+    category: 'Kafe & Kopi',
+    pattern: 'air_cup',
+    fontId: 'playfair',
+    cardStyle: 'kaca',
+    progressStyle: 'water_wave',
+    pageBg: '#F0F9F5',
+    pageDot: 'rgba(15,92,76,0.06)',
+    hero1: '#0F5C4C',
+    hero2: '#1FA96B',
+    cardBg: 'rgba(255, 255, 255, 0.25)',
+    cardBorder: 'rgba(255, 255, 255, 0.65)',
+    progressFill1: '#1C7A67',
+    progressFill2: '#2EB88A',
+    desc: 'Hijau emerald eksklusif dengan kad kaca & ombak air',
+  },
+  {
+    name: 'Golden Luxury (Bakeri & Kek)',
+    category: 'Bakeri & Pastri',
+    pattern: 'kek',
+    fontId: 'cinzel',
+    cardStyle: 'kayu',
+    progressStyle: 'gradient',
+    pageBg: '#FFF9ED',
+    pageDot: 'rgba(140,83,17,0.06)',
+    hero1: '#A86208',
+    hero2: '#FFC24D',
+    cardBg: '#D49B5B',
+    cardBorder: '#6D3916',
+    progressFill1: '#E8901B',
+    progressFill2: '#FFD54F',
+    desc: 'Sentuhan kayu asli & keemasan premium bakeri',
+  },
+  {
+    name: 'Sweet Berry (Dessert & Manisan)',
+    category: 'Pastri & Manisan',
+    pattern: 'roti_manisan',
+    fontId: 'quicksand',
+    cardStyle: 'kertas',
+    progressStyle: 'striped',
+    pageBg: '#FFF0F5',
+    pageDot: 'rgba(184,46,90,0.06)',
+    hero1: '#C2185B',
+    hero2: '#F48FB1',
+    cardBg: '#FFFDF8',
+    cardBorder: '#F8BBD0',
+    progressFill1: '#D81B60',
+    progressFill2: '#FF80AB',
+    desc: 'Merah jambu ceria dengan corak pastri & jalur striped',
+  },
+  {
+    name: 'Ocean Blue (Carwash & Servis)',
+    category: 'Automotif & Carwash',
+    pattern: 'kereta',
+    fontId: 'bebas',
+    cardStyle: 'air',
+    progressStyle: 'water_wave',
+    pageBg: '#F0F8FF',
+    pageDot: 'rgba(21,101,192,0.06)',
+    hero1: '#1565C0',
+    hero2: '#42A5F5',
+    cardBg: 'rgba(224, 247, 250, 0.50)',
+    cardBorder: '#4DD0E1',
+    progressFill1: '#1E88E5',
+    progressFill2: '#64B5F6',
+    desc: 'Biru segar akuatik dengan material air & corak kereta',
+  },
+  {
+    name: 'Dark Steel (Barber & Salon)',
+    category: 'Barbershop & Grooming',
+    pattern: 'salon',
+    fontId: 'montserrat',
+    cardStyle: 'besi',
+    progressStyle: 'striped',
+    pageBg: '#1E293B',
+    pageDot: 'rgba(255,255,255,0.06)',
+    hero1: '#0F172A',
+    hero2: '#334155',
+    cardBg: '#E2E8F0',
+    cardBorder: '#64748B',
+    progressFill1: '#F59E0B',
+    progressFill2: '#EF4444',
+    desc: 'Plat besi keluli tegap maskulin & corak gunting salon',
+  },
+  {
+    name: 'Matcha Zen (Spa & Kesihatan)',
+    category: 'Spa & Kesihatan',
+    pattern: 'bunga',
+    fontId: 'dancing',
+    cardStyle: 'batu',
+    progressStyle: 'gradient',
+    pageBg: '#F7FAF4',
+    pageDot: 'rgba(74,107,67,0.06)',
+    hero1: '#4A6B43',
+    hero2: '#8FA885',
+    cardBg: '#ECEFF1',
+    cardBorder: '#90A4AE',
+    progressFill1: '#557A4E',
+    progressFill2: '#9DC08B',
+    desc: 'Papak batu marmar damai dengan corak flora mekar',
+  },
+  {
+    name: 'Citrus Fresh (Jus & Buah)',
+    category: 'Minuman & Buah',
+    pattern: 'pisang',
+    fontId: 'poppins',
+    cardStyle: 'kertas',
+    progressStyle: 'water_wave',
+    pageBg: '#FFFBEA',
+    pageDot: 'rgba(217,119,6,0.06)',
+    hero1: '#D97706',
+    hero2: '#FBBF24',
+    cardBg: '#FFFDF8',
+    cardBorder: '#FDE68A',
+    progressFill1: '#EA580C',
+    progressFill2: '#FACC15',
+    desc: 'Kuning jingga sitrus ceria bertenaga',
+  },
+  {
+    name: 'Street Boba (Air Ikat Tepi)',
+    category: 'Minuman Tradisional',
+    pattern: 'air_bungkus',
+    fontId: 'pacifico',
+    cardStyle: 'kaca',
+    progressStyle: 'water_wave',
+    pageBg: '#FEF3C7',
+    pageDot: 'rgba(180,83,9,0.06)',
+    hero1: '#92400E',
+    hero2: '#D97706',
+    cardBg: 'rgba(255, 255, 255, 0.28)',
+    cardBorder: 'rgba(255, 255, 255, 0.65)',
+    progressFill1: '#B45309',
+    progressFill2: '#F59E0B',
+    desc: 'Warna teh tarik & kopi kaw ikat tepi klasik',
+  },
+]
+
 export interface EditableBlockConfig {
   id: EditableBlockId
   title: string
@@ -669,7 +843,7 @@ function renderLiveSocialIcon(platform: string) {
 
 export default function CardStudioPage() {
   const [config, setConfig] = useState<LiveStudioConfig>(DEFAULT_LIVE_STUDIO_CONFIG)
-  const [activeTab, setActiveTab] = useState<'blocks' | 'settings' | 'simulate'>('blocks')
+  const [activeTab, setActiveTab] = useState<'blocks' | 'presets' | 'simulate'>('blocks')
   const [activeLang, setActiveLang] = useState<'my' | 'en'>('my')
   const [selectedBlockId, setSelectedBlockId] = useState<EditableBlockId>('hero_header')
   const [saveStatus, setSaveStatus] = useState<string>('')
@@ -697,7 +871,7 @@ export default function CardStudioPage() {
     setConfig(newConfig)
     try {
       localStorage.setItem('cop_card_studio_config', JSON.stringify(newConfig))
-      setSaveStatus('Tersimpan automatik!')
+      setSaveStatus('Tersimpan!')
       setTimeout(() => setSaveStatus(''), 2000)
     } catch (e) {
       console.error('Failed to save config:', e)
@@ -707,6 +881,51 @@ export default function CardStudioPage() {
   const updateBlock = (blockId: EditableBlockId, partial: Partial<EditableBlockConfig>) => {
     const updatedBlocks = config.blocks.map((b) => (b.id === blockId ? { ...b, ...partial } : b))
     saveConfig({ ...config, blocks: updatedBlocks })
+  }
+
+  const applyPreset = (preset: ThemePreset) => {
+    const updatedBlocks: EditableBlockConfig[] = config.blocks.map((b) => {
+      if (b.id === 'hero_header') {
+        return {
+          ...b,
+          bgColor: preset.hero1,
+          bgColor2: preset.hero2,
+          pattern: preset.pattern,
+        }
+      }
+      if (b.id === 'store_profile') {
+        return {
+          ...b,
+          fontId: preset.fontId,
+        }
+      }
+      if (b.id === 'stamp_card_box') {
+        return {
+          ...b,
+          cardStyle: preset.cardStyle,
+          bgColor: preset.cardBg,
+          borderColor: preset.cardBorder,
+        }
+      }
+      if (b.id === 'progress_bar') {
+        return {
+          ...b,
+          progressStyle: preset.progressStyle,
+          bgColor: preset.progressFill1,
+          bgColor2: preset.progressFill2,
+        }
+      }
+      return b
+    })
+
+    saveConfig({
+      ...config,
+      pageBgColor: preset.pageBg,
+      pageDotColor: preset.pageDot,
+      primaryColor: preset.hero1,
+      secondaryAccent: preset.hero2,
+      blocks: updatedBlocks,
+    })
   }
 
   const resetToDefault = () => {
@@ -726,6 +945,10 @@ export default function CardStudioPage() {
   const profileBlock = getBlock('store_profile')
   const cardBoxBlock = getBlock('stamp_card_box')
   const progressBlock = getBlock('progress_bar')
+
+  // Selected global font (applied across the whole card page)
+  const activeFont = STORE_FONT_OPTIONS.find((f) => f.id === (profileBlock.fontId || 'fraunces')) || STORE_FONT_OPTIONS[0]
+  const currentFontFamily = activeFont.fontFamily
 
   const totalStamps = config.simulatedStamps || 4
   const reqStamps = config.stampsRequired || 10
@@ -765,6 +988,10 @@ export default function CardStudioPage() {
           --r-md: 18px;
           --r-sm: 13px;
           --r-full: 999px;
+        }
+
+        .card-app, .card-app * {
+          font-family: var(--card-font, 'Plus Jakarta Sans'), sans-serif !important;
         }
 
         .card-app {
@@ -887,7 +1114,6 @@ export default function CardStudioPage() {
           justify-content: center;
           font-size: 29px;
           font-weight: 700;
-          font-family: 'Fraunces', serif;
           box-shadow: 0 10px 22px rgba(0,0,0,0.18);
           border: 3px solid rgba(255,255,255,0.55);
           margin-bottom: 10px;
@@ -899,7 +1125,6 @@ export default function CardStudioPage() {
           align-items: center;
           gap: 6px;
           justify-content: center;
-          font-family: 'Fraunces', serif;
           font-weight: 700;
           font-size: 20px;
           color: #fff;
@@ -1004,7 +1229,6 @@ export default function CardStudioPage() {
           text-transform: uppercase;
         }
         .stamp-card-head .count {
-          font-family: 'Fraunces', serif;
           font-weight: 700;
           font-size: 36px;
           color: var(--coral);
@@ -1165,6 +1389,10 @@ export default function CardStudioPage() {
         .footer-links .dot-sep {
           color: var(--border-warm);
         }
+
+        .modal-body, .modal-body * {
+          font-family: var(--card-font, 'Plus Jakarta Sans'), sans-serif !important;
+        }
       ` }} />
 
       {/* TOP HEADER / NAVBAR */}
@@ -1209,7 +1437,7 @@ export default function CardStudioPage() {
 
       {/* WORKSPACE AREA */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-        {/* LEFT PANEL: 4-BLOCK CUSTOMIZER EDITOR */}
+        {/* LEFT PANEL: 3 TABS (4 BLOK, TEMA & WARNA, SIMULATOR) */}
         <aside className="w-full lg:w-[460px] bg-[#121826] border-r border-gray-800 flex flex-col shrink-0 overflow-y-auto">
           {/* TABS */}
           <div className="flex border-b border-gray-800 p-2 gap-1 bg-[#0E131F]/50 sticky top-0 z-20">
@@ -1224,6 +1452,15 @@ export default function CardStudioPage() {
             </button>
             <button
               type="button"
+              onClick={() => setActiveTab('presets')}
+              className={`flex-1 py-2 text-xs font-bold rounded-xl transition cursor-pointer ${
+                activeTab === 'presets' ? 'bg-amber-500 text-black shadow-md' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              🌟 Tema & Warna
+            </button>
+            <button
+              type="button"
               onClick={() => setActiveTab('simulate')}
               className={`flex-1 py-2 text-xs font-bold rounded-xl transition cursor-pointer ${
                 activeTab === 'simulate' ? 'bg-amber-500 text-black shadow-md' : 'text-gray-400 hover:text-white'
@@ -1234,11 +1471,11 @@ export default function CardStudioPage() {
           </div>
 
           <div className="p-4 sm:p-5 space-y-6">
-            {/* 4 BLOCKS ACCORDION */}
+            {/* TAB 1: 4 BLOCKS ACCORDION */}
             {activeTab === 'blocks' && (
               <div className="space-y-4">
                 <div className="text-xs text-gray-400 bg-[#1A2234] p-3 rounded-2xl border border-gray-800">
-                  🛠️ <b>4 Blok Reka Bentuk Boleh Ubah:</b> Hero Header, Profile Kedai, Kotak Kad Cop & Bar Kemajuan. Komponen lain kekal tepat seperti kad live.
+                  🛠️ <b>4 Blok Reka Bentuk Boleh Ubah:</b> Hero Header, Profile Kedai, Kotak Kad Cop & Bar Kemajuan. Fon yang dipilih akan diaplikasikan ke seluruh kad.
                 </div>
 
                 {/* 1. HERO HEADER */}
@@ -1375,8 +1612,8 @@ export default function CardStudioPage() {
                     <div className="flex items-center gap-2.5">
                       <span className="text-base">🏪</span>
                       <div>
-                        <h4 className="font-bold text-sm text-gray-100">Profile Kedai</h4>
-                        <p className="text-[11px] text-gray-400">Gambar profil ON/OFF & pilihan fon nama kedai</p>
+                        <h4 className="font-bold text-sm text-gray-100">Profile Kedai & Fon Seluruh Kad</h4>
+                        <p className="text-[11px] text-gray-400">Gambar profil ON/OFF & pilihan fon seluruh halaman</p>
                       </div>
                     </div>
                     <span className="text-xs text-amber-400 font-bold">
@@ -1405,12 +1642,20 @@ export default function CardStudioPage() {
                         </button>
                       </div>
 
-                      {/* PILIHAN FON NAMA KEDAI */}
+                      {/* PILIHAN FON SELURUH KAD */}
                       <div>
-                        <label className="block text-xs font-bold text-gray-300 mb-2">
-                          Pilihan Fon Nama Kedai ({STORE_FONT_OPTIONS.length} Pilihan):
-                        </label>
-                        <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto pr-1">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-xs font-bold text-gray-300">
+                            Pilihan Fon Seluruh Kad ({STORE_FONT_OPTIONS.length} Pilihan):
+                          </label>
+                          <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-bold">
+                            Apply Semua Teks
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-400 mb-2">
+                          Fon yang dipilih akan digunakan untuk Nama Kedai, tajuk, butang, status & keseluruhan kad.
+                        </p>
+                        <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto pr-1">
                           {STORE_FONT_OPTIONS.map((f) => {
                             const isSelected = (profileBlock.fontId || 'fraunces') === f.id
                             return (
@@ -1430,14 +1675,14 @@ export default function CardStudioPage() {
                                     {config.storeName || f.sampleText}
                                   </div>
                                 </div>
-                                {isSelected && <span className="text-amber-400 font-bold text-sm">✓</span>}
+                                {isSelected && <span className="text-amber-400 font-bold text-sm">✓ Dipilih</span>}
                               </button>
                             )
                           })}
                         </div>
                       </div>
 
-                      {/* NAMA KEDAI TEKS & WARNA */}
+                      {/* NAMA KEDAI TEKS */}
                       <div>
                         <label className="block text-[11px] font-bold text-gray-400 mb-1">Nama Kedai (Teks):</label>
                         <input
@@ -1647,7 +1892,130 @@ export default function CardStudioPage() {
               </div>
             )}
 
-            {/* TAB: SIMULATE STAMPS */}
+            {/* TAB 2: TEMA DISYORKAN & TEMA WARNA */}
+            {activeTab === 'presets' && (
+              <div className="space-y-5">
+                {/* 1. TEMA DISYORKAN (1-KLIK) */}
+                <div className="space-y-3">
+                  <div className="bg-[#1A2234] p-3.5 rounded-2xl border border-gray-800 text-xs text-gray-300">
+                    🌟 <b>Pilihan Tema Disyorkan:</b> Klik mana-mana tema sedia ada di bawah untuk menukar padanan warna banner, fon seluruh kad, corak motif, dan gaya material kotak secara serentak.
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {LIVE_PRESETS.map((p) => (
+                      <button
+                        key={p.name}
+                        type="button"
+                        onClick={() => applyPreset(p)}
+                        className="p-3 bg-[#182032] hover:bg-[#1f2940] border border-gray-800 hover:border-amber-500/50 rounded-2xl text-left transition flex items-center justify-between cursor-pointer group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold border border-white/20 shadow-inner shrink-0"
+                            style={{
+                              background: `linear-gradient(135deg, ${p.hero1} 0%, ${p.hero2} 100%)`,
+                            }}
+                          >
+                            {HERO_PATTERN_OPTIONS.find((opt) => opt.id === p.pattern)?.icon || '🎨'}
+                          </div>
+                          <div>
+                            <div className="font-bold text-xs text-gray-100 group-hover:text-amber-400 transition">
+                              {p.name}
+                            </div>
+                            <div className="text-[10px] text-gray-400 line-clamp-1 mt-0.5">
+                              {p.desc}
+                            </div>
+                            <div className="text-[9.5px] text-gray-500 mt-0.5">
+                              Kad: <span className="text-gray-300 font-semibold">{CARD_STYLE_OPTIONS.find((s) => s.id === p.cardStyle)?.name || 'Kertas'}</span> • Fon: <span className="text-gray-300 font-semibold">{STORE_FONT_OPTIONS.find((f) => f.id === p.fontId)?.name || 'Fraunces'}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* SWATCHES */}
+                        <div className="flex flex-col items-end gap-1.5 shrink-0 pl-2">
+                          <div className="flex gap-1">
+                            <div className="w-3.5 h-3.5 rounded-full border border-gray-700" style={{ backgroundColor: p.hero1 }} />
+                            <div className="w-3.5 h-3.5 rounded-full border border-gray-700" style={{ backgroundColor: p.hero2 }} />
+                            <div className="w-3.5 h-3.5 rounded-full border border-gray-700" style={{ backgroundColor: p.progressFill1 }} />
+                          </div>
+                          <span className="text-[9px] bg-gray-800 text-gray-400 group-hover:bg-amber-500 group-hover:text-black font-bold px-2 py-0.5 rounded-full transition">
+                            Guna Tema →
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 2. PENYESUAIAN TEMA WARNA HALAMAN */}
+                <div className="bg-[#182032] border border-gray-800 rounded-2xl p-4 space-y-4">
+                  <div>
+                    <h4 className="font-bold text-sm text-gray-100">🎨 Penyesuaian Tema Warna Halaman</h4>
+                    <p className="text-[11px] text-gray-400">Sesuaikan warna latar belakang dan bintik halaman</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-gray-400 mb-1">Warna Latar Belakang:</label>
+                      <div className="flex items-center gap-2 bg-[#121826] p-1.5 rounded-xl border border-gray-800">
+                        <input
+                          type="color"
+                          value={config.pageBgColor || '#FFF7EA'}
+                          onChange={(e) => saveConfig({ ...config, pageBgColor: e.target.value })}
+                          className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
+                        />
+                        <input
+                          type="text"
+                          value={config.pageBgColor || '#FFF7EA'}
+                          onChange={(e) => saveConfig({ ...config, pageBgColor: e.target.value })}
+                          className="w-full bg-transparent text-white font-mono text-[11px] outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-gray-400 mb-1">Warna Bintik Latar:</label>
+                      <div className="flex items-center gap-2 bg-[#121826] p-1.5 rounded-xl border border-gray-800">
+                        <input
+                          type="text"
+                          value={config.pageDotColor || 'rgba(43,27,18,0.055)'}
+                          onChange={(e) => saveConfig({ ...config, pageDotColor: e.target.value })}
+                          className="w-full bg-transparent text-white font-mono text-[11px] outline-none px-1"
+                          placeholder="rgba(...)"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* PALET WARNA PANTAS */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-300 mb-2">Palet Warna Pantas:</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { label: 'Warm Cream', bg: '#FFF7EA', dot: 'rgba(43,27,18,0.055)' },
+                        { label: 'Clean White', bg: '#F8FAFC', dot: 'rgba(15,23,42,0.04)' },
+                        { label: 'Dark Onyx', bg: '#0F172A', dot: 'rgba(255,255,255,0.05)' },
+                        { label: 'Soft Mint', bg: '#F0FDF4', dot: 'rgba(22,101,52,0.05)' },
+                        { label: 'Sweet Blush', bg: '#FFF1F2', dot: 'rgba(159,18,57,0.05)' },
+                        { label: 'Sky Blue', bg: '#F0F9FF', dot: 'rgba(3,105,161,0.05)' },
+                      ].map((pal) => (
+                        <button
+                          key={pal.label}
+                          type="button"
+                          onClick={() => saveConfig({ ...config, pageBgColor: pal.bg, pageDotColor: pal.dot })}
+                          className="p-2 rounded-xl border border-gray-800 hover:border-amber-500 bg-[#121826] flex items-center gap-2 transition cursor-pointer text-left"
+                        >
+                          <div className="w-4 h-4 rounded-full border border-gray-600 shrink-0" style={{ backgroundColor: pal.bg }} />
+                          <span className="text-[10.5px] font-bold text-gray-300 truncate">{pal.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: SIMULATE STAMPS */}
             {activeTab === 'simulate' && (
               <div className="space-y-4">
                 <div className="bg-[#1A2234] p-3.5 rounded-2xl border border-gray-800 text-xs text-gray-300">
@@ -1720,8 +2088,13 @@ export default function CardStudioPage() {
             {/* ISLAND / NOTCH */}
             <div className="absolute top-2 left-1/2 -translate-x-1/2 w-28 h-4 bg-[#252A36] rounded-full z-40" />
 
-            {/* LIVE CARD DOM CONTAINER */}
-            <div className="card-app pt-5">
+            {/* LIVE CARD DOM CONTAINER (DYNAMIC FULL-PAGE TYPOGRAPHY) */}
+            <div
+              className="card-app pt-5"
+              style={{
+                '--card-font': currentFontFamily,
+              } as React.CSSProperties}
+            >
               {/* 1. HERO HEADER */}
               {heroBlock.visible && (
                 <div
@@ -1836,9 +2209,6 @@ export default function CardStudioPage() {
                           <span
                             style={{
                               color: profileBlock.textColor || '#FFFFFF',
-                              fontFamily:
-                                STORE_FONT_OPTIONS.find((f) => f.id === (profileBlock.fontId || 'fraunces'))?.fontFamily ||
-                                '"Fraunces", serif',
                             }}
                           >
                             {config.storeName}
@@ -2063,7 +2433,10 @@ export default function CardStudioPage() {
           onClick={() => setActiveModal('none')}
         >
           <div
-            className="bg-[#FFFDF8] text-[#2B1B12] rounded-[26px] p-6 max-w-sm w-full shadow-2xl relative border border-[#F0DEC0] animate-scale-up"
+            className="modal-body bg-[#FFFDF8] text-[#2B1B12] rounded-[26px] p-6 max-w-sm w-full shadow-2xl relative border border-[#F0DEC0] animate-scale-up"
+            style={{
+              '--card-font': currentFontFamily,
+            } as React.CSSProperties}
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -2077,7 +2450,7 @@ export default function CardStudioPage() {
             {/* MODAL 1: HOW TO REDEEM */}
             {activeModal === 'how_to_redeem' && (
               <div>
-                <h3 className="font-serif font-bold text-lg text-[#1B0F09] mb-1">
+                <h3 className="font-bold text-lg text-[#1B0F09] mb-1">
                   💡 Cara Penebusan Cop
                 </h3>
                 <p className="text-xs text-[#96806B] mb-4">
@@ -2118,7 +2491,7 @@ export default function CardStudioPage() {
             {/* MODAL 2: REWARDS CATALOG */}
             {activeModal === 'rewards' && (
               <div>
-                <h3 className="font-serif font-bold text-lg text-[#1B0F09] mb-1">
+                <h3 className="font-bold text-lg text-[#1B0F09] mb-1">
                   🎁 Senarai Ganjaran
                 </h3>
                 <p className="text-xs text-[#96806B] mb-4">
@@ -2153,7 +2526,7 @@ export default function CardStudioPage() {
             {activeModal === 'google_review' && (
               <div className="text-center">
                 <img src="/Google-Review.svg" alt="Google" className="w-8 h-8 mx-auto mb-2" />
-                <h3 className="font-serif font-bold text-lg text-[#1B0F09] mb-1">
+                <h3 className="font-bold text-lg text-[#1B0F09] mb-1">
                   Beri Penilaian Anda
                 </h3>
                 <p className="text-xs text-[#96806B] mb-4">
@@ -2191,7 +2564,7 @@ export default function CardStudioPage() {
             {/* MODAL 4: QR CODE */}
             {activeModal === 'qr' && (
               <div className="text-center">
-                <h3 className="font-serif font-bold text-lg text-[#1B0F09] mb-1">
+                <h3 className="font-bold text-lg text-[#1B0F09] mb-1">
                   📱 Kod QR Pelanggan
                 </h3>
                 <p className="text-xs text-[#96806B] mb-3">
@@ -2227,7 +2600,7 @@ export default function CardStudioPage() {
             {/* MODAL 5: LOCATIONS */}
             {activeModal === 'locations' && (
               <div>
-                <h3 className="font-serif font-bold text-lg text-[#1B0F09] mb-1">
+                <h3 className="font-bold text-lg text-[#1B0F09] mb-1">
                   📍 Lokasi Cawangan
                 </h3>
                 <p className="text-xs text-[#96806B] mb-4">
@@ -2267,7 +2640,7 @@ export default function CardStudioPage() {
                   )}
                 </div>
 
-                <h3 className="font-serif font-bold text-lg text-[#1B0F09] mb-1">
+                <h3 className="font-bold text-lg text-[#1B0F09] mb-1">
                   Cop #{selectedStampSlot}
                 </h3>
                 <p className="text-xs text-[#96806B] mb-4">

@@ -81,6 +81,10 @@ export default function LiveCardPreviewPage() {
   const cardBoxBlock = getBlock('stamp_card_box')
   const progressBlock = getBlock('progress_bar')
 
+  // Selected global font
+  const activeFont = STORE_FONT_OPTIONS.find((f) => f.id === (profileBlock.fontId || 'fraunces')) || STORE_FONT_OPTIONS[0]
+  const currentFontFamily = activeFont.fontFamily
+
   const totalStamps = config.simulatedStamps || 4
   const reqStamps = config.stampsRequired || 10
   const isFull = totalStamps >= reqStamps
@@ -126,6 +130,10 @@ export default function LiveCardPreviewPage() {
           --r-md: 18px;
           --r-sm: 13px;
           --r-full: 999px;
+        }
+
+        .card-app, .card-app * {
+          font-family: var(--card-font, 'Plus Jakarta Sans'), sans-serif !important;
         }
 
         .card-app {
@@ -248,7 +256,6 @@ export default function LiveCardPreviewPage() {
           justify-content: center;
           font-size: 29px;
           font-weight: 700;
-          font-family: 'Fraunces', serif;
           box-shadow: 0 10px 22px rgba(0,0,0,0.18);
           border: 3px solid rgba(255,255,255,0.55);
           margin-bottom: 10px;
@@ -260,7 +267,6 @@ export default function LiveCardPreviewPage() {
           align-items: center;
           gap: 6px;
           justify-content: center;
-          font-family: 'Fraunces', serif;
           font-weight: 700;
           font-size: 20px;
           color: #fff;
@@ -365,7 +371,6 @@ export default function LiveCardPreviewPage() {
           text-transform: uppercase;
         }
         .stamp-card-head .count {
-          font-family: 'Fraunces', serif;
           font-weight: 700;
           font-size: 36px;
           color: var(--coral);
@@ -526,6 +531,10 @@ export default function LiveCardPreviewPage() {
         .footer-links .dot-sep {
           color: var(--border-warm);
         }
+
+        .modal-body, .modal-body * {
+          font-family: var(--card-font, 'Plus Jakarta Sans'), sans-serif !important;
+        }
       ` }} />
 
       {/* FLOATING TOP BAR FOR PREVIEW NAVIGATION */}
@@ -558,8 +567,13 @@ export default function LiveCardPreviewPage() {
         </div>
       </div>
 
-      {/* CARD MAIN APP CONTAINER (IDENTICAL TO /card) */}
-      <div className="card-app">
+      {/* CARD MAIN APP CONTAINER (IDENTICAL TO /card WITH FULL-PAGE TYPOGRAPHY) */}
+      <div
+        className="card-app"
+        style={{
+          '--card-font': currentFontFamily,
+        } as React.CSSProperties}
+      >
         {/* 1. HERO HEADER */}
         {heroBlock.visible && (
           <div
@@ -674,9 +688,6 @@ export default function LiveCardPreviewPage() {
                     <span
                       style={{
                         color: profileBlock.textColor || '#FFFFFF',
-                        fontFamily:
-                          STORE_FONT_OPTIONS.find((f) => f.id === (profileBlock.fontId || 'fraunces'))?.fontFamily ||
-                          '"Fraunces", serif',
                       }}
                     >
                       {config.storeName}
@@ -898,7 +909,10 @@ export default function LiveCardPreviewPage() {
           onClick={() => setActiveModal('none')}
         >
           <div
-            className="bg-[#FFFDF8] text-[#2B1B12] rounded-[26px] p-6 max-w-sm w-full shadow-2xl relative border border-[#F0DEC0] animate-scale-up"
+            className="modal-body bg-[#FFFDF8] text-[#2B1B12] rounded-[26px] p-6 max-w-sm w-full shadow-2xl relative border border-[#F0DEC0] animate-scale-up"
+            style={{
+              '--card-font': currentFontFamily,
+            } as React.CSSProperties}
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -912,7 +926,7 @@ export default function LiveCardPreviewPage() {
             {/* MODAL 1: HOW TO REDEEM */}
             {activeModal === 'how_to_redeem' && (
               <div>
-                <h3 className="font-serif font-bold text-lg text-[#1B0F09] mb-1">
+                <h3 className="font-bold text-lg text-[#1B0F09] mb-1">
                   💡 Cara Penebusan Cop
                 </h3>
                 <p className="text-xs text-[#96806B] mb-4">
@@ -953,7 +967,7 @@ export default function LiveCardPreviewPage() {
             {/* MODAL 2: REWARDS CATALOG */}
             {activeModal === 'rewards' && (
               <div>
-                <h3 className="font-serif font-bold text-lg text-[#1B0F09] mb-1">
+                <h3 className="font-bold text-lg text-[#1B0F09] mb-1">
                   🎁 Senarai Ganjaran
                 </h3>
                 <p className="text-xs text-[#96806B] mb-4">
@@ -988,7 +1002,7 @@ export default function LiveCardPreviewPage() {
             {activeModal === 'google_review' && (
               <div className="text-center">
                 <img src="/Google-Review.svg" alt="Google" className="w-8 h-8 mx-auto mb-2" />
-                <h3 className="font-serif font-bold text-lg text-[#1B0F09] mb-1">
+                <h3 className="font-bold text-lg text-[#1B0F09] mb-1">
                   Beri Penilaian Anda
                 </h3>
                 <p className="text-xs text-[#96806B] mb-4">
@@ -1026,7 +1040,7 @@ export default function LiveCardPreviewPage() {
             {/* MODAL 4: QR CODE */}
             {activeModal === 'qr' && (
               <div className="text-center">
-                <h3 className="font-serif font-bold text-lg text-[#1B0F09] mb-1">
+                <h3 className="font-bold text-lg text-[#1B0F09] mb-1">
                   📱 Kod QR Pelanggan
                 </h3>
                 <p className="text-xs text-[#96806B] mb-3">
@@ -1062,7 +1076,7 @@ export default function LiveCardPreviewPage() {
             {/* MODAL 5: LOCATIONS */}
             {activeModal === 'locations' && (
               <div>
-                <h3 className="font-serif font-bold text-lg text-[#1B0F09] mb-1">
+                <h3 className="font-bold text-lg text-[#1B0F09] mb-1">
                   📍 Lokasi Cawangan
                 </h3>
                 <p className="text-xs text-[#96806B] mb-4">
@@ -1102,7 +1116,7 @@ export default function LiveCardPreviewPage() {
                   )}
                 </div>
 
-                <h3 className="font-serif font-bold text-lg text-[#1B0F09] mb-1">
+                <h3 className="font-bold text-lg text-[#1B0F09] mb-1">
                   Cop #{selectedStampSlot}
                 </h3>
                 <p className="text-xs text-[#96806B] mb-4">
