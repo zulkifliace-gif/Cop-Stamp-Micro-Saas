@@ -23,10 +23,12 @@ interface ActivityItem {
   maskedToken: string
   stampCount: number
   status: 'pending' | 'claimed' | 'expired'
-  deliveryMethod: 'qr' | 'email'
+  deliveryMethod?: 'qr' | 'email'
   recipientEmail?: string | null
+  rewardName?: string | null
   createdAt: string
-  expiresAt: string
+  expiresAt?: string
+  claimedAt?: string | null
   formattedDate?: string
   formattedTime?: string
   fullTimestamp?: string
@@ -480,6 +482,40 @@ export default function CashierDashboard() {
     }
   }
 
+  // 3.0 Realtime & Auto-Refresh for Store Activity & Stats
+  useEffect(() => {
+    if (!storeId) return
+
+    // A. Realtime subscription to stamp_tokens and stamp_redemptions
+    const activityChannel = supabase
+      .channel(`store-activity-stream-${storeId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'stamp_tokens', filter: `store_id=eq.${storeId}` },
+        () => {
+          loadActivity(activityPage, storeId)
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'stamp_redemptions', filter: `store_id=eq.${storeId}` },
+        () => {
+          loadActivity(activityPage, storeId)
+        }
+      )
+      .subscribe()
+
+    // B. Periodic refresh every 15s to update expired states and stats live
+    const interval = setInterval(() => {
+      loadActivity(activityPage, storeId)
+    }, 15000)
+
+    return () => {
+      supabase.removeChannel(activityChannel)
+      clearInterval(interval)
+    }
+  }, [storeId, activityPage])
+
   // 3.1 Export Activity Logs to CSV
   async function handleExportActivity() {
     setIsExporting(true)
@@ -590,6 +626,17 @@ export default function CashierDashboard() {
       if (diff <= 0) {
         setTimeLeftStr(t.generator.expiredMsg)
         if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current)
+        if (generatedToken && !isTokenClaimed) {
+          fetch('/api/tokens/expire', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: generatedToken, storeId }),
+          })
+            .then(() => {
+              loadActivity(1)
+            })
+            .catch(() => {})
+        }
         return
       }
       const m = String(Math.floor(diff / 60)).padStart(2, '0')
@@ -1026,6 +1073,24 @@ export default function CashierDashboard() {
     setExpiresAtDate(null)
     setIsTokenClaimed(false)
     setShowLargeQr(false)
+  }
+
+  async function handleCancelToken() {
+    if (!generatedToken) return
+    const tokenToCancel = generatedToken
+    setShowLargeQr(false)
+    handleResetToken()
+    try {
+      await fetch('/api/tokens/expire', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: tokenToCancel, storeId }),
+      })
+      showBtToast(lang === 'en' ? 'Token cancelled and marked expired.' : 'Token telah dibatalkan / ditanda luput.', 'info')
+      loadActivity(1)
+    } catch (_e) {
+      // ignore
+    }
   }
 
   // 10. Search Customer by Email for Reward Claim
@@ -2909,12 +2974,23 @@ export default function CashierDashboard() {
                       </label>
                     </div>
 
-                    <button
-                      onClick={handleResetToken}
-                      className="bg-transparent border border-[#F0DEC0] rounded-[10px] py-2 px-4 font-jakarta text-[12.5px] font-semibold text-[#1C7A67] cursor-pointer hover:bg-[#FCE7D2] transition"
-                    >
-                      {t.generator.newTokenBtn}
-                    </button>
+                    <div className="w-full flex gap-2 mt-1">
+                      {!isTokenClaimed && (
+                        <button
+                          type="button"
+                          onClick={handleCancelToken}
+                          className="flex-1 bg-red-50 border border-red-200 rounded-[10px] py-2 px-2 font-jakarta text-[11.5px] font-bold text-red-600 cursor-pointer hover:bg-red-100 transition"
+                        >
+                          🛑 {lang === 'en' ? 'Cancel / Expire' : 'Batal / Tamatkan'}
+                        </button>
+                      )}
+                      <button
+                        onClick={handleResetToken}
+                        className="flex-1 bg-transparent border border-[#F0DEC0] rounded-[10px] py-2 px-2 font-jakarta text-[11.5px] font-semibold text-[#1C7A67] cursor-pointer hover:bg-[#FCE7D2] transition"
+                      >
+                        {t.generator.newTokenBtn}
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -4219,55 +4295,117 @@ export default function CashierDashboard() {
                       {t.activity.empty}
                     </div>
                   ) : (
-                    activities.map((act) => (
-                      <div
-                        key={act.id}
-                        className="flex items-center justify-between gap-2.5 bg-[#FFF7EA] border border-[#F0DEC0] rounded-[12px] p-3 hover:bg-[#FCE7D2]/40 transition shadow-xs"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-[32px] h-[32px] rounded-full bg-[#FF7A45] flex items-center justify-center shrink-0 shadow-xs">
-                            <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="none">
-                              <path
-                                d="M12 2C7 2 3 6.5 3 12s4 10 9 10 9-4.5 9-10S17 2 12 2Z"
-                                fill="#FFFDF8"
-                              />
-                              <path
-                                d="M12 3.3C13.6 6.2 12 9 10.3 11.5S8.2 17 12 20.6"
-                                stroke="#FF7A45"
-                                strokeWidth="1.6"
-                                strokeLinecap="round"
-                              />
-                            </svg>
-                          </div>
-                          <div>
-                            <div className="font-space text-[12px] text-[#2B1B12] font-semibold">
-                              +{act.stampCount} {t.activity.stampsUnit} • {act.deliveryMethod === 'email' ? (lang === 'en' ? 'Email' : 'Emel') : 'QR'} ({act.maskedToken})
-                            </div>
-                            <div className="text-[10.5px] text-[#96806B] font-space">
-                              {act.fullTimestamp || act.createdAt}
-                            </div>
-                          </div>
-                        </div>
+                    activities.map((act) => {
+                      const isRedemption = act.type === 'reward_redeemed'
+                      const isExpired =
+                        act.status === 'expired' ||
+                        (!isRedemption &&
+                          act.status === 'pending' &&
+                          act.expiresAt &&
+                          new Date(act.expiresAt).getTime() < Date.now())
+                      const effectiveStatus = isExpired ? 'expired' : act.status
 
-                        <div className="flex items-center">
-                          <span
-                            className={`text-[10px] font-bold py-1 px-2 rounded-[7px] tracking-[0.03em] whitespace-nowrap ${
-                              act.status === 'claimed'
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : act.status === 'expired'
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-amber-100 text-amber-800'
-                            }`}
-                          >
-                            {act.status === 'claimed'
-                              ? t.activity.claimedBadge
-                              : act.status === 'expired'
-                              ? t.activity.expiredBadge
-                              : t.activity.pendingBadge}
-                          </span>
+                      return (
+                        <div
+                          key={act.id}
+                          className={`flex items-center justify-between gap-2.5 border rounded-[12px] p-3 transition shadow-xs ${
+                            isRedemption
+                              ? 'bg-[#FAF5FF] border-[#E9D5FF] hover:bg-[#F3E8FF]/60'
+                              : 'bg-[#FFF7EA] border-[#F0DEC0] hover:bg-[#FCE7D2]/40'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            {isRedemption ? (
+                              <div className="w-[32px] h-[32px] rounded-full bg-[#8B5CF6] text-white flex items-center justify-center shrink-0 shadow-xs text-sm font-bold">
+                                🎁
+                              </div>
+                            ) : (
+                              <div
+                                className={`w-[32px] h-[32px] rounded-full flex items-center justify-center shrink-0 shadow-xs ${
+                                  effectiveStatus === 'expired'
+                                    ? 'bg-red-400'
+                                    : effectiveStatus === 'claimed'
+                                    ? 'bg-[#1C7A67]'
+                                    : 'bg-[#FF7A45]'
+                                }`}
+                              >
+                                <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="none">
+                                  <path
+                                    d="M12 2C7 2 3 6.5 3 12s4 10 9 10 9-4.5 9-10S17 2 12 2Z"
+                                    fill="#FFFDF8"
+                                  />
+                                  <path
+                                    d="M12 3.3C13.6 6.2 12 9 10.3 11.5S8.2 17 12 20.6"
+                                    stroke={
+                                      effectiveStatus === 'expired'
+                                        ? '#F87171'
+                                        : effectiveStatus === 'claimed'
+                                        ? '#1C7A67'
+                                        : '#FF7A45'
+                                    }
+                                    strokeWidth="1.6"
+                                    strokeLinecap="round"
+                                  />
+                                </svg>
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              {isRedemption ? (
+                                <>
+                                  <div className="font-space text-[12px] text-[#4C1D95] font-bold truncate">
+                                    🎁 {act.rewardName || 'Ganjaran Ditebus'} (-{act.stampCount} {t.activity.stampsUnit})
+                                  </div>
+                                  <div className="text-[10.5px] text-[#6B21A8]/70 font-space truncate">
+                                    {act.recipientEmail ? `${act.recipientEmail} • ` : ''}
+                                    {act.fullTimestamp || act.createdAt}
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="font-space text-[12px] text-[#2B1B12] font-semibold truncate">
+                                    +{act.stampCount} {t.activity.stampsUnit} •{' '}
+                                    {act.deliveryMethod === 'email'
+                                      ? lang === 'en'
+                                        ? 'Email'
+                                        : 'Emel'
+                                      : 'QR'}{' '}
+                                    ({act.maskedToken})
+                                  </div>
+                                  <div className="text-[10.5px] text-[#96806B] font-space truncate">
+                                    {act.recipientEmail ? `${act.recipientEmail} • ` : ''}
+                                    {act.fullTimestamp || act.createdAt}
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center shrink-0">
+                            {isRedemption ? (
+                              <span className="text-[10px] font-bold py-1 px-2 rounded-[7px] tracking-[0.03em] whitespace-nowrap bg-purple-100 text-purple-800 border border-purple-200">
+                                🎁 {lang === 'en' ? 'REDEEMED' : 'DITEBUS'}
+                              </span>
+                            ) : (
+                              <span
+                                className={`text-[10px] font-bold py-1 px-2 rounded-[7px] tracking-[0.03em] whitespace-nowrap ${
+                                  effectiveStatus === 'claimed'
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : effectiveStatus === 'expired'
+                                    ? 'bg-red-100 text-red-700'
+                                    : 'bg-amber-100 text-amber-800'
+                                }`}
+                              >
+                                {effectiveStatus === 'claimed'
+                                  ? t.activity.claimedBadge
+                                  : effectiveStatus === 'expired'
+                                  ? t.activity.expiredBadge
+                                  : t.activity.pendingBadge}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      )
+                    })
                   )}
                 </div>
 
@@ -4957,6 +5095,17 @@ export default function CashierDashboard() {
               <span className="text-[#2B1B12] font-bold">{generatedToken}</span>
               <span className="text-[#FF7A45] font-bold">{timeLeftStr}</span>
             </div>
+
+            {/* Invalidate / Cancel Action */}
+            {!isTokenClaimed && (
+              <button
+                type="button"
+                onClick={handleCancelToken}
+                className="mt-3 w-full max-w-[280px] py-2 px-3 rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs font-bold hover:bg-red-100 transition active:scale-95 cursor-pointer"
+              >
+                🛑 {lang === 'en' ? 'Cancel / Invalidate Token' : 'Batal / Tamatkan Token Sekarang'}
+              </button>
+            )}
           </div>
         </div>
       )}

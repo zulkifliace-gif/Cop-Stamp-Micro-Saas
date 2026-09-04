@@ -33,6 +33,10 @@ export async function GET(req: NextRequest) {
     const now = new Date()
     const isExpired = row.status === 'pending' && new Date(row.expires_at) < now
 
+    if (isExpired) {
+      await admin.from('stamp_tokens').update({ status: 'expired' }).eq('id', row.id)
+    }
+
     return NextResponse.json({
       token: row.token,
       status: isExpired ? 'expired' : row.status,

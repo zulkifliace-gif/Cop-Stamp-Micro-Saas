@@ -136,14 +136,22 @@ export async function GET(req: NextRequest) {
     const currentCardStamps = totalStamps % stampsRequired
     const isEligibleForReward = totalStamps >= stampsRequired
 
-    // 5. Fetch recent redemptions (actual schema: id, stamps_used, redeemed_at, redeemed_by_staff)
-    const { data: redemptions } = await admin
+    // 5. Fetch recent redemptions (schema: id, stamps_used, created_at, reward_details)
+    const { data: rawRedemptions } = await admin
       .from('stamp_redemptions')
-      .select('id, stamps_used, redeemed_at')
+      .select('id, stamps_used, created_at, reward_details')
       .eq('customer_id', customerUserId)
       .eq('store_id', storeId)
-      .order('redeemed_at', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(5)
+
+    const recentRedemptions = (rawRedemptions || []).map((r) => ({
+      id: r.id,
+      stamps_used: r.stamps_used,
+      redeemed_at: r.created_at,
+      created_at: r.created_at,
+      reward_details: r.reward_details,
+    }))
 
     return NextResponse.json({
       found: true,
@@ -158,7 +166,7 @@ export async function GET(req: NextRequest) {
         fullCardsCount,
         currentCardStamps,
         isEligibleForReward,
-        recentRedemptions: redemptions || [],
+        recentRedemptions,
       },
     })
   } catch (err: unknown) {

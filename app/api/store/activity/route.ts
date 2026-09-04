@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest) {
   try {
     const supabase = await createClient()
@@ -55,7 +57,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 2. Proactively update past pending tokens to 'expired'
+    // 2. Proactively update past pending tokens to 'expired' in database
     const nowIso = new Date().toISOString()
     try {
       await admin
@@ -65,11 +67,11 @@ export async function GET(req: NextRequest) {
         .eq('status', 'pending')
         .lt('expires_at', nowIso)
     } catch (_e) {
-      // ignore update error if column is restricted
+      // ignore update error if any
     }
 
     // 3. Compute Store Overview Stats
-    // A. Total distinct customers — exact fast count from customer_loyalty
+    // A. Total distinct customers from customer_loyalty
     const { count: customerLoyaltyCount } = await admin
       .from('customer_loyalty')
       .select('id', { count: 'exact', head: true })
@@ -101,7 +103,7 @@ export async function GET(req: NextRequest) {
       .eq('store_id', storeId)
       .eq('status', 'claimed')
 
-    // E. Total rewards redeemed
+    // E. Total rewards redeemed from stamp_redemptions
     let totalRedemptions = 0
     try {
       const { count: redemptionCount, error: redemptionError } = await admin
@@ -112,10 +114,10 @@ export async function GET(req: NextRequest) {
         totalRedemptions = redemptionCount || 0
       }
     } catch (_e) {
-      // stamp_redemptions table may not exist yet — treat as 0
+      totalRedemptions = 0
     }
 
-    // 4. Handle Full Export if Requested (With safety limit of 5,000 to prevent payload overflow)
+    // 4. Handle Full Export if Requested
     const isExport = searchParams.get('export') === 'true'
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
@@ -126,22 +128,32 @@ export async function GET(req: NextRequest) {
         .select('id, token, stamp_count, status, delivery_method, recipient_email, created_at, expires_at, claimed_at')
         .eq('store_id', storeId)
         .order('created_at', { ascending: false })
-        .limit(5000)
+        .limit(3000)
+
+      let exportRedemptionQuery = admin
+        .from('stamp_redemptions')
+        .select('id, customer_email, stamps_used, reward_details, created_at')
+        .eq('store_id', storeId)
+        .order('created_at', { ascending: false })
+        .limit(2000)
 
       if (startDate) {
         exportQuery = exportQuery.gte('created_at', startDate)
+        exportRedemptionQuery = exportRedemptionQuery.gte('created_at', startDate)
       }
       if (endDate) {
         exportQuery = exportQuery.lte('created_at', endDate)
+        exportRedemptionQuery = exportRedemptionQuery.lte('created_at', endDate)
       }
 
-      const { data: rawExportTokens, error: exportError } = await exportQuery
+      const [{ data: rawExportTokens, error: exportError }, { data: rawExportRedemptions }] =
+        await Promise.all([exportQuery, exportRedemptionQuery])
 
       if (exportError) {
         return NextResponse.json({ error: 'Gagal memuat turun log aktiviti.' }, { status: 500 })
       }
 
-      const exportActivities = (rawExportTokens || []).map((t) => {
+      const exportTokens = (rawExportTokens || []).map((t) => {
         const cleanToken = t.token || ''
         const dateObj = new Date(t.created_at)
         const isPastExpiry =
@@ -164,11 +176,14 @@ export async function GET(req: NextRequest) {
 
         return {
           id: t.id,
+          type: 'token_generated',
+          activityType: 'Cop Stamp',
           token: cleanToken,
           stampCount: t.stamp_count,
           status: resolvedStatus,
           deliveryMethod: t.delivery_method || 'qr',
           recipientEmail: t.recipient_email || '-',
+          rewardName: '-',
           createdAt: t.created_at,
           expiresAt: t.expires_at,
           claimedAt: t.claimed_at || '-',
@@ -178,51 +193,110 @@ export async function GET(req: NextRequest) {
         }
       })
 
+      const exportRedemptions = (rawExportRedemptions || []).map((r) => {
+        const dateObj = new Date(r.created_at)
+        const formattedDate = dateObj.toLocaleDateString('ms-MY', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        })
+        const formattedTime = dateObj.toLocaleTimeString('ms-MY', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true,
+        })
+
+        return {
+          id: r.id,
+          type: 'reward_redeemed',
+          activityType: 'Penebusan Ganjaran',
+          token: 'TEBUS',
+          stampCount: r.stamps_used,
+          status: 'claimed',
+          deliveryMethod: 'kaunter',
+          recipientEmail: r.customer_email || '-',
+          rewardName: r.reward_details || 'Ganjaran Percuma',
+          createdAt: r.created_at,
+          expiresAt: r.created_at,
+          claimedAt: r.created_at,
+          formattedDate,
+          formattedTime,
+          fullTimestamp: `${formattedDate}, ${formattedTime}`,
+        }
+      })
+
+      const allExportActivities = [...exportTokens, ...exportRedemptions].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+
       return NextResponse.json({
-        exportActivities,
-        total: exportActivities.length,
+        exportActivities: allExportActivities,
+        total: allExportActivities.length,
       })
     }
 
-    // 5. Fetch Paginated Activity Logs
-    const offset = (page - 1) * limit
-
-    const { count: totalLogsCount } = await admin
+    // 5. Fetch Paginated Activity Logs (Tokens + Redemptions Combined)
+    const { count: totalTokensCount } = await admin
       .from('stamp_tokens')
       .select('id', { count: 'exact', head: true })
       .eq('store_id', storeId)
 
-    const total = totalLogsCount || 0
-    const totalPages = Math.ceil(total / limit)
+    const totalLogsCount = (totalTokensCount || 0) + (totalRedemptions || 0)
+    const total = totalLogsCount
+    const totalPages = Math.max(1, Math.ceil(total / limit))
     const hasMore = page < totalPages
 
-    let tokens: any[] | null = null
-    let { data: rawTokens, error: tokenError } = await admin
+    // Fetch latest items from both tables up to required page depth
+    const fetchLimit = Math.min(200, page * limit + limit)
+
+    let rawTokens: any[] | null = null
+    let tokenError: any = null
+
+    const tokenRes = await admin
       .from('stamp_tokens')
       .select('id, token, stamp_count, status, delivery_method, recipient_email, created_at, expires_at, claimed_at')
       .eq('store_id', storeId)
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1)
+      .limit(fetchLimit)
 
-    tokens = rawTokens
+    rawTokens = tokenRes.data
+    tokenError = tokenRes.error
 
-    if (tokenError && (tokenError.message.includes('delivery_method') || tokenError.message.includes('recipient_email'))) {
+    if (tokenError && (tokenError.message?.includes('delivery_method') || tokenError.message?.includes('recipient_email'))) {
       const fallback = await admin
         .from('stamp_tokens')
         .select('id, token, stamp_count, status, created_at, expires_at, claimed_at')
         .eq('store_id', storeId)
         .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1)
-      tokens = fallback.data
+        .limit(fetchLimit)
+      rawTokens = fallback.data
       tokenError = fallback.error
     }
 
     if (tokenError) {
-      console.error('Error fetching activity:', tokenError)
-      return NextResponse.json({ error: 'Gagal memuatkan aktiviti.' }, { status: 500 })
+      console.error('Error fetching activity tokens:', tokenError)
     }
 
-    const activities = (tokens || []).map((t) => {
+    // Fetch redemptions from stamp_redemptions
+    let rawRedemptions: any[] = []
+    try {
+      const { data: redemptionsData, error: redemptionsError } = await admin
+        .from('stamp_redemptions')
+        .select('id, customer_email, stamps_used, reward_details, created_at')
+        .eq('store_id', storeId)
+        .order('created_at', { ascending: false })
+        .limit(fetchLimit)
+
+      if (!redemptionsError && redemptionsData) {
+        rawRedemptions = redemptionsData
+      }
+    } catch (_e) {
+      rawRedemptions = []
+    }
+
+    // Map tokens to ActivityItem format
+    const tokenActivities = (rawTokens || []).map((t) => {
       const cleanToken = t.token || ''
       const lastFour = cleanToken.replace(/-/g, '').slice(-4)
       const dateObj = new Date(t.created_at)
@@ -250,8 +324,9 @@ export async function GET(req: NextRequest) {
         maskedToken: `•••${lastFour}`,
         stampCount: t.stamp_count,
         status: resolvedStatus,
-        deliveryMethod: t.delivery_method,
+        deliveryMethod: t.delivery_method || 'qr',
         recipientEmail: t.recipient_email || null,
+        rewardName: null,
         createdAt: t.created_at,
         expiresAt: t.expires_at,
         claimedAt: t.claimed_at,
@@ -261,8 +336,50 @@ export async function GET(req: NextRequest) {
       }
     })
 
+    // Map redemptions to ActivityItem format
+    const redemptionActivities = (rawRedemptions || []).map((r) => {
+      const dateObj = new Date(r.created_at)
+      const formattedDate = dateObj.toLocaleDateString('ms-MY', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
+      const formattedTime = dateObj.toLocaleTimeString('ms-MY', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+      })
+
+      return {
+        id: r.id,
+        type: 'reward_redeemed' as const,
+        maskedToken: 'TEBUS',
+        stampCount: r.stamps_used,
+        status: 'claimed' as const,
+        deliveryMethod: 'qr' as const,
+        recipientEmail: r.customer_email || null,
+        rewardName: r.reward_details || 'Ganjaran Percuma',
+        createdAt: r.created_at,
+        expiresAt: r.created_at,
+        claimedAt: r.created_at,
+        formattedDate,
+        formattedTime,
+        fullTimestamp: `${formattedDate}, ${formattedTime}`,
+      }
+    })
+
+    // Merge and sort combined list by createdAt descending
+    const combinedActivities = [...tokenActivities, ...redemptionActivities].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
+
+    // Slice for current page
+    const offset = (page - 1) * limit
+    const pageActivities = combinedActivities.slice(offset, offset + limit)
+
     return NextResponse.json({
-      activities,
+      activities: pageActivities,
       pagination: {
         page,
         limit,

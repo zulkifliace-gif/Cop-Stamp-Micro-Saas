@@ -131,19 +131,21 @@ export async function POST(req: NextRequest) {
     const fullRewardName = countNum > 1 ? `${baseRewardName} x${countNum}` : baseRewardName
 
     // 6. Record redemption in stamp_redemptions
-    const { error: redemptionError } = await admin
+    const { data: insertedRedemption, error: redemptionError } = await admin
       .from('stamp_redemptions')
       .insert({
         customer_id: customerId,
+        customer_email: profile?.email || null,
         store_id: storeId,
         stamps_used: stampsNeeded,
-        redeemed_by_staff: user.id,
-        reward_id: selectedReward?.id || null,
-        reward_name: fullRewardName,
+        reward_details: fullRewardName,
+        redeemed_by: user.id,
       })
+      .select()
+      .maybeSingle()
 
     if (redemptionError) {
-      console.warn('Warning: Redemption record failed:', redemptionError)
+      console.error('CRITICAL: Failed to insert stamp_redemptions record:', redemptionError)
     }
 
     return NextResponse.json({
@@ -156,7 +158,7 @@ export async function POST(req: NextRequest) {
       rewardQuantity: countNum,
       customerEmail: profile?.email || null,
       storeName: store.name,
-      redeemedAt: new Date().toISOString(),
+      redeemedAt: insertedRedemption?.created_at || new Date().toISOString(),
     })
   } catch (err: unknown) {
     console.error('Error in store redeem API:', err)
