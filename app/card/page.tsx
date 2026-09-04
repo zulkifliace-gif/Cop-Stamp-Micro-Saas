@@ -76,23 +76,62 @@ function formatStampDateTime(dateStr: string | null, lang: Lang) {
   }
 }
 
-function getSocialIcon(platform: string) {
-  switch (platform.toLowerCase()) {
+function renderSocialIcon(platform: string) {
+  const p = (platform || '').toLowerCase().trim()
+  switch (p) {
     case 'instagram':
-      return '/icons/social/instagram.svg'
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13, color: '#ffffff' }}>
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" strokeWidth="2.5" />
+        </svg>
+      )
     case 'tiktok':
-      return '/icons/social/tiktok.svg'
+      return (
+        <svg viewBox="0 0 24 24" fill="#ffffff" style={{ width: 13, height: 13, color: '#ffffff' }}>
+          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.86 4.43 5.92 5.92 0 0 0 1.51-4.09V7.93a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-.55-.64v1.28z" />
+        </svg>
+      )
     case 'facebook':
-      return '/icons/social/facebook.svg'
+      return (
+        <svg viewBox="0 0 24 24" fill="#ffffff" style={{ width: 13, height: 13, color: '#ffffff' }}>
+          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+        </svg>
+      )
+    case 'whatsapp':
+      return (
+        <svg viewBox="0 0 24 24" fill="#ffffff" style={{ width: 13, height: 13, color: '#ffffff' }}>
+          <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.196 8.196 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24M8.53 7.33c-.14 0-.36.05-.54.26-.19.2-.72.7-.72 1.72s.74 1.99.85 2.13c.11.15 1.45 2.22 3.52 3.11.49.21.88.34 1.18.44.5.16.95.14 1.31.08.4-.06 1.22-.5 1.39-.98.17-.49.17-.91.12-.99-.05-.08-.19-.14-.4-.25s-1.22-.6-1.41-.67c-.19-.07-.33-.1-.47.11s-.54.67-.67.81-.24.16-.45.05c-.21-.11-.89-.33-1.69-1.05-.62-.56-1.05-1.25-1.17-1.46s-.01-.32.09-.43c.1-.1.21-.24.32-.36.1-.12.14-.2.21-.34.07-.14.04-.26-.02-.37s-.47-1.14-.65-1.56c-.17-.41-.35-.35-.48-.36z" />
+        </svg>
+      )
     case 'telegram':
-      return '/icons/social/telegram.svg'
+      return (
+        <svg viewBox="0 0 24 24" fill="#ffffff" style={{ width: 13, height: 13, color: '#ffffff' }}>
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
+        </svg>
+      )
     case 'threads':
-      return '/icons/social/threads.svg'
+      return (
+        <svg viewBox="0 0 24 24" fill="#ffffff" style={{ width: 13, height: 13, color: '#ffffff' }}>
+          <path d="M12.001 2c-5.523 0-10 4.477-10 10s4.477 10 10 10 10-4.477 10-10-4.477-10-10-10zm4.225 13.064c-.454 1.637-1.848 2.605-3.824 2.605-2.235 0-4.103-1.636-4.103-4.57 0-3.037 1.967-4.664 4.298-4.664 2.181 0 3.708 1.455 3.708 3.545 0 .273-.027.545-.082.818h-5.89c.082 1.636 1.063 2.509 2.236 2.509.873 0 1.555-.409 1.882-1.064l1.775.821zm-2.02-3.082c0-.982-.627-1.636-1.636-1.636-1.036 0-1.745.682-1.882 1.636h3.518z" />
+        </svg>
+      )
     case 'youtube':
-      return '/icons/social/youtube.svg'
+      return (
+        <svg viewBox="0 0 24 24" fill="#ffffff" style={{ width: 13, height: 13, color: '#ffffff' }}>
+          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+        </svg>
+      )
     case 'website':
     default:
-      return '/icons/social/website.svg'
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13, color: '#ffffff' }}>
+          <circle cx="12" cy="12" r="10" />
+          <line x1="2" y1="12" x2="22" y2="12" />
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+        </svg>
+      )
   }
 }
 
@@ -731,11 +770,17 @@ export default function CustomerCardPage() {
           align-items: center;
           justify-content: center;
           text-decoration: none;
-          transition: transform .15s;
+          color: #ffffff;
+          transition: transform .15s, background .15s;
         }
         .social-btn:hover {
           transform: scale(1.08);
           background: rgba(255,255,255,0.32);
+        }
+        .social-btn svg {
+          width: 13px;
+          height: 13px;
+          color: #ffffff;
         }
 
         .pill-row {
@@ -1405,7 +1450,7 @@ export default function CustomerCardPage() {
                     )}
                   </div>
 
-                  {/* 4. OFFICIAL SOCIAL MEDIA ICONS (REPLACES GENERIC SKETCHES) */}
+                  {/* 4. OFFICIAL SOCIAL MEDIA ICONS (ALL PURE WHITE) */}
                   {socialLinks.length > 0 && (
                     <div className="socials">
                       {socialLinks.map((s, idx) => (
@@ -1417,11 +1462,7 @@ export default function CustomerCardPage() {
                           className="social-btn"
                           title={s.platform}
                         >
-                          <img
-                            src={getSocialIcon(s.platform)}
-                            alt={s.platform}
-                            className="w-3.5 h-3.5 object-contain filter invert brightness-200"
-                          />
+                          {renderSocialIcon(s.platform)}
                         </a>
                       ))}
                     </div>
