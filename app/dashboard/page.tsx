@@ -1561,6 +1561,9 @@ export default function CashierDashboard() {
   async function handleActivateTemplate(tpl: CustomTemplateItem) {
     if (staffRole !== 'owner') return
     setIsActivatingTemplateId(tpl.id)
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 15000)
+
     try {
       const res = await fetch('/api/store/settings', {
         method: 'PUT',
@@ -1569,7 +1572,10 @@ export default function CashierDashboard() {
           storeId,
           cardTemplate: tpl.config,
         }),
+        signal: controller.signal,
       })
+      clearTimeout(timeoutId)
+
       const data = await res.json()
       if (!res.ok) {
         throw new Error(data.error || 'Gagal mengaktifkan templat.')
@@ -1582,8 +1588,14 @@ export default function CashierDashboard() {
         'success'
       )
     } catch (err: any) {
-      showBtToast(err.message || 'Ralat mengaktifkan templat.', 'error')
+      clearTimeout(timeoutId)
+      if (err.name === 'AbortError') {
+        showBtToast('Permintaan tamat masa. Sila semak sambungan internet anda.', 'error')
+      } else {
+        showBtToast(err.message || 'Ralat mengaktifkan templat.', 'error')
+      }
     } finally {
+      clearTimeout(timeoutId)
       setIsActivatingTemplateId(null)
     }
   }
@@ -1591,6 +1603,9 @@ export default function CashierDashboard() {
   async function handleDeleteTemplate(tpl: CustomTemplateItem) {
     if (staffRole !== 'owner') return
     setIsDeletingTemplateId(tpl.id)
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 15000)
+
     try {
       const updatedTemplates = customTemplates.filter((t) => t.id !== tpl.id)
       const res = await fetch('/api/store/settings', {
@@ -1600,7 +1615,10 @@ export default function CashierDashboard() {
           storeId,
           customTemplates: updatedTemplates,
         }),
+        signal: controller.signal,
       })
+      clearTimeout(timeoutId)
+
       const data = await res.json()
       if (!res.ok) {
         throw new Error(data.error || 'Gagal memadam templat.')
@@ -1614,8 +1632,14 @@ export default function CashierDashboard() {
         'success'
       )
     } catch (err: any) {
-      showBtToast(err.message || 'Ralat memadam templat.', 'error')
+      clearTimeout(timeoutId)
+      if (err.name === 'AbortError') {
+        showBtToast('Permintaan tamat masa. Sila semak sambungan internet anda.', 'error')
+      } else {
+        showBtToast(err.message || 'Ralat memadam templat.', 'error')
+      }
     } finally {
+      clearTimeout(timeoutId)
       setIsDeletingTemplateId(null)
     }
   }

@@ -1357,13 +1357,18 @@ export default function CardStudioPage() {
   // Load store settings and custom templates on mount
   useEffect(() => {
     async function loadStudioData() {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 12000)
+
       try {
         const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
         const targetTemplateId = searchParams?.get('templateId') || null
         const isNewMode = searchParams?.get('new') === 'true'
         const initialNameParam = searchParams?.get('name') || null
 
-        const res = await fetch('/api/store/settings')
+        const res = await fetch('/api/store/settings', { signal: controller.signal })
+        clearTimeout(timeoutId)
+
         if (res.ok) {
           const data = await res.json()
           if (!data.needsRegistration) {
@@ -1414,6 +1419,7 @@ export default function CardStudioPage() {
           setConfig(sanitizeLiveConfig(parsed))
         }
       } catch (e) {
+        clearTimeout(timeoutId)
         console.error('Failed to load studio data:', e)
       }
     }
@@ -1469,6 +1475,9 @@ export default function CardStudioPage() {
     setIsSavingToCloud(true)
     setModalError('')
 
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 15000)
+
     try {
       const templateId = activeTemplateId || `tpl_${Date.now()}`
       const newTemplateItem: CustomTemplateItem = {
@@ -1497,7 +1506,9 @@ export default function CardStudioPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bodyPayload),
+        signal: controller.signal,
       })
+      clearTimeout(timeoutId)
 
       const data = await res.json()
       if (!res.ok) {
@@ -1526,8 +1537,14 @@ export default function CardStudioPage() {
         window.history.replaceState({}, '', url.toString())
       }
     } catch (err: any) {
-      setModalError(err.message || 'Ralat semasa menyimpan templat.')
+      clearTimeout(timeoutId)
+      if (err.name === 'AbortError') {
+        setModalError('Permintaan tamat masa (Timeout). Sila semak sambungan internet anda dan cuba lagi.')
+      } else {
+        setModalError(err.message || 'Ralat semasa menyimpan templat.')
+      }
     } finally {
+      clearTimeout(timeoutId)
       setIsSavingToCloud(false)
     }
   }
