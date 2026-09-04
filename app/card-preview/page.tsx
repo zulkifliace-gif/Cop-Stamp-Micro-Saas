@@ -132,15 +132,27 @@ export default function LiveCardPreviewPage() {
           --r-full: 999px;
         }
 
-        .card-app, .card-app * {
-          font-family: var(--card-font, 'Plus Jakarta Sans'), sans-serif !important;
-        }
-
         .card-app {
+          font-family: 'Plus Jakarta Sans', sans-serif !important;
           width: 100%;
           max-width: 430px;
           margin: 0 auto;
           padding-bottom: 44px;
+        }
+
+        .card-app .store-name {
+          font-family: var(--store-font, 'Fraunces', serif) !important;
+          font-weight: 700 !important;
+        }
+
+        .card-app .avatar {
+          font-family: var(--store-font, 'Fraunces', serif) !important;
+          font-weight: 700 !important;
+        }
+
+        .card-app .stamp-card-head .count {
+          font-family: var(--store-font, 'Fraunces', serif) !important;
+          font-weight: 700 !important;
         }
 
         .hero {
@@ -549,6 +561,7 @@ export default function LiveCardPreviewPage() {
       <div
         className="card-app"
         style={{
+          '--store-font': currentFontFamily,
           '--card-font': currentFontFamily,
         } as React.CSSProperties}
       >

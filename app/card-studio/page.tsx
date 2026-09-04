@@ -524,12 +524,29 @@ export function HeroHeaderPattern({ pattern = 'bubbles', opacity = 0.25 }: { pat
   if (!pattern || pattern === 'none') return null
 
   if (pattern === 'bubbles') {
+    // When opacity is 0.25 (default), op1 is 0.16 and op2 is 0.13, exactly matching live /card
+    const scale = typeof opacity === 'number' && opacity > 0 ? opacity / 0.25 : 1
+    const op1 = Math.min(1, 0.16 * scale)
+    const op2 = Math.min(1, 0.13 * scale)
+    const op3 = Math.min(1, 0.08 * scale)
     return (
-      <div className="absolute inset-0 pointer-events-none overflow-hidden select-none" style={{ opacity }}>
-        <div className="absolute -top-[90px] -right-[60px] w-[190px] h-[190px] rounded-full bg-white/20" />
-        <div className="absolute -bottom-[70px] -left-[40px] w-[130px] h-[130px] rounded-full bg-white/16" />
-        <div className="absolute top-[45%] left-[20%] w-[48px] h-[48px] rounded-full bg-white/10" />
-        <div className="absolute top-[35%] right-[22%] w-[32px] h-[32px] rounded-full bg-white/10" />
+      <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
+        <div
+          className="absolute -top-[90px] -right-[60px] w-[190px] h-[190px] rounded-full pointer-events-none"
+          style={{ background: `rgba(255,255,255,${op1})` }}
+        />
+        <div
+          className="absolute -bottom-[70px] -left-[40px] w-[130px] h-[130px] rounded-full pointer-events-none"
+          style={{ background: `rgba(255,255,255,${op2})` }}
+        />
+        <div
+          className="absolute top-[45%] left-[20%] w-[48px] h-[48px] rounded-full pointer-events-none"
+          style={{ background: `rgba(255,255,255,${op3})` }}
+        />
+        <div
+          className="absolute top-[32%] right-[22%] w-[32px] h-[32px] rounded-full pointer-events-none"
+          style={{ background: `rgba(255,255,255,${op3})` }}
+        />
       </div>
     )
   }
@@ -1044,8 +1061,16 @@ export default function CardStudioPage() {
           --r-full: 999px;
         }
 
+        .card-app {
+          font-family: 'Plus Jakarta Sans', sans-serif !important;
+          width: 100%;
+          max-width: 430px;
+          margin: 0 auto;
+          padding-bottom: 24px;
+          pointer-events: none !important;
+        }
+
         .card-app, .card-app * {
-          font-family: var(--card-font, 'Plus Jakarta Sans'), sans-serif !important;
           cursor: default !important;
           -webkit-user-select: none !important;
           user-select: none !important;
@@ -1056,12 +1081,19 @@ export default function CardStudioPage() {
           cursor: default !important;
         }
 
-        .card-app {
-          width: 100%;
-          max-width: 430px;
-          margin: 0 auto;
-          padding-bottom: 24px;
-          pointer-events: none !important;
+        .card-app .store-name {
+          font-family: var(--store-font, 'Fraunces', serif) !important;
+          font-weight: 700 !important;
+        }
+
+        .card-app .avatar {
+          font-family: var(--store-font, 'Fraunces', serif) !important;
+          font-weight: 700 !important;
+        }
+
+        .card-app .stamp-card-head .count {
+          font-family: var(--store-font, 'Fraunces', serif) !important;
+          font-weight: 700 !important;
         }
 
         .hero {
@@ -2138,6 +2170,7 @@ export default function CardStudioPage() {
             <div
               className="card-app pt-5 pointer-events-none select-none"
               style={{
+                '--store-font': currentFontFamily,
                 '--card-font': currentFontFamily,
               } as React.CSSProperties}
             >
