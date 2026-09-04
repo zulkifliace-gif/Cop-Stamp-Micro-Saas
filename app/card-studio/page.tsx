@@ -1543,7 +1543,7 @@ export default function CardStudioPage() {
 
       try {
         const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
-        const targetTemplateId = searchParams?.get('templateId') || null
+        const targetTemplateId = searchParams?.get('templateId') || (typeof window !== 'undefined' ? localStorage.getItem('cop_card_studio_template_id') : null) || null
         const isNewMode = searchParams?.get('new') === 'true'
         const initialNameParam = searchParams?.get('name') || null
 
@@ -1564,6 +1564,10 @@ export default function CardStudioPage() {
                 setActiveTemplateId(matched.id)
                 setTemplateName(matched.name)
                 setIsLiveNow(Boolean(data.cardTemplate && JSON.stringify(data.cardTemplate) === JSON.stringify(matched.config)))
+                try {
+                  localStorage.setItem('cop_card_studio_template_id', matched.id)
+                  localStorage.setItem('cop_card_studio_config', JSON.stringify(matched.config))
+                } catch (e) {}
                 return
               }
             }
@@ -1573,7 +1577,26 @@ export default function CardStudioPage() {
               setActiveTemplateId(null)
               setTemplateName(initialNameParam || `Templat #${serverTemplates.length + 1}`)
               setIsLiveNow(false)
+              try {
+                localStorage.removeItem('cop_card_studio_template_id')
+                localStorage.setItem('cop_card_studio_config', JSON.stringify(DEFAULT_LIVE_STUDIO_CONFIG))
+              } catch (e) {}
               return
+            }
+
+            // Check if draft in localStorage matches a template
+            const savedDraft = typeof window !== 'undefined' ? localStorage.getItem('cop_card_studio_config') : null
+            const savedTemplateId = typeof window !== 'undefined' ? localStorage.getItem('cop_card_studio_template_id') : null
+            if (savedDraft && savedTemplateId) {
+              const matched = serverTemplates.find((t) => t.id === savedTemplateId)
+              if (matched) {
+                const parsed = JSON.parse(savedDraft)
+                setConfig(sanitizeLiveConfig(parsed))
+                setActiveTemplateId(matched.id)
+                setTemplateName(matched.name)
+                setIsLiveNow(Boolean(data.cardTemplate && JSON.stringify(data.cardTemplate) === JSON.stringify(matched.config)))
+                return
+              }
             }
 
             if (data.cardTemplate) {
@@ -1592,8 +1615,7 @@ export default function CardStudioPage() {
             }
           }
         }
-
-        // Fallback to localStorage draft
+// Fallback to localStorage draft
         const saved = localStorage.getItem('cop_card_studio_config')
         if (saved) {
           const parsed = JSON.parse(saved)
@@ -2272,16 +2294,7 @@ export default function CardStudioPage() {
             <h1 className="font-extrabold text-sm sm:text-base tracking-tight text-stone-900 truncate max-w-[130px] sm:max-w-[190px]">
               {templateName || 'Card Studio'}
             </h1>
-            {isLiveNow ? (
-              <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-100/90 text-emerald-800 font-bold px-2 py-0.5 rounded-md border border-emerald-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Live
-              </span>
-            ) : (
-              <span className="hidden sm:inline-flex text-[10px] bg-stone-100 text-stone-600 font-bold px-2 py-0.5 rounded-md border border-stone-200">
-                Draf
-              </span>
-            )}
+            
             <span className="hidden md:inline-flex text-[10px] bg-amber-50 text-amber-900 font-bold px-2 py-0.5 rounded-md border border-amber-200" title="Kuota Templat">
               {t.templatesCount(customTemplates.length)}
             </span>
@@ -2311,18 +2324,19 @@ export default function CardStudioPage() {
             <span className="sm:hidden">{t.save}</span>
           </button>
 
-          {/* JADIKAN LIVE BUTTON */}
+          {/* BUTANG LIVE DENGAN EMOJI KILAT */}
           <button
             type="button"
             onClick={() => handleOpenSaveModal(true)}
-            className="text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-2.5 sm:px-3.5 py-1.5 rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5 active:scale-95"
-            title="Simpan dan aktifkan secara langsung untuk kad pelanggan"
+            className={`text-xs font-bold px-2.5 sm:px-3.5 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 active:scale-95 ${
+              isLiveNow
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs border border-emerald-500'
+                : 'bg-white hover:bg-stone-50 text-stone-700 border border-stone-300 shadow-2xs'
+            }`}
+            title={isLiveNow ? (activeLang === 'en' ? 'Active Live Template' : 'Templat Sedang Live') : (activeLang === 'en' ? 'Set as Live Template' : 'Jadikan Templat Live')}
           >
-            <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-            </svg>
-            <span className="hidden sm:inline">{t.setAsLive}</span>
-            <span className="sm:hidden">Live</span>
+            <span className="text-sm select-none">⚡</span>
+            <span>Live</span>
           </button>
 
           {/* RESET ASAL BUTTON */}
@@ -2342,7 +2356,17 @@ export default function CardStudioPage() {
 
           {/* PRATONTON PENUH BUTTON */}
           <Link
-            href="/card-preview"
+            href={activeTemplateId ? `/card-preview?templateId=${encodeURIComponent(activeTemplateId)}` : '/card-preview'}
+            onClick={() => {
+              try {
+                localStorage.setItem('cop_card_studio_config', JSON.stringify(config))
+                if (activeTemplateId) {
+                  localStorage.setItem('cop_card_studio_template_id', activeTemplateId)
+                } else {
+                  localStorage.removeItem('cop_card_studio_template_id')
+                }
+              } catch (e) {}
+            }}
             className="text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white px-2.5 sm:px-3.5 py-1.5 rounded-xl shadow-2xs transition flex items-center gap-1.5"
             title="Buka Pratonton Penuh"
           >
@@ -2921,48 +2945,82 @@ export default function CardStudioPage() {
                   </div>
 
                   <div className="grid grid-cols-1 gap-2.5">
-                    {LIVE_PRESETS.map((p) => (
-                      <button
-                        key={p.name}
-                        type="button"
-                        onClick={() => applyPreset(p)}
-                        className="p-3 bg-white hover:bg-stone-50 border border-[#EAE3D8] hover:border-amber-400 rounded-2xl text-left transition flex items-center justify-between cursor-pointer group shadow-2xs"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold border border-white/40 shadow-xs shrink-0"
-                            style={{
-                              background: `linear-gradient(135deg, ${p.hero1} 0%, ${p.hero2} 100%)`,
-                            }}
-                          >
-                            {HERO_PATTERN_OPTIONS.find((opt) => opt.id === p.pattern)?.icon || '🎨'}
-                          </div>
-                          <div>
-                            <div className="font-bold text-xs text-stone-900 group-hover:text-amber-800 transition">
-                              {p.name}
-                            </div>
-                            <div className="text-[10px] text-stone-500 line-clamp-1 mt-0.5">
-                              {p.desc}
-                            </div>
-                            <div className="text-[9.5px] text-stone-400 mt-0.5">
-                              Kad: <span className="text-stone-700 font-semibold">{CARD_STYLE_OPTIONS.find((s) => s.id === p.cardStyle)?.name || 'Kertas'}</span> • Fon: <span className="text-stone-700 font-semibold">{STORE_FONT_OPTIONS.find((f) => f.id === p.fontId)?.name || 'Fraunces'}</span>
-                            </div>
-                          </div>
-                        </div>
+                    {LIVE_PRESETS.map((p) => {
+                      const isCurrent = (
+                        (heroBlock.bgColor || '').toLowerCase() === p.hero1.toLowerCase() &&
+                        (heroBlock.bgColor2 || '').toLowerCase() === p.hero2.toLowerCase() &&
+                        heroBlock.pattern === p.pattern &&
+                        (profileBlock.fontId || 'fraunces') === p.fontId &&
+                        (cardBoxBlock.cardStyle || 'kertas') === p.cardStyle
+                      )
 
-                        {/* SWATCHES */}
-                        <div className="flex flex-col items-end gap-1.5 shrink-0 pl-2">
-                          <div className="flex gap-1">
-                            <div className="w-3.5 h-3.5 rounded-full border border-stone-200 shadow-2xs" style={{ backgroundColor: p.hero1 }} />
-                            <div className="w-3.5 h-3.5 rounded-full border border-stone-200 shadow-2xs" style={{ backgroundColor: p.hero2 }} />
-                            <div className="w-3.5 h-3.5 rounded-full border border-stone-200 shadow-2xs" style={{ backgroundColor: p.progressFill1 }} />
+                      return (
+                        <button
+                          key={p.name}
+                          type="button"
+                          onClick={() => applyPreset(p)}
+                          className={`p-3 rounded-2xl text-left transition flex items-center justify-between cursor-pointer group shadow-2xs border ${
+                            isCurrent
+                              ? 'bg-amber-50/90 border-amber-500 ring-2 ring-amber-400/30 shadow-xs'
+                              : 'bg-white hover:bg-stone-50 border-[#EAE3D8] hover:border-amber-400'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold border border-white/40 shadow-xs shrink-0 relative"
+                              style={{
+                                background: `linear-gradient(135deg, ${p.hero1} 0%, ${p.hero2} 100%)`,
+                              }}
+                            >
+                              {HERO_PATTERN_OPTIONS.find((opt) => opt.id === p.pattern)?.icon || '🎨'}
+                              {isCurrent && (
+                                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold border border-white shadow-xs">
+                                  ✓
+                                </span>
+                              )}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className={`font-bold text-xs transition ${isCurrent ? 'text-amber-950 font-extrabold' : 'text-stone-900 group-hover:text-amber-800'}`}>
+                                  {p.name}
+                                </span>
+                                {isCurrent && (
+                                  <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded border border-emerald-200">
+                                    {activeLang === 'en' ? 'Active' : 'Aktif'}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[10px] text-stone-500 line-clamp-1 mt-0.5">
+                                {p.desc}
+                              </div>
+                              <div className="text-[9.5px] text-stone-400 mt-0.5">
+                                Kad: <span className="text-stone-700 font-semibold">{CARD_STYLE_OPTIONS.find((s) => s.id === p.cardStyle)?.name || 'Kertas'}</span> • Fon: <span className="text-stone-700 font-semibold">{STORE_FONT_OPTIONS.find((f) => f.id === p.fontId)?.name || 'Fraunces'}</span>
+                              </div>
+                            </div>
                           </div>
-                          <span className="text-[9px] bg-stone-100 text-stone-700 group-hover:bg-amber-500 group-hover:text-white font-bold px-2 py-0.5 rounded-full transition border border-stone-200">
-                            Guna Tema →
-                          </span>
-                        </div>
-                      </button>
-                    ))}
+
+                          {/* SWATCHES & ACTION BADGE */}
+                          <div className="flex flex-col items-end gap-1.5 shrink-0 pl-2">
+                            <div className="flex gap-1">
+                              <div className="w-3.5 h-3.5 rounded-full border border-stone-200 shadow-2xs" style={{ backgroundColor: p.hero1 }} />
+                              <div className="w-3.5 h-3.5 rounded-full border border-stone-200 shadow-2xs" style={{ backgroundColor: p.hero2 }} />
+                              <div className="w-3.5 h-3.5 rounded-full border border-stone-200 shadow-2xs" style={{ backgroundColor: p.progressFill1 }} />
+                            </div>
+                            <span
+                              className={`text-[9px] font-bold px-2 py-0.5 rounded-full transition border ${
+                                isCurrent
+                                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                                  : 'bg-stone-100 text-stone-700 group-hover:bg-amber-500 group-hover:text-white border-stone-200'
+                              }`}
+                            >
+                              {isCurrent
+                                ? (activeLang === 'en' ? '✓ In Use' : '✓ Digunakan')
+                                : (activeLang === 'en' ? 'Apply Theme →' : 'Guna Tema →')}
+                            </span>
+                          </div>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
 
