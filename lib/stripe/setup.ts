@@ -51,10 +51,10 @@ export async function ensureStripeProducts(): Promise<{
 
   const allPrices = await stripe.prices.list({ product: product.id, active: true, limit: 50 })
 
-  // 2. Pro Monthly Price (RM 53 = 5300 cents / month)
+  // 2. Pro Monthly Price (RM 69 = 6900 cents / month) - Up 30% from RM53 (53 * 1.30 = 68.90 -> RM69)
   let monthlyPrice: Stripe.Price | null = null
   const foundMonthly = allPrices.data.find(
-    (p) => p.recurring?.interval === 'month' && p.unit_amount === 5300 && p.currency === 'myr'
+    (p) => p.recurring?.interval === 'month' && p.unit_amount === 6900 && p.currency === 'myr'
   )
   if (foundMonthly) {
     monthlyPrice = foundMonthly
@@ -62,19 +62,19 @@ export async function ensureStripeProducts(): Promise<{
   } else {
     monthlyPrice = await stripe.prices.create({
       product: product.id,
-      unit_amount: 5300,
+      unit_amount: 6900,
       currency: 'myr',
       recurring: { interval: 'month', interval_count: 1 },
-      nickname: 'LajuS Pro - Bulanan RM53 (Tanpa Had)',
+      nickname: 'LajuS Pro - Bulanan RM69 (Tanpa Had)',
       metadata: { plan: 'monthly', app: 'lajus' },
     })
     console.log('[Stripe Setup] Created monthly price:', monthlyPrice.id)
   }
 
-  // 3. Pro Yearly Price (RM 616 = 61600 cents / year)
+  // 3. Pro Yearly Price (RM 800 = 80000 cents / year) - Up 30% from RM616 (616 * 1.30 = 800.80 -> RM800)
   let yearlyPrice: Stripe.Price | null = null
   const foundYearly = allPrices.data.find(
-    (p) => p.recurring?.interval === 'year' && p.unit_amount === 61600 && p.currency === 'myr'
+    (p) => p.recurring?.interval === 'year' && p.unit_amount === 80000 && p.currency === 'myr'
   )
   if (foundYearly) {
     yearlyPrice = foundYearly
@@ -82,19 +82,19 @@ export async function ensureStripeProducts(): Promise<{
   } else {
     yearlyPrice = await stripe.prices.create({
       product: product.id,
-      unit_amount: 61600,
+      unit_amount: 80000,
       currency: 'myr',
       recurring: { interval: 'year', interval_count: 1 },
-      nickname: 'LajuS Pro - Tahunan RM616 (Tanpa Had)',
+      nickname: 'LajuS Pro - Tahunan RM800 (Tanpa Had)',
       metadata: { plan: 'yearly', app: 'lajus' },
     })
     console.log('[Stripe Setup] Created yearly price:', yearlyPrice.id)
   }
 
-  // 4. One-Off Card Unit Price (RM0.50 = 50 cents / card, one-time payment)
+  // 4. One-Off Card Unit Price (RM0.65 = 65 cents / card, one-time payment) - Up 30% from RM0.50
   let cardUnitPrice: Stripe.Price | null = null
   const foundCardUnit = allPrices.data.find(
-    (p) => !p.recurring && p.unit_amount === 50 && p.currency === 'myr'
+    (p) => !p.recurring && p.unit_amount === 65 && p.currency === 'myr'
   )
   if (foundCardUnit) {
     cardUnitPrice = foundCardUnit
@@ -102,9 +102,9 @@ export async function ensureStripeProducts(): Promise<{
   } else {
     cardUnitPrice = await stripe.prices.create({
       product: product.id,
-      unit_amount: 50,
+      unit_amount: 65,
       currency: 'myr',
-      nickname: 'Kad Cop Digital LajuS - RM0.50 Sekeping (One-Off)',
+      nickname: 'Kad Cop Digital LajuS - RM0.65 Sekeping (One-Off)',
       metadata: { plan: 'one_off_card', app: 'lajus' },
     })
     console.log('[Stripe Setup] Created card unit price:', cardUnitPrice.id)

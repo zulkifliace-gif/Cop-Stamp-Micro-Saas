@@ -387,7 +387,7 @@ function BillingContent() {
                   {lang === 'en' ? 'Pay-As-You-Go' : 'Beli Kad Ikut Keperluan'}
                 </span>
                 <span className="text-[11px] font-bold text-[#8E9B95]">
-                  RM0.50 / {lang === 'en' ? 'card' : 'kad'}
+                  RM0.65 / {lang === 'en' ? 'card' : 'kad'}
                 </span>
               </div>
 
@@ -466,7 +466,7 @@ function BillingContent() {
                       {lang === 'en' ? 'Total One-Off' : 'Jumlah Bayaran'}
                     </div>
                     <div className="font-fraunces text-2xl sm:text-3xl font-black text-emerald-400">
-                      RM {(cardCount * 0.5).toFixed(2)}
+                      RM {(cardCount * 0.65).toFixed(2)}
                     </div>
                   </div>
                 </div>
@@ -503,7 +503,7 @@ function BillingContent() {
                 <span>
                   {isProcessing
                     ? (lang === 'en' ? 'Connecting to Stripe...' : 'Menghubungkan ke Stripe...')
-                    : (lang === 'en' ? `Buy ${cardCount} Cards (RM ${(cardCount * 0.5).toFixed(2)}) ⚡` : `Beli ${cardCount} Kad (RM ${(cardCount * 0.5).toFixed(2)}) ⚡`)}
+                    : (lang === 'en' ? `Buy ${cardCount} Cards (RM ${(cardCount * 0.65).toFixed(2)}) ⚡` : `Beli ${cardCount} Kad (RM ${(cardCount * 0.65).toFixed(2)}) ⚡`)}
                 </span>
               </button>
               <p className="text-center text-[10.5px] text-[#8E9B95] mt-2.5">
@@ -572,7 +572,7 @@ function BillingContent() {
                   <span className={`text-[9.5px] font-black px-1.5 py-0.2 rounded-full ${
                     billingCycle === 'yearly' ? 'bg-[#1A2422]/20 text-[#1A2422]' : 'bg-emerald-500/20 text-emerald-400'
                   }`}>
-                    {lang === 'en' ? 'SAVE RM20' : 'JIMAT RM20'}
+                    {lang === 'en' ? 'SAVE RM28' : 'JIMAT RM28'}
                   </span>
                 </button>
               </div>
@@ -581,7 +581,7 @@ function BillingContent() {
               <div className="flex flex-col mb-5 pb-5 border-b border-[#FAF2E2]/15">
                 <div className="flex items-baseline gap-1.5">
                   <span className="font-fraunces text-4xl sm:text-5xl font-black text-[#E5A43B]">
-                    {billingCycle === 'yearly' ? 'RM616' : 'RM53'}
+                    {billingCycle === 'yearly' ? 'RM800' : 'RM69'}
                   </span>
                   <span className="text-xs text-[#C4B897]">
                     /{billingCycle === 'yearly' ? (lang === 'en' ? 'year' : 'tahun') : (lang === 'en' ? 'month' : 'bulan')}
@@ -590,8 +590,8 @@ function BillingContent() {
                 {billingCycle === 'yearly' && (
                   <p className="text-emerald-400 text-xs font-bold mt-1 font-space">
                     {lang === 'en'
-                      ? '≈ RM51.33/mo • Save RM20 compared to monthly billing'
-                      : '≈ RM51.33/bln • Jimat RM20 berbanding bayaran bulanan'}
+                      ? '≈ RM66.67/mo • Save RM28 compared to monthly billing'
+                      : '≈ RM66.67/bln • Jimat RM28 berbanding bayaran bulanan'}
                   </p>
                 )}
               </div>

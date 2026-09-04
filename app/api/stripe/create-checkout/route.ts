@@ -56,12 +56,12 @@ export async function POST(req: NextRequest) {
       .eq('id', storeId)
       .single()
 
-    // ── ONE-OFF CARDS TOPUP (RM0.50 / card, min 35) ───────────────────────────
+    // ── ONE-OFF CARDS TOPUP (RM0.65 / card, min 35) ───────────────────────────
     if (plan === 'one_off_cards') {
       const cardCount = parseInt(String(body.cardCount || body.cardsCount || 0), 10)
       if (isNaN(cardCount) || cardCount < 35) {
         return NextResponse.json({
-          error: 'Pembelian minimum adalah 35 kad digital (RM17.50).',
+          error: 'Pembelian minimum adalah 35 kad digital (RM22.75).',
         }, { status: 400 })
       }
 
