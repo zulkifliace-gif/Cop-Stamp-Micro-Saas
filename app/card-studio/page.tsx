@@ -1028,7 +1028,7 @@ export default function CardStudioPage() {
   const percentFill = Math.min(100, Math.round((totalStamps / reqStamps) * 100))
 
   return (
-    <div className="min-h-screen bg-[#0E131F] text-gray-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#F8F6F0] text-stone-800 flex flex-col font-sans selection:bg-amber-100 selection:text-amber-900">
       {/* SCOPED COMPONENT STYLES FAITHFULLY TRANSLATED FROM LIVE /card */}
       <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@600;700;800&family=Comfortaa:wght@700&family=Dancing+Script:wght@700&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Montserrat:wght@600;700;800&family=Pacifico&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Poppins:wght@500;600;700;800&family=Quicksand:wght@600;700&display=swap');
@@ -1131,7 +1131,6 @@ export default function CardStudioPage() {
           padding: 6px 12px;
           border-radius: var(--r-full);
           transition: .15s;
-          cursor: pointer;
         }
         .lang-toggle button.active {
           background: #fff;
@@ -1154,13 +1153,9 @@ export default function CardStudioPage() {
           align-items: center;
           justify-content: center;
           transition: .15s;
-          cursor: pointer;
         }
         .icon-btn:hover {
           background: rgba(255,255,255,0.32);
-        }
-        .icon-btn:active {
-          transform: scale(0.92);
         }
         .icon-btn.gold {
           color: #FFEBC2;
@@ -1231,11 +1226,6 @@ export default function CardStudioPage() {
           text-decoration: none;
           color: #ffffff;
           transition: transform .15s, background .15s;
-          cursor: pointer;
-        }
-        .social-btn:hover {
-          transform: scale(1.08);
-          background: rgba(255,255,255,0.32);
         }
 
         .pill-row {
@@ -1259,8 +1249,6 @@ export default function CardStudioPage() {
           font-size: 11.5px;
           font-weight: 700;
           box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-          cursor: pointer;
-          transition: transform .15s, box-shadow .15s;
           white-space: nowrap;
         }
         .pill-btn svg {
@@ -1268,25 +1256,18 @@ export default function CardStudioPage() {
           height: 13px;
           color: var(--coral);
         }
-        .pill-btn:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 6px 14px rgba(0,0,0,0.1);
-        }
-        .pill-btn:active {
-          transform: translateY(0);
-        }
 
         .card-content {
           padding: 18px 16px 0;
         }
 
         .stamp-card {
-          background: var(--cream);
           border-radius: var(--r-lg);
           padding: 24px 18px 20px;
           color: var(--ink);
           border: 1px solid var(--border-warm);
           box-sizing: border-box;
+          transition: all .25s ease;
         }
 
         .stamp-card-head {
@@ -1342,7 +1323,6 @@ export default function CardStudioPage() {
           align-items: center;
           justify-content: center;
           position: relative;
-          cursor: pointer;
           transition: transform .15s, filter .15s;
         }
         .stamp.empty {
@@ -1356,33 +1336,24 @@ export default function CardStudioPage() {
           background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.4), transparent 55%), linear-gradient(145deg, var(--coral), var(--coral-deep));
           box-shadow: 0 5px 12px rgba(255,90,69,0.4);
         }
-        .stamp:hover {
-          filter: brightness(1.05);
-        }
-        .stamp:active {
-          transform: scale(0.92);
-        }
 
         .progress-bar {
-          height: 9px;
-          border-radius: 6px;
-          background: var(--border-warm);
+          background: #F5EBE1;
           overflow: hidden;
-          margin-bottom: 13px;
+          position: relative;
         }
         .progress-bar-fill {
           height: 100%;
-          border-radius: 6px;
-          background: linear-gradient(90deg, var(--coral), var(--gold));
-          transition: width .8s ease;
+          transition: width .5s ease;
         }
 
         .status-text {
           text-align: center;
-          font-size: 13px;
-          color: var(--teal-deep);
+          font-size: 12.5px;
+          color: var(--ink);
           font-weight: 700;
-          line-height: 1.4;
+          margin-top: 14px;
+          line-height: 1.35;
         }
         .status-text b {
           color: var(--coral-deep);
@@ -1404,7 +1375,6 @@ export default function CardStudioPage() {
           background: var(--border-warm);
           transition: .25s ease;
           flex-shrink: 0;
-          cursor: pointer;
         }
         .dot.full {
           background: var(--green);
@@ -1444,66 +1414,67 @@ export default function CardStudioPage() {
           justify-content: center;
           gap: 8px;
           font-size: 10.5px;
-        }
-        .footer-links a {
           color: var(--muted);
-          text-decoration: underline;
-        }
-        .footer-links button {
-          border: none;
-          background: none;
-          color: #D9483A;
-          text-decoration: underline;
-          font-size: 10.5px;
-          padding: 0;
-          font-weight: 600;
-          cursor: pointer;
         }
         .footer-links .dot-sep {
           color: var(--border-warm);
         }
-
-        .modal-body, .modal-body * {
-          font-family: var(--card-font, 'Plus Jakarta Sans'), sans-serif !important;
-        }
       ` }} />
 
-      {/* TOP HEADER / NAVBAR */}
-      <header className="h-16 border-b border-gray-800 bg-[#121826] px-4 sm:px-6 flex items-center justify-between shrink-0 z-30">
+      {/* TOP HEADER / NAVBAR (CLEAN, PROFESSIONAL, NO EMOJIS) */}
+      <header className="h-16 border-b border-[#EBE5DB] bg-white/95 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between shrink-0 z-30 sticky top-0 shadow-2xs">
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard"
-            className="flex items-center gap-2 text-gray-400 hover:text-white text-xs font-bold transition"
+            className="flex items-center gap-1.5 text-stone-600 hover:text-stone-900 text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-stone-100 transition"
           >
-            <span>← Dashboard</span>
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            <span>Dashboard</span>
           </Link>
-          <div className="h-4 w-px bg-gray-700" />
-          <h1 className="font-extrabold text-base tracking-tight text-white flex items-center gap-2">
-            <span>✨ Card Studio</span>
-            <span className="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-full border border-amber-500/30">
-              Live Card Mirror
+          <div className="h-4 w-px bg-stone-300" />
+          <div className="flex items-center gap-2">
+            <h1 className="font-extrabold text-base tracking-tight text-stone-900">
+              Card Studio
+            </h1>
+            <span className="text-[10px] bg-emerald-100/80 text-emerald-800 font-bold px-2 py-0.5 rounded-md border border-emerald-200">
+              Live Mirror
             </span>
-          </h1>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           {saveStatus && (
-            <span className="text-xs text-emerald-400 font-semibold animate-pulse hidden sm:inline">
-              ✓ {saveStatus}
+            <span className="text-xs text-emerald-600 font-semibold animate-pulse hidden sm:inline flex items-center gap-1">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              {saveStatus}
             </span>
           )}
           <button
             type="button"
             onClick={resetToDefault}
-            className="text-xs font-bold bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-xl border border-gray-700 transition cursor-pointer"
+            className="text-xs font-semibold bg-stone-100 hover:bg-stone-200/80 text-stone-700 px-3.5 py-1.5 rounded-xl border border-stone-200/90 transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
           >
-            🔄 Reset Asal
+            <svg className="w-3.5 h-3.5 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+              <path d="M21 3v5h-5" />
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+              <path d="M8 16H3v5" />
+            </svg>
+            <span>Reset Asal</span>
           </button>
           <Link
             href="/card-preview"
-            className="text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black px-3.5 py-1.5 rounded-xl shadow-md transition flex items-center gap-1.5"
+            className="text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-4 py-1.5 rounded-xl shadow-xs transition flex items-center gap-1.5"
           >
-            <span>🔍 Pratonton Penuh</span>
+            <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            <span>Pratonton Penuh</span>
           </Link>
         </div>
       </header>
@@ -1511,69 +1482,89 @@ export default function CardStudioPage() {
       {/* WORKSPACE AREA */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* LEFT PANEL: 3 TABS (4 BLOK, TEMA & WARNA, SIMULATOR) */}
-        <aside className="w-full lg:w-[460px] bg-[#121826] border-r border-gray-800 flex flex-col shrink-0 overflow-y-auto">
-          {/* TABS */}
-          <div className="flex border-b border-gray-800 p-2 gap-1 bg-[#0E131F]/50 sticky top-0 z-20">
+        <aside className="w-full lg:w-[460px] bg-white border-r border-[#EBE5DB] flex flex-col shrink-0 overflow-y-auto shadow-sm">
+          {/* TABS (CLEAN & SLEEK) */}
+          <div className="flex border-b border-[#EBE5DB] p-2 gap-1.5 bg-[#FAF7F2] sticky top-0 z-20">
             <button
               type="button"
               onClick={() => setActiveTab('blocks')}
-              className={`flex-1 py-2 text-xs font-bold rounded-xl transition cursor-pointer ${
-                activeTab === 'blocks' ? 'bg-amber-500 text-black shadow-md' : 'text-gray-400 hover:text-white'
+              className={`flex-1 py-2 px-2.5 text-xs font-bold rounded-xl transition cursor-pointer text-center ${
+                activeTab === 'blocks'
+                  ? 'bg-white text-stone-900 shadow-xs border border-stone-200'
+                  : 'text-stone-500 hover:text-stone-800 hover:bg-stone-200/50'
               }`}
             >
-              🎨 4 Blok Reka Bentuk
+              4 Blok Reka Bentuk
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('presets')}
-              className={`flex-1 py-2 text-xs font-bold rounded-xl transition cursor-pointer ${
-                activeTab === 'presets' ? 'bg-amber-500 text-black shadow-md' : 'text-gray-400 hover:text-white'
+              className={`flex-1 py-2 px-2.5 text-xs font-bold rounded-xl transition cursor-pointer text-center ${
+                activeTab === 'presets'
+                  ? 'bg-white text-stone-900 shadow-xs border border-stone-200'
+                  : 'text-stone-500 hover:text-stone-800 hover:bg-stone-200/50'
               }`}
             >
-              🌟 Tema & Warna
+              Tema & Warna
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('simulate')}
-              className={`flex-1 py-2 text-xs font-bold rounded-xl transition cursor-pointer ${
-                activeTab === 'simulate' ? 'bg-amber-500 text-black shadow-md' : 'text-gray-400 hover:text-white'
+              className={`flex-1 py-2 px-2.5 text-xs font-bold rounded-xl transition cursor-pointer text-center ${
+                activeTab === 'simulate'
+                  ? 'bg-white text-stone-900 shadow-xs border border-stone-200'
+                  : 'text-stone-500 hover:text-stone-800 hover:bg-stone-200/50'
               }`}
             >
-              🧪 Simulator Cop
+              Simulator Cop
             </button>
           </div>
 
-          <div className="p-4 sm:p-5 space-y-6">
+          <div className="p-4 sm:p-5 space-y-5">
             {/* TAB 1: 4 BLOCKS ACCORDION */}
             {activeTab === 'blocks' && (
-              <div className="space-y-4">
-                <div className="text-xs text-gray-400 bg-[#1A2234] p-3 rounded-2xl border border-gray-800">
-                  🛠️ <b>4 Blok Reka Bentuk Boleh Ubah:</b> Hero Header, Profile Kedai, Kotak Kad Cop & Bar Kemajuan. Fon yang dipilih akan diaplikasikan ke seluruh kad.
+              <div className="space-y-3.5">
+                <div className="text-xs text-stone-600 bg-[#FAF7F2] p-3.5 rounded-2xl border border-[#EDE5DA] leading-relaxed">
+                  <b>4 Blok Reka Bentuk Boleh Ubah:</b> Hero Header, Profile Kedai, Kotak Kad Cop & Bar Kemajuan. Fon yang dipilih akan diaplikasikan ke seluruh kad.
                 </div>
 
                 {/* 1. HERO HEADER */}
-                <div className="bg-[#182032] border border-gray-800 rounded-2xl p-4 transition-all">
+                <div
+                  className={`border rounded-2xl p-4 transition-all ${
+                    selectedBlockId === 'hero_header'
+                      ? 'bg-[#FCFAF7] border-amber-400 ring-2 ring-amber-400/15 shadow-sm'
+                      : 'bg-white hover:bg-stone-50/50 border-[#EAE3D8] shadow-2xs'
+                  }`}
+                >
                   <div
                     onClick={() => toggleBlock('hero_header')}
                     className="flex items-center justify-between cursor-pointer select-none"
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="text-base">🌄</span>
+                      <div className="w-8 h-8 rounded-xl bg-amber-100/80 text-amber-700 flex items-center justify-center font-bold text-sm shrink-0 border border-amber-200/60">
+                        1
+                      </div>
                       <div>
-                        <h4 className="font-bold text-sm text-gray-100">Hero Header</h4>
-                        <p className="text-[11px] text-gray-400">Corak motif, warna gradien & kelengkungan</p>
+                        <h4 className="font-bold text-sm text-stone-900">Hero Header</h4>
+                        <p className="text-[11px] text-stone-500">Corak motif, warna gradien & kelengkungan</p>
                       </div>
                     </div>
-                    <span className="text-xs text-amber-400 font-bold">
+                    <span
+                      className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition ${
+                        selectedBlockId === 'hero_header'
+                          ? 'bg-amber-100 text-amber-900 border-amber-200'
+                          : 'bg-stone-100 text-stone-600 border-stone-200'
+                      }`}
+                    >
                       {selectedBlockId === 'hero_header' ? 'Tutup ▲' : 'Ubah ▼'}
                     </span>
                   </div>
 
                   {selectedBlockId === 'hero_header' && (
-                    <div className="mt-4 pt-3 border-t border-gray-800 space-y-4">
+                    <div className="mt-4 pt-3.5 border-t border-[#EAE3D8] space-y-4">
                       {/* Corak Pilihan (11 Corak) */}
                       <div>
-                        <label className="block text-xs font-bold text-gray-300 mb-2">
+                        <label className="block text-xs font-bold text-stone-700 mb-2">
                           Corak Motif Latar Belakang ({HERO_PATTERN_OPTIONS.length} Pilihan):
                         </label>
                         <div className="grid grid-cols-2 gap-2">
@@ -1586,14 +1577,14 @@ export default function CardStudioPage() {
                                 onClick={() => updateBlock('hero_header', { pattern: opt.id })}
                                 className={`p-2.5 rounded-xl border text-left flex items-center gap-2 transition cursor-pointer ${
                                   isSelected
-                                    ? 'bg-amber-500/20 border-amber-500 text-amber-300'
-                                    : 'bg-[#121826] border-gray-800 text-gray-300 hover:border-gray-700'
+                                    ? 'bg-amber-50 border-amber-500 text-amber-900 ring-1 ring-amber-400 font-bold shadow-2xs'
+                                    : 'bg-white border-[#E8E1D5] text-stone-700 hover:border-stone-400 hover:bg-stone-50'
                                 }`}
                               >
-                                <span className="text-lg">{opt.icon}</span>
+                                <span className="text-base">{opt.icon}</span>
                                 <div className="overflow-hidden">
                                   <div className="text-xs font-bold truncate">{opt.label}</div>
-                                  <div className="text-[10px] text-gray-400 truncate">{opt.desc}</div>
+                                  <div className="text-[10px] text-stone-500 truncate">{opt.desc}</div>
                                 </div>
                               </button>
                             )
@@ -1603,9 +1594,9 @@ export default function CardStudioPage() {
 
                       {/* Kepekatan Corak (Opacity) */}
                       <div>
-                        <div className="flex justify-between text-xs text-gray-300 font-semibold mb-1">
+                        <div className="flex justify-between text-xs text-stone-700 font-semibold mb-1">
                           <span>Kepekatan Corak (Opacity):</span>
-                          <span className="font-mono text-amber-400">{Math.round((heroBlock.patternOpacity ?? 0.25) * 100)}%</span>
+                          <span className="font-mono text-amber-700 font-bold">{Math.round((heroBlock.patternOpacity ?? 0.25) * 100)}%</span>
                         </div>
                         <input
                           type="range"
@@ -1621,8 +1612,8 @@ export default function CardStudioPage() {
                       {/* Warna Gradien Hero */}
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-[11px] font-bold text-gray-400 mb-1">Warna Gradien Mula:</label>
-                          <div className="flex items-center gap-2 bg-[#121826] p-1.5 rounded-xl border border-gray-800">
+                          <label className="block text-[11px] font-bold text-stone-600 mb-1">Warna Gradien Mula:</label>
+                          <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-[#E2DAD0]">
                             <input
                               type="color"
                               value={heroBlock.bgColor || '#FF7A45'}
@@ -1633,14 +1624,14 @@ export default function CardStudioPage() {
                               type="text"
                               value={heroBlock.bgColor || '#FF7A45'}
                               onChange={(e) => updateBlock('hero_header', { bgColor: e.target.value })}
-                              className="w-full bg-transparent text-white font-mono text-[11px] outline-none"
+                              className="w-full bg-transparent text-stone-900 font-mono text-[11px] outline-none"
                             />
                           </div>
                         </div>
 
                         <div>
-                          <label className="block text-[11px] font-bold text-gray-400 mb-1">Warna Gradien Akhir:</label>
-                          <div className="flex items-center gap-2 bg-[#121826] p-1.5 rounded-xl border border-gray-800">
+                          <label className="block text-[11px] font-bold text-stone-600 mb-1">Warna Gradien Akhir:</label>
+                          <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-[#E2DAD0]">
                             <input
                               type="color"
                               value={heroBlock.bgColor2 || '#FFC24D'}
@@ -1651,7 +1642,7 @@ export default function CardStudioPage() {
                               type="text"
                               value={heroBlock.bgColor2 || '#FFC24D'}
                               onChange={(e) => updateBlock('hero_header', { bgColor2: e.target.value })}
-                              className="w-full bg-transparent text-white font-mono text-[11px] outline-none"
+                              className="w-full bg-transparent text-stone-900 font-mono text-[11px] outline-none"
                             />
                           </div>
                         </div>
@@ -1659,9 +1650,9 @@ export default function CardStudioPage() {
 
                       {/* Kelengkungan Bawah (Border Radius) */}
                       <div>
-                        <div className="flex justify-between text-xs text-gray-300 font-semibold mb-1">
+                        <div className="flex justify-between text-xs text-stone-700 font-semibold mb-1">
                           <span>Kelengkungan Bawah Header:</span>
-                          <span className="font-mono text-amber-400">{heroBlock.borderRadius ?? 34}px</span>
+                          <span className="font-mono text-amber-700 font-bold">{heroBlock.borderRadius ?? 34}px</span>
                         </div>
                         <input
                           type="range"
@@ -1677,38 +1668,52 @@ export default function CardStudioPage() {
                 </div>
 
                 {/* 2. PROFILE KEDAI */}
-                <div className="bg-[#182032] border border-gray-800 rounded-2xl p-4 transition-all">
+                <div
+                  className={`border rounded-2xl p-4 transition-all ${
+                    selectedBlockId === 'store_profile'
+                      ? 'bg-[#FCFAF7] border-amber-400 ring-2 ring-amber-400/15 shadow-sm'
+                      : 'bg-white hover:bg-stone-50/50 border-[#EAE3D8] shadow-2xs'
+                  }`}
+                >
                   <div
                     onClick={() => toggleBlock('store_profile')}
                     className="flex items-center justify-between cursor-pointer select-none"
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="text-base">🏪</span>
+                      <div className="w-8 h-8 rounded-xl bg-amber-100/80 text-amber-700 flex items-center justify-center font-bold text-sm shrink-0 border border-amber-200/60">
+                        2
+                      </div>
                       <div>
-                        <h4 className="font-bold text-sm text-gray-100">Profile Kedai & Fon Seluruh Kad</h4>
-                        <p className="text-[11px] text-gray-400">Gambar profil ON/OFF & pilihan fon seluruh halaman</p>
+                        <h4 className="font-bold text-sm text-stone-900">Profile Kedai & Fon Seluruh Kad</h4>
+                        <p className="text-[11px] text-stone-500">Gambar profil ON/OFF & pilihan fon seluruh halaman</p>
                       </div>
                     </div>
-                    <span className="text-xs text-amber-400 font-bold">
+                    <span
+                      className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition ${
+                        selectedBlockId === 'store_profile'
+                          ? 'bg-amber-100 text-amber-900 border-amber-200'
+                          : 'bg-stone-100 text-stone-600 border-stone-200'
+                      }`}
+                    >
                       {selectedBlockId === 'store_profile' ? 'Tutup ▲' : 'Ubah ▼'}
                     </span>
                   </div>
 
                   {selectedBlockId === 'store_profile' && (
-                    <div className="mt-4 pt-3 border-t border-gray-800 space-y-4">
+                    <div className="mt-4 pt-3.5 border-t border-[#EAE3D8] space-y-4">
                       {/* TOGGLE GAMBAR PROFIL */}
-                      <div className="flex items-center justify-between p-3 bg-[#121826] rounded-xl border border-gray-800">
+                      <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-[#E2DAD0]">
                         <div>
-                          <div className="text-xs font-bold text-gray-200">Paparkan Gambar Profil / Logo</div>
-                          <div className="text-[10px] text-gray-400">Pilih sama ada mahu tunjuk logo bulat atau sembunyikan</div>
+                          <div className="text-xs font-bold text-stone-800">Paparkan Gambar Profil / Logo</div>
+                          <div className="text-[10px] text-stone-500">Pilih sama ada mahu tunjuk logo bulat atau sembunyikan</div>
                         </div>
                         <button
                           type="button"
                           onClick={() => updateBlock('store_profile', { showLogo: profileBlock.showLogo === false ? true : false })}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                             profileBlock.showLogo !== false
-                              ? 'bg-emerald-500 text-black shadow-md'
-                              : 'bg-gray-800 text-gray-400 hover:text-white'
+                              ? 'bg-emerald-600 text-white shadow-xs'
+                              : 'bg-stone-200 text-stone-700 hover:bg-stone-300'
                           }`}
                         >
                           {profileBlock.showLogo !== false ? 'ON (Dipaparkan)' : 'OFF (Sembunyi)'}
@@ -1718,14 +1723,14 @@ export default function CardStudioPage() {
                       {/* PILIHAN FON SELURUH KAD */}
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
-                          <label className="text-xs font-bold text-gray-300">
+                          <label className="text-xs font-bold text-stone-700">
                             Pilihan Fon Seluruh Kad ({STORE_FONT_OPTIONS.length} Pilihan):
                           </label>
-                          <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-bold">
+                          <span className="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded font-bold border border-amber-200">
                             Apply Semua Teks
                           </span>
                         </div>
-                        <p className="text-[10px] text-gray-400 mb-2">
+                        <p className="text-[10px] text-stone-500 mb-2">
                           Fon yang dipilih akan digunakan untuk Nama Kedai, tajuk, butang, status & keseluruhan kad.
                         </p>
                         <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto pr-1">
@@ -1738,17 +1743,17 @@ export default function CardStudioPage() {
                                 onClick={() => updateBlock('store_profile', { fontId: f.id })}
                                 className={`p-3 rounded-xl border text-left flex items-center justify-between transition cursor-pointer ${
                                   isSelected
-                                    ? 'bg-amber-500/20 border-amber-500 text-amber-300'
-                                    : 'bg-[#121826] border-gray-800 text-gray-300 hover:border-gray-700'
+                                    ? 'bg-amber-50 border-amber-500 text-amber-900 ring-1 ring-amber-400 font-bold shadow-2xs'
+                                    : 'bg-white border-[#E8E1D5] text-stone-700 hover:border-stone-400 hover:bg-stone-50'
                                 }`}
                               >
                                 <div>
-                                  <div className="text-xs text-gray-400 font-medium">{f.name} ({f.category})</div>
-                                  <div className="text-base font-bold text-white mt-0.5" style={{ fontFamily: f.fontFamily }}>
+                                  <div className="text-xs text-stone-500 font-medium">{f.name} ({f.category})</div>
+                                  <div className="text-base font-bold text-stone-900 mt-0.5" style={{ fontFamily: f.fontFamily }}>
                                     {config.storeName || f.sampleText}
                                   </div>
                                 </div>
-                                {isSelected && <span className="text-amber-400 font-bold text-sm">✓ Dipilih</span>}
+                                {isSelected && <span className="text-amber-700 font-bold text-sm">✓ Dipilih</span>}
                               </button>
                             )
                           })}
@@ -1757,12 +1762,12 @@ export default function CardStudioPage() {
 
                       {/* NAMA KEDAI TEKS */}
                       <div>
-                        <label className="block text-[11px] font-bold text-gray-400 mb-1">Nama Kedai (Teks):</label>
+                        <label className="block text-[11px] font-bold text-stone-600 mb-1">Nama Kedai (Teks):</label>
                         <input
                           type="text"
                           value={config.storeName}
                           onChange={(e) => saveConfig({ ...config, storeName: e.target.value })}
-                          className="w-full bg-[#121826] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-amber-500"
+                          className="w-full bg-white border border-[#E2DAD0] rounded-xl px-3 py-2 text-xs text-stone-900 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-400"
                         />
                       </div>
                     </div>
@@ -1770,28 +1775,42 @@ export default function CardStudioPage() {
                 </div>
 
                 {/* 3. KOTAK KAD COP */}
-                <div className="bg-[#182032] border border-gray-800 rounded-2xl p-4 transition-all">
+                <div
+                  className={`border rounded-2xl p-4 transition-all ${
+                    selectedBlockId === 'stamp_card_box'
+                      ? 'bg-[#FCFAF7] border-amber-400 ring-2 ring-amber-400/15 shadow-sm'
+                      : 'bg-white hover:bg-stone-50/50 border-[#EAE3D8] shadow-2xs'
+                  }`}
+                >
                   <div
                     onClick={() => toggleBlock('stamp_card_box')}
                     className="flex items-center justify-between cursor-pointer select-none"
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="text-base">🗂️</span>
+                      <div className="w-8 h-8 rounded-xl bg-amber-100/80 text-amber-700 flex items-center justify-center font-bold text-sm shrink-0 border border-amber-200/60">
+                        3
+                      </div>
                       <div>
-                        <h4 className="font-bold text-sm text-gray-100">Kotak Kad Cop</h4>
-                        <p className="text-[11px] text-gray-400">6 gaya material (Kertas, Kaca, Batu, Besi, Kayu, Air)</p>
+                        <h4 className="font-bold text-sm text-stone-900">Kotak Kad Cop</h4>
+                        <p className="text-[11px] text-stone-500">6 gaya material (Kertas, Kaca, Batu, Besi, Kayu, Air)</p>
                       </div>
                     </div>
-                    <span className="text-xs text-amber-400 font-bold">
+                    <span
+                      className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition ${
+                        selectedBlockId === 'stamp_card_box'
+                          ? 'bg-amber-100 text-amber-900 border-amber-200'
+                          : 'bg-stone-100 text-stone-600 border-stone-200'
+                      }`}
+                    >
                       {selectedBlockId === 'stamp_card_box' ? 'Tutup ▲' : 'Ubah ▼'}
                     </span>
                   </div>
 
                   {selectedBlockId === 'stamp_card_box' && (
-                    <div className="mt-4 pt-3 border-t border-gray-800 space-y-4">
+                    <div className="mt-4 pt-3.5 border-t border-[#EAE3D8] space-y-4">
                       {/* 6 PILIHAN GAYA MATERIAL */}
                       <div>
-                        <label className="block text-xs font-bold text-gray-300 mb-2">
+                        <label className="block text-xs font-bold text-stone-700 mb-2">
                           Gaya Material Kad Cop (6 Pilihan):
                         </label>
                         <div className="grid grid-cols-2 gap-2">
@@ -1811,14 +1830,14 @@ export default function CardStudioPage() {
                                 }
                                 className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition cursor-pointer ${
                                   isSelected
-                                    ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-md'
-                                    : 'bg-[#121826] border-gray-800 text-gray-300 hover:border-gray-700'
+                                    ? 'bg-amber-50 border-amber-500 text-amber-900 ring-1 ring-amber-400 font-bold shadow-2xs'
+                                    : 'bg-white border-[#E8E1D5] text-stone-700 hover:border-stone-400 hover:bg-stone-50'
                                 }`}
                               >
                                 <span className="text-xl">{styleOpt.icon}</span>
                                 <div>
                                   <div className="text-xs font-bold">{styleOpt.name}</div>
-                                  <div className="text-[10px] text-gray-400 line-clamp-2">{styleOpt.desc}</div>
+                                  <div className="text-[10px] text-stone-500 line-clamp-2">{styleOpt.desc}</div>
                                 </div>
                               </button>
                             )
@@ -1828,9 +1847,9 @@ export default function CardStudioPage() {
 
                       {/* KELENGKUNGAN KOTAK KAD */}
                       <div>
-                        <div className="flex justify-between text-xs text-gray-300 font-semibold mb-1">
+                        <div className="flex justify-between text-xs text-stone-700 font-semibold mb-1">
                           <span>Kelengkungan Kotak Kad (Border Radius):</span>
-                          <span className="font-mono text-amber-400">{cardBoxBlock.borderRadius ?? 28}px</span>
+                          <span className="font-mono text-amber-700 font-bold">{cardBoxBlock.borderRadius ?? 28}px</span>
                         </div>
                         <input
                           type="range"
@@ -1846,38 +1865,52 @@ export default function CardStudioPage() {
                 </div>
 
                 {/* 4. BAR KEMAJUAN */}
-                <div className="bg-[#182032] border border-gray-800 rounded-2xl p-4 transition-all">
+                <div
+                  className={`border rounded-2xl p-4 transition-all ${
+                    selectedBlockId === 'progress_bar'
+                      ? 'bg-[#FCFAF7] border-amber-400 ring-2 ring-amber-400/15 shadow-sm'
+                      : 'bg-white hover:bg-stone-50/50 border-[#EAE3D8] shadow-2xs'
+                  }`}
+                >
                   <div
                     onClick={() => toggleBlock('progress_bar')}
                     className="flex items-center justify-between cursor-pointer select-none"
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="text-base">📊</span>
+                      <div className="w-8 h-8 rounded-xl bg-amber-100/80 text-amber-700 flex items-center justify-center font-bold text-sm shrink-0 border border-amber-200/60">
+                        4
+                      </div>
                       <div>
-                        <h4 className="font-bold text-sm text-gray-100">Bar Kemajuan</h4>
-                        <p className="text-[11px] text-gray-400">ON/OFF & 3 gaya animasi (termasuk animasi air)</p>
+                        <h4 className="font-bold text-sm text-stone-900">Bar Kemajuan</h4>
+                        <p className="text-[11px] text-stone-500">ON/OFF & 3 gaya animasi (termasuk animasi air)</p>
                       </div>
                     </div>
-                    <span className="text-xs text-amber-400 font-bold">
+                    <span
+                      className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition ${
+                        selectedBlockId === 'progress_bar'
+                          ? 'bg-amber-100 text-amber-900 border-amber-200'
+                          : 'bg-stone-100 text-stone-600 border-stone-200'
+                      }`}
+                    >
                       {selectedBlockId === 'progress_bar' ? 'Tutup ▲' : 'Ubah ▼'}
                     </span>
                   </div>
 
                   {selectedBlockId === 'progress_bar' && (
-                    <div className="mt-4 pt-3 border-t border-gray-800 space-y-4">
+                    <div className="mt-4 pt-3.5 border-t border-[#EAE3D8] space-y-4">
                       {/* TOGGLE BAR KEMAJUAN ON/OFF */}
-                      <div className="flex items-center justify-between p-3 bg-[#121826] rounded-xl border border-gray-800">
+                      <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-[#E2DAD0]">
                         <div>
-                          <div className="text-xs font-bold text-gray-200">Status Bar Kemajuan</div>
-                          <div className="text-[10px] text-gray-400">Pilih sama ada mahu tunjuk atau sembunyikan bar</div>
+                          <div className="text-xs font-bold text-stone-800">Status Bar Kemajuan</div>
+                          <div className="text-[10px] text-stone-500">Pilih sama ada mahu tunjuk atau sembunyikan bar</div>
                         </div>
                         <button
                           type="button"
                           onClick={() => updateBlock('progress_bar', { visible: !progressBlock.visible })}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                             progressBlock.visible
-                              ? 'bg-emerald-500 text-black shadow-md'
-                              : 'bg-gray-800 text-gray-400 hover:text-white'
+                              ? 'bg-emerald-600 text-white shadow-xs'
+                              : 'bg-stone-200 text-stone-700 hover:bg-stone-300'
                           }`}
                         >
                           {progressBlock.visible ? 'ON (Dipaparkan)' : 'OFF (Sembunyi)'}
@@ -1888,7 +1921,7 @@ export default function CardStudioPage() {
                         <>
                           {/* 3 GAYA BAR KEMAJUAN */}
                           <div>
-                            <label className="block text-xs font-bold text-gray-300 mb-2">
+                            <label className="block text-xs font-bold text-stone-700 mb-2">
                               Pilihan Gaya Bar Kemajuan (3 Pilihan):
                             </label>
                             <div className="grid grid-cols-1 gap-2">
@@ -1901,18 +1934,18 @@ export default function CardStudioPage() {
                                     onClick={() => updateBlock('progress_bar', { progressStyle: pOpt.id })}
                                     className={`p-3 rounded-xl border text-left flex items-center justify-between transition cursor-pointer ${
                                       isSelected
-                                        ? 'bg-amber-500/20 border-amber-500 text-amber-300'
-                                        : 'bg-[#121826] border-gray-800 text-gray-300 hover:border-gray-700'
+                                        ? 'bg-amber-50 border-amber-500 text-amber-900 ring-1 ring-amber-400 font-bold shadow-2xs'
+                                        : 'bg-white border-[#E8E1D5] text-stone-700 hover:border-stone-400 hover:bg-stone-50'
                                     }`}
                                   >
                                     <div className="flex items-center gap-2.5">
                                       <span className="text-lg">{pOpt.icon}</span>
                                       <div>
                                         <div className="text-xs font-bold">{pOpt.name}</div>
-                                        <div className="text-[10px] text-gray-400">{pOpt.desc}</div>
+                                        <div className="text-[10px] text-stone-500">{pOpt.desc}</div>
                                       </div>
                                     </div>
-                                    {isSelected && <span className="text-amber-400 font-bold text-sm">✓</span>}
+                                    {isSelected && <span className="text-amber-700 font-bold text-sm">✓ Dipilih</span>}
                                   </button>
                                 )
                               })}
@@ -1922,8 +1955,8 @@ export default function CardStudioPage() {
                           {/* WARNA BAR */}
                           <div className="grid grid-cols-2 gap-3">
                             <div>
-                              <label className="block text-[11px] font-bold text-gray-400 mb-1">Warna Bar 1:</label>
-                              <div className="flex items-center gap-2 bg-[#121826] p-1.5 rounded-xl border border-gray-800">
+                              <label className="block text-[11px] font-bold text-stone-600 mb-1">Warna Bar 1:</label>
+                              <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-[#E2DAD0]">
                                 <input
                                   type="color"
                                   value={progressBlock.bgColor || '#FF5A45'}
@@ -1934,14 +1967,14 @@ export default function CardStudioPage() {
                                   type="text"
                                   value={progressBlock.bgColor || '#FF5A45'}
                                   onChange={(e) => updateBlock('progress_bar', { bgColor: e.target.value })}
-                                  className="w-full bg-transparent text-white font-mono text-[11px] outline-none"
+                                  className="w-full bg-transparent text-stone-900 font-mono text-[11px] outline-none"
                                 />
                               </div>
                             </div>
 
                             <div>
-                              <label className="block text-[11px] font-bold text-gray-400 mb-1">Warna Bar 2:</label>
-                              <div className="flex items-center gap-2 bg-[#121826] p-1.5 rounded-xl border border-gray-800">
+                              <label className="block text-[11px] font-bold text-stone-600 mb-1">Warna Bar 2:</label>
+                              <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-[#E2DAD0]">
                                 <input
                                   type="color"
                                   value={progressBlock.bgColor2 || '#FFB238'}
@@ -1952,7 +1985,7 @@ export default function CardStudioPage() {
                                   type="text"
                                   value={progressBlock.bgColor2 || '#FFB238'}
                                   onChange={(e) => updateBlock('progress_bar', { bgColor2: e.target.value })}
-                                  className="w-full bg-transparent text-white font-mono text-[11px] outline-none"
+                                  className="w-full bg-transparent text-stone-900 font-mono text-[11px] outline-none"
                                 />
                               </div>
                             </div>
@@ -1967,11 +2000,11 @@ export default function CardStudioPage() {
 
             {/* TAB 2: TEMA DISYORKAN & TEMA WARNA */}
             {activeTab === 'presets' && (
-              <div className="space-y-5">
+              <div className="space-y-4">
                 {/* 1. TEMA DISYORKAN (1-KLIK) */}
                 <div className="space-y-3">
-                  <div className="bg-[#1A2234] p-3.5 rounded-2xl border border-gray-800 text-xs text-gray-300">
-                    🌟 <b>Pilihan Tema Disyorkan:</b> Klik mana-mana tema sedia ada di bawah untuk menukar padanan warna banner, fon seluruh kad, corak motif, dan gaya material kotak secara serentak.
+                  <div className="bg-[#FAF7F2] p-3.5 rounded-2xl border border-[#EDE5DA] text-xs text-stone-600 leading-relaxed">
+                    <b>Pilihan Tema Disyorkan:</b> Klik mana-mana tema sedia ada di bawah untuk menukar padanan warna banner, fon seluruh kad, corak motif, dan gaya material kotak secara serentak.
                   </div>
 
                   <div className="grid grid-cols-1 gap-2.5">
@@ -1980,11 +2013,11 @@ export default function CardStudioPage() {
                         key={p.name}
                         type="button"
                         onClick={() => applyPreset(p)}
-                        className="p-3 bg-[#182032] hover:bg-[#1f2940] border border-gray-800 hover:border-amber-500/50 rounded-2xl text-left transition flex items-center justify-between cursor-pointer group"
+                        className="p-3 bg-white hover:bg-stone-50 border border-[#EAE3D8] hover:border-amber-400 rounded-2xl text-left transition flex items-center justify-between cursor-pointer group shadow-2xs"
                       >
                         <div className="flex items-center gap-3">
                           <div
-                            className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold border border-white/20 shadow-inner shrink-0"
+                            className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold border border-white/40 shadow-xs shrink-0"
                             style={{
                               background: `linear-gradient(135deg, ${p.hero1} 0%, ${p.hero2} 100%)`,
                             }}
@@ -1992,14 +2025,14 @@ export default function CardStudioPage() {
                             {HERO_PATTERN_OPTIONS.find((opt) => opt.id === p.pattern)?.icon || '🎨'}
                           </div>
                           <div>
-                            <div className="font-bold text-xs text-gray-100 group-hover:text-amber-400 transition">
+                            <div className="font-bold text-xs text-stone-900 group-hover:text-amber-800 transition">
                               {p.name}
                             </div>
-                            <div className="text-[10px] text-gray-400 line-clamp-1 mt-0.5">
+                            <div className="text-[10px] text-stone-500 line-clamp-1 mt-0.5">
                               {p.desc}
                             </div>
-                            <div className="text-[9.5px] text-gray-500 mt-0.5">
-                              Kad: <span className="text-gray-300 font-semibold">{CARD_STYLE_OPTIONS.find((s) => s.id === p.cardStyle)?.name || 'Kertas'}</span> • Fon: <span className="text-gray-300 font-semibold">{STORE_FONT_OPTIONS.find((f) => f.id === p.fontId)?.name || 'Fraunces'}</span>
+                            <div className="text-[9.5px] text-stone-400 mt-0.5">
+                              Kad: <span className="text-stone-700 font-semibold">{CARD_STYLE_OPTIONS.find((s) => s.id === p.cardStyle)?.name || 'Kertas'}</span> • Fon: <span className="text-stone-700 font-semibold">{STORE_FONT_OPTIONS.find((f) => f.id === p.fontId)?.name || 'Fraunces'}</span>
                             </div>
                           </div>
                         </div>
@@ -2007,11 +2040,11 @@ export default function CardStudioPage() {
                         {/* SWATCHES */}
                         <div className="flex flex-col items-end gap-1.5 shrink-0 pl-2">
                           <div className="flex gap-1">
-                            <div className="w-3.5 h-3.5 rounded-full border border-gray-700" style={{ backgroundColor: p.hero1 }} />
-                            <div className="w-3.5 h-3.5 rounded-full border border-gray-700" style={{ backgroundColor: p.hero2 }} />
-                            <div className="w-3.5 h-3.5 rounded-full border border-gray-700" style={{ backgroundColor: p.progressFill1 }} />
+                            <div className="w-3.5 h-3.5 rounded-full border border-stone-200 shadow-2xs" style={{ backgroundColor: p.hero1 }} />
+                            <div className="w-3.5 h-3.5 rounded-full border border-stone-200 shadow-2xs" style={{ backgroundColor: p.hero2 }} />
+                            <div className="w-3.5 h-3.5 rounded-full border border-stone-200 shadow-2xs" style={{ backgroundColor: p.progressFill1 }} />
                           </div>
-                          <span className="text-[9px] bg-gray-800 text-gray-400 group-hover:bg-amber-500 group-hover:text-black font-bold px-2 py-0.5 rounded-full transition">
+                          <span className="text-[9px] bg-stone-100 text-stone-700 group-hover:bg-amber-500 group-hover:text-white font-bold px-2 py-0.5 rounded-full transition border border-stone-200">
                             Guna Tema →
                           </span>
                         </div>
@@ -2021,16 +2054,16 @@ export default function CardStudioPage() {
                 </div>
 
                 {/* 2. PENYESUAIAN TEMA WARNA HALAMAN */}
-                <div className="bg-[#182032] border border-gray-800 rounded-2xl p-4 space-y-4">
+                <div className="bg-[#FCFAF7] border border-[#EAE3D8] rounded-2xl p-4 space-y-4 shadow-2xs">
                   <div>
-                    <h4 className="font-bold text-sm text-gray-100">🎨 Penyesuaian Tema Warna Halaman</h4>
-                    <p className="text-[11px] text-gray-400">Sesuaikan warna latar belakang dan bintik halaman</p>
+                    <h4 className="font-bold text-sm text-stone-900">Penyesuaian Tema Warna Halaman</h4>
+                    <p className="text-[11px] text-stone-500">Sesuaikan warna latar belakang dan bintik halaman</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[11px] font-bold text-gray-400 mb-1">Warna Latar Belakang:</label>
-                      <div className="flex items-center gap-2 bg-[#121826] p-1.5 rounded-xl border border-gray-800">
+                      <label className="block text-[11px] font-bold text-stone-600 mb-1">Warna Latar Belakang:</label>
+                      <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-[#E2DAD0]">
                         <input
                           type="color"
                           value={config.pageBgColor || '#FFF7EA'}
@@ -2041,19 +2074,19 @@ export default function CardStudioPage() {
                           type="text"
                           value={config.pageBgColor || '#FFF7EA'}
                           onChange={(e) => saveConfig({ ...config, pageBgColor: e.target.value })}
-                          className="w-full bg-transparent text-white font-mono text-[11px] outline-none"
+                          className="w-full bg-transparent text-stone-900 font-mono text-[11px] outline-none"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-gray-400 mb-1">Warna Bintik Latar:</label>
-                      <div className="flex items-center gap-2 bg-[#121826] p-1.5 rounded-xl border border-gray-800">
+                      <label className="block text-[11px] font-bold text-stone-600 mb-1">Warna Bintik Latar:</label>
+                      <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-[#E2DAD0]">
                         <input
                           type="text"
                           value={config.pageDotColor || 'rgba(43,27,18,0.055)'}
                           onChange={(e) => saveConfig({ ...config, pageDotColor: e.target.value })}
-                          className="w-full bg-transparent text-white font-mono text-[11px] outline-none px-1"
+                          className="w-full bg-transparent text-stone-900 font-mono text-[11px] outline-none px-1"
                           placeholder="rgba(...)"
                         />
                       </div>
@@ -2062,7 +2095,7 @@ export default function CardStudioPage() {
 
                   {/* PALET WARNA PANTAS */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-300 mb-2">Palet Warna Pantas:</label>
+                    <label className="block text-xs font-bold text-stone-700 mb-2">Palet Warna Pantas:</label>
                     <div className="grid grid-cols-3 gap-2">
                       {[
                         { label: 'Warm Cream', bg: '#FFF7EA', dot: 'rgba(43,27,18,0.055)' },
@@ -2076,10 +2109,10 @@ export default function CardStudioPage() {
                           key={pal.label}
                           type="button"
                           onClick={() => saveConfig({ ...config, pageBgColor: pal.bg, pageDotColor: pal.dot })}
-                          className="p-2 rounded-xl border border-gray-800 hover:border-amber-500 bg-[#121826] flex items-center gap-2 transition cursor-pointer text-left"
+                          className="p-2 rounded-xl border border-[#EAE3D8] hover:border-amber-500 bg-white flex items-center gap-2 transition cursor-pointer text-left shadow-2xs"
                         >
-                          <div className="w-4 h-4 rounded-full border border-gray-600 shrink-0" style={{ backgroundColor: pal.bg }} />
-                          <span className="text-[10.5px] font-bold text-gray-300 truncate">{pal.label}</span>
+                          <div className="w-4 h-4 rounded-full border border-stone-300 shrink-0" style={{ backgroundColor: pal.bg }} />
+                          <span className="text-[10.5px] font-bold text-stone-800 truncate">{pal.label}</span>
                         </button>
                       ))}
                     </div>
@@ -2091,71 +2124,73 @@ export default function CardStudioPage() {
             {/* TAB 3: SIMULATE STAMPS */}
             {activeTab === 'simulate' && (
               <div className="space-y-4">
-                <div className="bg-[#1A2234] p-3.5 rounded-2xl border border-gray-800 text-xs text-gray-300">
-                  🧪 <b>Simulator Cop:</b> Uji rupa paras kad pelanggan apabila menerima cop bertambah atau penuh.
+                <div className="bg-[#FAF7F2] p-3.5 rounded-2xl border border-[#EDE5DA] text-xs text-stone-600 leading-relaxed">
+                  <b>Simulator Cop:</b> Uji rupa paras kad pelanggan apabila menerima cop bertambah atau penuh.
                 </div>
 
-                <div>
-                  <div className="flex justify-between text-gray-300 text-xs font-semibold mb-1.5">
-                    <span>Bilangan Cop Semasa (Simulasi):</span>
-                    <span className="text-amber-400 font-bold font-mono text-sm">{config.simulatedStamps} / {config.stampsRequired}</span>
+                <div className="bg-white border border-[#EAE3D8] p-4 rounded-2xl space-y-4 shadow-2xs">
+                  <div>
+                    <div className="flex justify-between text-stone-700 text-xs font-semibold mb-1.5">
+                      <span>Bilangan Cop Semasa (Simulasi):</span>
+                      <span className="text-amber-700 font-bold font-mono text-sm">{config.simulatedStamps} / {config.stampsRequired}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max={config.stampsRequired}
+                      value={config.simulatedStamps}
+                      onChange={(e) => saveConfig({ ...config, simulatedStamps: Number(e.target.value) })}
+                      className="w-full accent-amber-500 cursor-pointer"
+                    />
                   </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max={config.stampsRequired}
-                    value={config.simulatedStamps}
-                    onChange={(e) => saveConfig({ ...config, simulatedStamps: Number(e.target.value) })}
-                    className="w-full accent-amber-500 cursor-pointer"
-                  />
-                </div>
 
-                <div>
-                  <label className="block text-gray-400 text-xs font-semibold mb-1.5">
-                    Sasaran Cop Diperlukan:
-                  </label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {[5, 8, 10, 12].map((num) => (
-                      <button
-                        key={num}
-                        type="button"
-                        onClick={() =>
-                          saveConfig({
-                            ...config,
-                            stampsRequired: num,
-                            simulatedStamps: Math.min(config.simulatedStamps, num),
-                          })
-                        }
-                        className={`py-2 text-xs font-bold rounded-xl border transition cursor-pointer ${
-                          config.stampsRequired === num
-                            ? 'bg-amber-500 text-black border-amber-400'
-                            : 'bg-gray-900 border-gray-700 text-gray-300 hover:bg-gray-800'
-                        }`}
-                      >
-                        {num} Cop
-                      </button>
-                    ))}
+                  <div>
+                    <label className="block text-stone-700 text-xs font-semibold mb-1.5">
+                      Sasaran Cop Diperlukan:
+                    </label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[5, 8, 10, 12].map((num) => (
+                        <button
+                          key={num}
+                          type="button"
+                          onClick={() =>
+                            saveConfig({
+                              ...config,
+                              stampsRequired: num,
+                              simulatedStamps: Math.min(config.simulatedStamps, num),
+                            })
+                          }
+                          className={`py-2 text-xs font-bold rounded-xl border transition cursor-pointer ${
+                            config.stampsRequired === num
+                              ? 'bg-amber-500 text-white border-amber-500 shadow-2xs'
+                              : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
+                          }`}
+                        >
+                          {num} Cop
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                <div className="p-3 bg-gray-900/80 rounded-xl border border-gray-800 text-xs space-y-1 text-gray-300">
-                  <div>Status: <b>{isFull ? '🎉 KAD PENUH' : '⚡ SEDANG DIISI'}</b></div>
-                  <div>Baki: <b>{remainStamps} cop</b> lagi untuk ganjaran.</div>
+                  <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EDE5DA] text-xs space-y-1 text-stone-700">
+                    <div>Status: <b className="text-stone-900">{isFull ? 'Kad Penuh' : 'Sedang Diisi'}</b></div>
+                    <div>Baki: <b className="text-amber-700">{remainStamps} cop</b> lagi untuk ganjaran.</div>
+                  </div>
                 </div>
               </div>
             )}
           </div>
         </aside>
 
-        {/* RIGHT PANEL: LIVE EXACT PHONE MOCKUP (DISPLAY PREVIEW ONLY) */}
-        <main className="flex-1 bg-[#090D16] p-4 sm:p-6 lg:p-8 flex flex-col items-center justify-center overflow-y-auto">
-          <div className="mb-3 flex items-center gap-2 bg-[#121826] px-3.5 py-1.5 rounded-full border border-gray-800 text-[11px] text-gray-400 font-semibold shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+        {/* RIGHT PANEL: LIVE EXACT PHONE MOCKUP (WARM SOOTHING DESK ATMOSPHERE) */}
+        <main className="flex-1 bg-gradient-to-b from-[#F7F4EE] via-[#EFEBE2] to-[#E9E4D9] p-4 sm:p-6 lg:p-8 flex flex-col items-center justify-center overflow-y-auto">
+          <div className="mb-3.5 flex items-center gap-2 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full border border-[#E2DAD0] text-[11px] text-stone-600 font-semibold shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>Paparan Visual Rupa Paras (Butang Dinyahaktifkan)</span>
           </div>
 
           <div
-            className="w-full max-w-[420px] rounded-[44px] shadow-2xl overflow-hidden border-[10px] border-[#252A36] relative flex flex-col pointer-events-none select-none"
+            className="w-full max-w-[420px] rounded-[44px] shadow-2xl shadow-stone-800/15 overflow-hidden border-[10px] border-[#1E2533] relative flex flex-col pointer-events-none select-none"
             style={{
               backgroundColor: config.pageBgColor || '#FFF7EA',
               backgroundImage: `radial-gradient(circle at 1px 1px, ${config.pageDotColor || 'rgba(43,27,18,0.055)'} 1px, transparent 1px)`,
@@ -2164,7 +2199,7 @@ export default function CardStudioPage() {
             }}
           >
             {/* ISLAND / NOTCH */}
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-28 h-4 bg-[#252A36] rounded-full z-40" />
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-28 h-4 bg-[#1E2533] rounded-full z-40" />
 
             {/* LIVE CARD DOM CONTAINER (DYNAMIC FULL-PAGE TYPOGRAPHY - DISPLAY ONLY) */}
             <div
