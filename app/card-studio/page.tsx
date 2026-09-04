@@ -1065,9 +1065,9 @@ export default function CardStudioPage() {
         .card-app {
           font-family: 'Plus Jakarta Sans', sans-serif !important;
           width: 100%;
-          max-width: 420px;
+          max-width: 350px;
           margin: 0 auto;
-          padding-bottom: 14px;
+          padding-bottom: 6px;
           pointer-events: none !important;
         }
 
@@ -1100,7 +1100,7 @@ export default function CardStudioPage() {
         .hero {
           position: relative;
           overflow: hidden;
-          padding: 16px 16px 26px;
+          padding: 10px 12px 14px;
         }
         .hero-inner {
           position: relative;
@@ -1111,7 +1111,7 @@ export default function CardStudioPage() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 18px;
+          margin-bottom: 8px;
         }
 
         .lang-toggle {
@@ -1121,15 +1121,15 @@ export default function CardStudioPage() {
           background: var(--panel-hero);
           border: 1px solid var(--panel-hero-border);
           border-radius: var(--r-full);
-          padding: 3px;
+          padding: 2px;
         }
         .lang-toggle button {
           border: none;
           background: transparent;
           color: var(--muted-on-hero);
           font-weight: 700;
-          font-size: 11.5px;
-          padding: 6px 12px;
+          font-size: 10.5px;
+          padding: 4px 9px;
           border-radius: var(--r-full);
           transition: .15s;
         }
@@ -1141,11 +1141,11 @@ export default function CardStudioPage() {
         .top-actions {
           display: flex;
           align-items: center;
-          gap: 7px;
+          gap: 5px;
         }
         .icon-btn {
-          width: 33px;
-          height: 33px;
+          width: 28px;
+          height: 28px;
           border-radius: 50%;
           border: 1px solid var(--panel-hero-border);
           background: var(--panel-hero);
@@ -1162,8 +1162,8 @@ export default function CardStudioPage() {
           color: #FFEBC2;
         }
         .icon-btn svg {
-          width: 15px;
-          height: 15px;
+          width: 13px;
+          height: 13px;
         }
 
         .profile {
@@ -1173,35 +1173,35 @@ export default function CardStudioPage() {
           text-align: center;
         }
         .avatar {
-          width: 76px;
-          height: 76px;
+          width: 58px;
+          height: 58px;
           border-radius: 50%;
           background: #fff;
           color: var(--coral-deep);
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 29px;
+          font-size: 22px;
           font-weight: 700;
-          box-shadow: 0 10px 22px rgba(0,0,0,0.18);
-          border: 3px solid rgba(255,255,255,0.55);
-          margin-bottom: 10px;
+          box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+          border: 2.5px solid rgba(255,255,255,0.55);
+          margin-bottom: 6px;
           overflow: hidden;
         }
 
         .store-name {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 5px;
           justify-content: center;
           font-weight: 700;
-          font-size: 20px;
+          font-size: 16.5px;
           color: #fff;
           line-height: 1.2;
         }
         .verified-badge {
-          width: 17px;
-          height: 17px;
+          width: 15px;
+          height: 15px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -1210,14 +1210,14 @@ export default function CardStudioPage() {
 
         .socials {
           display: flex;
-          gap: 7px;
+          gap: 5px;
           justify-content: center;
-          margin-top: 9px;
+          margin-top: 5px;
           flex-wrap: wrap;
         }
         .social-btn {
-          width: 26px;
-          height: 26px;
+          width: 23px;
+          height: 23px;
           border-radius: 50%;
           background: var(--panel-hero);
           border: 1px solid var(--panel-hero-border);
@@ -1231,40 +1231,40 @@ export default function CardStudioPage() {
 
         .pill-row {
           display: flex;
-          gap: 8px;
+          gap: 5px;
           justify-content: center;
           align-items: center;
-          margin-top: 16px;
+          margin-top: 8px;
           flex-wrap: wrap;
         }
         .pill-btn {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          gap: 6px;
+          gap: 4px;
           border: 1px solid var(--border-warm);
           background: #ffffff;
           color: var(--ink-strong);
-          border-radius: 12px;
-          padding: 8px 13px;
-          font-size: 11.5px;
+          border-radius: 9px;
+          padding: 4.5px 8.5px;
+          font-size: 10.5px;
           font-weight: 700;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+          box-shadow: 0 2px 6px rgba(0,0,0,0.05);
           white-space: nowrap;
         }
         .pill-btn svg {
-          width: 13px;
-          height: 13px;
+          width: 11px;
+          height: 11px;
           color: var(--coral);
         }
 
         .card-content {
-          padding: 18px 16px 0;
+          padding: 8px 10px 0;
         }
 
         .stamp-card {
           border-radius: var(--r-lg);
-          padding: 24px 18px 20px;
+          padding: 13px 11px 11px;
           color: var(--ink);
           border: 1px solid var(--border-warm);
           box-sizing: border-box;
@@ -1273,38 +1273,38 @@ export default function CardStudioPage() {
 
         .stamp-card-head {
           text-align: center;
-          margin-bottom: 6px;
+          margin-bottom: 3px;
         }
         .stamp-card-head .label {
-          font-size: 11px;
+          font-size: 10px;
           letter-spacing: 0.04em;
           color: var(--teal);
           font-weight: 800;
-          margin-bottom: 2px;
+          margin-bottom: 1px;
           text-transform: uppercase;
         }
         .stamp-card-head .count {
           font-weight: 700;
-          font-size: 36px;
+          font-size: 27px;
           color: var(--coral);
           line-height: 1;
         }
         .stamp-card-head .count small {
-          font-size: 15px;
+          font-size: 13px;
           color: var(--muted);
           font-weight: 600;
         }
 
         .perforation {
           display: flex;
-          gap: 5px;
+          gap: 4px;
           justify-content: center;
-          margin: 12px 0 16px;
+          margin: 6px 0 8px;
           opacity: 0.5;
         }
         .perforation span {
-          width: 4px;
-          height: 4px;
+          width: 3.5px;
+          height: 3.5px;
           border-radius: 50%;
           background: var(--border-warm);
         }
@@ -1312,8 +1312,8 @@ export default function CardStudioPage() {
         .stamp-grid {
           display: grid;
           grid-template-columns: repeat(5, 1fr);
-          gap: 10px;
-          margin-bottom: 16px;
+          gap: 6px;
+          margin-bottom: 8px;
         }
 
         .stamp {
@@ -1327,15 +1327,15 @@ export default function CardStudioPage() {
           transition: transform .15s, filter .15s;
         }
         .stamp.empty {
-          border: 2px dashed var(--border-warm);
+          border: 1.5px dashed var(--border-warm);
           background: rgba(255,178,56,0.07);
           color: #D8B98C;
           font-weight: 700;
-          font-size: 11px;
+          font-size: 10px;
         }
         .stamp.filled {
           background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.4), transparent 55%), linear-gradient(145deg, var(--coral), var(--coral-deep));
-          box-shadow: 0 5px 12px rgba(255,90,69,0.4);
+          box-shadow: 0 4px 10px rgba(255,90,69,0.35);
         }
 
         .progress-bar {
@@ -1350,11 +1350,11 @@ export default function CardStudioPage() {
 
         .status-text {
           text-align: center;
-          font-size: 12.5px;
+          font-size: 11px;
           color: var(--ink);
           font-weight: 700;
-          margin-top: 14px;
-          line-height: 1.35;
+          margin-top: 6px;
+          line-height: 1.3;
         }
         .status-text b {
           color: var(--coral-deep);
@@ -1364,12 +1364,12 @@ export default function CardStudioPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 7px;
-          margin-top: 16px;
+          gap: 6px;
+          margin-top: 7px;
         }
         .dot {
-          width: 8px;
-          height: 8px;
+          width: 6.5px;
+          height: 6.5px;
           padding: 0;
           border: none;
           border-radius: var(--r-full);
@@ -1382,30 +1382,30 @@ export default function CardStudioPage() {
           opacity: 0.55;
         }
         .dot.active {
-          width: 24px;
+          width: 20px;
           background: var(--coral);
           opacity: 1;
         }
 
         .updated-text {
           text-align: center;
-          margin-top: 12px;
-          font-size: 10.5px;
+          margin-top: 7px;
+          font-size: 9.5px;
           color: var(--muted);
           font-weight: 600;
         }
 
         .card-footer {
           text-align: center;
-          margin-top: 26px;
+          margin-top: 10px;
         }
         .footer-brand {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 6px;
-          font-size: 12px;
-          margin-bottom: 7px;
+          gap: 5px;
+          font-size: 11px;
+          margin-bottom: 2px;
           font-weight: 800;
           color: var(--ink);
         }
@@ -1413,8 +1413,8 @@ export default function CardStudioPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
-          font-size: 10.5px;
+          gap: 6px;
+          font-size: 9.5px;
           color: var(--muted);
         }
         .footer-links .dot-sep {
@@ -2247,9 +2247,9 @@ export default function CardStudioPage() {
             </button>
           </div>
 
-          {/* REALISTIC PHONE MOCKUP - FIXED NATURAL PROPORTIONS ACROSS ALL SCREENS */}
+          {/* REALISTIC COMPACT PHONE MOCKUP - FIXED NATURAL PROPORTIONS ACROSS ALL SCREENS */}
           <div
-            className="w-full max-w-[380px] rounded-[38px] sm:rounded-[42px] shadow-2xl shadow-stone-900/15 overflow-hidden border-[8px] sm:border-[10px] border-[#1E2533] relative flex flex-col pointer-events-none select-none my-auto shrink-0"
+            className="w-full max-w-[350px] rounded-[34px] sm:rounded-[38px] shadow-2xl shadow-stone-900/15 overflow-hidden border-[7px] sm:border-[8px] border-[#1E2533] relative flex flex-col pointer-events-none select-none my-auto shrink-0"
             style={{
               backgroundColor: config.pageBgColor || '#FFF7EA',
               backgroundImage: `radial-gradient(circle at 1px 1px, ${config.pageDotColor || 'rgba(43,27,18,0.055)'} 1px, transparent 1px)`,
@@ -2257,11 +2257,11 @@ export default function CardStudioPage() {
             }}
           >
             {/* ISLAND / NOTCH */}
-            <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-24 h-3.5 bg-[#1E2533] rounded-full z-40 pointer-events-none" />
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-20 h-3 bg-[#1E2533] rounded-full z-40 pointer-events-none" />
 
             {/* LIVE CARD DOM CONTAINER (DYNAMIC FULL-PAGE TYPOGRAPHY - DISPLAY ONLY) */}
             <div
-              className="card-app pt-5 pointer-events-none select-none"
+              className="card-app pt-3.5 pointer-events-none select-none"
               style={{
                 '--store-font': currentFontFamily,
                 '--card-font': currentFontFamily,
