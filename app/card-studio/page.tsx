@@ -118,6 +118,138 @@ export const STORE_FONT_OPTIONS: FontOption[] = [
   },
 ]
 
+export interface CardStyleOption {
+  id: 'kertas' | 'kaca' | 'batu' | 'besi' | 'kayu' | 'air'
+  name: string
+  icon: string
+  desc: string
+  badge: string
+  defaultBg: string
+  defaultBorder: string
+}
+
+export const CARD_STYLE_OPTIONS: CardStyleOption[] = [
+  {
+    id: 'kertas',
+    name: 'Kertas',
+    icon: '📜',
+    desc: 'Kertas kraf & kadstock klasik',
+    badge: 'Klasik',
+    defaultBg: '#FFFDF8',
+    defaultBorder: '#F0DEC0',
+  },
+  {
+    id: 'kaca',
+    name: 'Kaca',
+    icon: '🪟',
+    desc: 'Frosted glassmorphism lutsinar',
+    badge: 'Moden',
+    defaultBg: 'rgba(255, 255, 255, 0.82)',
+    defaultBorder: 'rgba(255, 255, 255, 0.85)',
+  },
+  {
+    id: 'batu',
+    name: 'Batu',
+    icon: '🪨',
+    desc: 'Batu marmar & urat slate padu',
+    badge: 'Mewah',
+    defaultBg: '#F1F5F9',
+    defaultBorder: '#94A3B8',
+  },
+  {
+    id: 'besi',
+    name: 'Besi',
+    icon: '⚙️',
+    desc: 'Keluli berkilat & skru industri',
+    badge: 'Industri',
+    defaultBg: '#E2E8F0',
+    defaultBorder: '#94A3B8',
+  },
+  {
+    id: 'kayu',
+    name: 'Kayu',
+    icon: '🪵',
+    desc: 'Papan kayu oak & urat timber asli',
+    badge: 'Rustik',
+    defaultBg: '#F3DEB8',
+    defaultBorder: '#B8864E',
+  },
+  {
+    id: 'air',
+    name: 'Air',
+    icon: '💧',
+    desc: 'Riak air biru kristal & buih segar',
+    badge: 'Segar',
+    defaultBg: '#E0F7FA',
+    defaultBorder: '#4DD0E1',
+  },
+]
+
+export function CardBoxMaterialTexture({ cardStyle = 'kertas' }: { cardStyle?: string }) {
+  switch (cardStyle) {
+    case 'kaca':
+      return (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[inherit] select-none">
+          <div className="absolute -top-12 -left-12 w-48 h-32 bg-white/40 rotate-12 blur-xl" />
+          <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
+          <div className="absolute bottom-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+        </div>
+      )
+    case 'batu':
+      return (
+        <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none rounded-[inherit] select-none" viewBox="0 0 400 400" preserveAspectRatio="none">
+          <path d="M-20 80 Q120 40 220 110 T420 70" fill="none" stroke="#475569" strokeWidth="2" strokeDasharray="6 3" opacity="0.6" />
+          <path d="M-10 240 Q140 180 260 270 T430 200" fill="none" stroke="#334155" strokeWidth="1.8" strokeDasharray="8 4" opacity="0.5" />
+          <path d="M60 -20 Q180 160 340 380" fill="none" stroke="#64748B" strokeWidth="1.5" opacity="0.4" />
+        </svg>
+      )
+    case 'besi':
+      return (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[inherit] select-none">
+          <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-black/10" />
+          <div className="absolute top-2.5 left-2.5 w-2.5 h-2.5 rounded-full bg-slate-400 border border-slate-600 shadow-inner flex items-center justify-center">
+            <div className="w-1.5 h-0.5 bg-slate-700" />
+          </div>
+          <div className="absolute top-2.5 right-2.5 w-2.5 h-2.5 rounded-full bg-slate-400 border border-slate-600 shadow-inner flex items-center justify-center">
+            <div className="w-1.5 h-0.5 bg-slate-700 rotate-90" />
+          </div>
+          <div className="absolute bottom-2.5 left-2.5 w-2.5 h-2.5 rounded-full bg-slate-400 border border-slate-600 shadow-inner flex items-center justify-center">
+            <div className="w-1.5 h-0.5 bg-slate-700 rotate-45" />
+          </div>
+          <div className="absolute bottom-2.5 right-2.5 w-2.5 h-2.5 rounded-full bg-slate-400 border border-slate-600 shadow-inner flex items-center justify-center">
+            <div className="w-1.5 h-0.5 bg-slate-700 -rotate-45" />
+          </div>
+        </div>
+      )
+    case 'kayu':
+      return (
+        <svg className="absolute inset-0 w-full h-full opacity-25 pointer-events-none rounded-[inherit] select-none" viewBox="0 0 400 400" preserveAspectRatio="none">
+          <path d="M0 45 Q200 40 400 48 M0 95 Q180 110 400 90 M0 150 Q220 135 400 155 M0 210 Q190 225 400 205 M0 270 Q210 260 400 275 M0 330 Q180 345 400 325" fill="none" stroke="#6D4018" strokeWidth="2.5" opacity="0.65" />
+          <ellipse cx="310" cy="180" rx="14" ry="7" fill="none" stroke="#6D4018" strokeWidth="2" opacity="0.7" />
+          <ellipse cx="80" cy="290" rx="10" ry="5" fill="none" stroke="#6D4018" strokeWidth="1.8" opacity="0.6" />
+        </svg>
+      )
+    case 'air':
+      return (
+        <svg className="absolute inset-0 w-full h-full opacity-35 pointer-events-none rounded-[inherit] select-none" viewBox="0 0 400 400" preserveAspectRatio="none">
+          <path d="M0 120 Q120 150 240 120 T400 120" fill="none" stroke="#FFFFFF" strokeWidth="2.5" opacity="0.7" />
+          <path d="M0 240 Q130 210 260 240 T400 240" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity="0.6" />
+          <circle cx="60" cy="90" r="6" fill="rgba(255,255,255,0.8)" stroke="#00ACC1" strokeWidth="1" />
+          <circle cx="330" cy="70" r="8" fill="rgba(255,255,255,0.75)" stroke="#00ACC1" strokeWidth="1.2" />
+          <circle cx="280" cy="280" r="5" fill="rgba(255,255,255,0.8)" stroke="#00ACC1" strokeWidth="1" />
+          <circle cx="80" cy="310" r="7" fill="rgba(255,255,255,0.7)" stroke="#00ACC1" strokeWidth="1" />
+        </svg>
+      )
+    case 'kertas':
+    default:
+      return (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[inherit] select-none opacity-40">
+          <div className="absolute inset-0 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px] opacity-5" />
+        </div>
+      )
+  }
+}
+
 export function HeroHeaderPattern({
   pattern = 'bubbles',
   opacity = 0.2,
@@ -433,6 +565,7 @@ export interface EditableBlockConfig {
   imageUrl: string
   showLogo?: boolean
   fontId?: string
+  cardStyle?: 'kertas' | 'kaca' | 'batu' | 'besi' | 'kayu' | 'air'
   title: string
   subtitle: string
   extraText?: string
@@ -493,7 +626,7 @@ export const DEFAULT_4_BLOCKS: EditableBlockConfig[] = [
   },
   {
     id: 'stamp_card_box',
-    name: '3. Kotak Kad Cop (Latar Belakang & Bingkai Kad)',
+    name: '3. Kotak Kad Cop (Latar Belakang & Gaya Material Kad)',
     icon: '🃏',
     visible: true,
     bgColor: '#FFFDF8',
@@ -502,8 +635,9 @@ export const DEFAULT_4_BLOCKS: EditableBlockConfig[] = [
     borderRadius: 28,
     shadowStyle: 'soft',
     imageUrl: '',
+    cardStyle: 'kertas',
     title: 'Kad Cop Digital',
-    subtitle: 'Warna latar, warna garisan bingkai & lengkungan kad',
+    subtitle: '6 gaya material: Kertas, Kaca, Batu, Besi, Kayu & Air',
   },
   {
     id: 'progress_bar',
@@ -541,6 +675,7 @@ export const LIVE_PRESETS = [
     name: 'Warm Sunset (Asal LajuS)',
     pattern: 'bubbles',
     fontId: 'fraunces',
+    cardStyle: 'kertas' as const,
     pageBg: '#FFF7EA',
     pageDot: 'rgba(43,27,18,0.055)',
     hero1: '#FF7A45',
@@ -555,12 +690,13 @@ export const LIVE_PRESETS = [
     name: 'Royal Emerald (Cafe & Kopi)',
     pattern: 'air_cup',
     fontId: 'playfair',
+    cardStyle: 'kaca' as const,
     pageBg: '#F0F9F5',
     pageDot: 'rgba(15,92,76,0.06)',
     hero1: '#0F5C4C',
     hero2: '#1FA96B',
-    stampBg: '#FFFFFF',
-    stampBorder: '#C8E6C9',
+    stampBg: 'rgba(255, 255, 255, 0.82)',
+    stampBorder: 'rgba(255, 255, 255, 0.85)',
     progressTrack: '#E0F2F1',
     progressFill1: '#1C7A67',
     progressFill2: '#2EB88A',
@@ -569,12 +705,13 @@ export const LIVE_PRESETS = [
     name: 'Golden Luxury (Bakeri & Kek)',
     pattern: 'kek',
     fontId: 'cinzel',
+    cardStyle: 'kayu' as const,
     pageBg: '#FFF9ED',
     pageDot: 'rgba(140,83,17,0.06)',
     hero1: '#A86208',
     hero2: '#FFC24D',
-    stampBg: '#FFFDF8',
-    stampBorder: '#F5DEB3',
+    stampBg: '#F3DEB8',
+    stampBorder: '#B8864E',
     progressTrack: '#FCE7C8',
     progressFill1: '#E8901B',
     progressFill2: '#FFD54F',
@@ -583,6 +720,7 @@ export const LIVE_PRESETS = [
     name: 'Sweet Berry (Pastri & Dessert)',
     pattern: 'roti_manisan',
     fontId: 'quicksand',
+    cardStyle: 'kertas' as const,
     pageBg: '#FFF0F5',
     pageDot: 'rgba(184,46,90,0.06)',
     hero1: '#C2185B',
@@ -597,12 +735,13 @@ export const LIVE_PRESETS = [
     name: 'Ocean Blue (Carwash & Servis)',
     pattern: 'kereta',
     fontId: 'bebas',
+    cardStyle: 'air' as const,
     pageBg: '#F0F8FF',
     pageDot: 'rgba(21,101,192,0.06)',
     hero1: '#1565C0',
     hero2: '#42A5F5',
-    stampBg: '#FFFFFF',
-    stampBorder: '#BBDEFB',
+    stampBg: '#E0F7FA',
+    stampBorder: '#4DD0E1',
     progressTrack: '#E3F2FD',
     progressFill1: '#1E88E5',
     progressFill2: '#64B5F6',
@@ -611,12 +750,13 @@ export const LIVE_PRESETS = [
     name: 'Dark Velvet (Barber & Salon)',
     pattern: 'salon',
     fontId: 'montserrat',
+    cardStyle: 'besi' as const,
     pageBg: '#18181B',
     pageDot: 'rgba(255,255,255,0.05)',
     hero1: '#27272A',
     hero2: '#52525B',
-    stampBg: '#202023',
-    stampBorder: '#3F3F46',
+    stampBg: '#E2E8F0',
+    stampBorder: '#94A3B8',
     progressTrack: '#333338',
     progressFill1: '#F59E0B',
     progressFill2: '#FBBF24',
@@ -654,6 +794,9 @@ export function sanitizeLiveConfig(data: any): LiveStudioConfig {
       imageUrl: typeof found.imageUrl === 'string' ? found.imageUrl : def.imageUrl,
       showLogo: typeof found.showLogo === 'boolean' ? found.showLogo : def.showLogo ?? true,
       fontId: typeof found.fontId === 'string' ? found.fontId : def.fontId || 'fraunces',
+      cardStyle: ['kertas', 'kaca', 'batu', 'besi', 'kayu', 'air'].includes(found.cardStyle)
+        ? found.cardStyle
+        : def.cardStyle || 'kertas',
       title: typeof found.title === 'string' ? found.title : def.title,
       subtitle: typeof found.subtitle === 'string' ? found.subtitle : def.subtitle,
       extraText: typeof found.extraText === 'string' ? found.extraText : def.extraText,
@@ -713,7 +856,7 @@ function renderLiveSocialIcon(platform: string) {
 export default function CardStudioPage() {
   const [config, setConfig] = useState<LiveStudioConfig>(DEFAULT_LIVE_STUDIO_CONFIG)
   const [activeTab, setActiveTab] = useState<'blocks' | 'settings' | 'simulate'>('blocks')
-  const [expandedBlockId, setExpandedBlockId] = useState<EditableBlockId | null>('store_profile')
+  const [expandedBlockId, setExpandedBlockId] = useState<EditableBlockId | null>('stamp_card_box')
   const [savedSuccess, setSavedSuccess] = useState<boolean>(false)
 
   // Simulation & Modal States
@@ -773,6 +916,7 @@ export default function CardStudioPage() {
         if (b.id === 'stamp_card_box') {
           return {
             ...b,
+            cardStyle: p.cardStyle || 'kertas',
             bgColor: p.stampBg,
             borderColor: p.stampBorder,
           }
@@ -924,7 +1068,7 @@ export default function CardStudioPage() {
             {activeTab === 'blocks' && (
               <div className="space-y-3">
                 <div className="bg-[#1F2937] p-3 rounded-xl border border-gray-800 text-xs text-gray-300">
-                  💡 <b className="text-amber-400">4 Bahagian Utama:</b> Ubah warna gradient, corak motif watermark, logo on/off, fon nama kedai, bingkai kad dan bar kemajuan.
+                  💡 <b className="text-amber-400">4 Bahagian Utama:</b> Ubah warna gradient, corak motif watermark, logo on/off, fon nama kedai, gaya material kad (kertas/kaca/batu/besi/kayu/air) dan bar kemajuan.
                 </div>
 
                 {/* 1. HERO HEADER */}
@@ -1270,21 +1414,67 @@ export default function CardStudioPage() {
                       <span className="text-lg">🃏</span>
                       <div>
                         <div className="font-bold">3. Kotak Kad Cop</div>
-                        <div className="text-[11px] font-normal text-gray-400">Latar kad, garisan bingkai & kelengkungan</div>
+                        <div className="text-[11px] font-normal text-gray-400">6 gaya material: Kertas, Kaca, Batu, Besi, Kayu & Air</div>
                       </div>
                     </div>
                     <span className="text-xs text-gray-400">{expandedBlockId === 'stamp_card_box' ? '▲' : '▼'}</span>
                   </button>
 
                   {expandedBlockId === 'stamp_card_box' && (
-                    <div className="p-4 border-t border-gray-800/80 bg-black/20 space-y-3 text-xs">
-                      <div className="grid grid-cols-2 gap-3">
+                    <div className="p-4 border-t border-gray-800/80 bg-black/20 space-y-4 text-xs">
+                      {/* 6 PILIHAN GAYA MATERIAL */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="block text-gray-300 font-bold">
+                            Pilihan Gaya Material Kad
+                          </label>
+                          <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-semibold border border-amber-500/30">
+                            {CARD_STYLE_OPTIONS.find((s) => s.id === (cardBoxBlock.cardStyle || 'kertas'))?.name || 'Kertas'}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {CARD_STYLE_OPTIONS.map((style) => {
+                            const isSelected = (cardBoxBlock.cardStyle || 'kertas') === style.id
+                            return (
+                              <button
+                                key={style.id}
+                                type="button"
+                                onClick={() =>
+                                  updateBlock('stamp_card_box', {
+                                    cardStyle: style.id,
+                                    bgColor: style.defaultBg,
+                                    borderColor: style.defaultBorder,
+                                  })
+                                }
+                                className={`p-2.5 rounded-xl text-left transition border flex flex-col justify-between cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-amber-500/20 border-amber-500 text-white font-bold ring-1 ring-amber-500/50'
+                                    : 'bg-gray-900/80 border-gray-800 text-gray-300 hover:text-white hover:border-gray-700'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between w-full mb-1">
+                                  <span className="text-lg">{style.icon}</span>
+                                  <span className="text-[9px] bg-black/40 text-gray-400 px-1.5 py-0.5 rounded">
+                                    {style.badge}
+                                  </span>
+                                </div>
+                                <div className="font-bold text-xs truncate">{style.name}</div>
+                                <div className="text-[9px] text-gray-400 mt-0.5 line-clamp-1">{style.desc}</div>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      {/* WARNA LATAR & BINGKAI */}
+                      <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-800">
                         <div>
                           <label className="block text-gray-400 font-semibold mb-1">Latar Belakang Kad</label>
                           <div className="flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl p-1.5">
                             <input
                               type="color"
-                              value={cardBoxBlock.bgColor}
+                              value={cardBoxBlock.bgColor.startsWith('#') ? cardBoxBlock.bgColor : '#FFFDF8'}
                               onChange={(e) => updateBlock('stamp_card_box', { bgColor: e.target.value })}
                               className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
                             />
@@ -1302,7 +1492,7 @@ export default function CardStudioPage() {
                           <div className="flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl p-1.5">
                             <input
                               type="color"
-                              value={cardBoxBlock.borderColor}
+                              value={cardBoxBlock.borderColor.startsWith('#') ? cardBoxBlock.borderColor : '#F0DEC0'}
                               onChange={(e) => updateBlock('stamp_card_box', { borderColor: e.target.value })}
                               className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
                             />
@@ -1316,6 +1506,7 @@ export default function CardStudioPage() {
                         </div>
                       </div>
 
+                      {/* LENGKUNGAN SUDUT & BAYANG */}
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <div className="flex justify-between text-gray-400 font-semibold mb-1">
@@ -1439,7 +1630,7 @@ export default function CardStudioPage() {
             {activeTab === 'settings' && (
               <div className="space-y-3">
                 <div className="bg-[#1F2937] p-3 rounded-xl border border-gray-800 text-xs text-gray-300">
-                  🎨 <b>Pilihan Tema Siap Sedia:</b> Klik mana-mana tema untuk menukar padanan warna, fon dan corak secara automatik.
+                  🎨 <b>Pilihan Tema Siap Sedia:</b> Klik mana-mana tema untuk menukar padanan warna, fon, corak dan material kad secara automatik.
                 </div>
 
                 <div className="grid grid-cols-1 gap-2.5">
@@ -1462,14 +1653,14 @@ export default function CardStudioPage() {
                         <div>
                           <div className="font-bold text-xs text-gray-200">{p.name}</div>
                           <div className="text-[10px] text-gray-400">
-                            Fon: {STORE_FONT_OPTIONS.find((f) => f.id === p.fontId)?.name || 'Fraunces'} • Corak: {HERO_PATTERN_OPTIONS.find((opt) => opt.id === p.pattern)?.label || 'Bulat-bulat'}
+                            Kad: {CARD_STYLE_OPTIONS.find((s) => s.id === p.cardStyle)?.name || 'Kertas'} • Fon: {STORE_FONT_OPTIONS.find((f) => f.id === p.fontId)?.name || 'Fraunces'}
                           </div>
                         </div>
                       </div>
                       <div className="flex gap-1">
                         <div className="w-4 h-4 rounded-full border border-gray-700" style={{ backgroundColor: p.hero1 }} />
                         <div className="w-4 h-4 rounded-full border border-gray-700" style={{ backgroundColor: p.hero2 }} />
-                        <div className="w-4 h-4 rounded-full border border-gray-700" style={{ backgroundColor: p.stampBg }} />
+                        <div className="w-4 h-4 rounded-full border border-gray-700" style={{ backgroundColor: p.stampBg.startsWith('#') ? p.stampBg : '#FFF' }} />
                       </div>
                     </button>
                   ))}
@@ -1732,23 +1923,31 @@ export default function CardStudioPage() {
               {/* 3. STAMP CARD BOX */}
               <div className="px-4 -mt-3 relative z-20">
                 <div
-                  className="p-5 relative transition-all"
+                  className="p-5 relative transition-all duration-300"
                   style={{
                     backgroundColor: cardBoxBlock.bgColor || '#FFFDF8',
                     borderColor: cardBoxBlock.borderColor || '#F0DEC0',
                     borderWidth: '1px',
                     borderStyle: 'solid',
                     borderRadius: `${cardBoxBlock.borderRadius || 28}px`,
+                    backdropFilter: (cardBoxBlock.cardStyle || 'kertas') === 'kaca' ? 'blur(14px)' : 'none',
                     boxShadow:
                       cardBoxBlock.shadowStyle === 'glow'
                         ? '0 16px 36px -10px rgba(255,122,69,0.22)'
+                        : (cardBoxBlock.cardStyle || 'kertas') === 'kaca'
+                        ? '0 20px 40px -15px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.9)'
+                        : (cardBoxBlock.cardStyle || 'kertas') === 'air'
+                        ? '0 16px 36px -10px rgba(0,188,212,0.25), inset 0 1px 1px rgba(255,255,255,0.8)'
                         : cardBoxBlock.shadowStyle === 'soft'
                         ? '0 12px 32px -8px rgba(43,27,18,0.08)'
                         : 'none',
                   }}
                 >
+                  {/* MATERIAL TEXTURE OVERLAY */}
+                  <CardBoxMaterialTexture cardStyle={cardBoxBlock.cardStyle || 'kertas'} />
+
                   {/* VOUCHER HEADER */}
-                  <div className="text-center mb-3">
+                  <div className="text-center mb-3 relative z-10">
                     <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500/15 to-orange-500/15 border border-amber-500/30 px-3 py-1 rounded-full mb-1.5">
                       <span className="text-xs">🎁</span>
                       <span className="text-[10px] font-extrabold text-amber-900 tracking-wide uppercase">
@@ -1761,14 +1960,14 @@ export default function CardStudioPage() {
                   </div>
 
                   {/* PERFORATION DIVIDER LINE (FIXED LIVE) */}
-                  <div className="relative my-3 flex items-center justify-center">
+                  <div className="relative my-3 flex items-center justify-center z-10">
                     <div className="absolute -left-8 w-6 h-6 rounded-full bg-[#FFF7EA] border-r border-[#F0DEC0]" />
                     <div className="w-full border-b-2 border-dashed border-[#F0DEC0]" />
                     <div className="absolute -right-8 w-6 h-6 rounded-full bg-[#FFF7EA] border-l border-[#F0DEC0]" />
                   </div>
 
                   {/* 5-COLUMN STAMP GRID */}
-                  <div className="grid grid-cols-5 gap-2 my-3">
+                  <div className="grid grid-cols-5 gap-2 my-3 relative z-10">
                     {Array.from({ length: reqStamps }).map((_, idx) => {
                       const num = idx + 1
                       const isStamped = num <= totalStamps
@@ -1813,7 +2012,7 @@ export default function CardStudioPage() {
                   </div>
 
                   {/* 4. PROGRESS BAR */}
-                  <div className="mt-3 pt-1">
+                  <div className="mt-3 pt-1 relative z-10">
                     <div className="flex items-center justify-between text-[11px] font-bold mb-1">
                       <span className="text-[#8C7A6B]">Kemajuan Cop</span>
                       <span className="text-[#1B0F09]">
@@ -1839,7 +2038,7 @@ export default function CardStudioPage() {
                   </div>
 
                   {/* STATUS TEXT & ACTIONS (FIXED LIVE) */}
-                  <div className="mt-3 pt-2.5 border-t border-[#F0DEC0]/70 flex items-center justify-between gap-2">
+                  <div className="mt-3 pt-2.5 border-t border-[#F0DEC0]/70 flex items-center justify-between gap-2 relative z-10">
                     <div>
                       <p className="text-[11px] font-bold text-[#1B0F09]">
                         {isFull ? '🎉 Kad telah penuh!' : `Kumpul ${remainStamps} cop lagi.`}

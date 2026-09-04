@@ -11,6 +11,7 @@ import {
   DEFAULT_4_BLOCKS,
   HeroHeaderPattern,
   STORE_FONT_OPTIONS,
+  CardBoxMaterialTexture,
 } from '../card-studio/page'
 
 function renderLiveSocialIcon(platform: string) {
@@ -296,21 +297,28 @@ export default function LiveCardPreviewPage() {
         {cardBoxBlock.visible && (
           <div className="px-4 -mt-3 relative z-20">
             <div
-              className="p-5 relative transition-all"
+              className="p-5 relative transition-all duration-300"
               style={{
                 backgroundColor: cardBoxBlock.bgColor || '#FFFDF8',
                 borderColor: cardBoxBlock.borderColor || '#F0DEC0',
                 borderWidth: '1px',
                 borderStyle: 'solid',
                 borderRadius: `${cardBoxBlock.borderRadius || 28}px`,
+                backdropFilter: (cardBoxBlock.cardStyle || 'kertas') === 'kaca' ? 'blur(14px)' : 'none',
                 boxShadow:
                   cardBoxBlock.shadowStyle === 'glow'
                     ? '0 16px 36px -10px rgba(255,122,69,0.22)'
+                    : (cardBoxBlock.cardStyle || 'kertas') === 'kaca'
+                    ? '0 20px 40px -15px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.9)'
+                    : (cardBoxBlock.cardStyle || 'kertas') === 'air'
+                    ? '0 16px 36px -10px rgba(0,188,212,0.25), inset 0 1px 1px rgba(255,255,255,0.8)'
                     : cardBoxBlock.shadowStyle === 'soft'
                     ? '0 12px 32px -8px rgba(43,27,18,0.08)'
                     : 'none',
               }}
             >
+              {/* MATERIAL TEXTURE OVERLAY */}
+              <CardBoxMaterialTexture cardStyle={cardBoxBlock.cardStyle || 'kertas'} />
               {/* VOUCHER HEADER */}
               <div className="text-center mb-4">
                 <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500/15 to-orange-500/15 border border-amber-500/30 px-3 py-1 rounded-full mb-2">
