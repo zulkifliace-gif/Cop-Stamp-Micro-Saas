@@ -341,6 +341,232 @@ export function CardBoxMaterialTexture({ cardStyle = 'kertas' }: { cardStyle?: s
   }
 }
 
+export interface ProgressStyleOption {
+  id: 'linear' | 'liquid_wave' | 'segmented_steps'
+  name: string
+  icon: string
+  desc: string
+  badge: string
+}
+
+export const PROGRESS_STYLE_OPTIONS: ProgressStyleOption[] = [
+  {
+    id: 'linear',
+    name: 'Bar Kapsul Klasik',
+    icon: '📊',
+    desc: 'Bar linear kemas dengan warna gradient & kilauan',
+    badge: 'Klasik',
+  },
+  {
+    id: 'liquid_wave',
+    name: 'Animasi Air Berombak',
+    icon: '🌊',
+    desc: 'Cecair berombak animasi yang naik mengikut cop',
+    badge: 'Animasi Air',
+  },
+  {
+    id: 'segmented_steps',
+    name: 'Meter Segmen Bertingkat',
+    icon: '🚥',
+    desc: 'Blok segmen berasingan menyala mengikut bilangan cop',
+    badge: 'Segmen',
+  },
+]
+
+export function ProgressBarRenderer({
+  progressBlock,
+  totalStamps,
+  reqStamps,
+  percentFill,
+}: {
+  progressBlock: EditableBlockConfig
+  totalStamps: number
+  reqStamps: number
+  percentFill: number
+}) {
+  if (progressBlock.visible === false) {
+    return null
+  }
+
+  const styleType = progressBlock.progressStyle || 'linear'
+  const primaryColor = progressBlock.textColor || '#FF5A45'
+  const secondaryColor = progressBlock.bgColor2 || '#FFB238'
+  const trackColor = progressBlock.bgColor || '#F0DEC0'
+  const borderRadius = progressBlock.borderRadius || 6
+
+  switch (styleType) {
+    case 'liquid_wave':
+      return (
+        <div className="mt-3.5 pt-1 relative z-10 select-none">
+          {/* Header */}
+          <div className="flex items-center justify-between text-[11px] font-bold mb-1.5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs">🌊</span>
+              <span className="text-[#8C7A6B]">Tahap Cecair Cop</span>
+            </div>
+            <div className="flex items-center gap-1 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/25 text-[10px] text-cyan-900 font-extrabold">
+              <span>{totalStamps}/{reqStamps} Cop</span>
+              <span>•</span>
+              <span>{percentFill}%</span>
+            </div>
+          </div>
+
+          {/* Liquid Tank Capsule */}
+          <div
+            className="w-full h-7 relative overflow-hidden p-0.5 border border-cyan-400/50 shadow-inner"
+            style={{
+              backgroundColor: trackColor.startsWith('#') ? `${trackColor}44` : 'rgba(240, 222, 192, 0.35)',
+              borderRadius: `${Math.max(borderRadius, 14)}px`,
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            {/* Liquid Fill Level */}
+            <div
+              className="h-full relative overflow-hidden transition-all duration-700 rounded-full"
+              style={{
+                width: `${Math.max(percentFill, percentFill > 0 ? 8 : 0)}%`,
+                background: `linear-gradient(180deg, ${secondaryColor} 0%, ${primaryColor} 100%)`,
+                boxShadow: `0 0 12px ${primaryColor}66`,
+              }}
+            >
+              {/* Flowing Water Wave SVG (Layer 1) */}
+              <div className="absolute inset-0 opacity-55 pointer-events-none overflow-hidden">
+                <svg
+                  className="absolute -top-1.5 left-0 w-[240%] h-full animate-wave-flow"
+                  viewBox="0 0 1000 40"
+                  preserveAspectRatio="none"
+                >
+                  <path
+                    d="M 0 12 Q 125 0, 250 12 T 500 12 T 750 12 T 1000 12 L 1000 40 L 0 40 Z"
+                    fill="rgba(255,255,255,0.45)"
+                  />
+                </svg>
+              </div>
+
+              {/* Flowing Water Wave SVG (Layer 2 - Reverse) */}
+              <div className="absolute inset-0 opacity-35 pointer-events-none overflow-hidden">
+                <svg
+                  className="absolute -top-1 left-0 w-[240%] h-full animate-wave-flow-reverse"
+                  viewBox="0 0 1000 40"
+                  preserveAspectRatio="none"
+                >
+                  <path
+                    d="M 0 18 Q 125 28, 250 18 T 500 18 T 750 18 T 1000 18 L 1000 40 L 0 40 Z"
+                    fill="rgba(255,255,255,0.6)"
+                  />
+                </svg>
+              </div>
+
+              {/* Floating Bubbles */}
+              <div className="absolute inset-0 flex items-center justify-around pointer-events-none px-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-white/80 animate-ping opacity-75" />
+                <span className="w-1 h-1 rounded-full bg-white/70 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-white/60 animate-bounce" />
+              </div>
+
+              {/* Glossy Top Glass Glare Streak */}
+              <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/80 to-transparent" />
+            </div>
+
+            {/* Percentage text inside tank if wide enough */}
+            {percentFill >= 25 && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="text-[10px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] tracking-wider">
+                  {percentFill}% DIISI
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )
+
+    case 'segmented_steps':
+      return (
+        <div className="mt-3.5 pt-1 relative z-10 select-none">
+          {/* Header */}
+          <div className="flex items-center justify-between text-[11px] font-bold mb-2">
+            <span className="text-[#8C7A6B]">Langkah Kemajuan</span>
+            <span className="text-[#1B0F09]">
+              <b style={{ color: primaryColor }}>{totalStamps}</b> / {reqStamps} Cop ({percentFill}%)
+            </span>
+          </div>
+
+          {/* Segmented Blocks Row */}
+          <div className="flex items-center gap-1.5 w-full">
+            {Array.from({ length: reqStamps }).map((_, idx) => {
+              const step = idx + 1
+              const isFilled = step <= totalStamps
+              const isNext = step === totalStamps + 1
+
+              return (
+                <div
+                  key={step}
+                  className={`flex-1 h-3.5 relative transition-all duration-300 flex items-center justify-center ${
+                    isFilled
+                      ? 'shadow-sm'
+                      : isNext
+                      ? 'ring-2 ring-amber-400 ring-offset-1 animate-pulse'
+                      : 'opacity-40'
+                  }`}
+                  style={{
+                    borderRadius: `${Math.min(borderRadius, 6)}px`,
+                    background: isFilled
+                      ? `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`
+                      : trackColor,
+                    boxShadow: isFilled ? `0 2px 8px -1px ${primaryColor}88` : 'none',
+                  }}
+                >
+                  {isFilled && (
+                    <div className="absolute inset-0 rounded-[inherit] bg-[linear-gradient(180deg,rgba(255,255,255,0.4)_0%,transparent_100%)] pointer-events-none" />
+                  )}
+                  {isFilled && (
+                    <span className="text-[7.5px] font-black text-white drop-shadow-xs">✓</span>
+                  )}
+                  {!isFilled && (
+                    <span className="text-[7.5px] font-bold text-[#8C7A6B]/70">{step}</span>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )
+
+    case 'linear':
+    default:
+      return (
+        <div className="mt-3.5 pt-1 relative z-10 select-none">
+          <div className="flex items-center justify-between text-[11px] font-bold mb-1">
+            <span className="text-[#8C7A6B]">Kemajuan Cop</span>
+            <span className="text-[#1B0F09]">
+              <b style={{ color: primaryColor }}>{totalStamps}</b> / {reqStamps} Cop ({percentFill}%)
+            </span>
+          </div>
+
+          <div
+            className="w-full h-3 overflow-hidden p-0.5 shadow-inner"
+            style={{
+              backgroundColor: trackColor || '#F0DEC0',
+              borderRadius: `${borderRadius || 6}px`,
+            }}
+          >
+            <div
+              className="h-full transition-all duration-500 rounded-full relative overflow-hidden"
+              style={{
+                width: `${percentFill}%`,
+                background: `linear-gradient(90deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
+                boxShadow: `0 0 8px ${primaryColor}44`,
+              }}
+            >
+              {/* Glossy Top Glass Glare */}
+              <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+            </div>
+          </div>
+        </div>
+      )
+  }
+}
+
 export function HeroHeaderPattern({
   pattern = 'bubbles',
   opacity = 0.2,
@@ -657,6 +883,7 @@ export interface EditableBlockConfig {
   showLogo?: boolean
   fontId?: string
   cardStyle?: 'kertas' | 'kaca' | 'batu' | 'besi' | 'kayu' | 'air'
+  progressStyle?: 'linear' | 'liquid_wave' | 'segmented_steps'
   title: string
   subtitle: string
   extraText?: string
@@ -723,7 +950,7 @@ export const DEFAULT_4_BLOCKS: EditableBlockConfig[] = [
     bgColor: '#FFFDF8',
     textColor: '#2B1B12',
     borderColor: '#F0DEC0',
-    borderRadius: 28,
+    borderRadius: 26,
     shadowStyle: 'soft',
     imageUrl: '',
     cardStyle: 'kertas',
@@ -732,7 +959,7 @@ export const DEFAULT_4_BLOCKS: EditableBlockConfig[] = [
   },
   {
     id: 'progress_bar',
-    name: '4. Bar Kemajuan (Warna & Gradient Meter Cop)',
+    name: '4. Bar Kemajuan (Warna, Gaya & Animasi Meter Cop)',
     icon: '📊',
     visible: true,
     bgColor: '#F0DEC0',
@@ -742,8 +969,9 @@ export const DEFAULT_4_BLOCKS: EditableBlockConfig[] = [
     borderRadius: 6,
     shadowStyle: 'none',
     imageUrl: '',
+    progressStyle: 'linear',
     title: 'Meter Kemajuan Cop',
-    subtitle: 'Warna trek dasar & warna gradient pengisian cop',
+    subtitle: 'On/Off paparan & 3 pilihan gaya (Klasik, Animasi Air, Segmen)',
   },
 ]
 
@@ -888,6 +1116,9 @@ export function sanitizeLiveConfig(data: any): LiveStudioConfig {
       cardStyle: ['kertas', 'kaca', 'batu', 'besi', 'kayu', 'air'].includes(found.cardStyle)
         ? found.cardStyle
         : def.cardStyle || 'kertas',
+      progressStyle: ['linear', 'liquid_wave', 'segmented_steps'].includes(found.progressStyle)
+        ? found.progressStyle
+        : def.progressStyle || 'linear',
       title: typeof found.title === 'string' ? found.title : def.title,
       subtitle: typeof found.subtitle === 'string' ? found.subtitle : def.subtitle,
       extraText: typeof found.extraText === 'string' ? found.extraText : def.extraText,
@@ -1657,61 +1888,129 @@ export default function CardStudioPage() {
 
                   {expandedBlockId === 'progress_bar' && (
                     <div className="p-4 border-t border-gray-800/80 bg-black/20 space-y-3 text-xs">
-                      <div>
-                        <label className="block text-gray-400 font-semibold mb-1">Warna Trek Asas (Track)</label>
-                        <div className="flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl p-1.5">
-                          <input
-                            type="color"
-                            value={progressBlock.bgColor}
-                            onChange={(e) => updateBlock('progress_bar', { bgColor: e.target.value })}
-                            className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
-                          />
-                          <input
-                            type="text"
-                            value={progressBlock.bgColor}
-                            onChange={(e) => updateBlock('progress_bar', { bgColor: e.target.value })}
-                            className="w-full bg-transparent text-white font-mono text-[11px] outline-none"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
+                      {/* TOGGLE ON/OFF BAR KEMAJUAN */}
+                      <div className="flex items-center justify-between bg-gray-900/90 p-3 rounded-xl border border-gray-800">
                         <div>
-                          <label className="block text-gray-400 font-semibold mb-1">Gradient Pengisian 1</label>
-                          <div className="flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl p-1.5">
-                            <input
-                              type="color"
-                              value={progressBlock.textColor}
-                              onChange={(e) => updateBlock('progress_bar', { textColor: e.target.value })}
-                              className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
-                            />
-                            <input
-                              type="text"
-                              value={progressBlock.textColor}
-                              onChange={(e) => updateBlock('progress_bar', { textColor: e.target.value })}
-                              className="w-full bg-transparent text-white font-mono text-[11px] outline-none"
-                            />
+                          <div className="font-bold text-gray-200">Paparan Bar Kemajuan</div>
+                          <div className="text-[10px] text-gray-400">
+                            {progressBlock.visible !== false ? 'Bar kemajuan dipaparkan pada kad' : 'Bar kemajuan disembunyikan'}
                           </div>
                         </div>
-
-                        <div>
-                          <label className="block text-gray-400 font-semibold mb-1">Gradient Pengisian 2</label>
-                          <div className="flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl p-1.5">
-                            <input
-                              type="color"
-                              value={progressBlock.bgColor2 || '#FFB238'}
-                              onChange={(e) => updateBlock('progress_bar', { bgColor2: e.target.value })}
-                              className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
-                            />
-                            <input
-                              type="text"
-                              value={progressBlock.bgColor2 || '#FFB238'}
-                              onChange={(e) => updateBlock('progress_bar', { bgColor2: e.target.value })}
-                              className="w-full bg-transparent text-white font-mono text-[11px] outline-none"
-                            />
-                          </div>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => updateBlock('progress_bar', { visible: progressBlock.visible === false ? true : false })}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition cursor-pointer ${
+                            progressBlock.visible !== false ? 'bg-emerald-500' : 'bg-gray-700'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition duration-200 ease-in-out ${
+                              progressBlock.visible !== false ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
                       </div>
+
+                      {progressBlock.visible !== false && (
+                        <>
+                          {/* 3 PILIHAN STYLE */}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <label className="block text-gray-300 font-bold">
+                                Gaya & Animasi Bar Kemajuan
+                              </label>
+                              <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-semibold border border-amber-500/30">
+                                {PROGRESS_STYLE_OPTIONS.find((s) => s.id === (progressBlock.progressStyle || 'linear'))?.name || 'Bar Kapsul Klasik'}
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                              {PROGRESS_STYLE_OPTIONS.map((style) => {
+                                const isSelected = (progressBlock.progressStyle || 'linear') === style.id
+                                return (
+                                  <button
+                                    key={style.id}
+                                    type="button"
+                                    onClick={() => updateBlock('progress_bar', { progressStyle: style.id })}
+                                    className={`p-2.5 rounded-xl text-left transition border flex flex-col justify-between cursor-pointer ${
+                                      isSelected
+                                        ? 'bg-amber-500/20 border-amber-500 text-white font-bold ring-1 ring-amber-500/50'
+                                        : 'bg-gray-900/80 border-gray-800 text-gray-300 hover:text-white hover:border-gray-700'
+                                    }`}
+                                  >
+                                    <div className="flex items-center justify-between w-full mb-1">
+                                      <span className="text-lg">{style.icon}</span>
+                                      <span className="text-[9px] bg-black/40 text-gray-400 px-1.5 py-0.5 rounded">
+                                        {style.badge}
+                                      </span>
+                                    </div>
+                                    <div className="font-bold text-xs truncate">{style.name}</div>
+                                    <div className="text-[9px] text-gray-400 mt-0.5 line-clamp-2">{style.desc}</div>
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+
+                          {/* WARNA TREK ASAS */}
+                          <div>
+                            <label className="block text-gray-400 font-semibold mb-1">Warna Trek Asas (Track)</label>
+                            <div className="flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl p-1.5">
+                              <input
+                                type="color"
+                                value={progressBlock.bgColor.startsWith('#') ? progressBlock.bgColor : '#F0DEC0'}
+                                onChange={(e) => updateBlock('progress_bar', { bgColor: e.target.value })}
+                                className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
+                              />
+                              <input
+                                type="text"
+                                value={progressBlock.bgColor}
+                                onChange={(e) => updateBlock('progress_bar', { bgColor: e.target.value })}
+                                className="w-full bg-transparent text-white font-mono text-[11px] outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          {/* GRADIENT PENGISIAN */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-gray-400 font-semibold mb-1">Gradient Pengisian 1</label>
+                              <div className="flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl p-1.5">
+                                <input
+                                  type="color"
+                                  value={progressBlock.textColor.startsWith('#') ? progressBlock.textColor : '#FF5A45'}
+                                  onChange={(e) => updateBlock('progress_bar', { textColor: e.target.value })}
+                                  className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
+                                />
+                                <input
+                                  type="text"
+                                  value={progressBlock.textColor}
+                                  onChange={(e) => updateBlock('progress_bar', { textColor: e.target.value })}
+                                  className="w-full bg-transparent text-white font-mono text-[11px] outline-none"
+                                />
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-gray-400 font-semibold mb-1">Gradient Pengisian 2</label>
+                              <div className="flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl p-1.5">
+                                <input
+                                  type="color"
+                                  value={(progressBlock.bgColor2 || '#FFB238').startsWith('#') ? (progressBlock.bgColor2 || '#FFB238') : '#FFB238'}
+                                  onChange={(e) => updateBlock('progress_bar', { bgColor2: e.target.value })}
+                                  className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
+                                />
+                                <input
+                                  type="text"
+                                  value={progressBlock.bgColor2 || '#FFB238'}
+                                  onChange={(e) => updateBlock('progress_bar', { bgColor2: e.target.value })}
+                                  className="w-full bg-transparent text-white font-mono text-[11px] outline-none"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
@@ -2155,30 +2454,12 @@ export default function CardStudioPage() {
                   </div>
 
                   {/* 4. PROGRESS BAR */}
-                  <div className="mt-3 pt-1 relative z-10">
-                    <div className="flex items-center justify-between text-[11px] font-bold mb-1">
-                      <span className="text-[#8C7A6B]">Kemajuan Cop</span>
-                      <span className="text-[#1B0F09]">
-                        <b style={{ color: progressBlock.textColor || '#FF5A45' }}>{totalStamps}</b> / {reqStamps} Cop ({percentFill}%)
-                      </span>
-                    </div>
-
-                    <div
-                      className="w-full h-3 overflow-hidden p-0.5"
-                      style={{
-                        backgroundColor: progressBlock.bgColor || '#F0DEC0',
-                        borderRadius: `${progressBlock.borderRadius || 6}px`,
-                      }}
-                    >
-                      <div
-                        className="h-full transition-all duration-500 rounded-full"
-                        style={{
-                          width: `${percentFill}%`,
-                          background: `linear-gradient(90deg, ${progressBlock.textColor || '#FF5A45'} 0%, ${progressBlock.bgColor2 || '#FFB238'} 100%)`,
-                        }}
-                      />
-                    </div>
-                  </div>
+                  <ProgressBarRenderer
+                    progressBlock={progressBlock}
+                    totalStamps={totalStamps}
+                    reqStamps={reqStamps}
+                    percentFill={percentFill}
+                  />
 
                   {/* STATUS TEXT & ACTIONS (FIXED LIVE) */}
                   <div className="mt-3 pt-2.5 border-t border-[#F0DEC0]/70 flex items-center justify-between gap-2 relative z-10">

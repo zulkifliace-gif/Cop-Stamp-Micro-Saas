@@ -12,6 +12,7 @@ import {
   HeroHeaderPattern,
   STORE_FONT_OPTIONS,
   CardBoxMaterialTexture,
+  ProgressBarRenderer,
 } from '../card-studio/page'
 
 function renderLiveSocialIcon(platform: string) {
@@ -436,32 +437,12 @@ export default function LiveCardPreviewPage() {
               </div>
 
               {/* 7. PROGRESS BAR (Editable Block) */}
-              {progressBlock.visible && (
-                <div className="mt-4 pt-2">
-                  <div className="flex items-center justify-between text-xs font-bold mb-1.5">
-                    <span className="text-[#8C7A6B]">Kemajuan Cop</span>
-                    <span className="text-[#1B0F09]">
-                      <b style={{ color: progressBlock.textColor || '#FF5A45' }}>{totalStamps}</b> / {reqStamps} Cop ({percentFill}%)
-                    </span>
-                  </div>
-
-                  <div
-                    className="w-full h-3.5 overflow-hidden p-0.5"
-                    style={{
-                      backgroundColor: progressBlock.bgColor || '#F0DEC0',
-                      borderRadius: `${progressBlock.borderRadius || 6}px`,
-                    }}
-                  >
-                    <div
-                      className="h-full transition-all duration-500 rounded-full"
-                      style={{
-                        width: `${percentFill}%`,
-                        background: `linear-gradient(90deg, ${progressBlock.textColor || '#FF5A45'} 0%, ${progressBlock.bgColor2 || '#FFB238'} 100%)`,
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
+              <ProgressBarRenderer
+                progressBlock={progressBlock}
+                totalStamps={totalStamps}
+                reqStamps={reqStamps}
+                percentFill={percentFill}
+              />
 
               {/* 8. STATUS TEXT & ACTIONS (Fixed Component) */}
               <div className="mt-4 pt-3 border-t border-[#F0DEC0]/70 flex flex-col sm:flex-row items-center justify-between gap-3">

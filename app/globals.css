@@ -20,6 +20,28 @@
   --ok-green: #388E5F;
 }
 
+.backdrop-blur-xs {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+@keyframes waveFlow {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-wave-flow {
+  animation: waveFlow 3.5s linear infinite;
+}
+
+.animate-wave-flow-reverse {
+  animation: waveFlow 5s linear infinite reverse;
+}
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
