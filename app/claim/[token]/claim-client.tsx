@@ -104,6 +104,12 @@ export default function ClaimClient({
   const [authError, setAuthError] = useState('')
   const [isAuthenticating, setIsAuthenticating] = useState(false)
 
+  // Logo loading & error states
+  const [loginLogoLoading, setLoginLogoLoading] = useState(Boolean(initialLogoUrl))
+  const [loginLogoError, setLoginLogoError] = useState(false)
+  const [revealLogoLoading, setRevealLogoLoading] = useState(true)
+  const [revealLogoError, setRevealLogoError] = useState(false)
+
   // Claim result data
   const [claimData, setClaimData] = useState<{
     previousStamps: number
@@ -442,19 +448,35 @@ export default function ClaimClient({
 
         {/* STORE LOGO / BRAND ICON & HEADER */}
         <div className="text-center mb-6">
-          {initialLogoUrl ? (
-            <div className="w-16 h-16 rounded-full bg-white mx-auto mb-3 shadow-lg flex items-center justify-center p-1 overflow-hidden border-2 border-[#E5A43B]">
-              <img
-                src={initialLogoUrl}
-                alt={initialStoreName || 'Logo Kedai'}
-                className="w-full h-full rounded-full object-cover"
-              />
-            </div>
-          ) : (
-            <div className="w-14 h-14 rounded-full bg-[#E5A43B] mx-auto mb-3 shadow-lg flex items-center justify-center p-2.5">
-              <img src="/logo.svg" alt="LajuS" className="w-full h-full object-contain" />
-            </div>
-          )}
+          <div className="relative w-16 h-16 rounded-full bg-white mx-auto mb-3 shadow-lg flex items-center justify-center p-1 overflow-hidden border-2 border-[#E5A43B]">
+            {initialLogoUrl && !loginLogoError ? (
+              <>
+                {/* ANIMASI LOADING PROFILE: Berterusan sehingga gambar selesai dimuatkan */}
+                {loginLogoLoading && (
+                  <div className="absolute inset-0 bg-[#FFF7EA] flex items-center justify-center z-10">
+                    <div className="w-6 h-6 border-[2.5px] border-[#E5A43B] border-t-transparent rounded-full animate-spin" />
+                  </div>
+                )}
+                <img
+                  src={initialLogoUrl}
+                  alt={initialStoreName || 'Logo Kedai'}
+                  onLoad={() => setLoginLogoLoading(false)}
+                  onError={() => {
+                    setLoginLogoError(true)
+                    setLoginLogoLoading(false)
+                  }}
+                  className={`w-full h-full rounded-full object-cover transition-opacity duration-300 ${
+                    loginLogoLoading ? 'opacity-0' : 'opacity-100'
+                  }`}
+                />
+              </>
+            ) : (
+              /* JIKA KOSONG / GAGAL / ROSAK: GANTIKAN LOGO LAJUS */
+              <div className="w-full h-full p-2.5 flex items-center justify-center">
+                <img src="/logo.svg" alt="LajuS" className="w-full h-full object-contain" />
+              </div>
+            )}
+          </div>
           <div className="text-xs text-[#FAF2E2]/80 font-medium">
             {t.loginScene.claimHeaderPrefix} <span className="text-[#E5A43B] font-bold">+{initialStampCount} {lang === 'en' ? 'Stamps' : 'Cop Stamp'}</span> {t.loginScene.claimHeaderSuffix} <span className="font-bold text-white">{initialStoreName}</span>
           </div>
@@ -861,11 +883,31 @@ export default function ClaimClient({
 
       {/* STORE NAME & LOGO CENTERED AT TOP */}
       <div className="flex flex-col items-center text-center mb-3.5 w-full">
-        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#E7A33E] text-[#1C2624] font-fraunces font-bold flex items-center justify-center text-3xl shrink-0 shadow-lg mb-2 overflow-hidden border-2 border-[#FAF2E2]/30 ring-2 ring-[#E5A43B]/20">
-          {claimData.logoUrl ? (
-            <img src={claimData.logoUrl} alt={claimData.storeName} className="w-full h-full object-cover" />
+        <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white text-[#1C2624] font-fraunces font-bold flex items-center justify-center text-3xl shrink-0 shadow-lg mb-2 overflow-hidden border-2 border-[#FAF2E2]/30 ring-2 ring-[#E5A43B]/20 p-1">
+          {claimData.logoUrl && !revealLogoError ? (
+            <>
+              {revealLogoLoading && (
+                <div className="absolute inset-0 bg-[#FFF7EA] flex items-center justify-center z-10">
+                  <div className="w-7 h-7 border-[2.5px] border-[#E5A43B] border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+              <img
+                src={claimData.logoUrl}
+                alt={claimData.storeName}
+                onLoad={() => setRevealLogoLoading(false)}
+                onError={() => {
+                  setRevealLogoError(true)
+                  setRevealLogoLoading(false)
+                }}
+                className={`w-full h-full rounded-full object-cover transition-opacity duration-300 ${
+                  revealLogoLoading ? 'opacity-0' : 'opacity-100'
+                }`}
+              />
+            </>
           ) : (
-            claimData.storeName.charAt(0).toUpperCase()
+            <div className="w-full h-full p-3 flex items-center justify-center">
+              <img src="/logo.svg" alt="LajuS" className="w-full h-full object-contain" />
+            </div>
           )}
         </div>
         <div className="font-fraunces text-2xl font-bold text-[#F7EEDA] leading-tight">

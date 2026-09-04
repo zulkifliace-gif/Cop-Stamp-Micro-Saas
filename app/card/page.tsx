@@ -181,7 +181,18 @@ export default function CustomerCardPage() {
   const [activeStoreId, setActiveStoreId] = useState<string>('')
   const [storeName, setStoreName] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
+  const [logoLoading, setLogoLoading] = useState(true)
+  const [logoError, setLogoError] = useState(false)
   const [rewardImageUrl, setRewardImageUrl] = useState('')
+
+  useEffect(() => {
+    if (logoUrl) {
+      setLogoLoading(true)
+      setLogoError(false)
+    } else {
+      setLogoLoading(false)
+    }
+  }, [logoUrl])
   const [rewardsList, setRewardsList] = useState<RewardItem[]>([])
   const [stampIcon, setStampIcon] = useState('/icons/stamps/makanan.svg')
   const [socialLinks, setSocialLinks] = useState<SocialLinkItem[]>([])
@@ -1414,15 +1425,37 @@ export default function CustomerCardPage() {
 
                 {/* STORE PROFILE */}
                 <div className="profile">
-                  <div className="avatar">
-                    {logoUrl ? (
-                      <img
-                        src={logoUrl}
-                        alt={storeName}
-                        className="w-full h-full object-cover"
-                      />
+                  <div className="avatar relative overflow-hidden">
+                    {logoUrl && !logoError ? (
+                      <>
+                        {/* ANIMASI LOADING PROFILE: Berterusan sehingga gambar selesai dimuatkan */}
+                        {logoLoading && (
+                          <div className="absolute inset-0 bg-[#FFF7EA] flex items-center justify-center z-10">
+                            <div className="w-7 h-7 border-[2.5px] border-[#FF5A45] border-t-transparent rounded-full animate-spin" />
+                          </div>
+                        )}
+                        <img
+                          src={logoUrl}
+                          alt={storeName}
+                          onLoad={() => setLogoLoading(false)}
+                          onError={() => {
+                            setLogoError(true)
+                            setLogoLoading(false)
+                          }}
+                          className={`w-full h-full object-cover transition-opacity duration-300 ${
+                            logoLoading ? 'opacity-0' : 'opacity-100'
+                          }`}
+                        />
+                      </>
                     ) : (
-                      (storeName || 'K').charAt(0).toUpperCase()
+                      /* JIKA GAGAL / ROSAK ATAU KOSONG: GANTIKAN LOGO LAJUS */
+                      <div className="w-full h-full p-2.5 bg-white flex items-center justify-center">
+                        <img
+                          src="/logo.svg"
+                          alt="LajuS"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
                     )}
                   </div>
 
@@ -1640,7 +1673,8 @@ export default function CustomerCardPage() {
                                   <img
                                     src={normalizeStampIcon(stampIcon)}
                                     alt="Cop Stamp"
-                                    className="w-[52%] h-[52%] object-contain filter invert brightness-200 pointer-events-none"
+                                    className="w-[52%] h-[52%] object-contain pointer-events-none"
+                                    style={{ filter: 'brightness(0) invert(1)' }}
                                   />
                                 ) : (
                                   <span className="pointer-events-none">{slotNum}</span>
@@ -1878,7 +1912,8 @@ export default function CustomerCardPage() {
               <img
                 src={normalizeStampIcon(stampIcon)}
                 alt="Stamp"
-                className="w-7 h-7 object-contain filter invert brightness-200"
+                className="w-7 h-7 object-contain"
+                style={{ filter: 'brightness(0) invert(1)' }}
               />
             </div>
             <div style={{ textAlign: 'center' }}>

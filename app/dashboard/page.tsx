@@ -1886,7 +1886,8 @@ export default function CashierDashboard() {
                         <img
                           src={opt.icon}
                           alt={opt.label}
-                          className="w-4 h-4 object-contain filter invert brightness-200"
+                          className="w-4 h-4 object-contain"
+                          style={{ filter: 'brightness(0) invert(1)' }}
                         />
                       </div>
                       <span className="text-[9.5px] font-bold text-[#1A2422] truncate w-full">
@@ -2922,7 +2923,8 @@ export default function CashierDashboard() {
                                 <img
                                   src={opt.icon}
                                   alt={opt.label}
-                                  className="w-5 h-5 object-contain filter invert brightness-200"
+                                  className="w-5 h-5 object-contain"
+                                  style={{ filter: 'brightness(0) invert(1)' }}
                                 />
                               </div>
                               <span className="text-[10px] font-bold text-[#1A2422] truncate w-full">
