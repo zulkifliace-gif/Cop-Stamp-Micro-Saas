@@ -529,12 +529,21 @@ export default function LiveCardPreviewPage() {
 
       {/* FLOATING TOP BAR FOR PREVIEW NAVIGATION */}
       <div className="sticky top-0 z-40 bg-gray-900/90 backdrop-blur border-b border-gray-800 px-4 py-2.5 flex items-center justify-between text-white">
-        <Link
-          href="/card-studio"
-          className="text-xs font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1.5"
-        >
-          <span>← Kembali ke Card Studio</span>
-        </Link>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link
+            href="/card-studio"
+            className="text-xs font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1.5"
+          >
+            <span>← Card Studio</span>
+          </Link>
+          <span className="text-gray-600 text-xs">|</span>
+          <Link
+            href="/dashboard"
+            className="text-xs font-medium text-gray-300 hover:text-white flex items-center gap-1 transition"
+          >
+            <span>Dashboard</span>
+          </Link>
+        </div>
         <div className="flex items-center gap-2">
           <button
             type="button"

@@ -9,6 +9,7 @@ export interface DashboardTranslation {
     login: string
     printerConnectedTitle: (name: string) => string
     printerDisconnectedTitle: string
+    cardStudioTitle: string
     settingsOpenTitle: string
     settingsTitle: string
     logoutTitle: string
@@ -272,6 +273,7 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       login: '• LOG MASUK',
       printerConnectedTitle: (name) => `Printer Disambung: ${name} (Klik untuk putuskan)`,
       printerDisconnectedTitle: 'Sambung Thermal Printer Bluetooth (Auto-Print Resit)',
+      cardStudioTitle: 'Card Studio (Reka Bentuk Kad)',
       settingsOpenTitle: 'Tutup Tetapan',
       settingsTitle: 'Tetapan Kedai',
       logoutTitle: 'Log keluar',
@@ -533,6 +535,7 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       login: '• LOGIN',
       printerConnectedTitle: (name) => `Printer Connected: ${name} (Click to disconnect)`,
       printerDisconnectedTitle: 'Connect Bluetooth Thermal Printer (Auto-Print Receipts)',
+      cardStudioTitle: 'Card Studio (Card Design)',
       settingsOpenTitle: 'Close Settings',
       settingsTitle: 'Store Settings',
       logoutTitle: 'Log out',

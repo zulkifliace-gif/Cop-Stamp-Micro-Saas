@@ -1927,6 +1927,17 @@ export default function CashierDashboard() {
               )}
 
               {!needsRegistration && (
+                <Link
+                  href="/card-studio"
+                  title={t.topbar.cardStudioTitle}
+                  className="w-8 h-8 sm:w-[34px] sm:h-[34px] rounded-[10px] border border-amber-200/80 bg-amber-50 hover:bg-amber-100 text-amber-800 transition-all flex items-center justify-center cursor-pointer active:scale-95 shrink-0 shadow-2xs"
+                  aria-label="Card Studio"
+                >
+                  <span className="text-[15px] sm:text-[16px] leading-none select-none">🎨</span>
+                </Link>
+              )}
+
+              {!needsRegistration && (
                 <button
                   onClick={() => setShowSettings(!showSettings)}
                   title={showSettings ? t.topbar.settingsOpenTitle : t.topbar.settingsTitle}
