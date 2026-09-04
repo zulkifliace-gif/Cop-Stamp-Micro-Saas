@@ -431,6 +431,14 @@ export interface LiveStudioConfig {
   blocks: EditableBlockConfig[]
 }
 
+export interface CustomTemplateItem {
+  id: string
+  name: string
+  config: LiveStudioConfig
+  createdAt: string
+  updatedAt: string
+}
+
 export const DEFAULT_4_BLOCKS: EditableBlockConfig[] = [
   {
     id: 'hero_header',
@@ -777,18 +785,18 @@ export function ProgressBarRenderer({
   reqStamps,
   percentFill,
 }: {
-  progressBlock: EditableBlockConfig
+  progressBlock?: EditableBlockConfig
   totalStamps: number
   reqStamps: number
   percentFill: number
 }) {
-  if (!progressBlock.visible) return null
+  if (progressBlock && !progressBlock.visible) return null
 
-  const style = progressBlock.progressStyle || 'gradient'
-  const h = progressBlock.barHeight || 9
-  const r = progressBlock.borderRadius ?? 6
-  const c1 = progressBlock.bgColor || '#FF5A45'
-  const c2 = progressBlock.bgColor2 || '#FFB238'
+  const style = progressBlock?.progressStyle || 'gradient'
+  const h = progressBlock?.barHeight || 9
+  const r = progressBlock?.borderRadius ?? 6
+  const c1 = progressBlock?.bgColor || '#FF5A45'
+  const c2 = progressBlock?.bgColor2 || '#FFB238'
 
   if (style === 'water_wave') {
     return (
@@ -923,30 +931,195 @@ export default function CardStudioPage() {
   const [saveStatus, setSaveStatus] = useState<string>('')
   const [mobileView, setMobileView] = useState<'editor' | 'preview'>('editor')
 
+  // Cloud & Template Management State
+  const [storeId, setStoreId] = useState<string>('')
+  const [customTemplates, setCustomTemplates] = useState<CustomTemplateItem[]>([])
+  const [activeTemplateId, setActiveTemplateId] = useState<string | null>(null)
+  const [templateName, setTemplateName] = useState<string>('Draf Templat')
+  const [isLiveNow, setIsLiveNow] = useState<boolean>(false)
+  const [isSavingToCloud, setIsSavingToCloud] = useState<boolean>(false)
+  const [cloudToast, setCloudToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
+
+  // Save Modal Dialog State
+  const [showSaveModal, setShowSaveModal] = useState<boolean>(false)
+  const [modalName, setModalName] = useState<string>('')
+  const [modalSetAsLive, setModalSetAsLive] = useState<boolean>(true)
+  const [modalError, setModalError] = useState<string>('')
+
+  const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
+    setCloudToast({ msg, type })
+    setTimeout(() => setCloudToast(null), 3500)
+  }
+
   const toggleBlock = (blockId: EditableBlockId) => {
     setSelectedBlockId((prev) => (prev === blockId ? null : blockId))
   }
 
+  // Load store settings and custom templates on mount
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('cop_card_studio_config')
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        setConfig(sanitizeLiveConfig(parsed))
+    async function loadStudioData() {
+      try {
+        const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+        const targetTemplateId = searchParams?.get('templateId') || null
+        const isNewMode = searchParams?.get('new') === 'true'
+        const initialNameParam = searchParams?.get('name') || null
+
+        const res = await fetch('/api/store/settings')
+        if (res.ok) {
+          const data = await res.json()
+          if (!data.needsRegistration) {
+            setStoreId(data.storeId || '')
+            const serverTemplates: CustomTemplateItem[] = Array.isArray(data.customTemplates) ? data.customTemplates : []
+            setCustomTemplates(serverTemplates)
+
+            if (targetTemplateId) {
+              const matched = serverTemplates.find((t) => t.id === targetTemplateId)
+              if (matched) {
+                setConfig(sanitizeLiveConfig(matched.config))
+                setActiveTemplateId(matched.id)
+                setTemplateName(matched.name)
+                setIsLiveNow(Boolean(data.cardTemplate && JSON.stringify(data.cardTemplate) === JSON.stringify(matched.config)))
+                return
+              }
+            }
+
+            if (isNewMode) {
+              setConfig(DEFAULT_LIVE_STUDIO_CONFIG)
+              setActiveTemplateId(null)
+              setTemplateName(initialNameParam || `Templat #${serverTemplates.length + 1}`)
+              setIsLiveNow(false)
+              return
+            }
+
+            if (data.cardTemplate) {
+              const sanitizedLive = sanitizeLiveConfig(data.cardTemplate)
+              setConfig(sanitizedLive)
+              const liveMatched = serverTemplates.find((t) => JSON.stringify(t.config) === JSON.stringify(data.cardTemplate))
+              if (liveMatched) {
+                setActiveTemplateId(liveMatched.id)
+                setTemplateName(liveMatched.name)
+              } else {
+                setActiveTemplateId(null)
+                setTemplateName('Templat Live Semasa')
+              }
+              setIsLiveNow(true)
+              return
+            }
+          }
+        }
+
+        // Fallback to localStorage draft
+        const saved = localStorage.getItem('cop_card_studio_config')
+        if (saved) {
+          const parsed = JSON.parse(saved)
+          setConfig(sanitizeLiveConfig(parsed))
+        }
+      } catch (e) {
+        console.error('Failed to load studio data:', e)
       }
-    } catch (e) {
-      console.error('Failed to load studio config:', e)
     }
+
+    loadStudioData()
   }, [])
 
   const saveConfig = (newConfig: LiveStudioConfig) => {
     setConfig(newConfig)
     try {
       localStorage.setItem('cop_card_studio_config', JSON.stringify(newConfig))
-      setSaveStatus('Tersimpan!')
+      setSaveStatus('Draf dikemas kini')
       setTimeout(() => setSaveStatus(''), 2000)
     } catch (e) {
-      console.error('Failed to save config:', e)
+      console.error('Failed to save config draft:', e)
+    }
+  }
+
+  // Open Save Modal
+  const handleOpenSaveModal = (forceLive = false) => {
+    setModalName(templateName || 'Templat Kad Saya')
+    setModalSetAsLive(forceLive ? true : isLiveNow)
+    setModalError('')
+    setShowSaveModal(true)
+  }
+
+  // Save Template to Cloud (Supabase via /api/store/settings)
+  const handleCloudSave = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    const cleanName = modalName.trim()
+    if (!cleanName) {
+      setModalError('Sila masukkan nama templat.')
+      return
+    }
+
+    // Check 3 templates quota
+    const isNew = !activeTemplateId || !customTemplates.some((t) => t.id === activeTemplateId)
+    if (isNew && customTemplates.length >= 3) {
+      setModalError('Had kuota 3 templat telah penuh! Sila kemas kini templat sedia ada atau padam templat lain dalam Dashboard.')
+      return
+    }
+
+    setIsSavingToCloud(true)
+    setModalError('')
+
+    try {
+      const templateId = activeTemplateId || `tpl_${Date.now()}`
+      const newTemplateItem: CustomTemplateItem = {
+        id: templateId,
+        name: cleanName,
+        config: config,
+        createdAt: customTemplates.find((t) => t.id === templateId)?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+
+      let updatedTemplates: CustomTemplateItem[] = []
+      if (activeTemplateId && customTemplates.some((t) => t.id === activeTemplateId)) {
+        updatedTemplates = customTemplates.map((t) => (t.id === activeTemplateId ? newTemplateItem : t))
+      } else {
+        updatedTemplates = [...customTemplates, newTemplateItem].slice(0, 3)
+      }
+
+      const bodyPayload: any = {
+        customTemplates: updatedTemplates,
+      }
+      if (modalSetAsLive) {
+        bodyPayload.cardTemplate = config
+      }
+
+      const res = await fetch('/api/store/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyPayload),
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal menyimpan templat ke akaun kedai.')
+      }
+
+      setCustomTemplates(Array.isArray(data.customTemplates) ? data.customTemplates : updatedTemplates)
+      setActiveTemplateId(templateId)
+      setTemplateName(cleanName)
+      setIsLiveNow(modalSetAsLive)
+      setShowSaveModal(false)
+
+      showToast(
+        modalSetAsLive
+          ? 'Templat berjaya disimpan & diaktifkan secara Live untuk pelanggan!'
+          : 'Templat berjaya disimpan ke dalam akaun kedai!',
+        'success'
+      )
+
+      // Update URL search query
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href)
+        url.searchParams.set('templateId', templateId)
+        url.searchParams.delete('new')
+        url.searchParams.delete('name')
+        window.history.replaceState({}, '', url.toString())
+      }
+    } catch (err: any) {
+      setModalError(err.message || 'Ralat semasa menyimpan templat.')
+    } finally {
+      setIsSavingToCloud(false)
     }
   }
 
@@ -1436,29 +1609,68 @@ export default function CardStudioPage() {
           </Link>
           <div className="h-3.5 w-px bg-stone-300" />
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <h1 className="font-extrabold text-sm sm:text-base tracking-tight text-stone-900">
-              Card Studio
+            <h1 className="font-extrabold text-sm sm:text-base tracking-tight text-stone-900 truncate max-w-[130px] sm:max-w-[190px]">
+              {templateName || 'Card Studio'}
             </h1>
-            <span className="hidden sm:inline-flex text-[10px] bg-emerald-100/80 text-emerald-800 font-bold px-2 py-0.5 rounded-md border border-emerald-200">
-              Live Mirror
+            {isLiveNow ? (
+              <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-100/90 text-emerald-800 font-bold px-2 py-0.5 rounded-md border border-emerald-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live
+              </span>
+            ) : (
+              <span className="hidden sm:inline-flex text-[10px] bg-stone-100 text-stone-600 font-bold px-2 py-0.5 rounded-md border border-stone-200">
+                Draf
+              </span>
+            )}
+            <span className="hidden md:inline-flex text-[10px] bg-amber-50 text-amber-900 font-bold px-2 py-0.5 rounded-md border border-amber-200" title="Kuota Templat">
+              {customTemplates.length}/3 Templat
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {saveStatus && (
-            <span className="text-[11px] sm:text-xs text-emerald-600 font-semibold animate-pulse hidden md:inline flex items-center gap-1">
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
+            <span className="text-[11px] text-stone-500 font-medium hidden lg:inline">
               {saveStatus}
             </span>
           )}
+
+          {/* SIMPAN TEMPLAT BUTTON */}
+          <button
+            type="button"
+            onClick={() => handleOpenSaveModal(false)}
+            className="text-xs font-bold bg-white hover:bg-stone-50 text-stone-800 px-2.5 sm:px-3.5 py-1.5 rounded-xl border border-stone-300 shadow-2xs transition cursor-pointer flex items-center gap-1.5 active:scale-95"
+            title="Simpan templat ke akaun"
+          >
+            <svg className="w-3.5 h-3.5 text-stone-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+              <polyline points="17 21 17 13 7 13 7 21" />
+              <polyline points="7 3 7 8 15 8" />
+            </svg>
+            <span className="hidden sm:inline">Simpan Templat</span>
+            <span className="sm:hidden">Simpan</span>
+          </button>
+
+          {/* JADIKAN LIVE BUTTON */}
+          <button
+            type="button"
+            onClick={() => handleOpenSaveModal(true)}
+            className="text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-2.5 sm:px-3.5 py-1.5 rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5 active:scale-95"
+            title="Simpan dan aktifkan secara langsung untuk kad pelanggan"
+          >
+            <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+            </svg>
+            <span className="hidden sm:inline">Jadikan Live</span>
+            <span className="sm:hidden">Live</span>
+          </button>
+
+          {/* RESET ASAL BUTTON */}
           <button
             type="button"
             onClick={resetToDefault}
-            className="text-xs font-semibold bg-stone-100 hover:bg-stone-200/80 text-stone-700 px-2.5 sm:px-3.5 py-1.5 rounded-xl border border-stone-200/90 transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
-            title="Reset semua tetapan ke asal"
+            className="text-xs font-semibold bg-stone-100 hover:bg-stone-200/80 text-stone-600 px-2 sm:px-2.5 py-1.5 rounded-xl border border-stone-200 transition cursor-pointer flex items-center gap-1 shadow-2xs"
+            title="Reset ke reka bentuk asal"
           >
             <svg className="w-3.5 h-3.5 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
@@ -1466,20 +1678,19 @@ export default function CardStudioPage() {
               <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
               <path d="M8 16H3v5" />
             </svg>
-            <span className="hidden sm:inline">Reset Asal</span>
-            <span className="sm:hidden">Reset</span>
           </button>
+
+          {/* PRATONTON PENUH BUTTON */}
           <Link
             href="/card-preview"
-            className="text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-3 sm:px-4 py-1.5 rounded-xl shadow-xs transition flex items-center gap-1.5"
+            className="text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white px-2.5 sm:px-3.5 py-1.5 rounded-xl shadow-2xs transition flex items-center gap-1.5"
             title="Buka Pratonton Penuh"
           >
             <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
               <circle cx="12" cy="12" r="3" />
             </svg>
-            <span className="hidden sm:inline">Pratonton Penuh</span>
-            <span className="sm:hidden">Penuh</span>
+            <span className="hidden md:inline">Pratonton</span>
           </Link>
         </div>
       </header>
@@ -2573,12 +2784,134 @@ export default function CardStudioPage() {
                 </div>
               </div>
             </div>
-
-            {/* BOTTOM HOME INDICATOR */}
-            <div className="w-24 h-1 bg-stone-400/40 rounded-full mx-auto mb-2 pointer-events-none shrink-0" />
           </div>
         </main>
       </div>
+
+      {/* FLOATING CLOUD TOAST NOTIFICATION */}
+      {cloudToast && (
+        <div
+          className={`fixed bottom-6 right-6 z-50 py-3 px-4 rounded-2xl text-xs font-bold text-white shadow-xl flex items-center gap-2.5 transition-all animate-bounce ${
+            cloudToast.type === 'error' ? 'bg-red-600' : 'bg-emerald-600'
+          }`}
+        >
+          <span>{cloudToast.type === 'error' ? '⚠️' : '✅'}</span>
+          <span>{cloudToast.msg}</span>
+        </div>
+      )}
+
+      {/* SAVE TEMPLATE MODAL DIALOG */}
+      {showSaveModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-5 sm:p-6 w-full max-w-[420px] shadow-2xl border border-stone-200 anim-scale">
+            <div className="flex items-center justify-between pb-3 border-b border-stone-100 mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-base">
+                  💾
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-stone-900">Simpan Templat Kad</h3>
+                  <p className="text-[11px] text-stone-500">Simpan ke akaun anda (Maksimum 3 templat)</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSaveModal(false)}
+                className="w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 hover:text-stone-800 flex items-center justify-center text-xs font-bold transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCloudSave} className="space-y-4">
+              {modalError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs font-medium leading-relaxed">
+                  {modalError}
+                </div>
+              )}
+
+              {/* NAMA TEMPLAT INPUT */}
+              <div>
+                <label className="block text-xs font-bold text-stone-700 mb-1.5">
+                  Nama Templat <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={modalName}
+                  onChange={(e) => setModalName(e.target.value)}
+                  placeholder="cth: Tema Raya, Bakeri Pastel, Dark Steel"
+                  maxLength={50}
+                  required
+                  autoFocus
+                  className="w-full bg-stone-50 border border-stone-300 focus:border-amber-500 focus:bg-white rounded-xl p-2.5 text-xs text-stone-900 font-medium outline-none transition"
+                />
+                <div className="flex justify-between items-center text-[10px] text-stone-500 mt-1">
+                  <span>Nama ini akan dipaparkan dalam senarai templat anda.</span>
+                  <span>{modalName.length}/50</span>
+                </div>
+              </div>
+
+              {/* KUOTA TEMPLAT INFO */}
+              <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-[#EDE5DA] text-xs">
+                <div className="flex items-center justify-between font-bold text-stone-800 mb-1">
+                  <span>Penggunaan Kuota:</span>
+                  <span className="text-amber-800 font-mono">
+                    {activeTemplateId ? `${customTemplates.length}/3 (Kemaskini)` : `${Math.min(3, customTemplates.length + 1)}/3 (Baharu)`}
+                  </span>
+                </div>
+                <p className="text-[11px] text-stone-500 leading-normal">
+                  Setiap akaun kedai dihadkan kepada 3 templat. Anda boleh menukar templat yang aktif pada bila-bila masa.
+                </p>
+              </div>
+
+              {/* JADIKAN LIVE CHECKBOX */}
+              <label className="flex items-start gap-2.5 p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={modalSetAsLive}
+                  onChange={(e) => setModalSetAsLive(e.target.checked)}
+                  className="mt-0.5 accent-emerald-600 w-4 h-4 rounded cursor-pointer shrink-0"
+                />
+                <div className="text-xs">
+                  <div className="font-bold text-emerald-900 flex items-center gap-1.5">
+                    <span>Jadikan Templat Ini Aktif (Live)</span>
+                    <span className="text-[9.5px] bg-emerald-600 text-white font-bold px-1.5 py-0.2 rounded-md">Live</span>
+                  </div>
+                  <div className="text-[11px] text-emerald-700/90 mt-0.5">
+                    Kad pelanggan (/card) akan terus menggunakan reka bentuk ini sebaik sahaja disimpan.
+                  </div>
+                </div>
+              </label>
+
+              {/* BUTTONS */}
+              <div className="pt-2 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSaveModal(false)}
+                  disabled={isSavingToCloud}
+                  className="flex-1 py-2.5 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingToCloud}
+                  className="flex-1 py-2.5 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isSavingToCloud ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Menyimpan...</span>
+                    </>
+                  ) : (
+                    <span>Simpan Templat</span>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

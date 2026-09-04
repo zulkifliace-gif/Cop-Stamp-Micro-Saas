@@ -94,6 +94,12 @@ export async function GET(req: NextRequest) {
       (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && Array.isArray(rawRewards?.locations) && rawRewards.locations) ||
       (Array.isArray((store as any)?.locations) && (store as any).locations) ||
       []
+    const parsedCardTemplate =
+      (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && rawRewards?.cardTemplate) ||
+      null
+    const parsedCustomTemplates =
+      (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && Array.isArray(rawRewards?.customTemplates) && rawRewards.customTemplates) ||
+      []
 
     return NextResponse.json({
       needsRegistration: false,
@@ -107,6 +113,8 @@ export async function GET(req: NextRequest) {
       stampIcon: parsedStampIcon,
       socialLinks: parsedSocialLinks,
       locations: parsedLocations,
+      cardTemplate: parsedCardTemplate,
+      customTemplates: parsedCustomTemplates,
       planType: store.plan_type || 'free',
       subscriptionStatus: store.subscription_status || 'active',
       purchasedCardQuota: store.purchased_card_quota || 0,
@@ -295,6 +303,8 @@ export async function PUT(req: NextRequest) {
       stampIcon,
       socialLinks,
       locations,
+      cardTemplate,
+      customTemplates,
       googleReviewMode, // 'google' | 'manual' — optional, hanya proses kalau dihantar
       googleReviewInput, // link/place ID mentah — hanya diperlukan kalau mode = 'google'
     } = body
@@ -421,6 +431,37 @@ export async function PUT(req: NextRequest) {
       )
     ).filter((loc: any) => loc.url || loc.name)
 
+    // Clean & limit custom templates (Strictly max 3 items!)
+    const rawCustomTemplates = Array.isArray(customTemplates) ? customTemplates.slice(0, 3) : undefined
+    const cleanCustomTemplates = rawCustomTemplates ? rawCustomTemplates.map((t: any, idx: number) => ({
+      id: String(t?.id || `tpl_${Date.now()}_${idx}`),
+      name: String(t?.name || `Templat #${idx + 1}`).trim().slice(0, 50),
+      config: t?.config && typeof t.config === 'object' ? t.config : t,
+      createdAt: t?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    })) : undefined
+
+    // Fetch existing rewards to preserve other properties if not provided
+    const { data: currentStoreRec } = await admin.from('stores').select('rewards').eq('id', storeId).single()
+    const currentRewardsObj = (currentStoreRec?.rewards && typeof currentStoreRec.rewards === 'object' && !Array.isArray(currentStoreRec.rewards))
+      ? currentStoreRec.rewards
+      : {}
+
+    const updatedRewardsPayload: any = {
+      ...currentRewardsObj,
+      list: cleanRewards,
+      stampIcon: cleanStampIcon,
+      socialLinks: cleanSocialLinks,
+      locations: cleanLocations,
+    }
+
+    if (cardTemplate !== undefined) {
+      updatedRewardsPayload.cardTemplate = cardTemplate
+    }
+    if (cleanCustomTemplates !== undefined) {
+      updatedRewardsPayload.customTemplates = cleanCustomTemplates
+    }
+
     const updates: {
       name?: string
       stamps_required?: number
@@ -432,12 +473,7 @@ export async function PUT(req: NextRequest) {
       google_review_url?: string | null
       google_place_id?: string | null
     } = {
-      rewards: {
-        list: cleanRewards,
-        stampIcon: cleanStampIcon,
-        socialLinks: cleanSocialLinks,
-        locations: cleanLocations,
-      },
+      rewards: updatedRewardsPayload,
     }
 
     if (cleanName) updates.name = cleanName
@@ -497,6 +533,12 @@ export async function PUT(req: NextRequest) {
     const finalLocations =
       (typeof rawUpdatedRewards === 'object' && !Array.isArray(rawUpdatedRewards) && Array.isArray(rawUpdatedRewards?.locations) && rawUpdatedRewards.locations) ||
       cleanLocations
+    const finalCardTemplate =
+      (typeof rawUpdatedRewards === 'object' && !Array.isArray(rawUpdatedRewards) && rawUpdatedRewards?.cardTemplate) ||
+      null
+    const finalCustomTemplates =
+      (typeof rawUpdatedRewards === 'object' && !Array.isArray(rawUpdatedRewards) && Array.isArray(rawUpdatedRewards?.customTemplates) && rawUpdatedRewards.customTemplates) ||
+      []
 
     return NextResponse.json({
       success: true,
@@ -510,6 +552,8 @@ export async function PUT(req: NextRequest) {
       stampIcon: finalStampIcon,
       socialLinks: finalSocialLinks,
       locations: finalLocations,
+      cardTemplate: finalCardTemplate,
+      customTemplates: finalCustomTemplates,
       googleReviewMode: updatedStore.google_review_mode || 'manual',
       googleReviewUrl: updatedStore.google_review_url || null,
       googlePlaceId: updatedStore.google_place_id || null,

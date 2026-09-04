@@ -75,6 +75,10 @@ export async function GET(req: NextRequest) {
           (Array.isArray((storeObj as any)?.locations) && (storeObj as any).locations) ||
           []
 
+        const parsedCardTemplate =
+          (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && rawRewards?.cardTemplate) ||
+          null
+
         const parsedLocations = await Promise.all(
           rawLocations.map(async (loc: any) => {
             if (!loc.url) return loc
@@ -107,6 +111,7 @@ export async function GET(req: NextRequest) {
           stampIcon: parsedStampIcon,
           socialLinks: parsedSocialLinks,
           locations: parsedLocations,
+          cardTemplate: parsedCardTemplate,
           updatedAt: item.updated_at,
           googleReviewUrl: storeObj?.google_review_url || null,
           googleReviewMode: storeObj?.google_review_mode || 'manual',
@@ -126,6 +131,7 @@ export async function GET(req: NextRequest) {
       let defaultStampIcon = '/icons/stamps/makanan.svg'
       let defaultSocialLinks: any[] = []
       let defaultLocations: any[] = []
+      let defaultCardTemplate: any = null
       let defaultGoogleReviewUrl: string | null = null
       let defaultGoogleReviewMode = 'manual'
 
@@ -156,6 +162,9 @@ export async function GET(req: NextRequest) {
           defaultSocialLinks =
             (typeof rawStRewards === 'object' && !Array.isArray(rawStRewards) && Array.isArray(rawStRewards?.socialLinks) && rawStRewards.socialLinks) ||
             []
+          defaultCardTemplate =
+            (typeof rawStRewards === 'object' && !Array.isArray(rawStRewards) && rawStRewards?.cardTemplate) ||
+            null
           const rawDefLocs =
             (typeof rawStRewards === 'object' && !Array.isArray(rawStRewards) && Array.isArray(rawStRewards?.locations) && rawStRewards.locations) ||
             (Array.isArray((st as any)?.locations) && (st as any).locations) ||
@@ -195,6 +204,7 @@ export async function GET(req: NextRequest) {
         stampIcon: defaultStampIcon,
         socialLinks: defaultSocialLinks,
         locations: defaultLocations,
+        cardTemplate: defaultCardTemplate,
         updatedAt: null,
         stampDates: [],
         googleReviewUrl: defaultGoogleReviewUrl,
@@ -236,6 +246,7 @@ export async function GET(req: NextRequest) {
       stampIcon: activeStore.stampIcon,
       socialLinks: activeStore.socialLinks,
       locations: activeStore.locations || [],
+      cardTemplate: activeStore.cardTemplate || null,
       updatedAt: activeStore.updatedAt,
       stampDates,
       googleReviewUrl: activeStore.googleReviewUrl,

@@ -4,6 +4,13 @@ import React, { useState, useEffect, useRef } from 'react'
 import QRCode from 'qrcode'
 import { createClient } from '@/lib/supabase/client'
 import { Lang, I18N_CARD } from '@/lib/i18n/card'
+import {
+  LiveStudioConfig,
+  HeroHeaderPattern,
+  STORE_FONT_OPTIONS,
+  CardBoxMaterialTexture,
+  ProgressBarRenderer,
+} from '../card-studio/page'
 
 interface RewardItem {
   id?: string
@@ -40,6 +47,7 @@ interface CustomerStoreCard {
   stampIcon?: string
   socialLinks?: SocialLinkItem[]
   locations?: StoreLocationItem[]
+  cardTemplate?: LiveStudioConfig | null
   updatedAt?: string | null
 }
 
@@ -257,6 +265,7 @@ export default function CustomerCardPage() {
   const [updatedAt, setUpdatedAt] = useState<string | null>(null)
   const [stampDates, setStampDates] = useState<string[]>([])
   const [locations, setLocations] = useState<StoreLocationItem[]>([])
+  const [cardTemplate, setCardTemplate] = useState<LiveStudioConfig | null>(null)
   const [showLocationsModal, setShowLocationsModal] = useState(false)
   const [activeLocationIdx, setActiveLocationIdx] = useState(0)
 
@@ -298,6 +307,14 @@ export default function CustomerCardPage() {
     end: number
     storeId?: string | null
   } | null>(null)
+
+  const heroBlock = cardTemplate?.blocks?.find((b) => b.id === 'hero_header')
+  const profileBlock = cardTemplate?.blocks?.find((b) => b.id === 'store_profile')
+  const cardBoxBlock = cardTemplate?.blocks?.find((b) => b.id === 'stamp_card_box')
+  const progressBlock = cardTemplate?.blocks?.find((b) => b.id === 'progress_bar')
+
+  const activeFont = STORE_FONT_OPTIONS.find((f) => f.id === (profileBlock?.fontId || 'fraunces')) || STORE_FONT_OPTIONS[0]
+  const currentFontFamily = activeFont.fontFamily
 
   const TOTAL = stampsRequired || 10
   const fullCardsCount = Math.floor(totalStamps / TOTAL)
@@ -378,6 +395,7 @@ export default function CustomerCardPage() {
         setStampIcon(normalizeStampIcon(data.stampIcon))
         setSocialLinks(Array.isArray(data.socialLinks) ? data.socialLinks : [])
         setLocations(Array.isArray(data.locations) ? data.locations : [])
+        setCardTemplate(data.cardTemplate || null)
         setActiveLocationIdx(0)
         setUpdatedAt(data.updatedAt || null)
         setStampDates(Array.isArray(data.stampDates) ? data.stampDates : [])
@@ -565,6 +583,7 @@ export default function CustomerCardPage() {
     setStoreName('')
     setTotalStamps(0)
     setAllStores([])
+    setCardTemplate(null)
   }
 
   function handleSelectStarAndReview(star: number) {
@@ -672,15 +691,25 @@ export default function CustomerCardPage() {
   }
 
   return (
-    <main className="min-h-screen text-[#2B1B12] font-jakarta">
-      {/* SCOPED COMPONENT STYLES FAITHFULLY TRANSLATED FROM loyalty_card.html */}
+    <main
+      className="min-h-screen text-[#2B1B12] font-jakarta"
+      style={{
+        backgroundColor: cardTemplate?.pageBgColor || '#FFF7EA',
+        backgroundImage: `radial-gradient(circle at 1px 1px, ${cardTemplate?.pageDotColor || 'rgba(43,27,18,0.055)'} 1px, transparent 1px)`,
+        backgroundSize: '20px 20px',
+      }}
+    >
+      {/* SCOPED COMPONENT STYLES FAITHFULLY TRANSLATED FROM loyalty_card.html & CARD STUDIO */}
       <style dangerouslySetInnerHTML={{ __html: `
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@600;700;800&family=Comfortaa:wght@700&family=Dancing+Script:wght@700&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Montserrat:wght@600;700;800&family=Pacifico&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Poppins:wght@500;600;700;800&family=Quicksand:wght@600;700&display=swap');
+
         :root {
-          --bg: #FFF7EA;
-          --bg-dot: rgba(43,27,18,0.055);
-          --hero-1: #FF7A45;
-          --hero-2: #FF9F45;
-          --hero-3: #FFC24D;
+          --store-font: ${currentFontFamily};
+          --bg: ${cardTemplate?.pageBgColor || '#FFF7EA'};
+          --bg-dot: ${cardTemplate?.pageDotColor || 'rgba(43,27,18,0.055)'};
+          --hero-1: ${heroBlock?.bgColor || '#FF7A45'};
+          --hero-2: ${heroBlock?.bgColor2 || '#FF9F45'};
+          --hero-3: ${heroBlock?.bgColor2 || '#FFC24D'};
           --cream: #FFFDF8;
           --ink: #2B1B12;
           --ink-strong: #1B0F09;
@@ -715,6 +744,10 @@ export default function CustomerCardPage() {
           max-width: 430px;
           margin: 0 auto;
           padding-bottom: 44px;
+        }
+
+        .card-app .store-name, .card-app .avatar, .card-app .stamp-card-head .count {
+          font-family: var(--store-font, 'Fraunces', serif) !important;
         }
 
         .hscroll {
@@ -1465,8 +1498,21 @@ export default function CustomerCardPage() {
         {/* ========================================================= */}
         {user ? (
           <>
-            <div className="hero">
-              <div className="hero-inner">
+            <div
+              className="hero relative overflow-hidden"
+              style={{
+                background: `linear-gradient(135deg, ${heroBlock?.bgColor || 'var(--hero-1)'} 0%, ${heroBlock?.bgColor2 || 'var(--hero-2)'} 100%)`,
+                borderBottomLeftRadius: `${heroBlock?.borderRadius ?? 34}px`,
+                borderBottomRightRadius: `${heroBlock?.borderRadius ?? 34}px`,
+              }}
+            >
+              {/* HERO HEADER PATTERN MOTIF */}
+              <HeroHeaderPattern
+                pattern={heroBlock?.pattern || 'bubbles'}
+                opacity={heroBlock?.patternOpacity ?? 0.25}
+              />
+
+              <div className="hero-inner relative z-10">
                 {/* TOPBAR */}
                 <div className="topbar">
                   <div className="lang-toggle">
@@ -1575,44 +1621,46 @@ export default function CustomerCardPage() {
 
                 {/* STORE PROFILE */}
                 <div className="profile">
-                  <div className="avatar relative overflow-hidden">
-                    {logoUrl && !logoError ? (
-                      <>
-                        {/* ANIMASI LOADING PROFILE: Berterusan sehingga gambar selesai dimuatkan */}
-                        {logoLoading && (
-                          <div className="absolute inset-0 bg-[#FFF7EA] flex items-center justify-center z-10">
-                            <div className="w-7 h-7 border-[2.5px] border-[#FF5A45] border-t-transparent rounded-full animate-spin" />
-                          </div>
-                        )}
-                        <img
-                          src={logoUrl}
-                          alt={storeName}
-                          ref={(el) => {
-                            if (el && el.complete && el.naturalWidth > 0) {
+                  {profileBlock?.showLogo !== false && (
+                    <div className="avatar relative overflow-hidden">
+                      {logoUrl && !logoError ? (
+                        <>
+                          {/* ANIMASI LOADING PROFILE: Berterusan sehingga gambar selesai dimuatkan */}
+                          {logoLoading && (
+                            <div className="absolute inset-0 bg-[#FFF7EA] flex items-center justify-center z-10">
+                              <div className="w-7 h-7 border-[2.5px] border-[#FF5A45] border-t-transparent rounded-full animate-spin" />
+                            </div>
+                          )}
+                          <img
+                            src={logoUrl}
+                            alt={storeName}
+                            ref={(el) => {
+                              if (el && el.complete && el.naturalWidth > 0) {
+                                setLogoLoading(false)
+                              }
+                            }}
+                            onLoad={() => setLogoLoading(false)}
+                            onError={() => {
+                              setLogoError(true)
                               setLogoLoading(false)
-                            }
-                          }}
-                          onLoad={() => setLogoLoading(false)}
-                          onError={() => {
-                            setLogoError(true)
-                            setLogoLoading(false)
-                          }}
-                          className={`w-full h-full object-cover transition-opacity duration-300 ${
-                            logoLoading ? 'opacity-0' : 'opacity-100'
-                          }`}
-                        />
-                      </>
-                    ) : (
-                      /* JIKA GAGAL / ROSAK ATAU KOSONG: GANTIKAN LOGO LAJUS */
-                      <div className="w-full h-full p-2.5 bg-white flex items-center justify-center">
-                        <img
-                          src="/logo.svg"
-                          alt="LajuS"
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                    )}
-                  </div>
+                            }}
+                            className={`w-full h-full object-cover transition-opacity duration-300 ${
+                              logoLoading ? 'opacity-0' : 'opacity-100'
+                            }`}
+                          />
+                        </>
+                      ) : (
+                        /* JIKA GAGAL / ROSAK ATAU KOSONG: GANTIKAN LOGO LAJUS */
+                        <div className="w-full h-full p-2.5 bg-white flex items-center justify-center">
+                          <img
+                            src="/logo.svg"
+                            alt="LajuS"
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="store-name">
                     <span>{storeName || 'Kad Cop'}</span>
@@ -1769,14 +1817,35 @@ export default function CustomerCardPage() {
                     return (
                       <div
                         key={cardIdx}
-                        className="stamp-card"
+                        className="stamp-card relative overflow-hidden"
                         style={{
                           flex: `0 0 ${100 / totalCardsCount}%`,
                           width: `${100 / totalCardsCount}%`,
+                          backgroundColor: cardBoxBlock?.bgColor || '#FFFDF8',
+                          borderColor: cardBoxBlock?.borderColor || '#F0DEC0',
+                          borderRadius: `${cardBoxBlock?.borderRadius || 28}px`,
+                          backdropFilter: (cardBoxBlock?.cardStyle || 'kertas') === 'kaca' ? 'blur(22px) saturate(190%) contrast(105%)' : (cardBoxBlock?.cardStyle || 'kertas') === 'air' ? 'blur(16px) saturate(140%)' : 'none',
+                          WebkitBackdropFilter: (cardBoxBlock?.cardStyle || 'kertas') === 'kaca' ? 'blur(22px) saturate(190%) contrast(105%)' : (cardBoxBlock?.cardStyle || 'kertas') === 'air' ? 'blur(16px) saturate(140%)' : 'none',
+                          boxShadow: cardBoxBlock?.shadowStyle === 'glow'
+                            ? '0 16px 36px -10px rgba(255,122,69,0.22)'
+                            : (cardBoxBlock?.cardStyle || 'kertas') === 'kaca'
+                            ? '0 24px 50px -12px rgba(0,0,0,0.22), inset 0 1.5px 2px rgba(255,255,255,0.85), inset 0 -1.5px 2px rgba(255,255,255,0.25)'
+                            : (cardBoxBlock?.cardStyle || 'kertas') === 'kayu'
+                            ? '0 14px 32px -6px rgba(45,20,5,0.4), inset 0 2px 4px rgba(255,255,255,0.35), inset 0 -3px 6px rgba(40,15,0,0.4)'
+                            : (cardBoxBlock?.cardStyle || 'kertas') === 'besi'
+                            ? '0 16px 36px -8px rgba(15,23,42,0.45), inset 0 2px 4px rgba(255,255,255,0.9), inset 0 -2px 5px rgba(0,0,0,0.35)'
+                            : (cardBoxBlock?.cardStyle || 'kertas') === 'batu'
+                            ? '0 16px 36px -8px rgba(30,41,59,0.35), inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.2)'
+                            : (cardBoxBlock?.cardStyle || 'kertas') === 'air'
+                            ? '0 18px 40px -8px rgba(0,188,212,0.35), inset 0 2px 6px rgba(255,255,255,0.9), inset 0 -2px 6px rgba(0,188,212,0.25)'
+                            : '0 14px 32px -8px rgba(43,27,18,0.08)',
                         }}
                       >
+                        {/* MATERIAL TEXTURE OVERLAY */}
+                        <CardBoxMaterialTexture cardStyle={cardBoxBlock?.cardStyle || 'kertas'} />
+
                         {/* HEAD */}
-                        <div className="stamp-card-head">
+                        <div className="stamp-card-head relative z-10">
                           <div className="label">
                             {isFull
                               ? `${lang === 'en' ? 'CARD' : 'KAD'} ${cardIdx + 1} • ${lang === 'en' ? 'FULL' : 'PENUH'}`
@@ -1789,14 +1858,14 @@ export default function CustomerCardPage() {
                         </div>
 
                         {/* PERFORATION LINE */}
-                        <div className="perforation">
+                        <div className="perforation relative z-10">
                           {Array.from({ length: 15 }).map((_, pIdx) => (
                             <span key={pIdx} />
                           ))}
                         </div>
 
                         {/* 5. STAMP GRID WITH OFFICIAL STAMP ICON (REPLACES FORK SVG) */}
-                        <div className="stamp-grid">
+                        <div className="stamp-grid relative z-10">
                           {Array.from({ length: TOTAL }).map((_, slotIdx) => {
                             const slotNum = slotIdx + 1
                             const filled = slotNum <= cardStamps
@@ -1849,16 +1918,18 @@ export default function CustomerCardPage() {
                           })}
                         </div>
 
-                        {/* PROGRESS BAR */}
-                        <div className="progress-bar">
-                          <div
-                            className="progress-bar-fill"
-                            style={{ width: `${percentFill}%` }}
+                        {/* 4. PROGRESS BAR */}
+                        <div className="relative z-10">
+                          <ProgressBarRenderer
+                            progressBlock={progressBlock}
+                            totalStamps={cardStamps}
+                            reqStamps={TOTAL}
+                            percentFill={percentFill}
                           />
                         </div>
 
                         {/* STATUS TEXT */}
-                        <div className="status-text">
+                        <div className="status-text relative z-10">
                           {isFull ? (
                             <span>🎉 {t.card.completeRedeem(rewardDesc)}</span>
                           ) : cardRemain > 0 ? (
@@ -1881,7 +1952,7 @@ export default function CustomerCardPage() {
                         </div>
 
                         {/* CARD DOTS PAGINATION */}
-                        <div className="card-dots">
+                        <div className="card-dots relative z-10">
                           {Array.from({ length: totalCardsCount }).map((_, dotIdx) => {
                             const isDotFull = dotIdx < fullCardsCount
                             const isDotActive = dotIdx === selectedCardIdx

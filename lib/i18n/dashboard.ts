@@ -193,6 +193,23 @@ export interface DashboardTranslation {
     settingsScanInvalidMsg: string
     copyConfigBtn: string
     configCopiedMsg: string
+    customTemplatesTitle: string
+    customTemplatesDesc: string
+    customTemplatesQuota: (used: number) => string
+    createTemplateBtn: string
+    openCardStudioBtn: string
+    noCustomTemplates: string
+    activeLiveBadge: string
+    draftBadge: string
+    activateLiveBtn: string
+    editInStudioBtn: string
+    deleteTemplateBtn: string
+    newTemplateModalTitle: string
+    newTemplateModalDesc: string
+    newTemplateNameLabel: string
+    newTemplateNamePlaceholder: string
+    maxTemplatesReachedMsg: string
+    startDesigningBtn: string
   }
   activity: {
     title: string
@@ -439,6 +456,23 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       settingsScanInvalidMsg: 'Pautan QR ini bukan pautan tetapan kedai LajuS yang sah.',
       copyConfigBtn: 'Salin Pautan Pindah Tetapan',
       configCopiedMsg: 'Pautan tetapan telah disalin!',
+      customTemplatesTitle: 'Templat Kad Pelanggan (Card Studio)',
+      customTemplatesDesc: 'Ubah suai tema visual, fon tulisan, tekstur kad, dan animasi progress bar kad pelanggan anda.',
+      customTemplatesQuota: (used) => `${used}/3 Slot Digunakan`,
+      createTemplateBtn: '+ Cipta Templat Baharu',
+      openCardStudioBtn: '🎨 Buka Card Studio',
+      noCustomTemplates: 'Belum ada templat tersimpan. Anda boleh menyimpan sehingga 3 reka bentuk templat kad untuk kedai anda.',
+      activeLiveBadge: '✨ LIVE (Kad Pelanggan)',
+      draftBadge: 'Draf',
+      activateLiveBtn: '✨ Aktifkan (Live)',
+      editInStudioBtn: '✏️ Ubah di Card Studio',
+      deleteTemplateBtn: 'Padam',
+      newTemplateModalTitle: '🎨 Cipta Templat Kad Baharu',
+      newTemplateModalDesc: 'Beri nama untuk templat anda (cth: "Tema Raya", "Bakeri Pastel"). Had 3 templat setiap akaun kedai.',
+      newTemplateNameLabel: 'Nama Templat',
+      newTemplateNamePlaceholder: 'cth: Tema Raya Pastel / Edisi Khas',
+      maxTemplatesReachedMsg: 'Had maksimum 3 templat telah dicapai. Sila padam templat sedia ada untuk mencipta templat baharu.',
+      startDesigningBtn: 'Mula Mereka Bentuk 🎨',
     },
     activity: {
       title: 'Log Aktiviti',
@@ -683,6 +717,23 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       settingsScanInvalidMsg: 'This QR code is not a valid LajuS store configuration link.',
       copyConfigBtn: 'Copy Settings Transfer Link',
       configCopiedMsg: 'Settings link copied!',
+      customTemplatesTitle: 'Customer Card Templates (Card Studio)',
+      customTemplatesDesc: 'Customize theme colors, fonts, card textures, and progress bar animations for your customer card.',
+      customTemplatesQuota: (used) => `${used}/3 Slots Used`,
+      createTemplateBtn: '+ Create New Template',
+      openCardStudioBtn: '🎨 Open Card Studio',
+      noCustomTemplates: 'No saved templates yet. You can create and save up to 3 custom card designs for your store.',
+      activeLiveBadge: '✨ LIVE (Customer Card)',
+      draftBadge: 'Draft',
+      activateLiveBtn: '✨ Activate (Live)',
+      editInStudioBtn: '✏️ Edit in Card Studio',
+      deleteTemplateBtn: 'Delete',
+      newTemplateModalTitle: '🎨 Create New Card Template',
+      newTemplateModalDesc: 'Name your template (e.g. "Raya Theme", "Pastel Bakery"). Maximum 3 templates per store account.',
+      newTemplateNameLabel: 'Template Name',
+      newTemplateNamePlaceholder: 'e.g. Pastel Cafe Theme / Holiday Special',
+      maxTemplatesReachedMsg: 'Maximum limit of 3 templates reached. Please delete an existing template to create a new one.',
+      startDesigningBtn: 'Start Designing 🎨',
     },
     activity: {
       title: 'Activity Logs',
