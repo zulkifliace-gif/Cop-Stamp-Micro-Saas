@@ -69,16 +69,13 @@ export async function GET(req: NextRequest) {
     }
 
     // 3. Compute Store Overview Stats
-    // A. Total distinct customers — kira dari stamp_tokens (claimed_by)
-    const { data: claimedByRows } = await admin
-      .from('stamp_tokens')
-      .select('claimed_by')
+    // A. Total distinct customers — exact fast count from customer_loyalty
+    const { count: customerLoyaltyCount } = await admin
+      .from('customer_loyalty')
+      .select('id', { count: 'exact', head: true })
       .eq('store_id', storeId)
-      .eq('status', 'claimed')
-      .not('claimed_by', 'is', null)
 
-    const uniqueCustomers = new Set((claimedByRows || []).map((r) => r.claimed_by))
-    const customerCount = uniqueCustomers.size
+    const customerCount = customerLoyaltyCount || 0
 
     // B. Total stamps in circulation (from customer_loyalty)
     const { data: loyaltyRows } = await admin
@@ -118,7 +115,7 @@ export async function GET(req: NextRequest) {
       // stamp_redemptions table may not exist yet — treat as 0
     }
 
-    // 4. Handle Full Export if Requested
+    // 4. Handle Full Export if Requested (With safety limit of 5,000 to prevent payload overflow)
     const isExport = searchParams.get('export') === 'true'
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
@@ -129,6 +126,7 @@ export async function GET(req: NextRequest) {
         .select('id, token, stamp_count, status, delivery_method, recipient_email, created_at, expires_at, claimed_at')
         .eq('store_id', storeId)
         .order('created_at', { ascending: false })
+        .limit(5000)
 
       if (startDate) {
         exportQuery = exportQuery.gte('created_at', startDate)

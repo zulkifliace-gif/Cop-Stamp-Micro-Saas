@@ -72,6 +72,9 @@ export interface DashboardTranslation {
     noCustomersYet: string
     closeBtn: string
     loading: string
+    prevPage: string
+    nextPage: string
+    pageInfo: (curr: number, total: number) => string
   }
   searchSection: {
     title: string
@@ -315,6 +318,9 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       noCustomersYet: 'Belum ada pelanggan yang menuntut cop di kedai ini.',
       closeBtn: 'Tutup',
       loading: 'Memuatkan senarai pelanggan...',
+      prevPage: 'Sebelumnya',
+      nextPage: 'Seterusnya',
+      pageInfo: (curr, total) => `Halaman ${curr} daripada ${total}`,
     },
     searchSection: {
       title: 'Tebus Ganjaran di Kaunter',
@@ -556,6 +562,9 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       noCustomersYet: 'No customers have claimed stamps at this store yet.',
       closeBtn: 'Close',
       loading: 'Loading customer list...',
+      prevPage: 'Previous',
+      nextPage: 'Next',
+      pageInfo: (curr, total) => `Page ${curr} of ${total}`,
     },
     searchSection: {
       title: 'Redeem Counter Reward',

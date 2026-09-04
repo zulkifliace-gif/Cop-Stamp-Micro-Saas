@@ -275,6 +275,9 @@ export default function CashierDashboard() {
   const [customersList, setCustomersList] = useState<CustomerListItem[]>([])
   const [isLoadingCustomers, setIsLoadingCustomers] = useState<boolean>(false)
   const [customerSearchQuery, setCustomerSearchQuery] = useState<string>('')
+  const [customerListPage, setCustomerListPage] = useState<number>(1)
+  const [totalCustomerPages, setTotalCustomerPages] = useState<number>(1)
+  const [totalCustomerCount, setTotalCustomerCount] = useState<number>(0)
 
   // Customer Reward Claim Search State
   const [searchEmail, setSearchEmail] = useState<string>('')
@@ -987,24 +990,31 @@ export default function CashierDashboard() {
   }
 
   // 10.1 Customers List Modal Logic (Semak Pelanggan / Kad Diguna)
-  async function fetchCustomersList(searchQuery = '') {
+  async function fetchCustomersList(searchQuery = '', page = 1) {
     setIsLoadingCustomers(true)
+    setCustomerListPage(page)
     try {
       const targetStoreId = storeId || ''
       const res = await fetch(
-        `/api/store/customers?storeId=${targetStoreId}${
+        `/api/store/customers?storeId=${targetStoreId}&page=${page}&limit=20${
           searchQuery ? `&q=${encodeURIComponent(searchQuery)}` : ''
         }`
       )
       const data = await res.json()
       if (res.ok && Array.isArray(data.customers)) {
         setCustomersList(data.customers)
+        setTotalCustomerPages(data.pagination?.totalPages || 1)
+        setTotalCustomerCount(data.pagination?.total ?? (data.totalCustomers || 0))
       } else {
         setCustomersList([])
+        setTotalCustomerPages(1)
+        setTotalCustomerCount(0)
       }
     } catch (err) {
       console.error('Error fetching customers list:', err)
       setCustomersList([])
+      setTotalCustomerPages(1)
+      setTotalCustomerCount(0)
     } finally {
       setIsLoadingCustomers(false)
     }
@@ -1013,7 +1023,8 @@ export default function CashierDashboard() {
   function handleOpenCustomersListModal() {
     setShowCustomersModal(true)
     setCustomerSearchQuery('')
-    fetchCustomersList('')
+    setCustomerListPage(1)
+    fetchCustomersList('', 1)
   }
 
   // 11. Cashier "Done Claim" Reward Action & Auto-Print Receipt
@@ -4349,7 +4360,7 @@ export default function CashierDashboard() {
                     {t.customersModal.title}
                   </h3>
                   <p className="text-[11px] text-[#96806B] font-jakarta">
-                    {t.customersModal.subTitle(customersList.length)}
+                    {t.customersModal.subTitle(totalCustomerCount)}
                   </p>
                 </div>
               </div>
@@ -4371,7 +4382,7 @@ export default function CashierDashboard() {
                   onChange={(e) => {
                     const q = e.target.value
                     setCustomerSearchQuery(q)
-                    fetchCustomersList(q)
+                    fetchCustomersList(q, 1)
                   }}
                   placeholder={t.customersModal.searchPlaceholder}
                   className="w-full pl-8 pr-8 py-2.5 text-xs bg-[#FFFDF8] border border-[#F0DEC0] rounded-xl outline-none focus:ring-2 focus:ring-[#FF7A45] font-jakarta placeholder:text-gray-400 text-[#2B1B12]"
@@ -4385,7 +4396,7 @@ export default function CashierDashboard() {
                     type="button"
                     onClick={() => {
                       setCustomerSearchQuery('')
-                      fetchCustomersList('')
+                      fetchCustomersList('', 1)
                     }}
                     className="absolute right-2.5 text-[#96806B] hover:text-[#2B1B12] text-xs font-bold p-1 cursor-pointer"
                   >
@@ -4432,8 +4443,40 @@ export default function CashierDashboard() {
               )}
             </div>
 
+            {/* Pagination Controls (if more than 1 page) */}
+            {totalCustomerPages > 1 && (
+              <div className="flex items-center justify-between pt-2.5 pb-1 px-1 shrink-0 border-t border-[#F0DEC0]/60">
+                <button
+                  type="button"
+                  onClick={() =>
+                    fetchCustomersList(customerSearchQuery, Math.max(1, customerListPage - 1))
+                  }
+                  disabled={customerListPage <= 1 || isLoadingCustomers}
+                  className="px-3 py-1.5 rounded-lg bg-[#FFFDF8] border border-[#F0DEC0] text-[#2B1B12] disabled:opacity-40 disabled:cursor-not-allowed hover:border-[#FF7A45] text-xs font-semibold transition cursor-pointer shadow-xs"
+                >
+                  ← {t.customersModal.prevPage}
+                </button>
+                <span className="text-[11px] font-bold text-[#96806B]">
+                  {t.customersModal.pageInfo(customerListPage, totalCustomerPages)}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    fetchCustomersList(
+                      customerSearchQuery,
+                      Math.min(totalCustomerPages, customerListPage + 1)
+                    )
+                  }
+                  disabled={customerListPage >= totalCustomerPages || isLoadingCustomers}
+                  className="px-3 py-1.5 rounded-lg bg-[#FFFDF8] border border-[#F0DEC0] text-[#2B1B12] disabled:opacity-40 disabled:cursor-not-allowed hover:border-[#FF7A45] text-xs font-semibold transition cursor-pointer shadow-xs"
+                >
+                  {t.customersModal.nextPage} →
+                </button>
+              </div>
+            )}
+
             {/* Modal Footer */}
-            <div className="pt-3 border-t border-[#F0DEC0] shrink-0">
+            <div className="pt-2.5 border-t border-[#F0DEC0] shrink-0">
               <button
                 type="button"
                 onClick={() => setShowCustomersModal(false)}

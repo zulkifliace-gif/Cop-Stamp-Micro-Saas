@@ -30,6 +30,9 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const reqStoreId = searchParams.get('storeId')
     const query = searchParams.get('q')?.trim().toLowerCase() || ''
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
+    const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '20', 10)))
+    const offset = (page - 1) * limit
 
     const admin = createAdminClient()
 
@@ -46,6 +49,7 @@ export async function GET(req: NextRequest) {
       if (staffError || !staff) {
         return NextResponse.json({
           customers: [],
+          pagination: { page: 1, limit, total: 0, totalPages: 0, hasMore: false },
           totalCustomers: 0,
           stampsRequired: 10,
           rewardDescription: '',
@@ -78,36 +82,104 @@ export async function GET(req: NextRequest) {
     const stampsRequired = store?.stamps_required || 10
     const rewardDescription = store?.reward_description || 'Ganjaran'
 
-    // 3. Fetch loyalty rows for this store
-    const { data: loyaltyRows, error: loyaltyError } = await admin
-      .from('customer_loyalty')
-      .select('customer_id, total_stamps, updated_at')
-      .eq('store_id', storeId)
-      .order('total_stamps', { ascending: false })
+    let loyaltyRows: Array<{ customer_id: string; total_stamps: number; updated_at: string }> = []
+    let totalCustomers = 0
 
-    if (loyaltyError) {
-      return NextResponse.json(
-        { error: 'Gagal mendapatkan data pelanggan.' },
-        { status: 500 }
-      )
+    // 3. Query with or without search filter
+    if (query) {
+      // Find matching profiles first
+      const { data: matchedProfiles } = await admin
+        .from('customer_profiles')
+        .select('id')
+        .or(`email.ilike.%${query}%,full_name.ilike.%${query}%`)
+        .limit(200)
+
+      const matchedIds = (matchedProfiles || []).map((p) => p.id)
+
+      if (matchedIds.length > 0) {
+        // Count total matching in this store
+        const { count: matchingCount } = await admin
+          .from('customer_loyalty')
+          .select('id', { count: 'exact', head: true })
+          .eq('store_id', storeId)
+          .in('customer_id', matchedIds)
+
+        totalCustomers = matchingCount || 0
+
+        // Fetch paginated rows sorted highest stamps to lowest
+        const { data: rows, error: loyaltyError } = await admin
+          .from('customer_loyalty')
+          .select('customer_id, total_stamps, updated_at')
+          .eq('store_id', storeId)
+          .in('customer_id', matchedIds)
+          .order('total_stamps', { ascending: false })
+          .order('updated_at', { ascending: false })
+          .range(offset, offset + limit - 1)
+
+        if (loyaltyError) {
+          return NextResponse.json(
+            { error: 'Gagal mendapatkan data pelanggan.' },
+            { status: 500 }
+          )
+        }
+        loyaltyRows = rows || []
+      } else {
+        totalCustomers = 0
+        loyaltyRows = []
+      }
+    } else {
+      // Direct count of store customers
+      const { count: storeCount } = await admin
+        .from('customer_loyalty')
+        .select('id', { count: 'exact', head: true })
+        .eq('store_id', storeId)
+
+      totalCustomers = storeCount || 0
+
+      // Fetch paginated rows sorted highest stamps to lowest
+      const { data: rows, error: loyaltyError } = await admin
+        .from('customer_loyalty')
+        .select('customer_id, total_stamps, updated_at')
+        .eq('store_id', storeId)
+        .order('total_stamps', { ascending: false })
+        .order('updated_at', { ascending: false })
+        .range(offset, offset + limit - 1)
+
+      if (loyaltyError) {
+        return NextResponse.json(
+          { error: 'Gagal mendapatkan data pelanggan.' },
+          { status: 500 }
+        )
+      }
+      loyaltyRows = rows || []
     }
 
-    if (!loyaltyRows || loyaltyRows.length === 0) {
+    const totalPages = Math.ceil(totalCustomers / limit) || 1
+    const hasMore = page < totalPages
+
+    if (loyaltyRows.length === 0) {
       return NextResponse.json({
         customers: [],
-        totalCustomers: 0,
+        pagination: {
+          page,
+          limit,
+          total: totalCustomers,
+          totalPages,
+          hasMore,
+        },
+        totalCustomers,
         stampsRequired,
         rewardDescription,
       })
     }
 
-    const customerIds = loyaltyRows.map((r) => r.customer_id)
+    const pageCustomerIds = loyaltyRows.map((r) => r.customer_id)
 
-    // 4. Fetch profiles for these customers
+    // 4. Fetch profiles ONLY for the customer IDs on this specific page (max limit items)
     const { data: profiles } = await admin
       .from('customer_profiles')
       .select('id, email, full_name, avatar_url')
-      .in('id', customerIds)
+      .in('id', pageCustomerIds)
 
     const profileMap = new Map<string, { email: string; name: string; avatarUrl: string }>()
     if (profiles) {
@@ -120,44 +192,45 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Fallback for any customer not yet cached in customer_profiles
-    const missingIds = customerIds.filter((id) => !profileMap.has(id) || !profileMap.get(id)?.email)
+    // Fast parallel fallback for any missing customer on current page (max ~20 items)
+    const missingIds = pageCustomerIds.filter((id) => !profileMap.has(id) || !profileMap.get(id)?.email)
     if (missingIds.length > 0) {
-      for (const cid of missingIds) {
-        try {
-          const { data: authUser } = await admin.auth.admin.getUserById(cid)
-          if (authUser?.user) {
-            const email = authUser.user.email || ''
-            const name =
-              authUser.user.user_metadata?.full_name ||
-              authUser.user.user_metadata?.name ||
-              email.split('@')[0]
-            const avatarUrl = authUser.user.user_metadata?.avatar_url || ''
+      await Promise.allSettled(
+        missingIds.map(async (cid) => {
+          try {
+            const { data: authUser } = await admin.auth.admin.getUserById(cid)
+            if (authUser?.user) {
+              const email = authUser.user.email || ''
+              const name =
+                authUser.user.user_metadata?.full_name ||
+                authUser.user.user_metadata?.name ||
+                email.split('@')[0]
+              const avatarUrl = authUser.user.user_metadata?.avatar_url || ''
 
-            profileMap.set(cid, { email, name, avatarUrl })
+              profileMap.set(cid, { email, name, avatarUrl })
 
-            // Proactively cache to customer_profiles
-            if (email) {
-              await admin.from('customer_profiles').upsert(
-                {
-                  id: cid,
-                  email,
-                  full_name: name,
-                  avatar_url: avatarUrl,
-                  updated_at: new Date().toISOString(),
-                },
-                { onConflict: 'id' }
-              )
+              if (email) {
+                await admin.from('customer_profiles').upsert(
+                  {
+                    id: cid,
+                    email,
+                    full_name: name,
+                    avatar_url: avatarUrl,
+                    updated_at: new Date().toISOString(),
+                  },
+                  { onConflict: 'id' }
+                )
+              }
             }
+          } catch {
+            // ignore individual error
           }
-        } catch {
-          // ignore error per customer
-        }
-      }
+        })
+      )
     }
 
-    // 5. Build structured customer list
-    let customers = loyaltyRows.map((r) => {
+    // 5. Build structured customer list (already sorted highest stamps to lowest)
+    const customers = loyaltyRows.map((r) => {
       const prof = profileMap.get(r.customer_id)
       const rawEmail = prof?.email || ''
       const name = prof?.name || rawEmail.split('@')[0] || 'Pelanggan'
@@ -176,19 +249,16 @@ export async function GET(req: NextRequest) {
       }
     })
 
-    // Filter by search query if provided
-    if (query) {
-      customers = customers.filter(
-        (c) =>
-          c.email.toLowerCase().includes(query) ||
-          c.maskedEmail.toLowerCase().includes(query) ||
-          c.name.toLowerCase().includes(query)
-      )
-    }
-
     return NextResponse.json({
       customers,
-      totalCustomers: loyaltyRows.length,
+      pagination: {
+        page,
+        limit,
+        total: totalCustomers,
+        totalPages,
+        hasMore,
+      },
+      totalCustomers,
       stampsRequired,
       rewardDescription,
     })
