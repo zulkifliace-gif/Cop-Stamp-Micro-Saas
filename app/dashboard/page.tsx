@@ -2517,29 +2517,32 @@ export default function CashierDashboard() {
                   <div className="mt-5 flex flex-col items-center text-center border-t-2 border-dashed border-[#E2CE9E] pt-5 anim-result">
                     {/* Clickable QR Code with Enlarge Feature & Claimed Animation Overlay */}
                     <div
-                      onClick={() => setShowLargeQr(true)}
-                      className="relative group cursor-pointer flex flex-col items-center"
-                      title={t.generator.tapToEnlarge}
+                      onClick={() => !isTokenClaimed && setShowLargeQr(true)}
+                      className={`relative group flex flex-col items-center ${!isTokenClaimed ? 'cursor-pointer' : ''}`}
+                      title={!isTokenClaimed ? t.generator.tapToEnlarge : undefined}
                     >
-                      <div className="w-[180px] h-[180px] rounded-[20px] bg-white p-2.5 mb-2 shadow-[0_8px_24px_rgba(0,0,0,0.16)] flex items-center justify-center transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-[0_12px_28px_rgba(229,164,59,0.3)] relative overflow-hidden border border-[#E2CE9E]">
-                        {qrDataUrl && (
-                          <img
-                            src={qrDataUrl}
-                            alt="QR Code Cop"
-                            className="w-full h-full object-contain"
-                          />
-                        )}
-
-                        {/* Centered Checkmark Animation if Claimed */}
-                        {isTokenClaimed && (
-                          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xs flex flex-col items-center justify-center anim-scale z-20">
-                            <div className="w-14 h-14 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-[0_0_24px_rgba(16,185,129,0.85)] mb-1.5 animate-bounce">
-                              <svg className="w-8 h-8 stroke-white" viewBox="0 0 24 24" fill="none" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                      <div className="w-[180px] h-[180px] rounded-[20px] bg-white p-2.5 mb-2 shadow-[0_8px_24px_rgba(0,0,0,0.16)] flex items-center justify-center transition-all duration-300 relative overflow-hidden border border-[#E2CE9E]">
+                        {!isTokenClaimed ? (
+                          qrDataUrl && (
+                            <img
+                              src={qrDataUrl}
+                              alt="QR Code Cop"
+                              className="w-full h-full object-contain"
+                            />
+                          )
+                        ) : (
+                          /* Centered Checkmark Animation if Claimed (QR image is removed so phone camera cannot re-scan) */
+                          <div className="w-full h-full bg-[#1E5E53] rounded-[16px] flex flex-col items-center justify-center anim-scale p-3 text-center">
+                            <div className="w-14 h-14 rounded-full bg-emerald-400 text-[#0A1716] flex items-center justify-center shadow-lg mb-2 animate-bounce">
+                              <svg className="w-8 h-8 stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                                 <polyline points="20 6 9 17 4 12" />
                               </svg>
                             </div>
-                            <div className="text-white font-extrabold text-[11.5px] px-2 text-center">
+                            <div className="text-white font-bold text-xs leading-tight">
                               {t.generator.claimedAnimationTitle}
+                            </div>
+                            <div className="text-emerald-200 text-[10px] mt-1 font-space">
+                              Token Selesai Digunakan
                             </div>
                           </div>
                         )}
@@ -2552,11 +2555,24 @@ export default function CashierDashboard() {
                         </div>
                       )}
                     </div>
+
+                    {/* BIG NEXT QR BUTTON IF ALREADY CLAIMED */}
+                    {isTokenClaimed && (
+                      <button
+                        type="button"
+                        onClick={handleGenerateToken}
+                        disabled={isGenerating}
+                        className="w-full border-none rounded-xl py-3 px-4 bg-gradient-to-r from-[#1E5E53] to-[#2D786B] text-white font-bold text-sm cursor-pointer active:scale-[0.98] transition shadow-md my-2"
+                      >
+                        {isGenerating ? t.generator.generating : '+ Jana Kod QR Seterusnya'}
+                      </button>
+                    )}
+
                     <div className="font-space text-[14px] tracking-[0.05em] text-[#1A2422] bg-[#EFE3C4] py-1.5 px-3 rounded-[8px] mb-2 font-bold select-all">
                       {generatedToken}
                     </div>
                     <div className="text-[12px] text-[#B53629] font-semibold mb-1">
-                      {timeLeftStr}
+                      {isTokenClaimed ? '✓ Sudah Ditebus' : timeLeftStr}
                     </div>
                     <div className="text-[12.5px] text-[#5E6F68] max-w-[260px] mb-3">
                       {t.generator.scanPrompt}
@@ -4329,11 +4345,11 @@ export default function CashierDashboard() {
 
             {/* Large QR Code Container */}
             <div className="relative w-[260px] sm:w-[310px] h-[260px] sm:h-[310px] rounded-3xl bg-white p-3 shadow-2xl flex items-center justify-center overflow-hidden border-2 border-[#E5A43B]/30">
-              <img src={qrDataUrl} alt="Large QR Cop" className="w-full h-full object-contain" />
-
-              {/* Claimed Animation Overlay */}
-              {isTokenClaimed && (
-                <div className="absolute inset-0 bg-[#0A1716]/90 backdrop-blur-xs flex flex-col items-center justify-center anim-scale z-20">
+              {!isTokenClaimed ? (
+                <img src={qrDataUrl} alt="Large QR Cop" className="w-full h-full object-contain" />
+              ) : (
+                /* Claimed Animation Overlay (QR image completely removed so phone cannot scan) */
+                <div className="w-full h-full bg-[#0A1716] rounded-2xl flex flex-col items-center justify-center anim-scale z-20 p-4">
                   <div className="w-20 h-20 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-[0_0_35px_rgba(16,185,129,0.9)] mb-3 animate-bounce">
                     <svg className="w-12 h-12 stroke-white" viewBox="0 0 24 24" fill="none" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12" />

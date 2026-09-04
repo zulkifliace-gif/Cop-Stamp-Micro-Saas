@@ -1,5 +1,6 @@
 import React from 'react'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import ClaimClient from './claim-client'
 
 interface PageProps {
@@ -13,23 +14,37 @@ export default async function ClaimPage({ params }: PageProps) {
   const cleanToken = token.trim().toUpperCase()
 
   const admin = createAdminClient()
+  const supabase = await createClient()
+
+  const {
+    data: { user: currentUser },
+  } = await supabase.auth.getUser()
 
   // 1. Fetch token status and validity on server
   const { data: tokenRecord, error } = await admin
     .from('stamp_tokens')
-    .select('token, stamp_count, status, expires_at, stores(name, logo_url, stamps_required, reward_description)')
+    .select('token, stamp_count, status, expires_at, claimed_by, store_id, stores(id, name, logo_url, stamps_required, reward_description)')
     .eq('token', cleanToken)
     .single()
 
   let initialError: string | null = null
   let errorCode: string | null = null
+  let claimedByMe = false
+
+  const storeInfo = Array.isArray(tokenRecord?.stores)
+    ? tokenRecord?.stores[0]
+    : tokenRecord?.stores
 
   if (error || !tokenRecord) {
     initialError = 'Pautan cop ini tidak sah atau tidak wujud.'
     errorCode = 'not_found'
   } else if (tokenRecord.status === 'claimed') {
-    initialError = 'Cop ini sudah diambil sebelum ini.'
-    errorCode = 'already_claimed'
+    if (currentUser && tokenRecord.claimed_by === currentUser.id) {
+      claimedByMe = true
+    } else {
+      initialError = 'Cop ini sudah diambil sebelum ini.'
+      errorCode = 'already_claimed'
+    }
   } else if (
     tokenRecord.status === 'expired' ||
     new Date(tokenRecord.expires_at).getTime() < Date.now()
@@ -38,20 +53,8 @@ export default async function ClaimPage({ params }: PageProps) {
     errorCode = 'expired'
   }
 
-  const storeInfo = Array.isArray(tokenRecord?.stores)
-    ? tokenRecord?.stores[0]
-    : tokenRecord?.stores
-
   return (
-    <main className="min-h-screen flex items-center justify-center p-4 sm:p-6 font-jakarta text-[#2B1B12] bg-[#FFF7EA]">
-      <style dangerouslySetInnerHTML={{ __html: `
-        body {
-          background-color: #FFF7EA !important;
-          background-image: radial-gradient(circle at 1px 1px, rgba(43,27,18,0.055) 1px, transparent 1px) !important;
-          background-size: 20px 20px !important;
-          color: #2B1B12 !important;
-        }
-      `}} />
+    <main className="min-h-screen flex items-center justify-center p-4 sm:p-6 font-jakarta text-[#F7EEDA]">
       <div className="w-full max-w-[420px] mx-auto flex flex-col items-center justify-center z-10 relative">
         <ClaimClient
           token={cleanToken}
@@ -62,14 +65,16 @@ export default async function ClaimPage({ params }: PageProps) {
           rewardDescription={storeInfo?.reward_description || '1 minuman percuma'}
           initialError={initialError}
           errorCode={errorCode}
+          claimedByMe={claimedByMe}
+          storeId={storeInfo?.id || tokenRecord?.store_id}
         />
 
         {/* FOOTPAGE LAJUS BRANDING & DASAR PRIVASI */}
-        <footer className="w-full text-center mt-6 mb-2 flex items-center justify-center gap-2 opacity-50 hover:opacity-90 transition text-[11px] font-space text-[#2B1B12]">
+        <footer className="w-full text-center mt-6 mb-2 flex items-center justify-center gap-2 opacity-50 hover:opacity-90 transition text-[11px] font-space text-[#FAF2E2]">
           <img src="/logo.svg" alt="LajuS" className="w-3.5 h-3.5 object-contain" />
           <span>LajuS</span>
-          <span className="text-[#2B1B12]/40">•</span>
-          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#2B1B12]/70 hover:text-[#FF7A45] underline">
+          <span className="text-[#FAF2E2]/40">•</span>
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#FAF2E2]/70 hover:text-[#E5A43B] underline">
             Dasar Privasi
           </a>
         </footer>
