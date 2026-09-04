@@ -909,13 +909,6 @@ export default function CardStudioPage() {
     setSelectedBlockId((prev) => (prev === blockId ? null : blockId))
   }
 
-  // Interactive preview modals
-  const [activeModal, setActiveModal] = useState<
-    'none' | 'how_to_redeem' | 'rewards' | 'google_review' | 'locations' | 'qr' | 'stamp_detail'
-  >('none')
-  const [selectedStampSlot, setSelectedStampSlot] = useState<number>(1)
-  const [reviewRating, setReviewRating] = useState<number>(0)
-
   useEffect(() => {
     try {
       const saved = localStorage.getItem('cop_card_studio_config')
@@ -1053,6 +1046,14 @@ export default function CardStudioPage() {
 
         .card-app, .card-app * {
           font-family: var(--card-font, 'Plus Jakarta Sans'), sans-serif !important;
+          cursor: default !important;
+          -webkit-user-select: none !important;
+          user-select: none !important;
+        }
+
+        .card-app button, .card-app a, .card-app .icon-btn, .card-app .pill-btn, .card-app .social-btn, .card-app .stamp, .card-app .dot {
+          pointer-events: none !important;
+          cursor: default !important;
         }
 
         .card-app {
@@ -1060,6 +1061,7 @@ export default function CardStudioPage() {
           max-width: 430px;
           margin: 0 auto;
           padding-bottom: 24px;
+          pointer-events: none !important;
         }
 
         .hero {
@@ -2113,10 +2115,15 @@ export default function CardStudioPage() {
           </div>
         </aside>
 
-        {/* RIGHT PANEL: LIVE EXACT PHONE MOCKUP IDENTICAL TO /card */}
-        <main className="flex-1 bg-[#090D16] p-4 sm:p-6 lg:p-8 flex items-center justify-center overflow-y-auto">
+        {/* RIGHT PANEL: LIVE EXACT PHONE MOCKUP (DISPLAY PREVIEW ONLY) */}
+        <main className="flex-1 bg-[#090D16] p-4 sm:p-6 lg:p-8 flex flex-col items-center justify-center overflow-y-auto">
+          <div className="mb-3 flex items-center gap-2 bg-[#121826] px-3.5 py-1.5 rounded-full border border-gray-800 text-[11px] text-gray-400 font-semibold shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Paparan Visual Rupa Paras (Butang Dinyahaktifkan)</span>
+          </div>
+
           <div
-            className="w-full max-w-[420px] rounded-[44px] shadow-2xl overflow-hidden border-[10px] border-[#252A36] relative flex flex-col"
+            className="w-full max-w-[420px] rounded-[44px] shadow-2xl overflow-hidden border-[10px] border-[#252A36] relative flex flex-col pointer-events-none select-none"
             style={{
               backgroundColor: config.pageBgColor || '#FFF7EA',
               backgroundImage: `radial-gradient(circle at 1px 1px, ${config.pageDotColor || 'rgba(43,27,18,0.055)'} 1px, transparent 1px)`,
@@ -2127,9 +2134,9 @@ export default function CardStudioPage() {
             {/* ISLAND / NOTCH */}
             <div className="absolute top-2 left-1/2 -translate-x-1/2 w-28 h-4 bg-[#252A36] rounded-full z-40" />
 
-            {/* LIVE CARD DOM CONTAINER (DYNAMIC FULL-PAGE TYPOGRAPHY) */}
+            {/* LIVE CARD DOM CONTAINER (DYNAMIC FULL-PAGE TYPOGRAPHY - DISPLAY ONLY) */}
             <div
-              className="card-app pt-5"
+              className="card-app pt-5 pointer-events-none select-none"
               style={{
                 '--card-font': currentFontFamily,
               } as React.CSSProperties}
@@ -2157,14 +2164,12 @@ export default function CardStudioPage() {
                         <button
                           type="button"
                           className={activeLang === 'my' ? 'active' : ''}
-                          onClick={() => setActiveLang('my')}
                         >
                           MY
                         </button>
                         <button
                           type="button"
                           className={activeLang === 'en' ? 'active' : ''}
-                          onClick={() => setActiveLang('en')}
                         >
                           EN
                         </button>
@@ -2175,7 +2180,6 @@ export default function CardStudioPage() {
                           type="button"
                           className="icon-btn gold"
                           title="Kod QR Pelanggan"
-                          onClick={() => setActiveModal('qr')}
                         >
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                             <rect x="3" y="3" width="7" height="7" rx="1.2" />
@@ -2189,7 +2193,6 @@ export default function CardStudioPage() {
                           type="button"
                           className="icon-btn"
                           title="Lokasi Cawangan"
-                          onClick={() => setActiveModal('locations')}
                         >
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
@@ -2201,7 +2204,6 @@ export default function CardStudioPage() {
                           type="button"
                           className="icon-btn"
                           title="Segarkan data"
-                          onClick={() => alert('Simulator: Halaman diperbaharui')}
                         >
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
@@ -2212,7 +2214,6 @@ export default function CardStudioPage() {
                           type="button"
                           className="icon-btn"
                           title="Log keluar"
-                          onClick={() => alert('Simulator: Log keluar')}
                         >
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -2263,7 +2264,6 @@ export default function CardStudioPage() {
                             <button
                               key={plat}
                               type="button"
-                              onClick={() => alert(`Simulator: Pautan ${plat}`)}
                               className="social-btn"
                               title={plat}
                             >
@@ -2277,7 +2277,6 @@ export default function CardStudioPage() {
                           <button
                             type="button"
                             className="pill-btn"
-                            onClick={() => setActiveModal('google_review')}
                           >
                             <img src="/Google-Review.svg" alt="Review" className="w-3.5 h-3.5 object-contain" />
                             <span>Review</span>
@@ -2285,7 +2284,6 @@ export default function CardStudioPage() {
                           <button
                             type="button"
                             className="pill-btn"
-                            onClick={() => setActiveModal('how_to_redeem')}
                           >
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                               <circle cx="12" cy="12" r="10" />
@@ -2297,7 +2295,6 @@ export default function CardStudioPage() {
                           <button
                             type="button"
                             className="pill-btn"
-                            onClick={() => setActiveModal('rewards')}
                           >
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                               <polyline points="20 12 20 22 4 22 4 12" />
@@ -2370,13 +2367,8 @@ export default function CardStudioPage() {
                         const slotNum = slotIdx + 1
                         const filled = slotNum <= totalStamps
                         return (
-                          <button
-                            type="button"
+                          <div
                             key={slotNum}
-                            onClick={() => {
-                              setSelectedStampSlot(slotNum)
-                              setActiveModal('stamp_detail')
-                            }}
                             className={`stamp ${filled ? 'filled' : 'empty'}`}
                             title={filled ? `Cop #${slotNum} — Diperoleh` : `Cop #${slotNum} — Belum diperoleh`}
                           >
@@ -2390,7 +2382,7 @@ export default function CardStudioPage() {
                             ) : (
                               <span className="pointer-events-none">{slotNum}</span>
                             )}
-                          </button>
+                          </div>
                         )
                       })}
                     </div>
@@ -2430,8 +2422,8 @@ export default function CardStudioPage() {
 
                     {/* CARD DOTS PAGINATION */}
                     <div className="card-dots relative z-10">
-                      <button type="button" className={`dot ${isFull ? 'full' : ''} active`} aria-label="Kad 1" />
-                      <button type="button" className="dot" aria-label="Kad 2" />
+                      <div className={`dot ${isFull ? 'full' : ''} active`} />
+                      <div className="dot" />
                     </div>
                   </div>
                 )}
@@ -2448,13 +2440,9 @@ export default function CardStudioPage() {
                     <span>LajuS</span>
                   </div>
                   <div className="footer-links">
-                    <a href="/privacy" target="_blank" rel="noopener noreferrer">
-                      {activeLang === 'en' ? 'Privacy Policy' : 'Dasar Privasi'}
-                    </a>
+                    <span>{activeLang === 'en' ? 'Privacy Policy' : 'Dasar Privasi'}</span>
                     <span className="dot-sep">•</span>
-                    <button type="button" onClick={() => alert('Simulator: Padam Akaun')}>
-                      {activeLang === 'en' ? 'Delete Account' : 'Padam Akaun'}
-                    </button>
+                    <span>{activeLang === 'en' ? 'Delete Account' : 'Padam Akaun'}</span>
                   </div>
                 </div>
               </div>
@@ -2462,259 +2450,6 @@ export default function CardStudioPage() {
           </div>
         </main>
       </div>
-
-      {/* ========================================================= */}
-      {/* INTERACTIVE MODALS IN STUDIO SIMULATOR                    */}
-      {/* ========================================================= */}
-      {activeModal !== 'none' && (
-        <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in"
-          onClick={() => setActiveModal('none')}
-        >
-          <div
-            className="modal-body bg-[#FFFDF8] text-[#2B1B12] rounded-[26px] p-6 max-w-sm w-full shadow-2xl relative border border-[#F0DEC0] animate-scale-up"
-            style={{
-              '--card-font': currentFontFamily,
-            } as React.CSSProperties}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={() => setActiveModal('none')}
-              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-[#2B1B12]/5 text-[#7A6A5A] hover:bg-[#2B1B12]/10 font-bold flex items-center justify-center transition cursor-pointer"
-            >
-              ✕
-            </button>
-
-            {/* MODAL 1: HOW TO REDEEM */}
-            {activeModal === 'how_to_redeem' && (
-              <div>
-                <h3 className="font-bold text-lg text-[#1B0F09] mb-1">
-                  💡 Cara Penebusan Cop
-                </h3>
-                <p className="text-xs text-[#96806B] mb-4">
-                  Ikuti langkah mudah di bawah untuk kumpul cop & tebus hadiah anda:
-                </p>
-
-                <div className="space-y-3 mb-5">
-                  <div className="flex gap-3 text-xs text-[#4A3B2E] items-start">
-                    <span className="w-5 h-5 rounded-full bg-[#FFB238] text-[#1B0F09] font-black flex items-center justify-center text-[10px] shrink-0">
-                      1
-                    </span>
-                    <p>Kunjungi mana-mana cawangan {config.storeName || 'kedai kami'} & buat pesanan anda.</p>
-                  </div>
-                  <div className="flex gap-3 text-xs text-[#4A3B2E] items-start">
-                    <span className="w-5 h-5 rounded-full bg-[#FFB238] text-[#1B0F09] font-black flex items-center justify-center text-[10px] shrink-0">
-                      2
-                    </span>
-                    <p>Tunjukkan Kod QR atau nombor telefon anda di kaunter untuk dapatkan cop.</p>
-                  </div>
-                  <div className="flex gap-3 text-xs text-[#4A3B2E] items-start">
-                    <span className="w-5 h-5 rounded-full bg-[#FFB238] text-[#1B0F09] font-black flex items-center justify-center text-[10px] shrink-0">
-                      3
-                    </span>
-                    <p>Cukupkan {config.stampsRequired || 10} cop & nikmati ganjaran percuma!</p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveModal('none')}
-                  className="w-full py-2.5 rounded-xl bg-[#1C7A67] text-white font-bold text-xs hover:bg-[#0F5C4C] transition cursor-pointer"
-                >
-                  Faham & Tutup
-                </button>
-              </div>
-            )}
-
-            {/* MODAL 2: REWARDS CATALOG */}
-            {activeModal === 'rewards' && (
-              <div>
-                <h3 className="font-bold text-lg text-[#1B0F09] mb-1">
-                  🎁 Senarai Ganjaran
-                </h3>
-                <p className="text-xs text-[#96806B] mb-4">
-                  Ganjaran istimewa yang boleh anda tebus:
-                </p>
-
-                <div className="space-y-2 mb-5">
-                  <div className="p-3 rounded-2xl bg-white border border-[#F0DEC0] flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#FF5A45]/10 flex items-center justify-center text-lg shrink-0">
-                      ☕
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-xs font-bold text-[#1B0F09]">
-                        {config.rewardDesc || '1 Minuman Panas Percuma (Saiz Regular)'}
-                      </div>
-                      <div className="text-[10px] text-[#96806B]">Perlukan {config.stampsRequired || 10} cop penuh</div>
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveModal('none')}
-                  className="w-full py-2.5 rounded-xl bg-[#1C7A67] text-white font-bold text-xs hover:bg-[#0F5C4C] transition cursor-pointer"
-                >
-                  Tutup
-                </button>
-              </div>
-            )}
-
-            {/* MODAL 3: GOOGLE REVIEW */}
-            {activeModal === 'google_review' && (
-              <div className="text-center">
-                <img src="/Google-Review.svg" alt="Google" className="w-8 h-8 mx-auto mb-2" />
-                <h3 className="font-bold text-lg text-[#1B0F09] mb-1">
-                  Beri Penilaian Anda
-                </h3>
-                <p className="text-xs text-[#96806B] mb-4">
-                  Suka servis dan produk kami? Kongsikan pengalaman manis anda di Google Review!
-                </p>
-
-                <div className="flex justify-center gap-1.5 mb-4 text-3xl">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setReviewRating(star)}
-                      className={`cursor-pointer transition-transform hover:scale-110 ${
-                        reviewRating >= star ? 'text-[#FFB238]' : 'text-gray-300'
-                      }`}
-                    >
-                      ★
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    alert('Simulator: Membuka Google Review...')
-                    setActiveModal('none')
-                  }}
-                  className="w-full py-2.5 rounded-xl bg-[#1C7A67] text-white font-bold text-xs hover:bg-[#0F5C4C] transition cursor-pointer mb-2"
-                >
-                  Tulis Ulasan di Google
-                </button>
-              </div>
-            )}
-
-            {/* MODAL 4: QR CODE */}
-            {activeModal === 'qr' && (
-              <div className="text-center">
-                <h3 className="font-bold text-lg text-[#1B0F09] mb-1">
-                  📱 Kod QR Pelanggan
-                </h3>
-                <p className="text-xs text-[#96806B] mb-3">
-                  Tunjukkan kod ini kepada juruwang untuk imbasan cop segera.
-                </p>
-
-                <div className="w-44 h-44 mx-auto bg-white p-3 rounded-2xl border border-[#F0DEC0] shadow-inner flex items-center justify-center mb-3">
-                  <div className="w-full h-full bg-neutral-900 rounded-xl flex flex-col items-center justify-center text-white p-2">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-20 h-20 text-white mb-1">
-                      <rect x="3" y="3" width="7" height="7" rx="1" />
-                      <rect x="14" y="3" width="7" height="7" rx="1" />
-                      <rect x="3" y="14" width="7" height="7" rx="1" />
-                      <path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v.01" />
-                    </svg>
-                    <span className="text-[9px] font-mono tracking-widest text-amber-300">COP-STAMP-VIP</span>
-                  </div>
-                </div>
-
-                <div className="text-[11px] font-mono text-[#96806B] mb-4">
-                  ID: <b className="text-[#1B0F09]">012-345 6789</b>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveModal('none')}
-                  className="w-full py-2.5 rounded-xl bg-[#1C7A67] text-white font-bold text-xs hover:bg-[#0F5C4C] transition cursor-pointer"
-                >
-                  Tutup
-                </button>
-              </div>
-            )}
-
-            {/* MODAL 5: LOCATIONS */}
-            {activeModal === 'locations' && (
-              <div>
-                <h3 className="font-bold text-lg text-[#1B0F09] mb-1">
-                  📍 Lokasi Cawangan
-                </h3>
-                <p className="text-xs text-[#96806B] mb-4">
-                  Cawangan berdaftar {config.storeName || 'kedai kami'}:
-                </p>
-
-                <div className="space-y-2.5 mb-5">
-                  <div className="p-3 rounded-2xl bg-white border border-[#F0DEC0]">
-                    <div className="text-xs font-bold text-[#1B0F09]">Cawangan Utama (HQ)</div>
-                    <div className="text-[11px] text-[#96806B] mt-0.5">No 12, Jalan Telawi 5, Bangsar, Kuala Lumpur</div>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveModal('none')}
-                  className="w-full py-2.5 rounded-xl bg-[#1C7A67] text-white font-bold text-xs hover:bg-[#0F5C4C] transition cursor-pointer"
-                >
-                  Tutup
-                </button>
-              </div>
-            )}
-
-            {/* MODAL 6: STAMP DETAIL */}
-            {activeModal === 'stamp_detail' && (
-              <div className="text-center">
-                <div className="w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center bg-radial from-white/40 to-transparent bg-gradient-to-br from-[#FF5A45] to-[#E23F2E] shadow-lg">
-                  {selectedStampSlot <= totalStamps ? (
-                    <img
-                      src={normalizeStampIcon(config.stampIcon)}
-                      alt="Cop"
-                      className="w-8 h-8 object-contain"
-                      style={{ filter: 'brightness(0) invert(1)' }}
-                    />
-                  ) : (
-                    <span className="text-white font-bold text-xl">{selectedStampSlot}</span>
-                  )}
-                </div>
-
-                <h3 className="font-bold text-lg text-[#1B0F09] mb-1">
-                  Cop #{selectedStampSlot}
-                </h3>
-                <p className="text-xs text-[#96806B] mb-4">
-                  {selectedStampSlot <= totalStamps
-                    ? 'Cop ini telah berjaya diperoleh & direkodkan.'
-                    : 'Cop ini belum diperoleh lagi. Buat pesanan untuk kumpul cop ini.'}
-                </p>
-
-                <div className="bg-white border border-[#F0DEC0] rounded-2xl p-3 text-xs text-left mb-4 space-y-1.5">
-                  <div className="flex justify-between">
-                    <span className="text-[#96806B]">Status:</span>
-                    <b className={selectedStampSlot <= totalStamps ? 'text-emerald-700' : 'text-[#96806B]'}>
-                      {selectedStampSlot <= totalStamps ? '✓ Diperoleh' : 'Belum Diperoleh'}
-                    </b>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#96806B]">Tarikh:</span>
-                    <b className="text-[#1B0F09]">
-                      {selectedStampSlot <= totalStamps ? '4 Sep 2026, 10:30 PM' : '-'}
-                    </b>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveModal('none')}
-                  className="w-full py-2.5 rounded-xl bg-[#1C7A67] text-white font-bold text-xs hover:bg-[#0F5C4C] transition cursor-pointer"
-                >
-                  Tutup
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
