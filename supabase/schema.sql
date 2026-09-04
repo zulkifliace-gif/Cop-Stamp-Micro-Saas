@@ -41,6 +41,7 @@ alter table public.stores add column if not exists updated_at timestamptz not nu
 -- app/api/store/clone-template/route.ts)
 alter table public.stores add column if not exists stamp_icon text default '/icons/stamps/makanan.svg';
 alter table public.stores add column if not exists social_links jsonb default '[]'::jsonb;
+alter table public.stores add column if not exists locations jsonb default '[]'::jsonb;
 
 
 -- 3. Store Staff Table (cashiers and owners)

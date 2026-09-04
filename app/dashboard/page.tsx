@@ -69,6 +69,13 @@ interface SocialLinkItem {
   url: string
 }
 
+interface StoreLocationItem {
+  id?: string
+  name: string
+  url: string
+  address?: string
+}
+
 const STAMP_ICON_OPTIONS = [
   { label: 'Makanan / Kafe', icon: '/icons/stamps/makanan.svg' },
   { label: 'Pastri / Bakeri', icon: '/icons/stamps/pastri.svg' },
@@ -168,6 +175,12 @@ export default function CashierDashboard() {
   const [showSocialModal, setShowSocialModal] = useState<boolean>(false)
   const [newSocialPlatform, setNewSocialPlatform] = useState<string>('instagram')
   const [newSocialUrl, setNewSocialUrl] = useState<string>('')
+  const [locations, setLocations] = useState<StoreLocationItem[]>([])
+  const [showLocationModal, setShowLocationModal] = useState<boolean>(false)
+  const [editingLocationIdx, setEditingLocationIdx] = useState<number | null>(null)
+  const [locName, setLocName] = useState<string>('')
+  const [locUrl, setLocUrl] = useState<string>('')
+  const [locAddress, setLocAddress] = useState<string>('')
   const [googleReviewMode, setGoogleReviewMode] = useState<'google' | 'manual'>('manual')
   const [googleReviewInput, setGoogleReviewInput] = useState<string>('')
   const [googleReviewUrl, setGoogleReviewUrl] = useState<string | null>(null)
@@ -193,6 +206,7 @@ export default function CashierDashboard() {
     stampIcon: string
     rewardsList: RewardItem[]
     socialLinks: SocialLinkItem[]
+    locations: StoreLocationItem[]
   }>({
     storeName: '',
     stampsRequired: 10,
@@ -203,6 +217,7 @@ export default function CashierDashboard() {
     stampIcon: '/icons/stamps/makanan.svg',
     rewardsList: [],
     socialLinks: [],
+    locations: [],
   })
 
   // Settings Share & Scan State
@@ -358,6 +373,7 @@ export default function CashierDashboard() {
             setRewardsList(Array.isArray(data.rewards) ? data.rewards : [])
             setStampIcon(data.stampIcon || '/icons/stamps/makanan.svg')
             setSocialLinks(Array.isArray(data.socialLinks) ? data.socialLinks : [])
+            setLocations(Array.isArray(data.locations) ? data.locations : [])
             setStampsRequired(data.stampsRequired || 10)
             setRewardDesc(data.rewardDescription || '')
             setGoogleReviewMode(isGoogleMode ? 'google' : 'manual')
@@ -375,6 +391,7 @@ export default function CashierDashboard() {
               stampIcon: data.stampIcon || '/icons/stamps/makanan.svg',
               rewardsList: Array.isArray(data.rewards) ? data.rewards : [],
               socialLinks: Array.isArray(data.socialLinks) ? data.socialLinks : [],
+              locations: Array.isArray(data.locations) ? data.locations : [],
             })
           }
         }
@@ -1326,6 +1343,7 @@ export default function CashierDashboard() {
             google_review_url: googleReviewUrl,
             google_place_id: googlePlaceId,
             social_links: socialLinks,
+            locations: locations,
           },
         }),
       })
@@ -1409,6 +1427,55 @@ export default function CashierDashboard() {
     setSocialLinks((prev) => prev.filter((_, i) => i !== idx))
   }
 
+  // 14. Locations Helper in Settings
+  function handleOpenAddLocation() {
+    setEditingLocationIdx(null)
+    setLocName('')
+    setLocUrl('')
+    setLocAddress('')
+    setShowLocationModal(true)
+  }
+
+  function handleOpenEditLocation(idx: number) {
+    const loc = locations[idx]
+    if (!loc) return
+    setEditingLocationIdx(idx)
+    setLocName(loc.name || '')
+    setLocUrl(loc.url || '')
+    setLocAddress(loc.address || '')
+    setShowLocationModal(true)
+  }
+
+  function handleSaveLocationModal() {
+    if (!locName.trim() && !locUrl.trim()) return
+    const newLoc: StoreLocationItem = {
+      id: editingLocationIdx !== null ? locations[editingLocationIdx]?.id : 'loc_' + Date.now(),
+      name: locName.trim() || `Cawangan #${(editingLocationIdx !== null ? editingLocationIdx : locations.length) + 1}`,
+      url: locUrl.trim(),
+      address: locAddress.trim(),
+    }
+
+    if (editingLocationIdx !== null) {
+      setLocations((prev) => {
+        const copy = [...prev]
+        copy[editingLocationIdx] = newLoc
+        return copy
+      })
+    } else {
+      setLocations((prev) => [...prev, newLoc])
+    }
+
+    setShowLocationModal(false)
+    setEditingLocationIdx(null)
+    setLocName('')
+    setLocUrl('')
+    setLocAddress('')
+  }
+
+  function handleDeleteLocation(idx: number) {
+    setLocations((prev) => prev.filter((_, i) => i !== idx))
+  }
+
   // Check if a specific settings section has unsaved changes
   function isSectionDirty(sectionId: string): boolean {
     switch (sectionId) {
@@ -1430,6 +1497,8 @@ export default function CashierDashboard() {
         return JSON.stringify(rewardsList) !== JSON.stringify(baselineSettings.rewardsList)
       case 'social':
         return JSON.stringify(socialLinks) !== JSON.stringify(baselineSettings.socialLinks)
+      case 'locations':
+        return JSON.stringify(locations) !== JSON.stringify(baselineSettings.locations)
       default:
         return false
     }
@@ -1456,6 +1525,7 @@ export default function CashierDashboard() {
         rewards: rewardsList,
         stampIcon,
         socialLinks,
+        locations,
         googleReviewMode,
       }
       if (googleReviewMode === 'google') {
@@ -1499,7 +1569,11 @@ export default function CashierDashboard() {
         stampIcon,
         rewardsList: [...rewardsList],
         socialLinks: [...socialLinks],
+        locations: [...(data.locations || locations)],
       })
+      if (Array.isArray(data.locations)) {
+        setLocations(data.locations)
+      }
 
       setSaveToast(true)
       setTimeout(() => {
@@ -3349,7 +3423,151 @@ export default function CashierDashboard() {
                   )}
                 </div>
 
-                {/* 7. SYNC & CLONE SETTINGS (QR) ACCORDION */}
+                {/* 7. STORE LOCATIONS (GOOGLE MAPS) ACCORDION */}
+                <div className="bg-white text-[#1A2422] rounded-2xl border border-gray-200 shadow-xs overflow-hidden transition-all">
+                  <button
+                    type="button"
+                    onClick={() => setOpenSettingSection((prev) => (prev === 'locations' ? null : 'locations'))}
+                    className="w-full py-3.5 px-4 flex items-center justify-between text-left hover:bg-gray-50 transition cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-base shrink-0">📍</span>
+                      <span className="font-bold text-xs sm:text-sm text-[#0A1716] truncate">
+                        {t.settings.locationsTitle}
+                      </span>
+                      <span className="text-[10px] bg-gray-100 text-gray-700 font-semibold px-2 py-0.5 rounded-full shrink-0">
+                        {locations.length} {lang === 'en' ? 'Outlets' : 'Cawangan'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isSectionDirty('locations') && (
+                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" title="Perubahan belum disimpan" />
+                      )}
+                      <svg
+                        className={`w-4 h-4 text-[#5E6F68] transition-transform duration-200 ${
+                          openSettingSection === 'locations' ? 'rotate-90 text-[#E5A43B]' : ''
+                        }`}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </div>
+                  </button>
+
+                  {openSettingSection === 'locations' && (
+                    <div className="p-4 pt-1 border-t border-gray-100 anim-result">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-xs text-[#5E6F68]">
+                          {t.settings.locationsDesc}
+                        </div>
+                        {staffRole === 'owner' && (
+                          <button
+                            type="button"
+                            onClick={handleOpenAddLocation}
+                            className="text-xs font-bold text-[#1E5E53] hover:text-[#E5A43B] underline cursor-pointer shrink-0"
+                          >
+                            {t.settings.addLocationBtn}
+                          </button>
+                        )}
+                      </div>
+
+                      {locations.length === 0 ? (
+                        <div className="bg-gray-50 p-3 rounded-xl border border-dashed border-gray-300 text-center text-xs text-[#5E6F68]">
+                          {t.settings.noLocations}
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {locations.map((loc, lIdx) => (
+                            <div
+                              key={loc.id || lIdx}
+                              className="flex items-start justify-between bg-gray-50 p-3 rounded-xl border border-gray-200 gap-2"
+                            >
+                              <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                                <div className="w-7 h-7 rounded-full bg-[#1E5E53]/10 text-[#1E5E53] flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                                  {lIdx + 1}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-xs font-bold text-[#1A2422] flex items-center gap-1.5">
+                                    <span>{loc.name || `Cawangan #${lIdx + 1}`}</span>
+                                    {loc.url && (
+                                      <a
+                                        href={loc.url.startsWith('http') ? loc.url : `https://${loc.url}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-[10px] text-[#1E5E53] hover:underline"
+                                      >
+                                        ↗
+                                      </a>
+                                    )}
+                                  </div>
+                                  {loc.address && (
+                                    <div className="text-[11px] text-[#5E6F68] mt-0.5">{loc.address}</div>
+                                  )}
+                                  {loc.url && (
+                                    <div className="text-[10px] text-gray-400 truncate mt-0.5">{loc.url}</div>
+                                  )}
+                                </div>
+                              </div>
+                              {staffRole === 'owner' && (
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenEditLocation(lIdx)}
+                                    className="text-xs text-[#1E5E53] hover:text-[#2D786B] font-semibold p-1 cursor-pointer"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteLocation(lIdx)}
+                                    className="text-xs text-red-600 hover:text-red-800 font-semibold p-1 cursor-pointer"
+                                  >
+                                    {t.settings.deleteBtn}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Section Save Button */}
+                      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+                        <span className="text-[11px] text-[#5E6F68]">
+                          {isSectionDirty('locations')
+                            ? (lang === 'en' ? '● Unsaved changes' : '● Perubahan belum disimpan')
+                            : (lang === 'en' ? '✓ No changes' : '✓ Tiada perubahan')}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={!isSectionDirty('locations') || isSavingSettings || staffRole !== 'owner'}
+                          onClick={() => handleSaveSection('locations')}
+                          className={`py-2 px-4 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                            isSectionDirty('locations') && staffRole === 'owner'
+                              ? 'bg-[#1E5E53] hover:bg-[#2D786B] text-white shadow-sm cursor-pointer active:scale-95'
+                              : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-75'
+                          }`}
+                        >
+                          {isSavingSettings ? (
+                            <span>{t.settings.saving}</span>
+                          ) : (
+                            <>
+                              <span>💾</span>
+                              <span>{isSectionDirty('locations') ? (lang === 'en' ? 'Save Changes' : 'Simpan Perubahan') : (lang === 'en' ? 'No Changes' : 'Tiada Perubahan')}</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 8. SYNC & CLONE SETTINGS (QR) ACCORDION */}
                 <div className="bg-white text-[#1A2422] rounded-2xl border border-gray-200 shadow-xs overflow-hidden transition-all">
                   <button
                     type="button"
@@ -3860,6 +4078,98 @@ export default function CashierDashboard() {
                 type="button"
                 onClick={handleAddSocialLink}
                 disabled={!newSocialUrl.trim()}
+                className="flex-1 py-2.5 rounded-xl bg-[#1E5E53] hover:bg-[#2D786B] text-white text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-sm"
+              >
+                {t.socialModal.save}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* POPUP MODAL: TAMBAH / EDIT CAWANGAN / LOKASI GOOGLE MAPS */}
+      {showLocationModal && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-5 shadow-2xl border border-[#E5A43B]/30 anim-popup">
+            <div className="flex items-center justify-between mb-3.5">
+              <div className="font-fraunces font-bold text-base text-[#0A1716] flex items-center gap-1.5">
+                <span>📍</span>
+                <span>
+                  {editingLocationIdx !== null
+                    ? (lang === 'en' ? 'Edit Outlet' : 'Kemaskini Cawangan')
+                    : (lang === 'en' ? 'Add Outlet' : 'Tambah Cawangan')}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLocationModal(false)}
+                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-gray-500 hover:text-gray-800 text-lg font-bold transition cursor-pointer"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="space-y-3 mb-4">
+              <div>
+                <label className="block text-xs font-bold text-[#1A2422] mb-1">
+                  {lang === 'en' ? 'Outlet / Branch Name' : 'Nama Cawangan'}
+                </label>
+                <input
+                  type="text"
+                  value={locName}
+                  onChange={(e) => setLocName(e.target.value)}
+                  placeholder={t.settings.locationNamePlaceholder}
+                  maxLength={80}
+                  className="w-full border border-[#E4D9BE] rounded-[10px] p-2.5 font-jakarta text-xs text-[#1A2422] bg-white outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#1A2422] mb-1">
+                  {lang === 'en' ? 'Google Maps URL' : 'Pautan Google Maps'}
+                </label>
+                <input
+                  type="url"
+                  value={locUrl}
+                  onChange={(e) => setLocUrl(e.target.value)}
+                  placeholder={t.settings.locationUrlPlaceholder}
+                  maxLength={500}
+                  className="w-full border border-[#E4D9BE] rounded-[10px] p-2.5 font-jakarta text-xs text-[#1A2422] bg-white outline-none"
+                />
+                <span className="text-[10px] text-[#5E6F68] mt-1 block">
+                  {lang === 'en'
+                    ? 'Paste Google Maps share link (e.g. https://maps.app.goo.gl/... or https://maps.google.com/...)'
+                    : 'Tampal link kongsi dari Google Maps (cth: https://maps.app.goo.gl/... atau https://maps.google.com/...)'}
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#1A2422] mb-1">
+                  {lang === 'en' ? 'Short Address (Optional)' : 'Alamat Ringkas (Pilihan)'}
+                </label>
+                <input
+                  type="text"
+                  value={locAddress}
+                  onChange={(e) => setLocAddress(e.target.value)}
+                  placeholder={t.settings.locationAddressPlaceholder}
+                  maxLength={200}
+                  className="w-full border border-[#E4D9BE] rounded-[10px] p-2.5 font-jakarta text-xs text-[#1A2422] bg-white outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowLocationModal(false)}
+                className="flex-1 py-2.5 rounded-xl border border-[#E4D9BE] bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+              >
+                {t.socialModal.cancel}
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveLocationModal}
+                disabled={!locName.trim() && !locUrl.trim()}
                 className="flex-1 py-2.5 rounded-xl bg-[#1E5E53] hover:bg-[#2D786B] text-white text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-sm"
               >
                 {t.socialModal.save}

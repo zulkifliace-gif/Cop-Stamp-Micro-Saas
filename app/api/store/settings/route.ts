@@ -89,6 +89,10 @@ export async function GET(req: NextRequest) {
     const parsedSocialLinks =
       (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && Array.isArray(rawRewards?.socialLinks) && rawRewards.socialLinks) ||
       []
+    const parsedLocations =
+      (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && Array.isArray(rawRewards?.locations) && rawRewards.locations) ||
+      (Array.isArray((store as any)?.locations) && (store as any).locations) ||
+      []
 
     return NextResponse.json({
       needsRegistration: false,
@@ -101,6 +105,7 @@ export async function GET(req: NextRequest) {
       rewards: parsedRewards,
       stampIcon: parsedStampIcon,
       socialLinks: parsedSocialLinks,
+      locations: parsedLocations,
       planType: store.plan_type || 'free',
       subscriptionStatus: store.subscription_status || 'active',
       purchasedCardQuota: store.purchased_card_quota || 0,
@@ -288,6 +293,7 @@ export async function PUT(req: NextRequest) {
       rewards,
       stampIcon,
       socialLinks,
+      locations,
       googleReviewMode, // 'google' | 'manual' — optional, hanya proses kalau dihantar
       googleReviewInput, // link/place ID mentah — hanya diperlukan kalau mode = 'google'
     } = body
@@ -376,6 +382,17 @@ export async function PUT(req: NextRequest) {
       url: String(item?.url || '').trim().slice(0, 300),
     }))
 
+    // Clean & limit store locations / outlets (max 20 items)
+    const rawLocations = Array.isArray(locations) ? locations.slice(0, 20) : []
+    const cleanLocations = rawLocations
+      .map((item: any, idx: number) => ({
+        id: String(item?.id || `loc_${idx}`),
+        name: String(item?.name || `Cawangan #${idx + 1}`).trim().slice(0, 80),
+        url: String(item?.url || '').trim().slice(0, 500),
+        address: String(item?.address || '').trim().slice(0, 200),
+      }))
+      .filter((loc: any) => loc.url || loc.name)
+
     const updates: {
       name?: string
       stamps_required?: number
@@ -391,6 +408,7 @@ export async function PUT(req: NextRequest) {
         list: cleanRewards,
         stampIcon: cleanStampIcon,
         socialLinks: cleanSocialLinks,
+        locations: cleanLocations,
       },
     }
 
@@ -448,6 +466,9 @@ export async function PUT(req: NextRequest) {
     const finalSocialLinks =
       (typeof rawUpdatedRewards === 'object' && !Array.isArray(rawUpdatedRewards) && Array.isArray(rawUpdatedRewards?.socialLinks) && rawUpdatedRewards.socialLinks) ||
       cleanSocialLinks
+    const finalLocations =
+      (typeof rawUpdatedRewards === 'object' && !Array.isArray(rawUpdatedRewards) && Array.isArray(rawUpdatedRewards?.locations) && rawUpdatedRewards.locations) ||
+      cleanLocations
 
     return NextResponse.json({
       success: true,
@@ -460,6 +481,7 @@ export async function PUT(req: NextRequest) {
       rewards: finalRewards,
       stampIcon: finalStampIcon,
       socialLinks: finalSocialLinks,
+      locations: finalLocations,
       googleReviewMode: updatedStore.google_review_mode || 'manual',
       googleReviewUrl: updatedStore.google_review_url || null,
       googlePlaceId: updatedStore.google_place_id || null,

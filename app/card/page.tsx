@@ -18,6 +18,13 @@ interface SocialLinkItem {
   url: string
 }
 
+interface StoreLocationItem {
+  id?: string
+  name: string
+  url: string
+  address?: string
+}
+
 interface CustomerStoreCard {
   storeId: string
   storeName: string
@@ -29,6 +36,7 @@ interface CustomerStoreCard {
   rewards: RewardItem[]
   stampIcon?: string
   socialLinks?: SocialLinkItem[]
+  locations?: StoreLocationItem[]
   updatedAt?: string | null
 }
 
@@ -48,6 +56,35 @@ function normalizeStampIcon(path?: string) {
   if (lower.includes('klinik') || lower.includes('vaccine') || lower.includes('vaksin') || lower.includes('farmasi')) return '/icons/stamps/klinik.svg'
   if (lower.includes('makan') || lower.includes('food') || lower.includes('utensil')) return '/icons/stamps/makanan.svg'
   return path.startsWith('/') ? path : `/${path}`
+}
+
+function getGoogleMapsEmbedUrl(mapUrl?: string, fallbackQuery?: string) {
+  const trimmed = (mapUrl || '').trim()
+  if (trimmed.includes('output=embed') || trimmed.includes('/maps/embed')) {
+    return trimmed
+  }
+  // Short links (e.g. maps.app.goo.gl) have X-Frame-Options set by Google, so fallback query is used for the mini iframe
+  const isShortLink = trimmed.includes('maps.app.goo.gl') || trimmed.includes('goo.gl/maps')
+  if (isShortLink && fallbackQuery) {
+    return `https://maps.google.com/maps?q=${encodeURIComponent(fallbackQuery)}&t=&z=15&ie=UTF8&iwloc=&output=embed`
+  }
+
+  const placeMatch = trimmed.match(/\/place\/([^/@?]+)/)
+  if (placeMatch && placeMatch[1]) {
+    const place = decodeURIComponent(placeMatch[1].replace(/\+/g, ' '))
+    return `https://maps.google.com/maps?q=${encodeURIComponent(place)}&t=&z=15&ie=UTF8&iwloc=&output=embed`
+  }
+  const coordMatch = trimmed.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || trimmed.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/)
+  if (coordMatch) {
+    return `https://maps.google.com/maps?q=${coordMatch[1]},${coordMatch[2]}&t=&z=15&ie=UTF8&iwloc=&output=embed`
+  }
+  const qMatch = trimmed.match(/[?&]q=([^&]+)/)
+  if (qMatch && qMatch[1]) {
+    return `https://maps.google.com/maps?q=${qMatch[1]}&t=&z=15&ie=UTF8&iwloc=&output=embed`
+  }
+  const queryToUse = (!isShortLink && trimmed) ? trimmed : (fallbackQuery || '')
+  if (!queryToUse) return ''
+  return `https://maps.google.com/maps?q=${encodeURIComponent(queryToUse)}&t=&z=15&ie=UTF8&iwloc=&output=embed`
 }
 
 function formatStampDateTime(dateStr: string | null, lang: Lang) {
@@ -201,6 +238,9 @@ export default function CustomerCardPage() {
   const [rewardDesc, setRewardDesc] = useState('')
   const [updatedAt, setUpdatedAt] = useState<string | null>(null)
   const [stampDates, setStampDates] = useState<string[]>([])
+  const [locations, setLocations] = useState<StoreLocationItem[]>([])
+  const [showLocationsModal, setShowLocationsModal] = useState(false)
+  const [activeLocationIdx, setActiveLocationIdx] = useState(0)
 
   // Multi-card state & card slider
   const [selectedCardIdx, setSelectedCardIdx] = useState(0)
@@ -297,6 +337,8 @@ export default function CustomerCardPage() {
         setRewardsList(Array.isArray(data.rewards) ? data.rewards : [])
         setStampIcon(normalizeStampIcon(data.stampIcon))
         setSocialLinks(Array.isArray(data.socialLinks) ? data.socialLinks : [])
+        setLocations(Array.isArray(data.locations) ? data.locations : [])
+        setActiveLocationIdx(0)
         setUpdatedAt(data.updatedAt || null)
         setStampDates(Array.isArray(data.stampDates) ? data.stampDates : [])
 
@@ -1379,6 +1421,26 @@ export default function CustomerCardPage() {
                       </svg>
                     </button>
 
+                    {/* LOCATION PIN BUTTON */}
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      title={t.topbar.locationTooltip}
+                      onClick={() => setShowLocationsModal(true)}
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                    </button>
+
                     {/* REFRESH BUTTON */}
                     <button
                       type="button"
@@ -1497,15 +1559,15 @@ export default function CustomerCardPage() {
                       <button
                         type="button"
                         className="pill-btn"
-                        title="Google Review"
+                        title="Review"
                         onClick={() => setShowReviewPopup(true)}
                       >
                         <img
                           src="/Google-Review.svg"
-                          alt="Google Review"
+                          alt="Review"
                           className="w-3.5 h-3.5 object-contain"
                         />
-                        <span>Google Review</span>
+                        <span>Review</span>
                       </button>
                     )}
                     <button
@@ -2282,6 +2344,137 @@ export default function CustomerCardPage() {
                 {isDeletingAccount ? t.deleteModal.deleting : t.deleteModal.confirmDelete}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7. STORE LOCATIONS MODAL (MINI GOOGLE MAPS) */}
+      {showLocationsModal && (
+        <div className="overlay" onClick={() => setShowLocationsModal(false)}>
+          <div
+            className="modal"
+            style={{ maxWidth: 380, maxHeight: '90vh', overflowY: 'auto' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="modal-close"
+              onClick={() => setShowLocationsModal(false)}
+            >
+              &times;
+            </button>
+
+            <div className="modal-title" style={{ gap: 6 }}>
+              <span>📍</span>
+              <span>{t.locationsModal.title}</span>
+            </div>
+            <div className="modal-sub" style={{ marginBottom: 12 }}>
+              {storeName || 'Kad Cop'}
+            </div>
+
+            {/* MULTI-OUTLET SELECTOR TABS (IF > 1 LOCATION) */}
+            {locations.length > 1 && (
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-3">
+                {locations.map((loc, idx) => {
+                  const isActive = idx === activeLocationIdx
+                  return (
+                    <button
+                      key={loc.id || idx}
+                      type="button"
+                      onClick={() => setActiveLocationIdx(idx)}
+                      className={`text-[11.5px] font-bold px-3 py-1.5 rounded-full whitespace-nowrap transition cursor-pointer flex items-center gap-1 shrink-0 ${
+                        isActive
+                          ? 'bg-[#FF5A45] text-white shadow-xs'
+                          : 'bg-[#FFF7EA] text-[#5A4B3D] border border-[#F0DEC0] hover:bg-[#FCE7D2]'
+                      }`}
+                    >
+                      <span>📍</span>
+                      <span>{loc.name || `Cawangan ${idx + 1}`}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
+            {locations.length > 0 ? (
+              (() => {
+                const currentLoc = locations[activeLocationIdx] || locations[0]
+                const embedQuery = currentLoc.name
+                  ? `${currentLoc.name} ${currentLoc.address || storeName || ''}`
+                  : storeName || 'Kedai'
+                const embedUrl = getGoogleMapsEmbedUrl(currentLoc.url, embedQuery)
+
+                return (
+                  <div className="space-y-3">
+                    {/* MINI GOOGLE MAP IFRAME */}
+                    <div className="w-full h-[210px] rounded-2xl overflow-hidden border border-[#F0DEC0] relative bg-[#FFF7EA] shadow-inner">
+                      {embedUrl ? (
+                        <iframe
+                          title={currentLoc.name || 'Google Map'}
+                          src={embedUrl}
+                          className="w-full h-full border-0"
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                          allowFullScreen
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-center p-4">
+                          <span className="text-3xl mb-1">🗺️</span>
+                          <span className="text-xs text-[#96806B]">Peta tidak dapat dimuatkan</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* LOCATION DETAILS CARD */}
+                    <div className="bg-[#FFFDF8] border border-[#F0DEC0] rounded-xl p-3 text-left">
+                      <div className="font-fraunces font-bold text-sm text-[#1B0F09] flex items-center justify-between">
+                        <span>{currentLoc.name || 'Cawangan'}</span>
+                        {locations.length > 1 && (
+                          <span className="text-[10px] font-jakarta font-bold text-[#FF5A45] bg-[#FF5A45]/10 px-2 py-0.5 rounded-full">
+                            {t.locationsModal.outletLabel(activeLocationIdx + 1, locations.length)}
+                          </span>
+                        )}
+                      </div>
+                      {currentLoc.address && (
+                        <p className="text-xs text-[#5A4B3D] mt-1 leading-relaxed">
+                          {currentLoc.address}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* ACTION BUTTON: OPEN IN GOOGLE MAPS */}
+                    {currentLoc.url && (
+                      <a
+                        href={currentLoc.url.startsWith('http') ? currentLoc.url : `https://${currentLoc.url}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="modal-btn"
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, textDecoration: 'none' }}
+                      >
+                        <span>{t.locationsModal.openInMaps}</span>
+                      </a>
+                    )}
+                  </div>
+                )
+              })()
+            ) : (
+              /* EMPTY LOCATIONS STATE */
+              <div className="text-center py-6">
+                <span className="text-4xl">📍</span>
+                <p className="text-xs text-[#96806B] mt-2 leading-relaxed px-4">
+                  {t.locationsModal.noLocations}
+                </p>
+              </div>
+            )}
+
+            <button
+              type="button"
+              className="modal-btn ghost"
+              style={{ marginTop: 8 }}
+              onClick={() => setShowLocationsModal(false)}
+            >
+              {t.locationsModal.closeBtn}
+            </button>
           </div>
         </div>
       )}

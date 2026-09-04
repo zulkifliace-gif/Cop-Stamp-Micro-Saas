@@ -68,6 +68,10 @@ export async function GET(req: NextRequest) {
       const parsedSocialLinks =
         (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && Array.isArray(rawRewards?.socialLinks) && rawRewards.socialLinks) ||
         []
+      const parsedLocations =
+        (typeof rawRewards === 'object' && !Array.isArray(rawRewards) && Array.isArray(rawRewards?.locations) && rawRewards.locations) ||
+        (Array.isArray((storeObj as any)?.locations) && (storeObj as any).locations) ||
+        []
 
       // google_review_url akan NULL secara automatik kalau kedai guna MOD 2 (manual)
       // — jadi frontend cuma perlu semak "if (googleReviewUrl)" untuk decide popup.
@@ -82,6 +86,7 @@ export async function GET(req: NextRequest) {
         rewards: parsedRewards,
         stampIcon: parsedStampIcon,
         socialLinks: parsedSocialLinks,
+        locations: parsedLocations,
         updatedAt: item.updated_at,
         googleReviewUrl: storeObj?.google_review_url || null,
         googleReviewMode: storeObj?.google_review_mode || 'manual',
@@ -99,6 +104,7 @@ export async function GET(req: NextRequest) {
       let defaultRewards: any[] = []
       let defaultStampIcon = '/icons/stamps/makanan.svg'
       let defaultSocialLinks: any[] = []
+      let defaultLocations: any[] = []
       let defaultGoogleReviewUrl: string | null = null
       let defaultGoogleReviewMode = 'manual'
 
@@ -129,6 +135,10 @@ export async function GET(req: NextRequest) {
           defaultSocialLinks =
             (typeof rawStRewards === 'object' && !Array.isArray(rawStRewards) && Array.isArray(rawStRewards?.socialLinks) && rawStRewards.socialLinks) ||
             []
+          defaultLocations =
+            (typeof rawStRewards === 'object' && !Array.isArray(rawStRewards) && Array.isArray(rawStRewards?.locations) && rawStRewards.locations) ||
+            (Array.isArray((st as any)?.locations) && (st as any).locations) ||
+            []
           defaultGoogleReviewUrl = st.google_review_url || null
           defaultGoogleReviewMode = st.google_review_mode || 'manual'
         }
@@ -146,6 +156,7 @@ export async function GET(req: NextRequest) {
         rewards: defaultRewards,
         stampIcon: defaultStampIcon,
         socialLinks: defaultSocialLinks,
+        locations: defaultLocations,
         updatedAt: null,
         stampDates: [],
         googleReviewUrl: defaultGoogleReviewUrl,
@@ -186,6 +197,7 @@ export async function GET(req: NextRequest) {
       rewards: activeStore.rewards,
       stampIcon: activeStore.stampIcon,
       socialLinks: activeStore.socialLinks,
+      locations: activeStore.locations || [],
       updatedAt: activeStore.updatedAt,
       stampDates,
       googleReviewUrl: activeStore.googleReviewUrl,

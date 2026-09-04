@@ -220,6 +220,13 @@ export async function POST(req: NextRequest) {
         extractedSocialLinks = sourceData.rewards.socialLinks
       }
 
+      let extractedLocations: any[] = []
+      if (Array.isArray(sourceData.locations)) {
+        extractedLocations = sourceData.locations
+      } else if (Array.isArray(sourceData.rewards?.locations)) {
+        extractedLocations = sourceData.rewards.locations
+      }
+
       // DIRECTLY UPDATE KEDAI B in Supabase stores table with full schema compatibility!
       const updatePayload: Record<string, any> = {
         logo_url: sourceData.logo_url || sourceData.logoUrl || null,
@@ -234,6 +241,7 @@ export async function POST(req: NextRequest) {
           list: extractedRewards,
           stampIcon: extractedStampIcon,
           socialLinks: extractedSocialLinks,
+          locations: extractedLocations,
         },
         google_review_mode: sourceData.google_review_mode || sourceData.googleReviewMode || 'manual',
         google_review_url: sourceData.google_review_url || sourceData.googleReviewUrl || null,

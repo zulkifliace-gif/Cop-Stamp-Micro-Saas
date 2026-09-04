@@ -152,6 +152,13 @@ export interface DashboardTranslation {
     addLinkBtn: string
     socialDesc: string
     noSocialLinks: string
+    locationsTitle: string
+    locationsDesc: string
+    addLocationBtn: string
+    noLocations: string
+    locationNamePlaceholder: string
+    locationUrlPlaceholder: string
+    locationAddressPlaceholder: string
     saveBtn: string
     saving: string
     ownerOnlyNote: string
@@ -375,6 +382,13 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       addLinkBtn: '+ Tambah Pautan',
       socialDesc: 'Pautan ini akan dipaparkan sebagai ikon di bawah nama kedai di kad pelanggan.',
       noSocialLinks: 'Belum ada pautan media sosial. Tekan "+ Tambah Pautan" untuk masukkan Instagram, TikTok, WhatsApp, dll.',
+      locationsTitle: 'Lokasi Kedai & Cawangan',
+      locationsDesc: 'Tetapkan lokasi Google Maps kedai anda. Tambah lebih daripada 1 cawangan jika kedai mempunyai beberapa outlet.',
+      addLocationBtn: '+ Tambah Cawangan',
+      noLocations: 'Belum ada cawangan ditetapkan. Tekan "+ Tambah Cawangan" untuk masukkan lokasi Google Maps anda.',
+      locationNamePlaceholder: 'Nama Cawangan (cth: Cawangan Bangi)',
+      locationUrlPlaceholder: 'URL Google Maps (https://maps.google.com/...)',
+      locationAddressPlaceholder: 'Alamat Ringkas (Pilihan)',
       saveBtn: 'Simpan Tetapan',
       saving: 'Menyimpan...',
       ownerOnlyNote: 'Hanya Pemilik (Owner) boleh menukar tetapan kedai.',
@@ -596,6 +610,13 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       addLinkBtn: '+ Add Link',
       socialDesc: 'These links will appear as icons below your store name on customer cards.',
       noSocialLinks: 'No social links added yet. Tap "+ Add Link" to add Instagram, TikTok, WhatsApp, etc.',
+      locationsTitle: 'Store Locations & Outlets',
+      locationsDesc: 'Configure Google Maps locations for your store. Add multiple branches if your store has more than one outlet.',
+      addLocationBtn: '+ Add Outlet',
+      noLocations: 'No outlets configured yet. Tap "+ Add Outlet" to add your Google Maps location.',
+      locationNamePlaceholder: 'Outlet Name (e.g. Bangi Branch)',
+      locationUrlPlaceholder: 'Google Maps URL (https://maps.google.com/...)',
+      locationAddressPlaceholder: 'Short Address (Optional)',
       saveBtn: 'Save Settings',
       saving: 'Saving...',
       ownerOnlyNote: 'Only Store Owners can modify store settings.',

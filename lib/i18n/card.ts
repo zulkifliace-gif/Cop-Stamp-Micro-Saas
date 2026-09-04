@@ -5,6 +5,7 @@ export interface CardTranslation {
     refreshTooltip: string
     logoutTooltip: string
     qrTooltip: string
+    locationTooltip: string
   }
   login: {
     digitalStampCard: string
@@ -64,6 +65,14 @@ export interface CardTranslation {
     primaryBtn: string
     secondaryBtn: string
   }
+  locationsModal: {
+    title: string
+    openInMaps: string
+    noLocations: string
+    closeBtn: string
+    outletLabel: (num: number, total: number) => string
+    directions: string
+  }
   stampDetailModal: {
     title: (slot: number, card: number) => string
     earnedBadge: string
@@ -96,6 +105,7 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
       refreshTooltip: 'Muat semula',
       logoutTooltip: 'Log keluar',
       qrTooltip: 'QR Kod Emel Saya',
+      locationTooltip: 'Lokasi Kedai',
     },
     login: {
       digitalStampCard: 'Kad Cop Digital',
@@ -148,12 +158,20 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
       emailLabel: 'Emel Akaun Anda:',
       closeBtn: 'Tutup',
     },
-    reviewNavbarBtn: '⭐ Review Kami',
+    reviewNavbarBtn: 'Review',
     reviewModal: {
       title: 'Suka servis kami?',
       message: 'Bantu kami dengan ulasan 5-bintang di Google!',
-      primaryBtn: '⭐ Tulis Ulasan Google',
+      primaryBtn: '⭐ Tulis Review',
       secondaryBtn: 'Nanti Dulu',
+    },
+    locationsModal: {
+      title: '📍 Lokasi Kedai',
+      openInMaps: 'Buka di Google Maps ↗',
+      noLocations: 'Kedai ini belum menetapkan pautan lokasi Google Maps.',
+      closeBtn: 'Tutup',
+      outletLabel: (num, total) => `Cawangan ${num} daripada ${total}`,
+      directions: 'Dapatkan Arah ↗',
     },
     stampDetailModal: {
       title: (slot, card) => `Cop #${slot} (Kad #${card})`,
@@ -185,6 +203,7 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
       refreshTooltip: 'Refresh',
       logoutTooltip: 'Log out',
       qrTooltip: 'My Email QR Code',
+      locationTooltip: 'Store Locations',
     },
     login: {
       digitalStampCard: 'Digital Stamp Card',
@@ -237,12 +256,20 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
       emailLabel: 'Your Account Email:',
       closeBtn: 'Close',
     },
-    reviewNavbarBtn: '⭐ Review Us',
+    reviewNavbarBtn: 'Review',
     reviewModal: {
       title: 'Enjoyed our service?',
       message: 'Help us with a 5-star review on Google!',
-      primaryBtn: '⭐ Write Google Review',
+      primaryBtn: '⭐ Write Review',
       secondaryBtn: 'Maybe Later',
+    },
+    locationsModal: {
+      title: '📍 Store Locations',
+      openInMaps: 'Open in Google Maps ↗',
+      noLocations: 'This store has not set up a Google Maps location yet.',
+      closeBtn: 'Close',
+      outletLabel: (num, total) => `Outlet ${num} of ${total}`,
+      directions: 'Get Directions ↗',
     },
     stampDetailModal: {
       title: (slot, card) => `Stamp #${slot} (Card #${card})`,
