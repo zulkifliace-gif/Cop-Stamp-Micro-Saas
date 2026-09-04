@@ -60,6 +60,19 @@ export interface DashboardTranslation {
     rewardsRedeemed: string
     activeStamps: string
   }
+  customersModal: {
+    title: string
+    subTitle: (count: number) => string
+    searchPlaceholder: string
+    accumulatedStamps: (count: number) => string
+    fullCards: (count: number) => string
+    readyToRedeem: string
+    selectToRedeem: string
+    noCustomersFound: string
+    noCustomersYet: string
+    closeBtn: string
+    loading: string
+  }
   searchSection: {
     title: string
     subTitle: string
@@ -290,6 +303,19 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       rewardsRedeemed: 'Ganjaran Ditebus',
       activeStamps: 'Baki Cop Aktif',
     },
+    customersModal: {
+      title: 'Senarai Pelanggan',
+      subTitle: (count) => `Jumlah ${count} pelanggan memiliki kad aktif di kedai ini`,
+      searchPlaceholder: 'Cari emel atau nama pelanggan...',
+      accumulatedStamps: (count) => `terkumpul ${count}`,
+      fullCards: (count) => `${count} Kad Penuh`,
+      readyToRedeem: 'Layak Tebus',
+      selectToRedeem: 'Pilih untuk Tebus',
+      noCustomersFound: 'Tiada pelanggan sepadan dengan carian.',
+      noCustomersYet: 'Belum ada pelanggan yang menuntut cop di kedai ini.',
+      closeBtn: 'Tutup',
+      loading: 'Memuatkan senarai pelanggan...',
+    },
     searchSection: {
       title: 'Tebus Ganjaran di Kaunter',
       subTitle: 'Cari Emel Pelanggan',
@@ -517,6 +543,19 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       stampsClaimed: 'Stamps Claimed',
       rewardsRedeemed: 'Rewards Redeemed',
       activeStamps: 'Active Stamps',
+    },
+    customersModal: {
+      title: 'Customer List',
+      subTitle: (count) => `Total of ${count} customers have active cards at this store`,
+      searchPlaceholder: 'Search customer email or name...',
+      accumulatedStamps: (count) => `accumulated ${count}`,
+      fullCards: (count) => `${count} Full Cards`,
+      readyToRedeem: 'Eligible',
+      selectToRedeem: 'Select to Redeem',
+      noCustomersFound: 'No customers match your search.',
+      noCustomersYet: 'No customers have claimed stamps at this store yet.',
+      closeBtn: 'Close',
+      loading: 'Loading customer list...',
     },
     searchSection: {
       title: 'Redeem Counter Reward',

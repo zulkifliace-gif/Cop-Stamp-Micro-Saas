@@ -76,6 +76,17 @@ interface StoreLocationItem {
   address?: string
 }
 
+interface CustomerListItem {
+  id: string
+  email: string
+  maskedEmail: string
+  name: string
+  avatarUrl: string
+  totalStamps: number
+  fullCards: number
+  updatedAt: string
+}
+
 const STAMP_ICON_OPTIONS = [
   { label: 'Makanan / Kafe', icon: '/icons/stamps/makanan.svg' },
   { label: 'Pastri / Bakeri', icon: '/icons/stamps/pastri.svg' },
@@ -258,6 +269,12 @@ export default function CashierDashboard() {
     totalRedemptions: 0,
     totalTokensIssued: 0,
   })
+
+  // Customer List Modal State (Kad Diguna)
+  const [showCustomersModal, setShowCustomersModal] = useState<boolean>(false)
+  const [customersList, setCustomersList] = useState<CustomerListItem[]>([])
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState<boolean>(false)
+  const [customerSearchQuery, setCustomerSearchQuery] = useState<string>('')
 
   // Customer Reward Claim Search State
   const [searchEmail, setSearchEmail] = useState<string>('')
@@ -924,9 +941,10 @@ export default function CashierDashboard() {
   }
 
   // 10. Search Customer by Email for Reward Claim
-  async function handleSearchCustomer(e?: React.FormEvent) {
+  async function handleSearchCustomer(e?: React.FormEvent, overrideEmail?: string) {
     if (e) e.preventDefault()
-    if (!searchEmail.trim()) {
+    const emailToSearch = (overrideEmail || searchEmail).trim()
+    if (!emailToSearch) {
       setSearchError('Sila masukkan emel pelanggan.')
       return
     }
@@ -934,12 +952,16 @@ export default function CashierDashboard() {
     setIsSearchingCustomer(true)
     setSearchError('')
     setSearchResult(null)
+    if (overrideEmail) {
+      setSearchEmail(overrideEmail)
+    }
 
     try {
+      const targetStoreId = storeId || ''
       const res = await fetch(
         `/api/store/customer-search?email=${encodeURIComponent(
-          searchEmail.trim()
-        )}&storeId=${storeId}`
+          emailToSearch
+        )}&storeId=${targetStoreId}`
       )
       const data = await res.json()
       if (!res.ok) {
@@ -962,6 +984,46 @@ export default function CashierDashboard() {
     } finally {
       setIsSearchingCustomer(false)
     }
+  }
+
+  // 10.1 Customers List Modal Logic (Semak Pelanggan / Kad Diguna)
+  async function fetchCustomersList(searchQuery = '') {
+    setIsLoadingCustomers(true)
+    try {
+      const targetStoreId = storeId || ''
+      const res = await fetch(
+        `/api/store/customers?storeId=${targetStoreId}${
+          searchQuery ? `&q=${encodeURIComponent(searchQuery)}` : ''
+        }`
+      )
+      const data = await res.json()
+      if (res.ok && Array.isArray(data.customers)) {
+        setCustomersList(data.customers)
+      } else {
+        setCustomersList([])
+      }
+    } catch (err) {
+      console.error('Error fetching customers list:', err)
+      setCustomersList([])
+    } finally {
+      setIsLoadingCustomers(false)
+    }
+  }
+
+  function handleOpenCustomersListModal() {
+    setShowCustomersModal(true)
+    setCustomerSearchQuery('')
+    fetchCustomersList('')
+  }
+
+  function handleSelectCustomerToRedeem(email: string) {
+    setShowCustomersModal(false)
+    setSearchEmail(email)
+    const searchSectionElem = document.getElementById('counter-claim-section')
+    if (searchSectionElem) {
+      searchSectionElem.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+    handleSearchCustomer(undefined, email)
   }
 
   // 11. Cashier "Done Claim" Reward Action & Auto-Print Receipt
@@ -2067,8 +2129,16 @@ export default function CashierDashboard() {
 
           {/* STORE OVERVIEW METRICS BAR — always 1 row on phone & tablet */}
           <div className="grid grid-cols-4 gap-1.5 xs:gap-2 sm:gap-2.5 mb-5">
-            <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-xl sm:rounded-2xl px-1.5 py-2.5 sm:p-3 text-center min-w-0">
-              <div className="text-[8px] xs:text-[9px] sm:text-[10px] font-space uppercase text-[#5E6F68] font-bold leading-tight truncate">{t.stats.customers}</div>
+            <button
+              type="button"
+              onClick={handleOpenCustomersListModal}
+              className="bg-[#FAF2E2]/[0.06] hover:bg-[#FAF2E2]/[0.12] active:scale-95 border border-[#FAF2E2]/12 hover:border-[#E5A43B]/40 rounded-xl sm:rounded-2xl px-1.5 py-2.5 sm:p-3 text-center min-w-0 transition cursor-pointer group flex flex-col items-center justify-between"
+              title={lang === 'en' ? 'Click to view active customers list' : 'Tekan untuk lihat senarai pelanggan'}
+            >
+              <div className="text-[8px] xs:text-[9px] sm:text-[10px] font-space uppercase text-[#5E6F68] group-hover:text-[#E5A43B] font-bold leading-tight truncate flex items-center justify-center gap-1 w-full">
+                <span>{t.stats.customers}</span>
+                <span className="text-[9px] opacity-70 group-hover:opacity-100">🔍</span>
+              </div>
               <div className="text-sm xs:text-base sm:text-xl font-fraunces font-bold text-[#E5A43B] mt-0.5 min-h-[22px] sm:min-h-[28px] flex items-center justify-center">
                 {statsLoading ? (
                   <div className="h-5 sm:h-6 w-8 sm:w-10 bg-[#E5A43B]/20 rounded-md animate-pulse" />
@@ -2076,7 +2146,10 @@ export default function CashierDashboard() {
                   storeStats.totalCustomers
                 )}
               </div>
-            </div>
+              <div className="text-[8px] text-[#5E6F68] group-hover:text-[#FAF2E2] font-semibold tracking-tighter truncate mt-0.5">
+                {lang === 'en' ? 'View list →' : 'Semak →'}
+              </div>
+            </button>
             <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-xl sm:rounded-2xl px-1.5 py-2.5 sm:p-3 text-center min-w-0">
               <div className="text-[8px] xs:text-[9px] sm:text-[10px] font-space uppercase text-[#5E6F68] font-bold leading-tight truncate">{t.stats.stampsClaimed}</div>
               <div className="text-sm xs:text-base sm:text-xl font-fraunces font-bold text-emerald-400 mt-0.5 min-h-[22px] sm:min-h-[28px] flex items-center justify-center">
@@ -2110,7 +2183,7 @@ export default function CashierDashboard() {
           </div>
 
           {/* CUSTOMER REWARD CLAIM SEARCH BAR */}
-          <div className="mb-6">
+          <div id="counter-claim-section" className="mb-6">
             <div className="font-space text-[10.5px] tracking-[0.14em] uppercase text-[#E5A43B] mb-2.5 opacity-90 font-semibold flex items-center justify-between">
               <span>{t.searchSection.title}</span>
               <span className="text-[10px] text-[#5E6F68]">{t.searchSection.subTitle}</span>
@@ -4239,6 +4312,169 @@ export default function CashierDashboard() {
             >
               {t.searchSection.scanCloseBtn}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── CUSTOMERS LIST MODAL (SEMAK KAD DIGUNA) ──────────────────────────── */}
+      {showCustomersModal && (
+        <div
+          onClick={() => setShowCustomersModal(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 anim-fade"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-[460px] bg-[#FAF2E2] text-[#1C2624] rounded-[28px] p-5 sm:p-6 shadow-2xl border border-[#E5A43B]/30 anim-scale max-h-[85vh] flex flex-col"
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-[#E4D9BE]/60 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-[#E5A43B]/20 text-[#C77B1B] flex items-center justify-center text-xl font-bold">
+                  👥
+                </div>
+                <div>
+                  <h3 className="font-fraunces font-bold text-base sm:text-lg text-[#0A1716] leading-tight">
+                    {t.customersModal.title}
+                  </h3>
+                  <p className="text-[11px] text-[#5E6F68] font-jakarta">
+                    {t.customersModal.subTitle(customersList.length)}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCustomersModal(false)}
+                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-gray-500 hover:text-gray-800 text-lg font-bold transition cursor-pointer"
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Search filter input */}
+            <div className="pt-3 pb-2 shrink-0">
+              <div className="relative flex items-center">
+                <input
+                  type="text"
+                  value={customerSearchQuery}
+                  onChange={(e) => {
+                    const q = e.target.value
+                    setCustomerSearchQuery(q)
+                    fetchCustomersList(q)
+                  }}
+                  placeholder={t.customersModal.searchPlaceholder}
+                  className="w-full pl-8 pr-8 py-2.5 text-xs bg-white border border-[#E4D9BE] rounded-xl outline-none focus:ring-2 focus:ring-[#1E5E53] font-jakarta placeholder:text-gray-400 text-[#1C2624]"
+                />
+                <svg className="w-4 h-4 text-gray-400 absolute left-2.5 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+                {customerSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomerSearchQuery('')
+                      fetchCustomersList('')
+                    }}
+                    className="absolute right-2.5 text-gray-400 hover:text-gray-600 text-xs font-bold p-1 cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Customers list content (scrollable) */}
+            <div className="flex-1 overflow-y-auto space-y-2 py-2 pr-1 -mr-1">
+              {isLoadingCustomers ? (
+                <div className="py-12 text-center text-xs text-[#5E6F68]">
+                  <div className="w-6 h-6 border-2 border-[#E5A43B] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                  <span>{t.customersModal.loading}</span>
+                </div>
+              ) : customersList.length === 0 ? (
+                <div className="py-10 text-center text-xs text-[#5E6F68] px-4">
+                  <span className="text-3xl mb-1 block">🔍</span>
+                  <p className="font-semibold text-gray-700">
+                    {customerSearchQuery ? t.customersModal.noCustomersFound : t.customersModal.noCustomersYet}
+                  </p>
+                </div>
+              ) : (
+                customersList.map((customer) => {
+                  const isEligible = customer.totalStamps >= (stampsRequired || 10)
+                  return (
+                    <div
+                      key={customer.id}
+                      className="flex items-center justify-between p-3 bg-white hover:bg-[#FFF8EC] border border-[#E4D9BE]/80 rounded-2xl transition shadow-xs gap-2"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        {/* Avatar / Initials */}
+                        {customer.avatarUrl ? (
+                          <img
+                            src={customer.avatarUrl}
+                            alt={customer.name}
+                            className="w-9 h-9 rounded-full object-cover border border-[#E5A43B]/40 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#1E5E53] to-[#2D786B] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs uppercase">
+                            {customer.name?.slice(0, 2) || customer.maskedEmail?.slice(0, 2) || 'PL'}
+                          </div>
+                        )}
+
+                        {/* Customer details */}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-mono font-bold text-xs text-[#1C2624] tracking-tight">
+                              {customer.maskedEmail}
+                            </span>
+                            {customer.name && customer.name !== customer.email && (
+                              <span className="text-[10px] text-gray-500 font-medium truncate max-w-[120px]">
+                                ({customer.name})
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#C77B1B]">
+                              <span>⚡</span>
+                              <span>{t.customersModal.accumulatedStamps(customer.totalStamps)}</span>
+                            </span>
+                            {customer.fullCards > 0 && (
+                              <span className="text-[9.5px] font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded-md">
+                                {t.customersModal.fullCards(customer.fullCards)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action: Select to redeem */}
+                      <button
+                        type="button"
+                        onClick={() => handleSelectCustomerToRedeem(customer.email)}
+                        className={`text-[11px] font-bold px-3 py-1.5 rounded-xl transition cursor-pointer shrink-0 active:scale-95 flex items-center gap-1 ${
+                          isEligible
+                            ? 'bg-[#1E5E53] hover:bg-[#16483f] text-white shadow-xs'
+                            : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                        }`}
+                        title={t.customersModal.selectToRedeem}
+                      >
+                        <span>{isEligible ? '🎁' : '🔍'}</span>
+                        <span>{isEligible ? t.customersModal.readyToRedeem : 'Tebus'}</span>
+                      </button>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="pt-3 border-t border-[#E4D9BE]/60 shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowCustomersModal(false)}
+                className="w-full py-2.5 bg-gray-200 hover:bg-gray-300 active:scale-98 text-[#1C2624] font-bold text-xs rounded-xl transition cursor-pointer"
+              >
+                {t.customersModal.closeBtn}
+              </button>
+            </div>
           </div>
         </div>
       )}
