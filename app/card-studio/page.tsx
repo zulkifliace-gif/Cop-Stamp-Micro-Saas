@@ -1065,9 +1065,9 @@ export default function CardStudioPage() {
         .card-app {
           font-family: 'Plus Jakarta Sans', sans-serif !important;
           width: 100%;
-          max-width: 430px;
+          max-width: 420px;
           margin: 0 auto;
-          padding-bottom: 24px;
+          padding-bottom: 14px;
           pointer-events: none !important;
         }
 
@@ -2225,10 +2225,10 @@ export default function CardStudioPage() {
         </aside>
 
         {/* RIGHT PANEL: LIVE EXACT PHONE MOCKUP (WARM SOOTHING DESK ATMOSPHERE) */}
-        <main className={`flex-1 bg-gradient-to-b from-[#F7F4EE] via-[#EFEBE2] to-[#E9E4D9] p-3 sm:p-5 md:p-6 lg:p-8 flex flex-col items-center justify-start md:justify-center overflow-y-auto min-h-[640px] md:min-h-0 ${
+        <main className={`flex-1 bg-gradient-to-b from-[#F7F4EE] via-[#EFEBE2] to-[#E9E4D9] p-3 sm:p-5 md:p-6 lg:p-8 flex flex-col items-center justify-start md:justify-center overflow-y-auto ${
           mobileView === 'editor' ? 'hidden md:flex' : 'flex'
         }`}>
-          <div className="mb-3 flex items-center justify-between w-full max-w-[420px] px-1">
+          <div className="mb-3 flex items-center justify-between w-full max-w-[380px] px-1">
             <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-md px-3 sm:px-4 py-1.5 rounded-full border border-[#E2DAD0] text-[10px] sm:text-[11px] text-stone-600 font-semibold shadow-2xs">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>Paparan Visual Rupa Paras</span>
@@ -2247,17 +2247,17 @@ export default function CardStudioPage() {
             </button>
           </div>
 
+          {/* REALISTIC PHONE MOCKUP - FIXED NATURAL PROPORTIONS ACROSS ALL SCREENS */}
           <div
-            className="w-full max-w-[340px] sm:max-w-[380px] md:max-w-[360px] lg:max-w-[420px] rounded-[32px] sm:rounded-[40px] md:rounded-[44px] shadow-2xl shadow-stone-800/15 overflow-hidden border-[6px] sm:border-[8px] md:border-[10px] border-[#1E2533] relative flex flex-col pointer-events-none select-none my-auto"
+            className="w-full max-w-[380px] rounded-[38px] sm:rounded-[42px] shadow-2xl shadow-stone-900/15 overflow-hidden border-[8px] sm:border-[10px] border-[#1E2533] relative flex flex-col pointer-events-none select-none my-auto shrink-0"
             style={{
               backgroundColor: config.pageBgColor || '#FFF7EA',
               backgroundImage: `radial-gradient(circle at 1px 1px, ${config.pageDotColor || 'rgba(43,27,18,0.055)'} 1px, transparent 1px)`,
               backgroundSize: '20px 20px',
-              minHeight: '680px',
             }}
           >
             {/* ISLAND / NOTCH */}
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-28 h-4 bg-[#1E2533] rounded-full z-40" />
+            <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-24 h-3.5 bg-[#1E2533] rounded-full z-40 pointer-events-none" />
 
             {/* LIVE CARD DOM CONTAINER (DYNAMIC FULL-PAGE TYPOGRAPHY - DISPLAY ONLY) */}
             <div
@@ -2573,6 +2573,9 @@ export default function CardStudioPage() {
                 </div>
               </div>
             </div>
+
+            {/* BOTTOM HOME INDICATOR */}
+            <div className="w-24 h-1 bg-stone-400/40 rounded-full mx-auto mb-2 pointer-events-none shrink-0" />
           </div>
         </main>
       </div>
