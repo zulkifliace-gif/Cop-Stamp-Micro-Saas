@@ -225,15 +225,29 @@ export default function ClaimClient({
 
       const total = data.newTotal ?? initialStampCount
       const req = data.stampsRequired ?? initialStampsRequired ?? 10
+      const stampsAdded = data.stampsAdded ?? initialStampCount
+      const previousStamps = data.previousStamps ?? 0
       const fullCards = Math.floor(total / req)
       const rem = total % req
       const totalCards = Math.max(1, fullCards + (rem > 0 ? 1 : 0))
       setSelectedCardIdx(totalCards - 1)
 
+      // Store in sessionStorage for /card to animate & focus on active card
+      try {
+        sessionStorage.setItem('lajus_claimed_stamps', JSON.stringify({
+          storeId: data.storeId || null,
+          stampsAdded,
+          previousStamps,
+          newTotal: total,
+          stampsRequired: req,
+        }))
+        sessionStorage.setItem('lajus_just_claimed', 'true')
+      } catch {}
+
       setClaimData({
-        previousStamps: data.previousStamps ?? 0,
+        previousStamps,
         newTotal: total,
-        stampsAdded: data.stampsAdded ?? initialStampCount,
+        stampsAdded,
         stampsRequired: req,
         rewardDescription:
           data.rewardDescription ?? initialRewardDesc ?? (lang === 'en' ? '1 free drink' : '1 minuman percuma'),
@@ -417,17 +431,17 @@ export default function ClaimClient({
   // -------------------------------------------------------------
   if (scene === 'login' && !user) {
     return (
-      <div className="w-full max-w-[360px] flex flex-col items-center anim-result">
+      <div className="w-full max-w-[380px] flex flex-col items-center anim-result">
         {/* TOP TOGGLE */}
-        <div className="w-full flex items-center justify-end mb-3">
-          <div className="flex items-center gap-1 bg-[#FAF2E2]/[0.08] border border-[#FAF2E2]/15 rounded-full p-0.5 backdrop-blur-xs">
+        <div className="w-full flex items-center justify-end mb-4">
+          <div className="flex items-center bg-white border border-[#F0DEC0] rounded-full p-0.5 shadow-xs">
             <button
               type="button"
               onClick={() => switchLang('my')}
-              className={`px-2 py-0.5 text-[10.5px] font-bold rounded-full transition-all cursor-pointer font-space ${
+              className={`px-2.5 py-0.5 text-[11px] font-bold rounded-full transition-all cursor-pointer font-jakarta ${
                 lang === 'my'
-                  ? 'bg-[#E5A43B] text-[#1A2422] shadow-xs'
-                  : 'text-[#FAF2E2]/60 hover:text-[#FAF2E2]'
+                  ? 'bg-[#FF7A45] text-white shadow-xs'
+                  : 'text-[#96806B] hover:text-[#2B1B12]'
               }`}
             >
               MY
@@ -435,10 +449,10 @@ export default function ClaimClient({
             <button
               type="button"
               onClick={() => switchLang('en')}
-              className={`px-2 py-0.5 text-[10.5px] font-bold rounded-full transition-all cursor-pointer font-space ${
+              className={`px-2.5 py-0.5 text-[11px] font-bold rounded-full transition-all cursor-pointer font-jakarta ${
                 lang === 'en'
-                  ? 'bg-[#E5A43B] text-[#1A2422] shadow-xs'
-                  : 'text-[#FAF2E2]/60 hover:text-[#FAF2E2]'
+                  ? 'bg-[#FF7A45] text-white shadow-xs'
+                  : 'text-[#96806B] hover:text-[#2B1B12]'
               }`}
             >
               EN
@@ -446,120 +460,102 @@ export default function ClaimClient({
           </div>
         </div>
 
-        {/* STORE LOGO / BRAND ICON & HEADER */}
-        <div className="text-center mb-6">
-          <div className="relative w-16 h-16 rounded-full bg-white mx-auto mb-3 shadow-lg flex items-center justify-center p-1 overflow-hidden border-2 border-[#E5A43B]">
-            {initialLogoUrl && !loginLogoError ? (
-              <>
-                {/* ANIMASI LOADING PROFILE: Berterusan sehingga gambar selesai dimuatkan */}
-                {loginLogoLoading && (
-                  <div className="absolute inset-0 bg-[#FFF7EA] flex items-center justify-center z-10">
-                    <div className="w-6 h-6 border-[2.5px] border-[#E5A43B] border-t-transparent rounded-full animate-spin" />
-                  </div>
-                )}
-                <img
-                  src={initialLogoUrl}
-                  alt={initialStoreName || 'Logo Kedai'}
-                  onLoad={() => setLoginLogoLoading(false)}
-                  onError={() => {
-                    setLoginLogoError(true)
-                    setLoginLogoLoading(false)
-                  }}
-                  className={`w-full h-full rounded-full object-cover transition-opacity duration-300 ${
-                    loginLogoLoading ? 'opacity-0' : 'opacity-100'
-                  }`}
-                />
-              </>
-            ) : (
-              /* JIKA KOSONG / GAGAL / ROSAK: GANTIKAN LOGO LAJUS */
-              <div className="w-full h-full p-2.5 flex items-center justify-center">
-                <img src="/logo.svg" alt="LajuS" className="w-full h-full object-contain" />
-              </div>
-            )}
+        {/* WARM LOGIN CARD MATCHING /CARD */}
+        <div className="w-full bg-[#FFFDF8] border border-[#F0DEC0] rounded-[28px] p-6 sm:p-7 shadow-xl text-[#2B1B12]">
+          {/* STORE LOGO & HEADER */}
+          <div className="text-center mb-5">
+            <div className="relative w-16 h-16 rounded-full bg-white mx-auto mb-3 shadow-md flex items-center justify-center p-1 overflow-hidden border-2 border-[#F0DEC0]">
+              {initialLogoUrl && !loginLogoError ? (
+                <>
+                  {/* ANIMASI LOADING PROFILE */}
+                  {loginLogoLoading && (
+                    <div className="absolute inset-0 bg-[#FFF7EA] flex items-center justify-center z-10">
+                      <div className="w-6 h-6 border-[2.5px] border-[#FF7A45] border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+                  <img
+                    src={initialLogoUrl}
+                    alt={initialStoreName || 'Logo Kedai'}
+                    onLoad={() => setLoginLogoLoading(false)}
+                    onError={() => {
+                      setLoginLogoError(true)
+                      setLoginLogoLoading(false)
+                    }}
+                    className={`w-full h-full rounded-full object-cover transition-opacity duration-300 ${
+                      loginLogoLoading ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  />
+                </>
+              ) : (
+                /* GANTIKAN DENGAN LOGO LAJUS */
+                <div className="w-full h-full p-2.5 flex items-center justify-center">
+                  <img src="/logo.svg" alt="LajuS" className="w-full h-full object-contain" />
+                </div>
+              )}
+            </div>
+            <div className="font-fraunces font-bold text-2xl text-[#1B0F09] mb-1">
+              {initialStoreName || 'Kad Cop Digital'}
+            </div>
+            <div className="text-xs text-[#96806B]">
+              {t.loginScene.claimHeaderPrefix} <span className="text-[#FF7A45] font-bold">+{initialStampCount} {lang === 'en' ? 'Stamps' : 'Cop'}</span> {t.loginScene.claimHeaderSuffix}
+            </div>
           </div>
-          <div className="text-xs text-[#FAF2E2]/80 font-medium">
-            {t.loginScene.claimHeaderPrefix} <span className="text-[#E5A43B] font-bold">+{initialStampCount} {lang === 'en' ? 'Stamps' : 'Cop Stamp'}</span> {t.loginScene.claimHeaderSuffix} <span className="font-bold text-white">{initialStoreName}</span>
-          </div>
-        </div>
 
-        {authError && (
-          <div className="w-full mb-3.5 p-3 rounded-xl bg-red-500/20 border border-red-400/40 text-red-100 text-xs font-semibold text-center">
-            {authError}
-          </div>
-        )}
+          {authError && (
+            <div className="mb-3 p-2.5 rounded-xl bg-red-100 text-[#B23A2E] text-xs font-semibold text-center">
+              {authError}
+            </div>
+          )}
 
-        {/* GOOGLE LOGIN BUTTON (STANDALONE BOX) */}
-        <button
-          onClick={handleGoogleLogin}
-          disabled={isAuthenticating}
-          className="w-full flex items-center justify-center gap-2.5 bg-white hover:bg-slate-50 active:scale-[0.98] border border-[#E4D9BE] rounded-2xl py-3.5 px-4 font-jakarta font-semibold text-[14px] text-[#3C3C3C] cursor-pointer transition shadow-md disabled:opacity-60"
-        >
-          <svg viewBox="0 0 18 18" width="18" height="18">
-            <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.87 2.7-6.62z" />
-            <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.98v2.33A9 9 0 0 0 9 18z" />
-            <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.98A9 9 0 0 0 0 9c0 1.45.35 2.83.98 4.03l2.97-2.33z" />
-            <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.9 11.42 0 9 0A9 9 0 0 0 .98 4.97l2.97 2.33C4.66 5.17 6.65 3.58 9 3.58z" />
-          </svg>
-          <span>{t.loginScene.loginWithGoogle}</span>
-        </button>
-
-        {/* DROPDOWN TOGGLE: ATAU EMAIL MANUAL */}
-        <div className="w-full flex items-center justify-center my-3.5">
+          {/* GOOGLE LOGIN BUTTON */}
           <button
             type="button"
-            onClick={() => setShowManualEmail(!showManualEmail)}
-            className="inline-flex items-center gap-1.5 text-xs text-[#FAF2E2]/75 hover:text-[#FAF2E2] font-semibold py-1.5 px-3 rounded-full hover:bg-white/10 transition cursor-pointer"
+            onClick={handleGoogleLogin}
+            disabled={isAuthenticating}
+            className="w-full flex items-center justify-center gap-2.5 bg-white border border-[#F0DEC0] rounded-2xl py-3 px-3.5 font-semibold text-[13.5px] text-[#2B1B12] cursor-pointer active:scale-[0.98] transition hover:bg-[#FFF7EA] disabled:opacity-60 shadow-sm"
           >
-            <span>{t.loginScene.orManualEmail}</span>
-            <svg
-              className={`w-3.5 h-3.5 transition-transform duration-200 ${showManualEmail ? 'rotate-180 text-[#E5A43B]' : ''}`}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-            >
-              <path d="M6 9l6 6 6-6" />
+            <svg viewBox="0 0 18 18" width="18" height="18">
+              <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.87 2.7-6.62z" />
+              <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.98v2.33A9 9 0 0 0 9 18z" />
+              <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.98A9 9 0 0 0 0 9c0 1.45.35 2.83.98 4.03l2.97-2.33z" />
+              <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.9 11.42 0 9 0A9 9 0 0 0 .98 4.97l2.97 2.33C4.66 5.17 6.65 3.58 9 3.58z" />
             </svg>
+            <span>{t.loginScene.loginWithGoogle}</span>
           </button>
-        </div>
 
-        {/* EXPANDABLE MANUAL EMAIL LOGIN (SLIDE DOWN) */}
-        {showManualEmail && (
-          <form onSubmit={handleEmailAuth} className="w-full space-y-2.5 anim-result">
-            <div className="flex items-center gap-2.5 bg-white border border-[#E4D9BE] rounded-2xl p-3 shadow-sm">
-              <svg className="w-4 h-4 shrink-0 text-[#5B6B64] opacity-55" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="8" r="4" />
-                <path d="M4 21c0-4 4-6 8-6s8 2 8 6" />
-              </svg>
+          {/* DIVIDER */}
+          <div className="flex items-center gap-2.5 my-4 text-[#96806B] font-space text-[10px] tracking-[0.1em] before:content-[''] before:flex-1 before:h-[1px] before:bg-[#F0DEC0] after:content-[''] after:flex-1 after:h-[1px] after:bg-[#F0DEC0]">
+            {lang === 'en' ? 'OR' : 'ATAU'}
+          </div>
+
+          {/* EMAIL & PASSWORD FORM */}
+          <form onSubmit={handleEmailAuth} className="space-y-2.5">
+            <div className="flex items-center gap-2.5 bg-white border border-[#F0DEC0] rounded-xl p-2.5">
               <input
                 type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 maxLength={100}
                 placeholder={t.loginScene.usernameOrEmail}
-                className="border-none outline-none flex-1 font-jakarta text-sm text-[#1C2624] bg-transparent placeholder:text-gray-400"
+                className="border-none outline-none flex-1 text-sm text-[#2B1B12] bg-transparent placeholder:text-gray-400"
               />
             </div>
 
-            <div className="flex items-center gap-2.5 bg-white border border-[#E4D9BE] rounded-2xl p-3 shadow-sm">
-              <svg className="w-4 h-4 shrink-0 text-[#5B6B64] opacity-55" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="5" y="11" width="14" height="9" rx="2" />
-                <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-              </svg>
+            <div className="flex items-center gap-2.5 bg-white border border-[#F0DEC0] rounded-xl p-2.5">
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 maxLength={100}
                 placeholder={t.loginScene.password}
-                className="border-none outline-none flex-1 font-jakarta text-sm text-[#1C2624] bg-transparent placeholder:text-gray-400"
+                className="border-none outline-none flex-1 text-sm text-[#2B1B12] bg-transparent placeholder:text-gray-400"
               />
             </div>
 
             <button
               type="submit"
               disabled={isAuthenticating}
-              className="w-full border-none rounded-2xl py-3.5 px-4 bg-gradient-to-b from-[#E7A33E] to-[#C97F1F] text-[#1C2624] font-jakarta font-bold text-[14px] cursor-pointer active:scale-[0.98] transition disabled:opacity-60 shadow-md"
+              className="w-full border-none rounded-xl py-3 px-4 bg-gradient-to-r from-[#FF7A45] to-[#E8901B] text-white font-bold text-sm cursor-pointer active:scale-[0.98] transition disabled:opacity-60 shadow-md"
             >
               {isAuthenticating
                 ? t.loginScene.processing
@@ -568,18 +564,18 @@ export default function ClaimClient({
                 : t.loginScene.loginBtn}
             </button>
 
-            <div className="text-center pt-1 text-xs text-[#FAF2E2]/70">
+            <div className="text-center mt-4 text-xs text-[#96806B]">
               {isSignup ? t.loginScene.alreadyHaveAccount : t.loginScene.newAccount}
               <button
                 type="button"
                 onClick={() => setIsSignup(!isSignup)}
-                className="text-[#E5A43B] font-bold underline cursor-pointer hover:text-white"
+                className="text-[#FF7A45] font-bold underline cursor-pointer hover:text-[#E23F2E]"
               >
                 {isSignup ? t.loginScene.loginLink : t.loginScene.signupLink}
               </button>
             </div>
           </form>
-        )}
+        </div>
       </div>
     )
   }
@@ -648,16 +644,16 @@ export default function ClaimClient({
           </div>
         </div>
 
-        <div className="font-space text-[11px] tracking-[0.14em] uppercase text-[#E7A33E] opacity-85 mb-3.5">
+        <div className="font-space text-[12px] font-bold tracking-[0.14em] uppercase text-[#FF7A45] opacity-95 mb-3.5">
           {t.loadingScene.processingStamp}
         </div>
 
         <style jsx>{`
           .sd-desk{
             position:absolute; left:0; right:0; bottom:22px; height:9px;
-            background:linear-gradient(180deg,#2D786B,#17423B);
+            background:linear-gradient(180deg,#F0DEC0,#DFC39D);
             border-radius:6px;
-            box-shadow:0 8px 18px rgba(0,0,0,0.4);
+            box-shadow:0 4px 14px rgba(43,27,18,0.1);
           }
 
           .sd-whiff{
@@ -681,10 +677,10 @@ export default function ClaimClient({
 
           .sd-ring{
             position:absolute; left:50%; bottom:32px; width:14px; height:14px;
-            margin-left:-7px; border-radius:50%; border:2.5px solid #E7A33E; opacity:0;
+            margin-left:-7px; border-radius:50%; border:2.5px solid #FF7A45; opacity:0;
             animation:sdRing 6s linear infinite;
           }
-          .sd-ring.r2{ animation-delay:0.05s; border-color:#F4C878; }
+          .sd-ring.r2{ animation-delay:0.05s; border-color:#FFB088; }
           @keyframes sdRing{
             0%,43%{ opacity:0; transform:scale(0.2); }
             45%{ opacity:0.85; transform:scale(0.5); }
@@ -695,7 +691,7 @@ export default function ClaimClient({
           .sd-flash{
             position:absolute; left:50%; bottom:26px; width:150px; height:46px;
             margin-left:-75px; border-radius:50%;
-            background:radial-gradient(circle, rgba(231,163,62,0.85) 0%, rgba(231,163,62,0) 70%);
+            background:radial-gradient(circle, rgba(255,122,69,0.85) 0%, rgba(255,122,69,0) 70%);
             opacity:0; animation:sdFlash 6s linear infinite;
           }
           @keyframes sdFlash{
@@ -704,7 +700,7 @@ export default function ClaimClient({
 
           .sd-dust{
             position:absolute; bottom:34px; width:7px; height:7px; border-radius:50%;
-            background:#F4C878; opacity:0;
+            background:#FFB088; opacity:0;
           }
           .sd-dust.d1{ left:50%; margin-left:-30px; animation:sdDust1 6s linear infinite; }
           .sd-dust.d2{ left:50%; margin-left:-7px; animation:sdDust2 6s linear infinite; }

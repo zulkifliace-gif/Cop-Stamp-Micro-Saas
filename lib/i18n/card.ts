@@ -140,7 +140,7 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
       scanHint: 'Imbas QR di kaunter untuk menambah cop',
     },
     infoModal: {
-      title: '💡 Cara Penebusan',
+      title: 'Cara Penebusan',
       step1: 'Kumpul cop sehingga kad cop anda penuh.',
       step2: 'Maklumkan staff kaunter ingin menebus ganjaran.',
       step3: (email) => `Beri emel (${email || 'emel anda'}) ATAU tunjukkan QR Kod di atas untuk diimbas oleh staff.`,
@@ -148,7 +148,7 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
       gotItBtn: 'Faham',
     },
     rewardsModal: {
-      title: '🎁 Hadiah & Ganjaran',
+      title: 'Hadiah & Ganjaran',
       stampsRequiredBadge: (count) => `⚡ ${count} Cop Diperlukan`,
       closeBtn: 'Tutup',
     },
@@ -166,7 +166,7 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
       secondaryBtn: 'Nanti Dulu',
     },
     locationsModal: {
-      title: '📍 Lokasi Kedai',
+      title: 'Lokasi Kedai',
       openInMaps: 'Buka di Google Maps ↗',
       noLocations: 'Kedai ini belum menetapkan pautan lokasi Google Maps.',
       closeBtn: 'Tutup',
@@ -238,7 +238,7 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
       scanHint: 'Scan QR at counter to collect stamps',
     },
     infoModal: {
-      title: '💡 How to Redeem',
+      title: 'How to Redeem',
       step1: 'Collect stamps until your card is full.',
       step2: 'Inform the cashier you would like to redeem a reward.',
       step3: (email) => `Provide your email (${email || 'your email'}) OR show the QR Code at the top to be scanned by staff.`,
@@ -246,7 +246,7 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
       gotItBtn: 'Got it',
     },
     rewardsModal: {
-      title: '🎁 Rewards & Gifts',
+      title: 'Rewards & Gifts',
       stampsRequiredBadge: (count) => `⚡ ${count} Stamps Required`,
       closeBtn: 'Close',
     },
@@ -264,7 +264,7 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
       secondaryBtn: 'Maybe Later',
     },
     locationsModal: {
-      title: '📍 Store Locations',
+      title: 'Store Locations',
       openInMaps: 'Open in Google Maps ↗',
       noLocations: 'This store has not set up a Google Maps location yet.',
       closeBtn: 'Close',

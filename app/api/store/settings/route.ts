@@ -384,14 +384,54 @@ export async function PUT(req: NextRequest) {
 
     // Clean & limit store locations / outlets (max 20 items)
     const rawLocations = Array.isArray(locations) ? locations.slice(0, 20) : []
-    const cleanLocations = rawLocations
-      .map((item: any, idx: number) => ({
-        id: String(item?.id || `loc_${idx}`),
-        name: String(item?.name || `Cawangan #${idx + 1}`).trim().slice(0, 80),
-        url: String(item?.url || '').trim().slice(0, 500),
-        address: String(item?.address || '').trim().slice(0, 200),
-      }))
-      .filter((loc: any) => loc.url || loc.name)
+    const cleanLocations = (
+      await Promise.all(
+        rawLocations.map(async (item: any, idx: number) => {
+          const rawUrl = String(item?.url || '').trim().slice(0, 500)
+          let coordinates = String(item?.coordinates || '').trim().slice(0, 80)
+          let embedQuery = String(item?.embedQuery || '').trim().slice(0, 150)
+
+          // Try extracting coordinates or resolving shortlinks
+          if (rawUrl) {
+            const coordMatch = rawUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || rawUrl.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/)
+            if (coordMatch) {
+              coordinates = `${coordMatch[1]},${coordMatch[2]}`
+            } else if (rawUrl.includes('maps.app.goo.gl') || rawUrl.includes('goo.gl/maps')) {
+              try {
+                const res = await fetch(rawUrl, {
+                  method: 'HEAD',
+                  redirect: 'follow',
+                  headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+                  signal: AbortSignal.timeout(3000),
+                })
+                const finalUrl = res.url || ''
+                if (finalUrl && finalUrl !== rawUrl) {
+                  const resolvedCoord = finalUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || finalUrl.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/)
+                  if (resolvedCoord) {
+                    coordinates = `${resolvedCoord[1]},${resolvedCoord[2]}`
+                  }
+                  const placeMatch = finalUrl.match(/\/place\/([^/@?]+)/)
+                  if (placeMatch && placeMatch[1]) {
+                    embedQuery = decodeURIComponent(placeMatch[1].replace(/\+/g, ' '))
+                  }
+                }
+              } catch {
+                // Graceful fallback if timeout
+              }
+            }
+          }
+
+          return {
+            id: String(item?.id || `loc_${idx}`),
+            name: String(item?.name || `Cawangan #${idx + 1}`).trim().slice(0, 80),
+            url: rawUrl,
+            address: String(item?.address || '').trim().slice(0, 200),
+            ...(coordinates ? { coordinates } : {}),
+            ...(embedQuery ? { embedQuery } : {}),
+          }
+        })
+      )
+    ).filter((loc: any) => loc.url || loc.name)
 
     const updates: {
       name?: string

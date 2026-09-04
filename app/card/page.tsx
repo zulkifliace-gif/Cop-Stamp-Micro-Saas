@@ -23,6 +23,8 @@ interface StoreLocationItem {
   name: string
   url: string
   address?: string
+  coordinates?: string
+  embedQuery?: string
 }
 
 interface CustomerStoreCard {
@@ -58,33 +60,39 @@ function normalizeStampIcon(path?: string) {
   return path.startsWith('/') ? path : `/${path}`
 }
 
-function getGoogleMapsEmbedUrl(mapUrl?: string, fallbackQuery?: string) {
-  const trimmed = (mapUrl || '').trim()
+function getGoogleMapsEmbedUrl(loc?: StoreLocationItem, storeNameFallback?: string) {
+  if (!loc) return ''
+  if (loc.coordinates) {
+    return `https://maps.google.com/maps?q=${encodeURIComponent(loc.coordinates)}&t=&z=16&ie=UTF8&iwloc=B&output=embed`
+  }
+  if (loc.embedQuery) {
+    return `https://maps.google.com/maps?q=${encodeURIComponent(loc.embedQuery)}&t=&z=16&ie=UTF8&iwloc=B&output=embed`
+  }
+
+  const trimmed = (loc.url || '').trim()
   if (trimmed.includes('output=embed') || trimmed.includes('/maps/embed')) {
     return trimmed
   }
-  // Short links (e.g. maps.app.goo.gl) have X-Frame-Options set by Google, so fallback query is used for the mini iframe
-  const isShortLink = trimmed.includes('maps.app.goo.gl') || trimmed.includes('goo.gl/maps')
-  if (isShortLink && fallbackQuery) {
-    return `https://maps.google.com/maps?q=${encodeURIComponent(fallbackQuery)}&t=&z=15&ie=UTF8&iwloc=&output=embed`
-  }
 
+  const coordMatch = trimmed.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || trimmed.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/)
+  if (coordMatch) {
+    return `https://maps.google.com/maps?q=${coordMatch[1]},${coordMatch[2]}&t=&z=16&ie=UTF8&iwloc=B&output=embed`
+  }
   const placeMatch = trimmed.match(/\/place\/([^/@?]+)/)
   if (placeMatch && placeMatch[1]) {
     const place = decodeURIComponent(placeMatch[1].replace(/\+/g, ' '))
-    return `https://maps.google.com/maps?q=${encodeURIComponent(place)}&t=&z=15&ie=UTF8&iwloc=&output=embed`
-  }
-  const coordMatch = trimmed.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || trimmed.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/)
-  if (coordMatch) {
-    return `https://maps.google.com/maps?q=${coordMatch[1]},${coordMatch[2]}&t=&z=15&ie=UTF8&iwloc=&output=embed`
+    return `https://maps.google.com/maps?q=${encodeURIComponent(place)}&t=&z=16&ie=UTF8&iwloc=B&output=embed`
   }
   const qMatch = trimmed.match(/[?&]q=([^&]+)/)
   if (qMatch && qMatch[1]) {
-    return `https://maps.google.com/maps?q=${qMatch[1]}&t=&z=15&ie=UTF8&iwloc=&output=embed`
+    return `https://maps.google.com/maps?q=${qMatch[1]}&t=&z=16&ie=UTF8&iwloc=B&output=embed`
   }
-  const queryToUse = (!isShortLink && trimmed) ? trimmed : (fallbackQuery || '')
+
+  const queryToUse = loc.address
+    ? `${loc.name ? loc.name + ', ' : ''}${loc.address}`
+    : (loc.name || storeNameFallback || '')
   if (!queryToUse) return ''
-  return `https://maps.google.com/maps?q=${encodeURIComponent(queryToUse)}&t=&z=15&ie=UTF8&iwloc=&output=embed`
+  return `https://maps.google.com/maps?q=${encodeURIComponent(queryToUse)}&t=&z=16&ie=UTF8&iwloc=B&output=embed`
 }
 
 function formatStampDateTime(dateStr: string | null, lang: Lang) {
@@ -274,12 +282,34 @@ export default function CustomerCardPage() {
     date: string | null
   } | null>(null)
 
+  // Newly claimed stamps state (for punch landing animation)
+  const [newlyClaimedInfo, setNewlyClaimedInfo] = useState<{
+    start: number
+    end: number
+    storeId?: string | null
+  } | null>(null)
+
   const TOTAL = stampsRequired || 10
   const fullCardsCount = Math.floor(totalStamps / TOTAL)
   const remainderStamps = totalStamps % TOTAL
   const totalCardsCount = Math.max(1, fullCardsCount + (remainderStamps > 0 ? 1 : 0))
 
   useEffect(() => {
+    // Read newly claimed stamps from sessionStorage
+    try {
+      const rawClaim = sessionStorage.getItem('lajus_claimed_stamps')
+      if (rawClaim) {
+        const parsed = JSON.parse(rawClaim)
+        if (parsed && typeof parsed.newTotal === 'number' && parsed.newTotal > (parsed.previousStamps ?? 0)) {
+          setNewlyClaimedInfo({
+            start: (parsed.previousStamps ?? 0) + 1,
+            end: parsed.newTotal,
+            storeId: parsed.storeId,
+          })
+        }
+      }
+    } catch {}
+
     async function checkAuth() {
       setLoading(true)
       const {
@@ -345,15 +375,38 @@ export default function CustomerCardPage() {
         const gReviewUrl = data.googleReviewUrl || null
         setGoogleReviewUrl(gReviewUrl)
 
-        // Focus on latest active card
+        // Determine active card where the stamps belong
+        let targetCard = 0
+        const rawClaim = typeof window !== 'undefined' ? sessionStorage.getItem('lajus_claimed_stamps') : null
+        let claimInfo: any = null
+        try {
+          if (rawClaim) claimInfo = JSON.parse(rawClaim)
+        } catch {}
+
+        const stampsForCard = claimInfo?.newTotal ?? stamps
+        const reqForCard = claimInfo?.stampsRequired ?? req
         const fullCards = Math.floor(stamps / req)
         const rem = stamps % req
         const numCards = Math.max(1, fullCards + (rem > 0 ? 1 : 0))
-        const activeCard = numCards - 1
-        setSelectedCardIdx(activeCard)
+
+        if (stampsForCard > 0) {
+          // Point directly to the card where the newest stamp landed
+          targetCard = Math.max(0, Math.min(numCards - 1, Math.floor((stampsForCard - 1) / reqForCard)))
+        }
+
+        setSelectedCardIdx(targetCard)
         setTimeout(() => {
-          goToCard(activeCard, false)
-        }, 50)
+          goToCard(targetCard, false, numCards)
+        }, 100)
+
+        // Clear sessionStorage after 7 seconds
+        if (rawClaim) {
+          setTimeout(() => {
+            try {
+              sessionStorage.removeItem('lajus_claimed_stamps')
+            } catch {}
+          }, 7000)
+        }
 
         // Auto popup Google Review if redirected with claimed=true
         try {
@@ -385,19 +438,21 @@ export default function CustomerCardPage() {
   }
 
   // Card slider track transformation
-  function setTrackTransform(cardIdx: number, deltaPx: number, rotateDeg: number, withTransition: boolean) {
+  function setTrackTransform(cardIdx: number, deltaPx: number, rotateDeg: number, withTransition: boolean, customTotal?: number) {
     if (!cardTrackRef.current) return
+    const total = customTotal || totalCardsCount
     cardTrackRef.current.style.transition = withTransition
       ? 'transform .5s cubic-bezier(.22,.9,.32,1)'
       : 'none'
-    const percentShift = (cardIdx * 100) / totalCardsCount
+    const percentShift = total > 0 ? (cardIdx * 100) / total : 0
     cardTrackRef.current.style.transform = `translateX(calc(-${percentShift}% + ${deltaPx}px)) rotateZ(${rotateDeg}deg)`
   }
 
-  function goToCard(idx: number, animate: boolean = true) {
-    const clamped = Math.max(0, Math.min(totalCardsCount - 1, idx))
+  function goToCard(idx: number, animate: boolean = true, customTotal?: number) {
+    const total = customTotal || totalCardsCount
+    const clamped = Math.max(0, Math.min(total - 1, idx))
     setSelectedCardIdx(clamped)
-    setTrackTransform(clamped, 0, 0, animate)
+    setTrackTransform(clamped, 0, 0, animate, total)
   }
 
   // Touch and mouse drag handlers for paper slide
@@ -1015,6 +1070,29 @@ export default function CustomerCardPage() {
         .stamp.filled {
           background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.4), transparent 55%), linear-gradient(145deg, var(--coral), var(--coral-deep));
           box-shadow: 0 5px 12px rgba(255,90,69,0.4);
+        }
+        .stamp.anim-new-stamp {
+          animation: stampImpact 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+          box-shadow: 0 0 0 3.5px rgba(255,122,69,0.45), 0 8px 18px rgba(255,90,69,0.3);
+          z-index: 5;
+        }
+        @keyframes stampImpact {
+          0% {
+            transform: scale(2.6) rotate(-18deg);
+            opacity: 0;
+            box-shadow: 0 16px 28px rgba(255,90,69,0.5);
+          }
+          55% {
+            transform: scale(0.9) rotate(3deg);
+            opacity: 1;
+          }
+          75% {
+            transform: scale(1.1) rotate(-1deg);
+          }
+          100% {
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+          }
         }
         .stamp:hover {
           filter: brightness(1.05);
@@ -1709,6 +1787,15 @@ export default function CustomerCardPage() {
                             const filled = slotNum <= cardStamps
                             const globalStampNum = cardIdx * TOTAL + slotNum
                             const stampDate = filled ? (stampDates[globalStampNum - 1] || updatedAt) : null
+                            const isNewlyClaimed = Boolean(
+                              filled &&
+                              newlyClaimedInfo &&
+                              globalStampNum >= newlyClaimedInfo.start &&
+                              globalStampNum <= newlyClaimedInfo.end
+                            )
+                            const newStampDelay = isNewlyClaimed
+                              ? (globalStampNum - newlyClaimedInfo!.start) * 0.25 + 0.15
+                              : 0
 
                             return (
                               <button
@@ -1724,7 +1811,8 @@ export default function CustomerCardPage() {
                                     date: stampDate,
                                   })
                                 }}
-                                className={`stamp ${filled ? 'filled' : 'empty'}`}
+                                className={`stamp ${filled ? 'filled' : 'empty'} ${isNewlyClaimed ? 'anim-new-stamp' : ''}`}
+                                style={isNewlyClaimed ? { animationDelay: `${newStampDelay}s` } : undefined}
                                 title={
                                   filled
                                     ? `Cop #${slotNum} — ${lang === 'en' ? 'Earned' : 'Diperoleh'}`
@@ -2024,7 +2112,10 @@ export default function CustomerCardPage() {
             >
               &times;
             </button>
-            <div className="modal-title">ℹ️ {t.infoModal.title}</div>
+            <div className="modal-title" style={{ gap: 6 }}>
+              <span>💡</span>
+              <span>{t.infoModal.title}</span>
+            </div>
             <div className="modal-sub">
               {lang === 'en'
                 ? 'Follow 3 simple steps to redeem your reward.'
@@ -2399,24 +2490,31 @@ export default function CustomerCardPage() {
             {locations.length > 0 ? (
               (() => {
                 const currentLoc = locations[activeLocationIdx] || locations[0]
-                const embedQuery = currentLoc.name
-                  ? `${currentLoc.name} ${currentLoc.address || storeName || ''}`
-                  : storeName || 'Kedai'
-                const embedUrl = getGoogleMapsEmbedUrl(currentLoc.url, embedQuery)
+                const embedUrl = getGoogleMapsEmbedUrl(currentLoc, storeName)
 
                 return (
                   <div className="space-y-3">
-                    {/* MINI GOOGLE MAP IFRAME */}
-                    <div className="w-full h-[210px] rounded-2xl overflow-hidden border border-[#F0DEC0] relative bg-[#FFF7EA] shadow-inner">
+                    {/* MINI GOOGLE MAP IFRAME (UI CONTROLS CLIPPED OUT & CENTERED PINPOINT) */}
+                    <div className="w-full h-[210px] rounded-2xl overflow-hidden border border-[#F0DEC0] relative bg-[#FFF7EA] shadow-inner select-none pointer-events-none">
                       {embedUrl ? (
-                        <iframe
-                          title={currentLoc.name || 'Google Map'}
-                          src={embedUrl}
-                          className="w-full h-full border-0"
-                          loading="lazy"
-                          referrerPolicy="no-referrer-when-downgrade"
-                          allowFullScreen
-                        />
+                        <>
+                          <iframe
+                            title={currentLoc.name || 'Google Map'}
+                            src={embedUrl}
+                            className="w-[calc(100%+120px)] h-[calc(100%+140px)] -mt-[62px] -ml-[60px] border-0 pointer-events-none"
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                          />
+                          {/* CENTERED BOUNCING PINPOINT MARKER OVERLAY */}
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                            <div className="flex flex-col items-center -translate-y-3">
+                              <div className="w-8 h-8 rounded-full bg-[#FF5A45] text-white flex items-center justify-center shadow-lg border-2 border-white text-sm font-bold">
+                                📍
+                              </div>
+                              <div className="w-2.5 h-1 bg-black/25 rounded-full blur-[1px] mt-0.5" />
+                            </div>
+                          </div>
+                        </>
                       ) : (
                         <div className="w-full h-full flex flex-col items-center justify-center text-center p-4">
                           <span className="text-3xl mb-1">🗺️</span>
