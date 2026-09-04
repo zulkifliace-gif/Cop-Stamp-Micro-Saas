@@ -1310,6 +1310,837 @@ const CardStudioPhonePreview = React.memo(function CardStudioPhonePreview({
   )
 })
 
+
+// ==========================================
+// THROTTLED & MEMOIZED EDITOR COMPONENTS
+// ==========================================
+
+interface ThrottledColorInputProps {
+  value: string
+  onChange: (val: string) => void
+  className?: string
+  pickerClassName?: string
+  textClassName?: string
+  showText?: boolean
+  disabled?: boolean
+  placeholder?: string
+}
+
+export const ThrottledColorInput = React.memo(function ThrottledColorInput({
+  value,
+  onChange,
+  className = '',
+  pickerClassName = 'w-7 h-7 rounded border-0 cursor-pointer bg-transparent',
+  textClassName = 'w-full bg-transparent text-stone-900 font-mono text-[11px] outline-none',
+  showText = true,
+  disabled = false,
+  placeholder,
+}: ThrottledColorInputProps) {
+  const [localVal, setLocalVal] = useState(value || '')
+  const rafRef = useRef<number | null>(null)
+  const latestValRef = useRef(value || '')
+
+  useEffect(() => {
+    setLocalVal(value || '')
+    latestValRef.current = value || ''
+  }, [value])
+
+  const scheduleUpdate = useCallback((nextVal: string) => {
+    setLocalVal(nextVal)
+    latestValRef.current = nextVal
+
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current)
+    }
+
+    rafRef.current = requestAnimationFrame(() => {
+      onChange(latestValRef.current)
+      rafRef.current = null
+    })
+  }, [onChange])
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current)
+      }
+    }
+  }, [])
+
+  return (
+    <div className={`flex items-center gap-2 bg-white p-1.5 rounded-xl border border-[#E2DAD0] ${className}`}>
+      <input
+        type="color"
+        value={localVal.startsWith('#') && (localVal.length === 7 || localVal.length === 4) ? localVal : '#FF7A45'}
+        disabled={disabled}
+        onChange={(e) => scheduleUpdate(e.target.value)}
+        className={pickerClassName}
+      />
+      {showText && (
+        <input
+          type="text"
+          value={localVal}
+          placeholder={placeholder}
+          disabled={disabled}
+          onChange={(e) => scheduleUpdate(e.target.value)}
+          onBlur={() => {
+            if (rafRef.current !== null) {
+              cancelAnimationFrame(rafRef.current)
+              rafRef.current = null
+            }
+            onChange(localVal)
+          }}
+          className={textClassName}
+        />
+      )}
+    </div>
+  )
+})
+
+interface ThrottledRangeInputProps {
+  value: number
+  min: number
+  max: number
+  step?: number
+  onChange: (val: number) => void
+  className?: string
+  disabled?: boolean
+}
+
+export const ThrottledRangeInput = React.memo(function ThrottledRangeInput({
+  value,
+  min,
+  max,
+  step = 1,
+  onChange,
+  className = 'w-full accent-amber-500 cursor-pointer',
+  disabled = false,
+}: ThrottledRangeInputProps) {
+  const [localVal, setLocalVal] = useState<number>(value ?? min)
+  const rafRef = useRef<number | null>(null)
+  const latestValRef = useRef<number>(value ?? min)
+
+  useEffect(() => {
+    setLocalVal(value ?? min)
+    latestValRef.current = value ?? min
+  }, [value, min])
+
+  const scheduleUpdate = useCallback((nextVal: number) => {
+    setLocalVal(nextVal)
+    latestValRef.current = nextVal
+
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current)
+    }
+
+    rafRef.current = requestAnimationFrame(() => {
+      onChange(latestValRef.current)
+      rafRef.current = null
+    })
+  }, [onChange])
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current)
+      }
+    }
+  }, [])
+
+  return (
+    <input
+      type="range"
+      min={min}
+      max={max}
+      step={step}
+      value={localVal}
+      disabled={disabled}
+      onChange={(e) => scheduleUpdate(Number(e.target.value))}
+      className={className}
+    />
+  )
+})
+
+interface HeroHeaderPanelProps {
+  heroBlock: EditableBlockConfig
+  isOpen: boolean
+  onToggle: () => void
+  onUpdate: (partial: Partial<EditableBlockConfig>) => void
+}
+
+const HeroHeaderPanel = React.memo(function HeroHeaderPanel({
+  heroBlock,
+  isOpen,
+  onToggle,
+  onUpdate,
+}: HeroHeaderPanelProps) {
+  return (
+    <div
+      className={`border rounded-2xl p-4 transition-all ${
+        isOpen
+          ? 'bg-[#FCFAF7] border-amber-400 ring-2 ring-amber-400/15 shadow-sm'
+          : 'bg-white hover:bg-stone-50/50 border-[#EAE3D8] shadow-2xs'
+      }`}
+    >
+      <div
+        onClick={onToggle}
+        className="flex items-center justify-between cursor-pointer select-none"
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-amber-100/80 text-amber-700 flex items-center justify-center font-bold text-sm shrink-0 border border-amber-200/60">
+            1
+          </div>
+          <div>
+            <h4 className="font-bold text-sm text-stone-900">Hero Header</h4>
+            <p className="text-[11px] text-stone-500">Corak motif, warna gradien & kelengkungan</p>
+          </div>
+        </div>
+        <span
+          className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition ${
+            isOpen
+              ? 'bg-amber-100 text-amber-900 border-amber-200'
+              : 'bg-stone-100 text-stone-600 border-stone-200'
+          }`}
+        >
+          {isOpen ? 'Tutup ▲' : 'Ubah ▼'}
+        </span>
+      </div>
+
+      {isOpen && (
+        <div className="mt-4 pt-3.5 border-t border-[#EAE3D8] space-y-4">
+          {/* Corak Pilihan (11 Corak) */}
+          <div>
+            <label className="block text-xs font-bold text-stone-700 mb-2">
+              Corak Motif Latar Belakang ({HERO_PATTERN_OPTIONS.length} Pilihan):
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {HERO_PATTERN_OPTIONS.map((opt) => {
+                const isSelected = (heroBlock.pattern || 'bubbles') === opt.id
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => onUpdate({ pattern: opt.id })}
+                    className={`p-2.5 rounded-xl border text-left flex items-center gap-2 transition cursor-pointer ${
+                      isSelected
+                        ? 'bg-amber-50 border-amber-500 text-amber-900 ring-1 ring-amber-400 font-bold shadow-2xs'
+                        : 'bg-white border-[#E8E1D5] text-stone-700 hover:border-stone-400 hover:bg-stone-50'
+                    }`}
+                  >
+                    <span className="text-base">{opt.icon}</span>
+                    <div className="overflow-hidden">
+                      <div className="text-xs font-bold truncate">{opt.label}</div>
+                      <div className="text-[10px] text-stone-500 truncate">{opt.desc}</div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Kepekatan Corak (Opacity) */}
+          <div>
+            <div className="flex justify-between text-xs text-stone-700 font-semibold mb-1">
+              <span>Kepekatan Corak (Opacity):</span>
+              <span className="font-mono text-amber-700 font-bold">{Math.round((heroBlock.patternOpacity ?? 0.25) * 100)}%</span>
+            </div>
+            <ThrottledRangeInput
+              min={0}
+              max={1}
+              step={0.05}
+              value={heroBlock.patternOpacity ?? 0.25}
+              onChange={(val) => onUpdate({ patternOpacity: val })}
+            />
+          </div>
+
+          {/* Warna Gradien Hero */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[11px] font-bold text-stone-600 mb-1">Warna Gradien Mula:</label>
+              <ThrottledColorInput
+                value={heroBlock.bgColor || '#FF7A45'}
+                onChange={(val) => onUpdate({ bgColor: val })}
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-stone-600 mb-1">Warna Gradien Akhir:</label>
+              <ThrottledColorInput
+                value={heroBlock.bgColor2 || '#FFC24D'}
+                onChange={(val) => onUpdate({ bgColor2: val })}
+              />
+            </div>
+          </div>
+
+          {/* Kelengkungan Bawah (Border Radius) */}
+          <div>
+            <div className="flex justify-between text-xs text-stone-700 font-semibold mb-1">
+              <span>Kelengkungan Bawah Header:</span>
+              <span className="font-mono text-amber-700 font-bold">{heroBlock.borderRadius ?? 34}px</span>
+            </div>
+            <ThrottledRangeInput
+              min={0}
+              max={50}
+              step={1}
+              value={heroBlock.borderRadius ?? 34}
+              onChange={(val) => onUpdate({ borderRadius: val })}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+})
+
+interface StoreProfilePanelProps {
+  profileBlock: EditableBlockConfig
+  storeName: string
+  isOpen: boolean
+  onToggle: () => void
+  onUpdate: (partial: Partial<EditableBlockConfig>) => void
+  onUpdateStoreName: (name: string) => void
+}
+
+const StoreProfilePanel = React.memo(function StoreProfilePanel({
+  profileBlock,
+  storeName,
+  isOpen,
+  onToggle,
+  onUpdate,
+  onUpdateStoreName,
+}: StoreProfilePanelProps) {
+  return (
+    <div
+      className={`border rounded-2xl p-4 transition-all ${
+        isOpen
+          ? 'bg-[#FCFAF7] border-amber-400 ring-2 ring-amber-400/15 shadow-sm'
+          : 'bg-white hover:bg-stone-50/50 border-[#EAE3D8] shadow-2xs'
+      }`}
+    >
+      <div
+        onClick={onToggle}
+        className="flex items-center justify-between cursor-pointer select-none"
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-amber-100/80 text-amber-700 flex items-center justify-center font-bold text-sm shrink-0 border border-amber-200/60">
+            2
+          </div>
+          <div>
+            <h4 className="font-bold text-sm text-stone-900">Profile Kedai & Fon Seluruh Kad</h4>
+            <p className="text-[11px] text-stone-500">Gambar profil ON/OFF & pilihan fon seluruh halaman</p>
+          </div>
+        </div>
+        <span
+          className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition ${
+            isOpen
+              ? 'bg-amber-100 text-amber-900 border-amber-200'
+              : 'bg-stone-100 text-stone-600 border-stone-200'
+          }`}
+        >
+          {isOpen ? 'Tutup ▲' : 'Ubah ▼'}
+        </span>
+      </div>
+
+      {isOpen && (
+        <div className="mt-4 pt-3.5 border-t border-[#EAE3D8] space-y-4">
+          {/* TOGGLE GAMBAR PROFIL */}
+          <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-[#E2DAD0]">
+            <div>
+              <div className="text-xs font-bold text-stone-800">Paparkan Gambar Profil / Logo</div>
+              <div className="text-[10px] text-stone-500">Pilih sama ada mahu tunjuk logo bulat atau sembunyikan</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => onUpdate({ showLogo: profileBlock.showLogo === false ? true : false })}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                profileBlock.showLogo !== false
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-stone-200 text-stone-700 hover:bg-stone-300'
+              }`}
+            >
+              {profileBlock.showLogo !== false ? 'ON (Dipaparkan)' : 'OFF (Sembunyi)'}
+            </button>
+          </div>
+
+          {/* PILIHAN FON SELURUH KAD */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-bold text-stone-700">
+                Pilihan Fon Seluruh Kad ({STORE_FONT_OPTIONS.length} Pilihan):
+              </label>
+              <span className="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded font-bold border border-amber-200">
+                Apply Semua Teks
+              </span>
+            </div>
+            <p className="text-[10px] text-stone-500 mb-2">
+              Fon yang dipilih akan digunakan untuk Nama Kedai, tajuk, butang, status & keseluruhan kad.
+            </p>
+            <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto pr-1">
+              {STORE_FONT_OPTIONS.map((f) => {
+                const isSelected = (profileBlock.fontId || 'fraunces') === f.id
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => onUpdate({ fontId: f.id })}
+                    className={`p-3 rounded-xl border text-left flex items-center justify-between transition cursor-pointer ${
+                      isSelected
+                        ? 'bg-amber-50 border-amber-500 text-amber-900 ring-1 ring-amber-400 font-bold shadow-2xs'
+                        : 'bg-white border-[#E8E1D5] text-stone-700 hover:border-stone-400 hover:bg-stone-50'
+                    }`}
+                  >
+                    <div>
+                      <div className="text-xs text-stone-500 font-medium">{f.name} ({f.category})</div>
+                      <div className="text-base font-bold text-stone-900 mt-0.5" style={{ fontFamily: f.fontFamily }}>
+                        {storeName || f.sampleText}
+                      </div>
+                    </div>
+                    {isSelected && <span className="text-amber-700 font-bold text-sm">✓ Dipilih</span>}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* NAMA KEDAI TEKS */}
+          <div>
+            <label className="block text-[11px] font-bold text-stone-600 mb-1">Nama Kedai (Teks):</label>
+            <input
+              type="text"
+              value={storeName}
+              onChange={(e) => onUpdateStoreName(e.target.value)}
+              className="w-full bg-white border border-[#E2DAD0] rounded-xl px-3 py-2 text-xs text-stone-900 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-400"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+})
+
+interface StampCardBoxPanelProps {
+  cardBoxBlock: EditableBlockConfig
+  isOpen: boolean
+  onToggle: () => void
+  onUpdate: (partial: Partial<EditableBlockConfig>) => void
+}
+
+const StampCardBoxPanel = React.memo(function StampCardBoxPanel({
+  cardBoxBlock,
+  isOpen,
+  onToggle,
+  onUpdate,
+}: StampCardBoxPanelProps) {
+  return (
+    <div
+      className={`border rounded-2xl p-4 transition-all ${
+        isOpen
+          ? 'bg-[#FCFAF7] border-amber-400 ring-2 ring-amber-400/15 shadow-sm'
+          : 'bg-white hover:bg-stone-50/50 border-[#EAE3D8] shadow-2xs'
+      }`}
+    >
+      <div
+        onClick={onToggle}
+        className="flex items-center justify-between cursor-pointer select-none"
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-amber-100/80 text-amber-700 flex items-center justify-center font-bold text-sm shrink-0 border border-amber-200/60">
+            3
+          </div>
+          <div>
+            <h4 className="font-bold text-sm text-stone-900">Kotak Kad Cop</h4>
+            <p className="text-[11px] text-stone-500">6 gaya material (Kertas, Kaca, Batu, Besi, Kayu, Air)</p>
+          </div>
+        </div>
+        <span
+          className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition ${
+            isOpen
+              ? 'bg-amber-100 text-amber-900 border-amber-200'
+              : 'bg-stone-100 text-stone-600 border-stone-200'
+          }`}
+        >
+          {isOpen ? 'Tutup ▲' : 'Ubah ▼'}
+        </span>
+      </div>
+
+      {isOpen && (
+        <div className="mt-4 pt-3.5 border-t border-[#EAE3D8] space-y-4">
+          {/* 6 PILIHAN GAYA MATERIAL */}
+          <div>
+            <label className="block text-xs font-bold text-stone-700 mb-2">
+              Gaya Material Kad Cop (6 Pilihan):
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {CARD_STYLE_OPTIONS.map((styleOpt) => {
+                const isSelected = (cardBoxBlock.cardStyle || 'kertas') === styleOpt.id
+                return (
+                  <button
+                    key={styleOpt.id}
+                    type="button"
+                    onClick={() =>
+                      onUpdate({
+                        cardStyle: styleOpt.id,
+                        bgColor: styleOpt.defaultBg,
+                        borderColor: styleOpt.defaultBorder,
+                        borderRadius: styleOpt.defaultRadius,
+                      })
+                    }
+                    className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition cursor-pointer ${
+                      isSelected
+                        ? 'bg-amber-50 border-amber-500 text-amber-900 ring-1 ring-amber-400 font-bold shadow-2xs'
+                        : 'bg-white border-[#E8E1D5] text-stone-700 hover:border-stone-400 hover:bg-stone-50'
+                    }`}
+                  >
+                    <span className="text-xl">{styleOpt.icon}</span>
+                    <div>
+                      <div className="text-xs font-bold">{styleOpt.name}</div>
+                      <div className="text-[10px] text-stone-500 line-clamp-2">{styleOpt.desc}</div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* KELENGKUNGAN KOTAK KAD */}
+          <div>
+            <div className="flex justify-between text-xs text-stone-700 font-semibold mb-1">
+              <span>Kelengkungan Kotak Kad (Border Radius):</span>
+              <span className="font-mono text-amber-700 font-bold">{cardBoxBlock.borderRadius ?? 28}px</span>
+            </div>
+            <ThrottledRangeInput
+              min={8}
+              max={40}
+              step={1}
+              value={cardBoxBlock.borderRadius ?? 28}
+              onChange={(val) => onUpdate({ borderRadius: val })}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+})
+
+interface ProgressBarPanelProps {
+  progressBlock: EditableBlockConfig
+  isOpen: boolean
+  onToggle: () => void
+  onUpdate: (partial: Partial<EditableBlockConfig>) => void
+}
+
+const ProgressBarPanel = React.memo(function ProgressBarPanel({
+  progressBlock,
+  isOpen,
+  onToggle,
+  onUpdate,
+}: ProgressBarPanelProps) {
+  return (
+    <div
+      className={`border rounded-2xl p-4 transition-all ${
+        isOpen
+          ? 'bg-[#FCFAF7] border-amber-400 ring-2 ring-amber-400/15 shadow-sm'
+          : 'bg-white hover:bg-stone-50/50 border-[#EAE3D8] shadow-2xs'
+      }`}
+    >
+      <div
+        onClick={onToggle}
+        className="flex items-center justify-between cursor-pointer select-none"
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-amber-100/80 text-amber-700 flex items-center justify-center font-bold text-sm shrink-0 border border-amber-200/60">
+            4
+          </div>
+          <div>
+            <h4 className="font-bold text-sm text-stone-900">Bar Kemajuan</h4>
+            <p className="text-[11px] text-stone-500">ON/OFF & 3 gaya animasi (termasuk animasi air)</p>
+          </div>
+        </div>
+        <span
+          className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition ${
+            isOpen
+              ? 'bg-amber-100 text-amber-900 border-amber-200'
+              : 'bg-stone-100 text-stone-600 border-stone-200'
+          }`}
+        >
+          {isOpen ? 'Tutup ▲' : 'Ubah ▼'}
+        </span>
+      </div>
+
+      {isOpen && (
+        <div className="mt-4 pt-3.5 border-t border-[#EAE3D8] space-y-4">
+          {/* TOGGLE BAR KEMAJUAN ON/OFF */}
+          <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-[#E2DAD0]">
+            <div>
+              <div className="text-xs font-bold text-stone-800">Status Bar Kemajuan</div>
+              <div className="text-[10px] text-stone-500">Pilih sama ada mahu tunjuk atau sembunyikan bar</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => onUpdate({ visible: !progressBlock.visible })}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                progressBlock.visible
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-stone-200 text-stone-700 hover:bg-stone-300'
+              }`}
+            >
+              {progressBlock.visible ? 'ON (Dipaparkan)' : 'OFF (Sembunyi)'}
+            </button>
+          </div>
+
+          {progressBlock.visible && (
+            <>
+              {/* 3 GAYA BAR KEMAJUAN */}
+              <div>
+                <label className="block text-xs font-bold text-stone-700 mb-2">
+                  Pilihan Gaya Bar Kemajuan (3 Pilihan):
+                </label>
+                <div className="grid grid-cols-1 gap-2">
+                  {PROGRESS_STYLE_OPTIONS.map((pOpt) => {
+                    const isSelected = (progressBlock.progressStyle || 'gradient') === pOpt.id
+                    return (
+                      <button
+                        key={pOpt.id}
+                        type="button"
+                        onClick={() => onUpdate({ progressStyle: pOpt.id })}
+                        className={`p-3 rounded-xl border text-left flex items-center justify-between transition cursor-pointer ${
+                          isSelected
+                            ? 'bg-amber-50 border-amber-500 text-amber-900 ring-1 ring-amber-400 font-bold shadow-2xs'
+                            : 'bg-white border-[#E8E1D5] text-stone-700 hover:border-stone-400 hover:bg-stone-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-lg">{pOpt.icon}</span>
+                          <div>
+                            <div className="text-xs font-bold">{pOpt.name}</div>
+                            <div className="text-[10px] text-stone-500">{pOpt.desc}</div>
+                          </div>
+                        </div>
+                        {isSelected && <span className="text-amber-700 font-bold text-sm">✓ Dipilih</span>}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* WARNA BAR */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-stone-600 mb-1">Warna Bar 1:</label>
+                  <ThrottledColorInput
+                    value={progressBlock.bgColor || '#FF5A45'}
+                    onChange={(val) => onUpdate({ bgColor: val })}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-stone-600 mb-1">Warna Bar 2:</label>
+                  <ThrottledColorInput
+                    value={progressBlock.bgColor2 || '#FFB238'}
+                    onChange={(val) => onUpdate({ bgColor2: val })}
+                  />
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+})
+
+interface PresetsTabPanelProps {
+  pageBgColor: string
+  pageDotColor: string
+  onApplyPreset: (preset: ThemePreset) => void
+  onUpdatePageColors: (pageBgColor: string, pageDotColor: string) => void
+}
+
+const PresetsTabPanel = React.memo(function PresetsTabPanel({
+  pageBgColor,
+  pageDotColor,
+  onApplyPreset,
+  onUpdatePageColors,
+}: PresetsTabPanelProps) {
+  return (
+    <div className="space-y-4">
+      {/* 1. TEMA DISYORKAN (1-KLIK) */}
+      <div className="space-y-3">
+        <div className="bg-[#FAF7F2] p-3.5 rounded-2xl border border-[#EDE5DA] text-xs text-stone-600 leading-relaxed">
+          <b>Pilihan Tema Disyorkan:</b> Klik mana-mana tema sedia ada di bawah untuk menukar padanan warna banner, fon seluruh kad, corak motif, dan gaya material kotak secara serentak.
+        </div>
+
+        <div className="grid grid-cols-1 gap-2.5">
+          {LIVE_PRESETS.map((p) => (
+            <button
+              key={p.name}
+              type="button"
+              onClick={() => onApplyPreset(p)}
+              className="p-3 bg-white hover:bg-stone-50 border border-[#EAE3D8] hover:border-amber-400 rounded-2xl text-left transition flex items-center justify-between cursor-pointer group shadow-2xs"
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-xl border border-stone-200 shrink-0 flex items-center justify-center font-bold text-white text-xs shadow-xs"
+                  style={{ background: `linear-gradient(135deg, ${p.hero1}, ${p.hero2})` }}
+                >
+                  {p.name.slice(0, 1)}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-stone-900 group-hover:text-amber-700 transition">
+                      {p.name}
+                    </span>
+                    <span className="text-[10px] bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full font-medium border border-stone-200">
+                      {p.category}
+                    </span>
+                  </div>
+                  <p className="text-[10.5px] text-stone-500 mt-0.5 line-clamp-1">{p.desc}</p>
+                </div>
+              </div>
+
+              {/* SWATCHES */}
+              <div className="flex flex-col items-end gap-1.5 shrink-0 pl-2">
+                <div className="flex gap-1">
+                  <div className="w-3.5 h-3.5 rounded-full border border-stone-200 shadow-2xs" style={{ backgroundColor: p.hero1 }} />
+                  <div className="w-3.5 h-3.5 rounded-full border border-stone-200 shadow-2xs" style={{ backgroundColor: p.hero2 }} />
+                  <div className="w-3.5 h-3.5 rounded-full border border-stone-200 shadow-2xs" style={{ backgroundColor: p.progressFill1 }} />
+                </div>
+                <span className="text-[9px] bg-stone-100 text-stone-700 group-hover:bg-amber-500 group-hover:text-white font-bold px-2 py-0.5 rounded-full transition border border-stone-200">
+                  Guna Tema →
+                </span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 2. PENYESUAIAN TEMA WARNA HALAMAN */}
+      <div className="bg-[#FCFAF7] border border-[#EAE3D8] rounded-2xl p-4 space-y-4 shadow-2xs">
+        <div>
+          <h4 className="font-bold text-sm text-stone-900">Penyesuaian Tema Warna Halaman</h4>
+          <p className="text-[11px] text-stone-500">Sesuaikan warna latar belakang dan bintik halaman</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-[11px] font-bold text-stone-600 mb-1">Warna Latar Belakang:</label>
+            <ThrottledColorInput
+              value={pageBgColor || '#FFF7EA'}
+              onChange={(val) => onUpdatePageColors(val, pageDotColor || 'rgba(43,27,18,0.055)')}
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-bold text-stone-600 mb-1">Warna Bintik Latar:</label>
+            <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-[#E2DAD0]">
+              <input
+                type="text"
+                value={pageDotColor || 'rgba(43,27,18,0.055)'}
+                onChange={(e) => onUpdatePageColors(pageBgColor || '#FFF7EA', e.target.value)}
+                className="w-full bg-transparent text-stone-900 font-mono text-[11px] outline-none px-1"
+                placeholder="rgba(...)"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* PALET WARNA PANTAS */}
+        <div>
+          <label className="block text-xs font-bold text-stone-700 mb-2">Palet Warna Pantas:</label>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: 'Warm Cream', bg: '#FFF7EA', dot: 'rgba(43,27,18,0.055)' },
+              { label: 'Clean White', bg: '#F8FAFC', dot: 'rgba(15,23,42,0.04)' },
+              { label: 'Dark Onyx', bg: '#0F172A', dot: 'rgba(255,255,255,0.05)' },
+              { label: 'Soft Mint', bg: '#F0FDF4', dot: 'rgba(22,101,52,0.05)' },
+              { label: 'Sweet Blush', bg: '#FFF1F2', dot: 'rgba(159,18,57,0.05)' },
+              { label: 'Sky Blue', bg: '#F0F9FF', dot: 'rgba(3,105,161,0.05)' },
+            ].map((pal) => (
+              <button
+                key={pal.label}
+                type="button"
+                onClick={() => onUpdatePageColors(pal.bg, pal.dot)}
+                className="p-2 rounded-xl border border-[#EAE3D8] hover:border-amber-500 bg-white flex items-center gap-2 transition cursor-pointer text-left shadow-2xs"
+              >
+                <div className="w-4 h-4 rounded-full border border-stone-300 shrink-0" style={{ backgroundColor: pal.bg }} />
+                <span className="text-[10.5px] font-bold text-stone-800 truncate">{pal.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+})
+
+interface SimulatorTabPanelProps {
+  simulatedStamps: number
+  stampsRequired: number
+  onUpdateStamps: (simulated: number, required: number) => void
+}
+
+const SimulatorTabPanel = React.memo(function SimulatorTabPanel({
+  simulatedStamps,
+  stampsRequired,
+  onUpdateStamps,
+}: SimulatorTabPanelProps) {
+  const totalStamps = simulatedStamps || 4
+  const reqStamps = stampsRequired || 10
+  const isFull = totalStamps >= reqStamps
+  const remainStamps = Math.max(0, reqStamps - totalStamps)
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-[#FAF7F2] p-3.5 rounded-2xl border border-[#EDE5DA] text-xs text-stone-600 leading-relaxed">
+        <b>Simulator Cop:</b> Uji rupa paras kad pelanggan apabila menerima cop bertambah atau penuh.
+      </div>
+
+      <div className="bg-white border border-[#EAE3D8] p-4 rounded-2xl space-y-4 shadow-2xs">
+        <div>
+          <div className="flex justify-between text-stone-700 text-xs font-semibold mb-1.5">
+            <span>Bilangan Cop Semasa (Simulasi):</span>
+            <span className="text-amber-700 font-bold font-mono text-sm">{totalStamps} / {reqStamps}</span>
+          </div>
+          <ThrottledRangeInput
+            min={0}
+            max={reqStamps}
+            step={1}
+            value={totalStamps}
+            onChange={(val) => onUpdateStamps(val, reqStamps)}
+          />
+        </div>
+
+        <div>
+          <label className="block text-stone-700 text-xs font-semibold mb-1.5">
+            Sasaran Cop Diperlukan:
+          </label>
+          <div className="grid grid-cols-4 gap-2">
+            {[5, 8, 10, 12].map((num) => (
+              <button
+                key={num}
+                type="button"
+                onClick={() => onUpdateStamps(Math.min(totalStamps, num), num)}
+                className={`py-2 text-xs font-bold rounded-xl border transition cursor-pointer ${
+                  reqStamps === num
+                    ? 'bg-amber-500 text-white border-amber-500 shadow-2xs'
+                    : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
+                }`}
+              >
+                {num} Cop
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EDE5DA] text-xs space-y-1 text-stone-700">
+          <div>Status: <b className="text-stone-900">{isFull ? 'Kad Penuh' : 'Sedang Diisi'}</b></div>
+          <div>Baki: <b className="text-amber-700">{remainStamps} cop</b> lagi untuk ganjaran.</div>
+        </div>
+      </div>
+    </div>
+  )
+})
+
 export default function CardStudioPage() {
   const [config, setConfig] = useState<LiveStudioConfig>(DEFAULT_LIVE_STUDIO_CONFIG)
   const [activeTab, setActiveTab] = useState<'blocks' | 'presets' | 'simulate'>('blocks')
@@ -1427,26 +2258,30 @@ export default function CardStudioPage() {
     loadStudioData()
   }, [])
 
-  const saveConfig = useCallback((newConfig: LiveStudioConfig) => {
-    // 1. Immediate in-memory React state update for responsive UI
-    setConfig(newConfig)
+  const saveConfig = useCallback((updater: LiveStudioConfig | ((prev: LiveStudioConfig) => LiveStudioConfig)) => {
+    setConfig((prevConfig) => {
+      const nextConfig = typeof updater === 'function' ? updater(prevConfig) : updater
 
-    // 2. Debounce writing to localStorage to prevent blocking the main thread
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current)
-    }
-
-    saveTimeoutRef.current = setTimeout(() => {
-      try {
-        localStorage.setItem('cop_card_studio_config', JSON.stringify(newConfig))
-        setSaveStatus('Draf dikemas kini')
-        if (statusTimeoutRef.current) clearTimeout(statusTimeoutRef.current)
-        statusTimeoutRef.current = setTimeout(() => setSaveStatus(''), 2000)
-      } catch (e) {
-        console.error('Failed to save config draft:', e)
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
       }
-    }, 350)
+
+      saveTimeoutRef.current = setTimeout(() => {
+        try {
+          localStorage.setItem('cop_card_studio_config', JSON.stringify(nextConfig))
+          setSaveStatus('Draf dikemas kini')
+          if (statusTimeoutRef.current) clearTimeout(statusTimeoutRef.current)
+          statusTimeoutRef.current = setTimeout(() => setSaveStatus(''), 2000)
+        } catch (e) {
+          console.error('Failed to save config draft:', e)
+        }
+      }, 350)
+
+      return nextConfig
+    })
   }, [])
+
+
 
   // Open Save Modal
   const handleOpenSaveModal = useCallback((forceLive = false) => {
@@ -1572,6 +2407,28 @@ export default function CardStudioPage() {
       return nextConfig
     })
   }, [])
+
+  const toggleHeroHeader = useCallback(() => toggleBlock('hero_header'), [toggleBlock])
+  const toggleStoreProfile = useCallback(() => toggleBlock('store_profile'), [toggleBlock])
+  const toggleStampCardBox = useCallback(() => toggleBlock('stamp_card_box'), [toggleBlock])
+  const toggleProgressBar = useCallback(() => toggleBlock('progress_bar'), [toggleBlock])
+
+  const updateHeroHeader = useCallback((partial: Partial<EditableBlockConfig>) => updateBlock('hero_header', partial), [updateBlock])
+  const updateStoreProfile = useCallback((partial: Partial<EditableBlockConfig>) => updateBlock('store_profile', partial), [updateBlock])
+  const updateStampCardBox = useCallback((partial: Partial<EditableBlockConfig>) => updateBlock('stamp_card_box', partial), [updateBlock])
+  const updateProgressBar = useCallback((partial: Partial<EditableBlockConfig>) => updateBlock('progress_bar', partial), [updateBlock])
+
+  const updateStoreName = useCallback((name: string) => {
+    saveConfig((prev) => ({ ...prev, storeName: name }))
+  }, [saveConfig])
+
+  const updatePageColors = useCallback((pageBgColor: string, pageDotColor: string) => {
+    saveConfig((prev) => ({ ...prev, pageBgColor, pageDotColor }))
+  }, [saveConfig])
+
+  const updateStamps = useCallback((simulatedStamps: number, stampsRequired: number) => {
+    saveConfig((prev) => ({ ...prev, simulatedStamps, stampsRequired }))
+  }, [saveConfig])
 
   const applyPreset = useCallback((preset: ThemePreset) => {
     setConfig((prevConfig) => {
@@ -2260,656 +3117,55 @@ export default function CardStudioPage() {
                   <b>4 Blok Reka Bentuk Boleh Ubah:</b> Hero Header, Profile Kedai, Kotak Kad Cop & Bar Kemajuan. Fon yang dipilih akan diaplikasikan ke seluruh kad.
                 </div>
 
-                {/* 1. HERO HEADER */}
-                <div
-                  className={`border rounded-2xl p-4 transition-all ${
-                    selectedBlockId === 'hero_header'
-                      ? 'bg-[#FCFAF7] border-amber-400 ring-2 ring-amber-400/15 shadow-sm'
-                      : 'bg-white hover:bg-stone-50/50 border-[#EAE3D8] shadow-2xs'
-                  }`}
-                >
-                  <div
-                    onClick={() => toggleBlock('hero_header')}
-                    className="flex items-center justify-between cursor-pointer select-none"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-amber-100/80 text-amber-700 flex items-center justify-center font-bold text-sm shrink-0 border border-amber-200/60">
-                        1
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-sm text-stone-900">Hero Header</h4>
-                        <p className="text-[11px] text-stone-500">Corak motif, warna gradien & kelengkungan</p>
-                      </div>
-                    </div>
-                    <span
-                      className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition ${
-                        selectedBlockId === 'hero_header'
-                          ? 'bg-amber-100 text-amber-900 border-amber-200'
-                          : 'bg-stone-100 text-stone-600 border-stone-200'
-                      }`}
-                    >
-                      {selectedBlockId === 'hero_header' ? 'Tutup ▲' : 'Ubah ▼'}
-                    </span>
-                  </div>
+                <HeroHeaderPanel
+                  heroBlock={heroBlock}
+                  isOpen={selectedBlockId === 'hero_header'}
+                  onToggle={toggleHeroHeader}
+                  onUpdate={updateHeroHeader}
+                />
 
-                  {selectedBlockId === 'hero_header' && (
-                    <div className="mt-4 pt-3.5 border-t border-[#EAE3D8] space-y-4">
-                      {/* Corak Pilihan (11 Corak) */}
-                      <div>
-                        <label className="block text-xs font-bold text-stone-700 mb-2">
-                          Corak Motif Latar Belakang ({HERO_PATTERN_OPTIONS.length} Pilihan):
-                        </label>
-                        <div className="grid grid-cols-2 gap-2">
-                          {HERO_PATTERN_OPTIONS.map((opt) => {
-                            const isSelected = (heroBlock.pattern || 'bubbles') === opt.id
-                            return (
-                              <button
-                                key={opt.id}
-                                type="button"
-                                onClick={() => updateBlock('hero_header', { pattern: opt.id })}
-                                className={`p-2.5 rounded-xl border text-left flex items-center gap-2 transition cursor-pointer ${
-                                  isSelected
-                                    ? 'bg-amber-50 border-amber-500 text-amber-900 ring-1 ring-amber-400 font-bold shadow-2xs'
-                                    : 'bg-white border-[#E8E1D5] text-stone-700 hover:border-stone-400 hover:bg-stone-50'
-                                }`}
-                              >
-                                <span className="text-base">{opt.icon}</span>
-                                <div className="overflow-hidden">
-                                  <div className="text-xs font-bold truncate">{opt.label}</div>
-                                  <div className="text-[10px] text-stone-500 truncate">{opt.desc}</div>
-                                </div>
-                              </button>
-                            )
-                          })}
-                        </div>
-                      </div>
+                <StoreProfilePanel
+                  profileBlock={profileBlock}
+                  storeName={config.storeName}
+                  isOpen={selectedBlockId === 'store_profile'}
+                  onToggle={toggleStoreProfile}
+                  onUpdate={updateStoreProfile}
+                  onUpdateStoreName={updateStoreName}
+                />
 
-                      {/* Kepekatan Corak (Opacity) */}
-                      <div>
-                        <div className="flex justify-between text-xs text-stone-700 font-semibold mb-1">
-                          <span>Kepekatan Corak (Opacity):</span>
-                          <span className="font-mono text-amber-700 font-bold">{Math.round((heroBlock.patternOpacity ?? 0.25) * 100)}%</span>
-                        </div>
-                        <input
-                          type="range"
-                          min="0"
-                          max="1"
-                          step="0.05"
-                          value={heroBlock.patternOpacity ?? 0.25}
-                          onChange={(e) => updateBlock('hero_header', { patternOpacity: parseFloat(e.target.value) })}
-                          className="w-full accent-amber-500 cursor-pointer"
-                        />
-                      </div>
+                <StampCardBoxPanel
+                  cardBoxBlock={cardBoxBlock}
+                  isOpen={selectedBlockId === 'stamp_card_box'}
+                  onToggle={toggleStampCardBox}
+                  onUpdate={updateStampCardBox}
+                />
 
-                      {/* Warna Gradien Hero */}
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-[11px] font-bold text-stone-600 mb-1">Warna Gradien Mula:</label>
-                          <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-[#E2DAD0]">
-                            <input
-                              type="color"
-                              value={heroBlock.bgColor || '#FF7A45'}
-                              onChange={(e) => updateBlock('hero_header', { bgColor: e.target.value })}
-                              className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
-                            />
-                            <input
-                              type="text"
-                              value={heroBlock.bgColor || '#FF7A45'}
-                              onChange={(e) => updateBlock('hero_header', { bgColor: e.target.value })}
-                              className="w-full bg-transparent text-stone-900 font-mono text-[11px] outline-none"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-bold text-stone-600 mb-1">Warna Gradien Akhir:</label>
-                          <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-[#E2DAD0]">
-                            <input
-                              type="color"
-                              value={heroBlock.bgColor2 || '#FFC24D'}
-                              onChange={(e) => updateBlock('hero_header', { bgColor2: e.target.value })}
-                              className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
-                            />
-                            <input
-                              type="text"
-                              value={heroBlock.bgColor2 || '#FFC24D'}
-                              onChange={(e) => updateBlock('hero_header', { bgColor2: e.target.value })}
-                              className="w-full bg-transparent text-stone-900 font-mono text-[11px] outline-none"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Kelengkungan Bawah (Border Radius) */}
-                      <div>
-                        <div className="flex justify-between text-xs text-stone-700 font-semibold mb-1">
-                          <span>Kelengkungan Bawah Header:</span>
-                          <span className="font-mono text-amber-700 font-bold">{heroBlock.borderRadius ?? 34}px</span>
-                        </div>
-                        <input
-                          type="range"
-                          min="0"
-                          max="50"
-                          value={heroBlock.borderRadius ?? 34}
-                          onChange={(e) => updateBlock('hero_header', { borderRadius: parseInt(e.target.value) })}
-                          className="w-full accent-amber-500 cursor-pointer"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 2. PROFILE KEDAI */}
-                <div
-                  className={`border rounded-2xl p-4 transition-all ${
-                    selectedBlockId === 'store_profile'
-                      ? 'bg-[#FCFAF7] border-amber-400 ring-2 ring-amber-400/15 shadow-sm'
-                      : 'bg-white hover:bg-stone-50/50 border-[#EAE3D8] shadow-2xs'
-                  }`}
-                >
-                  <div
-                    onClick={() => toggleBlock('store_profile')}
-                    className="flex items-center justify-between cursor-pointer select-none"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-amber-100/80 text-amber-700 flex items-center justify-center font-bold text-sm shrink-0 border border-amber-200/60">
-                        2
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-sm text-stone-900">Profile Kedai & Fon Seluruh Kad</h4>
-                        <p className="text-[11px] text-stone-500">Gambar profil ON/OFF & pilihan fon seluruh halaman</p>
-                      </div>
-                    </div>
-                    <span
-                      className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition ${
-                        selectedBlockId === 'store_profile'
-                          ? 'bg-amber-100 text-amber-900 border-amber-200'
-                          : 'bg-stone-100 text-stone-600 border-stone-200'
-                      }`}
-                    >
-                      {selectedBlockId === 'store_profile' ? 'Tutup ▲' : 'Ubah ▼'}
-                    </span>
-                  </div>
-
-                  {selectedBlockId === 'store_profile' && (
-                    <div className="mt-4 pt-3.5 border-t border-[#EAE3D8] space-y-4">
-                      {/* TOGGLE GAMBAR PROFIL */}
-                      <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-[#E2DAD0]">
-                        <div>
-                          <div className="text-xs font-bold text-stone-800">Paparkan Gambar Profil / Logo</div>
-                          <div className="text-[10px] text-stone-500">Pilih sama ada mahu tunjuk logo bulat atau sembunyikan</div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => updateBlock('store_profile', { showLogo: profileBlock.showLogo === false ? true : false })}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                            profileBlock.showLogo !== false
-                              ? 'bg-emerald-600 text-white shadow-xs'
-                              : 'bg-stone-200 text-stone-700 hover:bg-stone-300'
-                          }`}
-                        >
-                          {profileBlock.showLogo !== false ? 'ON (Dipaparkan)' : 'OFF (Sembunyi)'}
-                        </button>
-                      </div>
-
-                      {/* PILIHAN FON SELURUH KAD */}
-                      <div>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <label className="text-xs font-bold text-stone-700">
-                            Pilihan Fon Seluruh Kad ({STORE_FONT_OPTIONS.length} Pilihan):
-                          </label>
-                          <span className="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded font-bold border border-amber-200">
-                            Apply Semua Teks
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-stone-500 mb-2">
-                          Fon yang dipilih akan digunakan untuk Nama Kedai, tajuk, butang, status & keseluruhan kad.
-                        </p>
-                        <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto pr-1">
-                          {STORE_FONT_OPTIONS.map((f) => {
-                            const isSelected = (profileBlock.fontId || 'fraunces') === f.id
-                            return (
-                              <button
-                                key={f.id}
-                                type="button"
-                                onClick={() => updateBlock('store_profile', { fontId: f.id })}
-                                className={`p-3 rounded-xl border text-left flex items-center justify-between transition cursor-pointer ${
-                                  isSelected
-                                    ? 'bg-amber-50 border-amber-500 text-amber-900 ring-1 ring-amber-400 font-bold shadow-2xs'
-                                    : 'bg-white border-[#E8E1D5] text-stone-700 hover:border-stone-400 hover:bg-stone-50'
-                                }`}
-                              >
-                                <div>
-                                  <div className="text-xs text-stone-500 font-medium">{f.name} ({f.category})</div>
-                                  <div className="text-base font-bold text-stone-900 mt-0.5" style={{ fontFamily: f.fontFamily }}>
-                                    {config.storeName || f.sampleText}
-                                  </div>
-                                </div>
-                                {isSelected && <span className="text-amber-700 font-bold text-sm">✓ Dipilih</span>}
-                              </button>
-                            )
-                          })}
-                        </div>
-                      </div>
-
-                      {/* NAMA KEDAI TEKS */}
-                      <div>
-                        <label className="block text-[11px] font-bold text-stone-600 mb-1">Nama Kedai (Teks):</label>
-                        <input
-                          type="text"
-                          value={config.storeName}
-                          onChange={(e) => saveConfig({ ...config, storeName: e.target.value })}
-                          className="w-full bg-white border border-[#E2DAD0] rounded-xl px-3 py-2 text-xs text-stone-900 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-400"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 3. KOTAK KAD COP */}
-                <div
-                  className={`border rounded-2xl p-4 transition-all ${
-                    selectedBlockId === 'stamp_card_box'
-                      ? 'bg-[#FCFAF7] border-amber-400 ring-2 ring-amber-400/15 shadow-sm'
-                      : 'bg-white hover:bg-stone-50/50 border-[#EAE3D8] shadow-2xs'
-                  }`}
-                >
-                  <div
-                    onClick={() => toggleBlock('stamp_card_box')}
-                    className="flex items-center justify-between cursor-pointer select-none"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-amber-100/80 text-amber-700 flex items-center justify-center font-bold text-sm shrink-0 border border-amber-200/60">
-                        3
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-sm text-stone-900">Kotak Kad Cop</h4>
-                        <p className="text-[11px] text-stone-500">6 gaya material (Kertas, Kaca, Batu, Besi, Kayu, Air)</p>
-                      </div>
-                    </div>
-                    <span
-                      className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition ${
-                        selectedBlockId === 'stamp_card_box'
-                          ? 'bg-amber-100 text-amber-900 border-amber-200'
-                          : 'bg-stone-100 text-stone-600 border-stone-200'
-                      }`}
-                    >
-                      {selectedBlockId === 'stamp_card_box' ? 'Tutup ▲' : 'Ubah ▼'}
-                    </span>
-                  </div>
-
-                  {selectedBlockId === 'stamp_card_box' && (
-                    <div className="mt-4 pt-3.5 border-t border-[#EAE3D8] space-y-4">
-                      {/* 6 PILIHAN GAYA MATERIAL */}
-                      <div>
-                        <label className="block text-xs font-bold text-stone-700 mb-2">
-                          Gaya Material Kad Cop (6 Pilihan):
-                        </label>
-                        <div className="grid grid-cols-2 gap-2">
-                          {CARD_STYLE_OPTIONS.map((styleOpt) => {
-                            const isSelected = (cardBoxBlock.cardStyle || 'kertas') === styleOpt.id
-                            return (
-                              <button
-                                key={styleOpt.id}
-                                type="button"
-                                onClick={() =>
-                                  updateBlock('stamp_card_box', {
-                                    cardStyle: styleOpt.id,
-                                    bgColor: styleOpt.defaultBg,
-                                    borderColor: styleOpt.defaultBorder,
-                                    borderRadius: styleOpt.defaultRadius,
-                                  })
-                                }
-                                className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition cursor-pointer ${
-                                  isSelected
-                                    ? 'bg-amber-50 border-amber-500 text-amber-900 ring-1 ring-amber-400 font-bold shadow-2xs'
-                                    : 'bg-white border-[#E8E1D5] text-stone-700 hover:border-stone-400 hover:bg-stone-50'
-                                }`}
-                              >
-                                <span className="text-xl">{styleOpt.icon}</span>
-                                <div>
-                                  <div className="text-xs font-bold">{styleOpt.name}</div>
-                                  <div className="text-[10px] text-stone-500 line-clamp-2">{styleOpt.desc}</div>
-                                </div>
-                              </button>
-                            )
-                          })}
-                        </div>
-                      </div>
-
-                      {/* KELENGKUNGAN KOTAK KAD */}
-                      <div>
-                        <div className="flex justify-between text-xs text-stone-700 font-semibold mb-1">
-                          <span>Kelengkungan Kotak Kad (Border Radius):</span>
-                          <span className="font-mono text-amber-700 font-bold">{cardBoxBlock.borderRadius ?? 28}px</span>
-                        </div>
-                        <input
-                          type="range"
-                          min="8"
-                          max="40"
-                          value={cardBoxBlock.borderRadius ?? 28}
-                          onChange={(e) => updateBlock('stamp_card_box', { borderRadius: parseInt(e.target.value) })}
-                          className="w-full accent-amber-500 cursor-pointer"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 4. BAR KEMAJUAN */}
-                <div
-                  className={`border rounded-2xl p-4 transition-all ${
-                    selectedBlockId === 'progress_bar'
-                      ? 'bg-[#FCFAF7] border-amber-400 ring-2 ring-amber-400/15 shadow-sm'
-                      : 'bg-white hover:bg-stone-50/50 border-[#EAE3D8] shadow-2xs'
-                  }`}
-                >
-                  <div
-                    onClick={() => toggleBlock('progress_bar')}
-                    className="flex items-center justify-between cursor-pointer select-none"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-amber-100/80 text-amber-700 flex items-center justify-center font-bold text-sm shrink-0 border border-amber-200/60">
-                        4
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-sm text-stone-900">Bar Kemajuan</h4>
-                        <p className="text-[11px] text-stone-500">ON/OFF & 3 gaya animasi (termasuk animasi air)</p>
-                      </div>
-                    </div>
-                    <span
-                      className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition ${
-                        selectedBlockId === 'progress_bar'
-                          ? 'bg-amber-100 text-amber-900 border-amber-200'
-                          : 'bg-stone-100 text-stone-600 border-stone-200'
-                      }`}
-                    >
-                      {selectedBlockId === 'progress_bar' ? 'Tutup ▲' : 'Ubah ▼'}
-                    </span>
-                  </div>
-
-                  {selectedBlockId === 'progress_bar' && (
-                    <div className="mt-4 pt-3.5 border-t border-[#EAE3D8] space-y-4">
-                      {/* TOGGLE BAR KEMAJUAN ON/OFF */}
-                      <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-[#E2DAD0]">
-                        <div>
-                          <div className="text-xs font-bold text-stone-800">Status Bar Kemajuan</div>
-                          <div className="text-[10px] text-stone-500">Pilih sama ada mahu tunjuk atau sembunyikan bar</div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => updateBlock('progress_bar', { visible: !progressBlock.visible })}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                            progressBlock.visible
-                              ? 'bg-emerald-600 text-white shadow-xs'
-                              : 'bg-stone-200 text-stone-700 hover:bg-stone-300'
-                          }`}
-                        >
-                          {progressBlock.visible ? 'ON (Dipaparkan)' : 'OFF (Sembunyi)'}
-                        </button>
-                      </div>
-
-                      {progressBlock.visible && (
-                        <>
-                          {/* 3 GAYA BAR KEMAJUAN */}
-                          <div>
-                            <label className="block text-xs font-bold text-stone-700 mb-2">
-                              Pilihan Gaya Bar Kemajuan (3 Pilihan):
-                            </label>
-                            <div className="grid grid-cols-1 gap-2">
-                              {PROGRESS_STYLE_OPTIONS.map((pOpt) => {
-                                const isSelected = (progressBlock.progressStyle || 'gradient') === pOpt.id
-                                return (
-                                  <button
-                                    key={pOpt.id}
-                                    type="button"
-                                    onClick={() => updateBlock('progress_bar', { progressStyle: pOpt.id })}
-                                    className={`p-3 rounded-xl border text-left flex items-center justify-between transition cursor-pointer ${
-                                      isSelected
-                                        ? 'bg-amber-50 border-amber-500 text-amber-900 ring-1 ring-amber-400 font-bold shadow-2xs'
-                                        : 'bg-white border-[#E8E1D5] text-stone-700 hover:border-stone-400 hover:bg-stone-50'
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-2.5">
-                                      <span className="text-lg">{pOpt.icon}</span>
-                                      <div>
-                                        <div className="text-xs font-bold">{pOpt.name}</div>
-                                        <div className="text-[10px] text-stone-500">{pOpt.desc}</div>
-                                      </div>
-                                    </div>
-                                    {isSelected && <span className="text-amber-700 font-bold text-sm">✓ Dipilih</span>}
-                                  </button>
-                                )
-                              })}
-                            </div>
-                          </div>
-
-                          {/* WARNA BAR */}
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <label className="block text-[11px] font-bold text-stone-600 mb-1">Warna Bar 1:</label>
-                              <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-[#E2DAD0]">
-                                <input
-                                  type="color"
-                                  value={progressBlock.bgColor || '#FF5A45'}
-                                  onChange={(e) => updateBlock('progress_bar', { bgColor: e.target.value })}
-                                  className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
-                                />
-                                <input
-                                  type="text"
-                                  value={progressBlock.bgColor || '#FF5A45'}
-                                  onChange={(e) => updateBlock('progress_bar', { bgColor: e.target.value })}
-                                  className="w-full bg-transparent text-stone-900 font-mono text-[11px] outline-none"
-                                />
-                              </div>
-                            </div>
-
-                            <div>
-                              <label className="block text-[11px] font-bold text-stone-600 mb-1">Warna Bar 2:</label>
-                              <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-[#E2DAD0]">
-                                <input
-                                  type="color"
-                                  value={progressBlock.bgColor2 || '#FFB238'}
-                                  onChange={(e) => updateBlock('progress_bar', { bgColor2: e.target.value })}
-                                  className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
-                                />
-                                <input
-                                  type="text"
-                                  value={progressBlock.bgColor2 || '#FFB238'}
-                                  onChange={(e) => updateBlock('progress_bar', { bgColor2: e.target.value })}
-                                  className="w-full bg-transparent text-stone-900 font-mono text-[11px] outline-none"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
+                <ProgressBarPanel
+                  progressBlock={progressBlock}
+                  isOpen={selectedBlockId === 'progress_bar'}
+                  onToggle={toggleProgressBar}
+                  onUpdate={updateProgressBar}
+                />
               </div>
             )}
 
             {/* TAB 2: TEMA DISYORKAN & TEMA WARNA */}
             {activeTab === 'presets' && (
-              <div className="space-y-4">
-                {/* 1. TEMA DISYORKAN (1-KLIK) */}
-                <div className="space-y-3">
-                  <div className="bg-[#FAF7F2] p-3.5 rounded-2xl border border-[#EDE5DA] text-xs text-stone-600 leading-relaxed">
-                    <b>Pilihan Tema Disyorkan:</b> Klik mana-mana tema sedia ada di bawah untuk menukar padanan warna banner, fon seluruh kad, corak motif, dan gaya material kotak secara serentak.
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-2.5">
-                    {LIVE_PRESETS.map((p) => (
-                      <button
-                        key={p.name}
-                        type="button"
-                        onClick={() => applyPreset(p)}
-                        className="p-3 bg-white hover:bg-stone-50 border border-[#EAE3D8] hover:border-amber-400 rounded-2xl text-left transition flex items-center justify-between cursor-pointer group shadow-2xs"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold border border-white/40 shadow-xs shrink-0"
-                            style={{
-                              background: `linear-gradient(135deg, ${p.hero1} 0%, ${p.hero2} 100%)`,
-                            }}
-                          >
-                            {HERO_PATTERN_OPTIONS.find((opt) => opt.id === p.pattern)?.icon || '🎨'}
-                          </div>
-                          <div>
-                            <div className="font-bold text-xs text-stone-900 group-hover:text-amber-800 transition">
-                              {p.name}
-                            </div>
-                            <div className="text-[10px] text-stone-500 line-clamp-1 mt-0.5">
-                              {p.desc}
-                            </div>
-                            <div className="text-[9.5px] text-stone-400 mt-0.5">
-                              Kad: <span className="text-stone-700 font-semibold">{CARD_STYLE_OPTIONS.find((s) => s.id === p.cardStyle)?.name || 'Kertas'}</span> • Fon: <span className="text-stone-700 font-semibold">{STORE_FONT_OPTIONS.find((f) => f.id === p.fontId)?.name || 'Fraunces'}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* SWATCHES */}
-                        <div className="flex flex-col items-end gap-1.5 shrink-0 pl-2">
-                          <div className="flex gap-1">
-                            <div className="w-3.5 h-3.5 rounded-full border border-stone-200 shadow-2xs" style={{ backgroundColor: p.hero1 }} />
-                            <div className="w-3.5 h-3.5 rounded-full border border-stone-200 shadow-2xs" style={{ backgroundColor: p.hero2 }} />
-                            <div className="w-3.5 h-3.5 rounded-full border border-stone-200 shadow-2xs" style={{ backgroundColor: p.progressFill1 }} />
-                          </div>
-                          <span className="text-[9px] bg-stone-100 text-stone-700 group-hover:bg-amber-500 group-hover:text-white font-bold px-2 py-0.5 rounded-full transition border border-stone-200">
-                            Guna Tema →
-                          </span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 2. PENYESUAIAN TEMA WARNA HALAMAN */}
-                <div className="bg-[#FCFAF7] border border-[#EAE3D8] rounded-2xl p-4 space-y-4 shadow-2xs">
-                  <div>
-                    <h4 className="font-bold text-sm text-stone-900">Penyesuaian Tema Warna Halaman</h4>
-                    <p className="text-[11px] text-stone-500">Sesuaikan warna latar belakang dan bintik halaman</p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[11px] font-bold text-stone-600 mb-1">Warna Latar Belakang:</label>
-                      <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-[#E2DAD0]">
-                        <input
-                          type="color"
-                          value={config.pageBgColor || '#FFF7EA'}
-                          onChange={(e) => saveConfig({ ...config, pageBgColor: e.target.value })}
-                          className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
-                        />
-                        <input
-                          type="text"
-                          value={config.pageBgColor || '#FFF7EA'}
-                          onChange={(e) => saveConfig({ ...config, pageBgColor: e.target.value })}
-                          className="w-full bg-transparent text-stone-900 font-mono text-[11px] outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-stone-600 mb-1">Warna Bintik Latar:</label>
-                      <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-[#E2DAD0]">
-                        <input
-                          type="text"
-                          value={config.pageDotColor || 'rgba(43,27,18,0.055)'}
-                          onChange={(e) => saveConfig({ ...config, pageDotColor: e.target.value })}
-                          className="w-full bg-transparent text-stone-900 font-mono text-[11px] outline-none px-1"
-                          placeholder="rgba(...)"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* PALET WARNA PANTAS */}
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 mb-2">Palet Warna Pantas:</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { label: 'Warm Cream', bg: '#FFF7EA', dot: 'rgba(43,27,18,0.055)' },
-                        { label: 'Clean White', bg: '#F8FAFC', dot: 'rgba(15,23,42,0.04)' },
-                        { label: 'Dark Onyx', bg: '#0F172A', dot: 'rgba(255,255,255,0.05)' },
-                        { label: 'Soft Mint', bg: '#F0FDF4', dot: 'rgba(22,101,52,0.05)' },
-                        { label: 'Sweet Blush', bg: '#FFF1F2', dot: 'rgba(159,18,57,0.05)' },
-                        { label: 'Sky Blue', bg: '#F0F9FF', dot: 'rgba(3,105,161,0.05)' },
-                      ].map((pal) => (
-                        <button
-                          key={pal.label}
-                          type="button"
-                          onClick={() => saveConfig({ ...config, pageBgColor: pal.bg, pageDotColor: pal.dot })}
-                          className="p-2 rounded-xl border border-[#EAE3D8] hover:border-amber-500 bg-white flex items-center gap-2 transition cursor-pointer text-left shadow-2xs"
-                        >
-                          <div className="w-4 h-4 rounded-full border border-stone-300 shrink-0" style={{ backgroundColor: pal.bg }} />
-                          <span className="text-[10.5px] font-bold text-stone-800 truncate">{pal.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <PresetsTabPanel
+                pageBgColor={config.pageBgColor}
+                pageDotColor={config.pageDotColor}
+                onApplyPreset={applyPreset}
+                onUpdatePageColors={updatePageColors}
+              />
             )}
 
             {/* TAB 3: SIMULATE STAMPS */}
             {activeTab === 'simulate' && (
-              <div className="space-y-4">
-                <div className="bg-[#FAF7F2] p-3.5 rounded-2xl border border-[#EDE5DA] text-xs text-stone-600 leading-relaxed">
-                  <b>Simulator Cop:</b> Uji rupa paras kad pelanggan apabila menerima cop bertambah atau penuh.
-                </div>
-
-                <div className="bg-white border border-[#EAE3D8] p-4 rounded-2xl space-y-4 shadow-2xs">
-                  <div>
-                    <div className="flex justify-between text-stone-700 text-xs font-semibold mb-1.5">
-                      <span>Bilangan Cop Semasa (Simulasi):</span>
-                      <span className="text-amber-700 font-bold font-mono text-sm">{config.simulatedStamps} / {config.stampsRequired}</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max={config.stampsRequired}
-                      value={config.simulatedStamps}
-                      onChange={(e) => saveConfig({ ...config, simulatedStamps: Number(e.target.value) })}
-                      className="w-full accent-amber-500 cursor-pointer"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-stone-700 text-xs font-semibold mb-1.5">
-                      Sasaran Cop Diperlukan:
-                    </label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {[5, 8, 10, 12].map((num) => (
-                        <button
-                          key={num}
-                          type="button"
-                          onClick={() =>
-                            saveConfig({
-                              ...config,
-                              stampsRequired: num,
-                              simulatedStamps: Math.min(config.simulatedStamps, num),
-                            })
-                          }
-                          className={`py-2 text-xs font-bold rounded-xl border transition cursor-pointer ${
-                            config.stampsRequired === num
-                              ? 'bg-amber-500 text-white border-amber-500 shadow-2xs'
-                              : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
-                          }`}
-                        >
-                          {num} Cop
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EDE5DA] text-xs space-y-1 text-stone-700">
-                    <div>Status: <b className="text-stone-900">{isFull ? 'Kad Penuh' : 'Sedang Diisi'}</b></div>
-                    <div>Baki: <b className="text-amber-700">{remainStamps} cop</b> lagi untuk ganjaran.</div>
-                  </div>
-                </div>
-              </div>
+              <SimulatorTabPanel
+                simulatedStamps={config.simulatedStamps}
+                stampsRequired={config.stampsRequired}
+                onUpdateStamps={updateStamps}
+              />
             )}
           </div>
         </aside>
