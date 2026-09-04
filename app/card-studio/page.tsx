@@ -126,6 +126,7 @@ export interface CardStyleOption {
   badge: string
   defaultBg: string
   defaultBorder: string
+  defaultRadius: number
 }
 
 export const CARD_STYLE_OPTIONS: CardStyleOption[] = [
@@ -137,51 +138,57 @@ export const CARD_STYLE_OPTIONS: CardStyleOption[] = [
     badge: 'Klasik',
     defaultBg: '#FFFDF8',
     defaultBorder: '#F0DEC0',
+    defaultRadius: 26,
   },
   {
     id: 'kaca',
     name: 'Kaca',
     icon: '🪟',
-    desc: 'Frosted glassmorphism lutsinar',
-    badge: 'Moden',
-    defaultBg: 'rgba(255, 255, 255, 0.82)',
-    defaultBorder: 'rgba(255, 255, 255, 0.85)',
+    desc: 'Frosted glass lutsinar tembus belakang',
+    badge: 'Tembus Belakang',
+    defaultBg: 'rgba(255, 255, 255, 0.20)',
+    defaultBorder: 'rgba(255, 255, 255, 0.55)',
+    defaultRadius: 26,
   },
   {
     id: 'batu',
     name: 'Batu',
     icon: '🪨',
-    desc: 'Batu marmar & urat slate padu',
+    desc: 'Papak batu marmar & urat slate padu',
     badge: 'Mewah',
-    defaultBg: '#F1F5F9',
-    defaultBorder: '#94A3B8',
+    defaultBg: '#ECEFF1',
+    defaultBorder: '#90A4AE',
+    defaultRadius: 18,
   },
   {
     id: 'besi',
     name: 'Besi',
     icon: '⚙️',
-    desc: 'Keluli berkilat & skru industri',
+    desc: 'Plat keluli berus & skru industri 4 penjuru',
     badge: 'Industri',
     defaultBg: '#E2E8F0',
-    defaultBorder: '#94A3B8',
+    defaultBorder: '#64748B',
+    defaultRadius: 14,
   },
   {
     id: 'kayu',
     name: 'Kayu',
     icon: '🪵',
-    desc: 'Papan kayu oak & urat timber asli',
-    badge: 'Rustik',
-    defaultBg: '#F3DEB8',
-    defaultBorder: '#B8864E',
+    desc: 'Papan kayu selari & jalur urat oak asli',
+    badge: 'Plank Selari',
+    defaultBg: '#D49B5B',
+    defaultBorder: '#6D3916',
+    defaultRadius: 18,
   },
   {
     id: 'air',
     name: 'Air',
     icon: '💧',
-    desc: 'Riak air biru kristal & buih segar',
-    badge: 'Segar',
-    defaultBg: '#E0F7FA',
+    desc: 'Kolam cecair biru akuatik & buih terapung',
+    badge: 'Cecair Segar',
+    defaultBg: 'rgba(224, 247, 250, 0.45)',
     defaultBorder: '#4DD0E1',
+    defaultRadius: 28,
   },
 ]
 
@@ -190,56 +197,140 @@ export function CardBoxMaterialTexture({ cardStyle = 'kertas' }: { cardStyle?: s
     case 'kaca':
       return (
         <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[inherit] select-none">
-          <div className="absolute -top-12 -left-12 w-48 h-32 bg-white/40 rotate-12 blur-xl" />
-          <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
-          <div className="absolute bottom-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+          {/* Glass diagonal glossy glare beam */}
+          <div className="absolute -top-24 -left-24 w-96 h-64 bg-gradient-to-br from-white/35 via-white/10 to-transparent rotate-25 blur-sm" />
+          {/* Glass specular top edge glow */}
+          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-white to-transparent opacity-95" />
+          {/* Prismatic rainbow reflection streak */}
+          <div className="absolute top-1/3 -left-12 w-80 h-1 bg-gradient-to-r from-transparent via-cyan-200/40 via-pink-200/40 to-transparent rotate-12 blur-[1px]" />
+          {/* Glass bottom edge reflection */}
+          <div className="absolute bottom-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/50 to-transparent" />
         </div>
       )
-    case 'batu':
+
+    case 'kayu':
       return (
-        <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none rounded-[inherit] select-none" viewBox="0 0 400 400" preserveAspectRatio="none">
-          <path d="M-20 80 Q120 40 220 110 T420 70" fill="none" stroke="#475569" strokeWidth="2" strokeDasharray="6 3" opacity="0.6" />
-          <path d="M-10 240 Q140 180 260 270 T430 200" fill="none" stroke="#334155" strokeWidth="1.8" strokeDasharray="8 4" opacity="0.5" />
-          <path d="M60 -20 Q180 160 340 380" fill="none" stroke="#64748B" strokeWidth="1.5" opacity="0.4" />
-        </svg>
+        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[inherit] select-none">
+          {/* Natural wood plank gradient base */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#E2A767]/30 via-transparent to-[#8C4F21]/35" />
+
+          {/* 3 Horizontal Plank Seams (Garis Selari yang Kemas) */}
+          <div className="absolute inset-x-0 top-[26%] h-[2px] bg-[#54290C]/50 shadow-[0_1px_0_rgba(255,255,255,0.35)]" />
+          <div className="absolute inset-x-0 top-[52%] h-[2px] bg-[#54290C]/50 shadow-[0_1px_0_rgba(255,255,255,0.35)]" />
+          <div className="absolute inset-x-0 top-[77%] h-[2px] bg-[#54290C]/50 shadow-[0_1px_0_rgba(255,255,255,0.35)]" />
+
+          {/* Parallel Wood Grain Fibers & Knots SVG */}
+          <svg className="absolute inset-0 w-full h-full opacity-35" viewBox="0 0 400 400" preserveAspectRatio="none">
+            {/* Straight parallel grain fibers */}
+            <path d="M0 18 H400 M0 36 H400 M0 58 H400 M0 80 H400" stroke="#54290C" strokeWidth="1" strokeDasharray="40 10 90 15 150 20" />
+            <path d="M0 120 H400 M0 142 H400 M0 165 H400 M0 188 H400" stroke="#54290C" strokeWidth="1" strokeDasharray="30 8 70 12 110 18" />
+            <path d="M0 225 H400 M0 248 H400 M0 270 H400 M0 292 H400" stroke="#54290C" strokeWidth="1" strokeDasharray="50 12 100 15 80 10" />
+            <path d="M0 325 H400 M0 348 H400 M0 370 H400 M0 390 H400" stroke="#54290C" strokeWidth="1" strokeDasharray="60 15 120 20 70 10" />
+
+            {/* Organic Wood Knot 1 (Plank 2) */}
+            <g opacity="0.6">
+              <ellipse cx="75" cy="152" rx="14" ry="5.5" fill="none" stroke="#54290C" strokeWidth="1.4" />
+              <ellipse cx="75" cy="152" rx="6" ry="2.5" fill="#54290C" opacity="0.5" />
+              <path d="M40 152 Q75 138 115 152 M40 152 Q75 166 115 152" fill="none" stroke="#54290C" strokeWidth="1.1" />
+            </g>
+
+            {/* Organic Wood Knot 2 (Plank 3) */}
+            <g opacity="0.6">
+              <ellipse cx="325" cy="258" rx="16" ry="6" fill="none" stroke="#54290C" strokeWidth="1.4" />
+              <ellipse cx="325" cy="258" rx="7" ry="2.8" fill="#54290C" opacity="0.5" />
+              <path d="M285 258 Q325 244 365 258 M285 258 Q325 272 365 258" fill="none" stroke="#54290C" strokeWidth="1.1" />
+            </g>
+          </svg>
+
+          {/* 4 Corner Wooden Pegs / Dowel Plugs */}
+          <div className="absolute top-2.5 left-2.5 w-3 h-3 rounded-full bg-[#8C4F21] border border-[#54290C] shadow-inner flex items-center justify-center">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#54290C]/50" />
+          </div>
+          <div className="absolute top-2.5 right-2.5 w-3 h-3 rounded-full bg-[#8C4F21] border border-[#54290C] shadow-inner flex items-center justify-center">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#54290C]/50" />
+          </div>
+          <div className="absolute bottom-2.5 left-2.5 w-3 h-3 rounded-full bg-[#8C4F21] border border-[#54290C] shadow-inner flex items-center justify-center">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#54290C]/50" />
+          </div>
+          <div className="absolute bottom-2.5 right-2.5 w-3 h-3 rounded-full bg-[#8C4F21] border border-[#54290C] shadow-inner flex items-center justify-center">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#54290C]/50" />
+          </div>
+        </div>
       )
+
     case 'besi':
       return (
         <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[inherit] select-none">
-          <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-black/10" />
-          <div className="absolute top-2.5 left-2.5 w-2.5 h-2.5 rounded-full bg-slate-400 border border-slate-600 shadow-inner flex items-center justify-center">
-            <div className="w-1.5 h-0.5 bg-slate-700" />
+          {/* Brushed metallic gradient sheen */}
+          <div className="absolute inset-0 bg-gradient-to-r from-white/25 via-transparent to-black/15" />
+          {/* Subtle horizontal brushed metal striations */}
+          <div className="absolute inset-0 opacity-15 bg-[repeating-linear-gradient(0deg,#000_0px,#000_1px,transparent_1px,transparent_3px)]" />
+          {/* Metallic Top highlight */}
+          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-slate-400 via-white to-slate-400 opacity-90" />
+
+          {/* 4 Heavy-Duty Metallic Phillips Screws / Rivets */}
+          <div className="absolute top-3 left-3 w-3.5 h-3.5 rounded-full bg-gradient-to-b from-slate-200 to-slate-500 border border-slate-600 shadow-md flex items-center justify-center">
+            <div className="w-2 h-[1px] bg-slate-800" />
+            <div className="absolute h-2 w-[1px] bg-slate-800" />
           </div>
-          <div className="absolute top-2.5 right-2.5 w-2.5 h-2.5 rounded-full bg-slate-400 border border-slate-600 shadow-inner flex items-center justify-center">
-            <div className="w-1.5 h-0.5 bg-slate-700 rotate-90" />
+          <div className="absolute top-3 right-3 w-3.5 h-3.5 rounded-full bg-gradient-to-b from-slate-200 to-slate-500 border border-slate-600 shadow-md flex items-center justify-center">
+            <div className="w-2 h-[1px] bg-slate-800 rotate-45" />
+            <div className="absolute h-2 w-[1px] bg-slate-800 rotate-45" />
           </div>
-          <div className="absolute bottom-2.5 left-2.5 w-2.5 h-2.5 rounded-full bg-slate-400 border border-slate-600 shadow-inner flex items-center justify-center">
-            <div className="w-1.5 h-0.5 bg-slate-700 rotate-45" />
+          <div className="absolute bottom-3 left-3 w-3.5 h-3.5 rounded-full bg-gradient-to-b from-slate-200 to-slate-500 border border-slate-600 shadow-md flex items-center justify-center">
+            <div className="w-2 h-[1px] bg-slate-800 -rotate-30" />
+            <div className="absolute h-2 w-[1px] bg-slate-800 -rotate-30" />
           </div>
-          <div className="absolute bottom-2.5 right-2.5 w-2.5 h-2.5 rounded-full bg-slate-400 border border-slate-600 shadow-inner flex items-center justify-center">
-            <div className="w-1.5 h-0.5 bg-slate-700 -rotate-45" />
+          <div className="absolute bottom-3 right-3 w-3.5 h-3.5 rounded-full bg-gradient-to-b from-slate-200 to-slate-500 border border-slate-600 shadow-md flex items-center justify-center">
+            <div className="w-2 h-[1px] bg-slate-800 rotate-15" />
+            <div className="absolute h-2 w-[1px] bg-slate-800 rotate-15" />
           </div>
         </div>
       )
-    case 'kayu':
+
+    case 'batu':
       return (
-        <svg className="absolute inset-0 w-full h-full opacity-25 pointer-events-none rounded-[inherit] select-none" viewBox="0 0 400 400" preserveAspectRatio="none">
-          <path d="M0 45 Q200 40 400 48 M0 95 Q180 110 400 90 M0 150 Q220 135 400 155 M0 210 Q190 225 400 205 M0 270 Q210 260 400 275 M0 330 Q180 345 400 325" fill="none" stroke="#6D4018" strokeWidth="2.5" opacity="0.65" />
-          <ellipse cx="310" cy="180" rx="14" ry="7" fill="none" stroke="#6D4018" strokeWidth="2" opacity="0.7" />
-          <ellipse cx="80" cy="290" rx="10" ry="5" fill="none" stroke="#6D4018" strokeWidth="1.8" opacity="0.6" />
-        </svg>
+        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[inherit] select-none">
+          {/* Fine mineral grain texture */}
+          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:8px_8px]" />
+          {/* Realistic Marble & Slate Veins */}
+          <svg className="absolute inset-0 w-full h-full opacity-35" viewBox="0 0 400 400" preserveAspectRatio="none">
+            <path d="M-20 60 Q110 30 180 85 T340 50 T420 80" fill="none" stroke="#334155" strokeWidth="2.2" strokeDasharray="12 4" opacity="0.75" />
+            <path d="M120 70 Q160 130 200 180" fill="none" stroke="#475569" strokeWidth="1.4" strokeDasharray="8 3" opacity="0.6" />
+            <path d="M-10 220 Q130 180 230 250 T430 190" fill="none" stroke="#1E293B" strokeWidth="2" strokeDasharray="14 5" opacity="0.7" />
+            <path d="M220 245 Q270 310 330 370" fill="none" stroke="#475569" strokeWidth="1.3" opacity="0.5" />
+            <path d="M50 -20 Q170 150 320 420" fill="none" stroke="#64748B" strokeWidth="1.2" strokeDasharray="6 3" opacity="0.5" />
+          </svg>
+          {/* Stone chiseled inner border highlight */}
+          <div className="absolute inset-0 border border-white/40 rounded-[inherit]" />
+        </div>
       )
+
     case 'air':
       return (
-        <svg className="absolute inset-0 w-full h-full opacity-35 pointer-events-none rounded-[inherit] select-none" viewBox="0 0 400 400" preserveAspectRatio="none">
-          <path d="M0 120 Q120 150 240 120 T400 120" fill="none" stroke="#FFFFFF" strokeWidth="2.5" opacity="0.7" />
-          <path d="M0 240 Q130 210 260 240 T400 240" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity="0.6" />
-          <circle cx="60" cy="90" r="6" fill="rgba(255,255,255,0.8)" stroke="#00ACC1" strokeWidth="1" />
-          <circle cx="330" cy="70" r="8" fill="rgba(255,255,255,0.75)" stroke="#00ACC1" strokeWidth="1.2" />
-          <circle cx="280" cy="280" r="5" fill="rgba(255,255,255,0.8)" stroke="#00ACC1" strokeWidth="1" />
-          <circle cx="80" cy="310" r="7" fill="rgba(255,255,255,0.7)" stroke="#00ACC1" strokeWidth="1" />
-        </svg>
+        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[inherit] select-none">
+          {/* Aqua liquid caustic gradient shimmer */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-cyan-400/10 to-blue-500/15" />
+          {/* Water wave ripples SVG */}
+          <svg className="absolute inset-0 w-full h-full opacity-45" viewBox="0 0 400 400" preserveAspectRatio="none">
+            <path d="M0 100 Q100 130 200 100 T400 100" fill="none" stroke="#FFFFFF" strokeWidth="2.5" opacity="0.8" />
+            <path d="M0 220 Q110 190 220 220 T400 220" fill="none" stroke="#FFFFFF" strokeWidth="2.2" opacity="0.75" />
+            <path d="M0 330 Q120 360 240 330 T400 330" fill="none" stroke="#FFFFFF" strokeWidth="2" opacity="0.65" />
+            {/* 3D Water Bubbles */}
+            <circle cx="65" cy="80" r="8" fill="rgba(255,255,255,0.85)" stroke="#00ACC1" strokeWidth="1.2" />
+            <circle cx="63" cy="78" r="2.5" fill="#FFFFFF" />
+            <circle cx="335" cy="65" r="10" fill="rgba(255,255,255,0.8)" stroke="#00ACC1" strokeWidth="1.5" />
+            <circle cx="332" cy="62" r="3" fill="#FFFFFF" />
+            <circle cx="285" cy="285" r="7" fill="rgba(255,255,255,0.85)" stroke="#00ACC1" strokeWidth="1.2" />
+            <circle cx="283" cy="283" r="2" fill="#FFFFFF" />
+            <circle cx="75" cy="320" r="9" fill="rgba(255,255,255,0.75)" stroke="#00ACC1" strokeWidth="1.3" />
+            <circle cx="72" cy="317" r="2.5" fill="#FFFFFF" />
+          </svg>
+          {/* Liquid pool inner glow ring */}
+          <div className="absolute inset-0 border-2 border-white/50 rounded-[inherit]" />
+        </div>
       )
+
     case 'kertas':
     default:
       return (
@@ -1445,6 +1536,7 @@ export default function CardStudioPage() {
                                     cardStyle: style.id,
                                     bgColor: style.defaultBg,
                                     borderColor: style.defaultBorder,
+                                    borderRadius: style.defaultRadius,
                                   })
                                 }
                                 className={`p-2.5 rounded-xl text-left transition border flex flex-col justify-between cursor-pointer ${
@@ -1923,21 +2015,47 @@ export default function CardStudioPage() {
               {/* 3. STAMP CARD BOX */}
               <div className="px-4 -mt-3 relative z-20">
                 <div
-                  className="p-5 relative transition-all duration-300"
+                  className="p-5 relative transition-all duration-300 overflow-hidden"
                   style={{
                     backgroundColor: cardBoxBlock.bgColor || '#FFFDF8',
                     borderColor: cardBoxBlock.borderColor || '#F0DEC0',
-                    borderWidth: '1px',
+                    borderWidth:
+                      (cardBoxBlock.cardStyle || 'kertas') === 'kayu'
+                        ? '3px'
+                        : (cardBoxBlock.cardStyle || 'kertas') === 'besi'
+                        ? '2.5px'
+                        : (cardBoxBlock.cardStyle || 'kertas') === 'batu' || (cardBoxBlock.cardStyle || 'kertas') === 'air'
+                        ? '2px'
+                        : (cardBoxBlock.cardStyle || 'kertas') === 'kaca'
+                        ? '1.5px'
+                        : '1px',
                     borderStyle: 'solid',
-                    borderRadius: `${cardBoxBlock.borderRadius || 28}px`,
-                    backdropFilter: (cardBoxBlock.cardStyle || 'kertas') === 'kaca' ? 'blur(14px)' : 'none',
+                    borderRadius: `${cardBoxBlock.borderRadius || 26}px`,
+                    backdropFilter:
+                      (cardBoxBlock.cardStyle || 'kertas') === 'kaca'
+                        ? 'blur(22px) saturate(190%) contrast(105%)'
+                        : (cardBoxBlock.cardStyle || 'kertas') === 'air'
+                        ? 'blur(16px) saturate(140%)'
+                        : 'none',
+                    WebkitBackdropFilter:
+                      (cardBoxBlock.cardStyle || 'kertas') === 'kaca'
+                        ? 'blur(22px) saturate(190%) contrast(105%)'
+                        : (cardBoxBlock.cardStyle || 'kertas') === 'air'
+                        ? 'blur(16px) saturate(140%)'
+                        : 'none',
                     boxShadow:
                       cardBoxBlock.shadowStyle === 'glow'
                         ? '0 16px 36px -10px rgba(255,122,69,0.22)'
                         : (cardBoxBlock.cardStyle || 'kertas') === 'kaca'
-                        ? '0 20px 40px -15px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.9)'
+                        ? '0 24px 50px -12px rgba(0,0,0,0.22), inset 0 1.5px 2px rgba(255,255,255,0.85), inset 0 -1.5px 2px rgba(255,255,255,0.25)'
+                        : (cardBoxBlock.cardStyle || 'kertas') === 'kayu'
+                        ? '0 14px 32px -6px rgba(45,20,5,0.4), inset 0 2px 4px rgba(255,255,255,0.35), inset 0 -3px 6px rgba(40,15,0,0.4)'
+                        : (cardBoxBlock.cardStyle || 'kertas') === 'besi'
+                        ? '0 16px 36px -8px rgba(15,23,42,0.45), inset 0 2px 4px rgba(255,255,255,0.9), inset 0 -2px 5px rgba(0,0,0,0.35)'
+                        : (cardBoxBlock.cardStyle || 'kertas') === 'batu'
+                        ? '0 16px 36px -8px rgba(30,41,59,0.35), inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.2)'
                         : (cardBoxBlock.cardStyle || 'kertas') === 'air'
-                        ? '0 16px 36px -10px rgba(0,188,212,0.25), inset 0 1px 1px rgba(255,255,255,0.8)'
+                        ? '0 18px 40px -8px rgba(0,188,212,0.35), inset 0 2px 6px rgba(255,255,255,0.9), inset 0 -2px 6px rgba(0,188,212,0.25)'
                         : cardBoxBlock.shadowStyle === 'soft'
                         ? '0 12px 32px -8px rgba(43,27,18,0.08)'
                         : 'none',
@@ -1961,9 +2079,24 @@ export default function CardStudioPage() {
 
                   {/* PERFORATION DIVIDER LINE (FIXED LIVE) */}
                   <div className="relative my-3 flex items-center justify-center z-10">
-                    <div className="absolute -left-8 w-6 h-6 rounded-full bg-[#FFF7EA] border-r border-[#F0DEC0]" />
-                    <div className="w-full border-b-2 border-dashed border-[#F0DEC0]" />
-                    <div className="absolute -right-8 w-6 h-6 rounded-full bg-[#FFF7EA] border-l border-[#F0DEC0]" />
+                    <div
+                      className="absolute -left-8 w-6 h-6 rounded-full border-r"
+                      style={{
+                        backgroundColor: config.pageBgColor || '#FFF7EA',
+                        borderColor: cardBoxBlock.borderColor || '#F0DEC0',
+                      }}
+                    />
+                    <div
+                      className="w-full border-b-2 border-dashed"
+                      style={{ borderColor: cardBoxBlock.borderColor || '#F0DEC0' }}
+                    />
+                    <div
+                      className="absolute -right-8 w-6 h-6 rounded-full border-l"
+                      style={{
+                        backgroundColor: config.pageBgColor || '#FFF7EA',
+                        borderColor: cardBoxBlock.borderColor || '#F0DEC0',
+                      }}
+                    />
                   </div>
 
                   {/* 5-COLUMN STAMP GRID */}
@@ -1986,6 +2119,16 @@ export default function CardStudioPage() {
                               ? 'bg-gradient-to-br from-[#FFF7EA] to-[#FFE8D6] border-2 border-[#FF5A45] shadow-sm'
                               : isLast
                               ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/15 border-2 border-dashed border-amber-400/80'
+                              : (cardBoxBlock.cardStyle || 'kertas') === 'kaca'
+                              ? 'bg-white/30 backdrop-blur-md border-2 border-dashed border-white/60 hover:border-white shadow-xs'
+                              : (cardBoxBlock.cardStyle || 'kertas') === 'kayu'
+                              ? 'bg-[#E5B582]/40 border-2 border-dashed border-[#6D3916]/40 hover:border-[#6D3916]'
+                              : (cardBoxBlock.cardStyle || 'kertas') === 'besi'
+                              ? 'bg-slate-200/70 border-2 border-dashed border-slate-400 hover:border-slate-600'
+                              : (cardBoxBlock.cardStyle || 'kertas') === 'batu'
+                              ? 'bg-slate-200/60 border-2 border-dashed border-slate-400 hover:border-slate-500'
+                              : (cardBoxBlock.cardStyle || 'kertas') === 'air'
+                              ? 'bg-white/40 backdrop-blur-sm border-2 border-dashed border-[#4DD0E1] hover:border-[#00ACC1]'
                               : 'bg-white/80 border-2 border-dashed border-[#F0DEC0] hover:border-amber-300'
                           }`}
                         >

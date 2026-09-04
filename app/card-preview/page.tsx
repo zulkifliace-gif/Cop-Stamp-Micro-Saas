@@ -297,21 +297,47 @@ export default function LiveCardPreviewPage() {
         {cardBoxBlock.visible && (
           <div className="px-4 -mt-3 relative z-20">
             <div
-              className="p-5 relative transition-all duration-300"
+              className="p-5 relative transition-all duration-300 overflow-hidden"
               style={{
                 backgroundColor: cardBoxBlock.bgColor || '#FFFDF8',
                 borderColor: cardBoxBlock.borderColor || '#F0DEC0',
-                borderWidth: '1px',
+                borderWidth:
+                  (cardBoxBlock.cardStyle || 'kertas') === 'kayu'
+                    ? '3px'
+                    : (cardBoxBlock.cardStyle || 'kertas') === 'besi'
+                    ? '2.5px'
+                    : (cardBoxBlock.cardStyle || 'kertas') === 'batu' || (cardBoxBlock.cardStyle || 'kertas') === 'air'
+                    ? '2px'
+                    : (cardBoxBlock.cardStyle || 'kertas') === 'kaca'
+                    ? '1.5px'
+                    : '1px',
                 borderStyle: 'solid',
-                borderRadius: `${cardBoxBlock.borderRadius || 28}px`,
-                backdropFilter: (cardBoxBlock.cardStyle || 'kertas') === 'kaca' ? 'blur(14px)' : 'none',
+                borderRadius: `${cardBoxBlock.borderRadius || 26}px`,
+                backdropFilter:
+                  (cardBoxBlock.cardStyle || 'kertas') === 'kaca'
+                    ? 'blur(22px) saturate(190%) contrast(105%)'
+                    : (cardBoxBlock.cardStyle || 'kertas') === 'air'
+                    ? 'blur(16px) saturate(140%)'
+                    : 'none',
+                WebkitBackdropFilter:
+                  (cardBoxBlock.cardStyle || 'kertas') === 'kaca'
+                    ? 'blur(22px) saturate(190%) contrast(105%)'
+                    : (cardBoxBlock.cardStyle || 'kertas') === 'air'
+                    ? 'blur(16px) saturate(140%)'
+                    : 'none',
                 boxShadow:
                   cardBoxBlock.shadowStyle === 'glow'
                     ? '0 16px 36px -10px rgba(255,122,69,0.22)'
                     : (cardBoxBlock.cardStyle || 'kertas') === 'kaca'
-                    ? '0 20px 40px -15px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.9)'
+                    ? '0 24px 50px -12px rgba(0,0,0,0.22), inset 0 1.5px 2px rgba(255,255,255,0.85), inset 0 -1.5px 2px rgba(255,255,255,0.25)'
+                    : (cardBoxBlock.cardStyle || 'kertas') === 'kayu'
+                    ? '0 14px 32px -6px rgba(45,20,5,0.4), inset 0 2px 4px rgba(255,255,255,0.35), inset 0 -3px 6px rgba(40,15,0,0.4)'
+                    : (cardBoxBlock.cardStyle || 'kertas') === 'besi'
+                    ? '0 16px 36px -8px rgba(15,23,42,0.45), inset 0 2px 4px rgba(255,255,255,0.9), inset 0 -2px 5px rgba(0,0,0,0.35)'
+                    : (cardBoxBlock.cardStyle || 'kertas') === 'batu'
+                    ? '0 16px 36px -8px rgba(30,41,59,0.35), inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.2)'
                     : (cardBoxBlock.cardStyle || 'kertas') === 'air'
-                    ? '0 16px 36px -10px rgba(0,188,212,0.25), inset 0 1px 1px rgba(255,255,255,0.8)'
+                    ? '0 18px 40px -8px rgba(0,188,212,0.35), inset 0 2px 6px rgba(255,255,255,0.9), inset 0 -2px 6px rgba(0,188,212,0.25)'
                     : cardBoxBlock.shadowStyle === 'soft'
                     ? '0 12px 32px -8px rgba(43,27,18,0.08)'
                     : 'none',
@@ -320,7 +346,7 @@ export default function LiveCardPreviewPage() {
               {/* MATERIAL TEXTURE OVERLAY */}
               <CardBoxMaterialTexture cardStyle={cardBoxBlock.cardStyle || 'kertas'} />
               {/* VOUCHER HEADER */}
-              <div className="text-center mb-4">
+              <div className="text-center mb-4 relative z-10">
                 <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500/15 to-orange-500/15 border border-amber-500/30 px-3 py-1 rounded-full mb-2">
                   <span className="text-xs">🎁</span>
                   <span className="text-[11px] font-extrabold text-amber-900 tracking-wide uppercase">
@@ -333,14 +359,29 @@ export default function LiveCardPreviewPage() {
               </div>
 
               {/* PERFORATION DIVIDER LINE (Fixed Component) */}
-              <div className="relative my-4 flex items-center justify-center">
-                <div className="absolute -left-8 w-6 h-6 rounded-full bg-[#FFF7EA] border-r border-[#F0DEC0]" />
-                <div className="w-full border-b-2 border-dashed border-[#F0DEC0]" />
-                <div className="absolute -right-8 w-6 h-6 rounded-full bg-[#FFF7EA] border-l border-[#F0DEC0]" />
+              <div className="relative my-4 flex items-center justify-center z-10">
+                <div
+                  className="absolute -left-8 w-6 h-6 rounded-full border-r"
+                  style={{
+                    backgroundColor: config.pageBgColor || '#FFF7EA',
+                    borderColor: cardBoxBlock.borderColor || '#F0DEC0',
+                  }}
+                />
+                <div
+                  className="w-full border-b-2 border-dashed"
+                  style={{ borderColor: cardBoxBlock.borderColor || '#F0DEC0' }}
+                />
+                <div
+                  className="absolute -right-8 w-6 h-6 rounded-full border-l"
+                  style={{
+                    backgroundColor: config.pageBgColor || '#FFF7EA',
+                    borderColor: cardBoxBlock.borderColor || '#F0DEC0',
+                  }}
+                />
               </div>
 
               {/* 5-COLUMN STAMP GRID */}
-              <div className="grid grid-cols-5 gap-2.5 my-4">
+              <div className="grid grid-cols-5 gap-2.5 my-4 relative z-10">
                 {Array.from({ length: reqStamps }).map((_, idx) => {
                   const num = idx + 1
                   const isStamped = num <= totalStamps
@@ -359,6 +400,16 @@ export default function LiveCardPreviewPage() {
                           ? 'bg-gradient-to-br from-[#FFF7EA] to-[#FFE8D6] border-2 border-[#FF5A45] shadow-sm'
                           : isLast
                           ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/15 border-2 border-dashed border-amber-400/80'
+                          : (cardBoxBlock.cardStyle || 'kertas') === 'kaca'
+                          ? 'bg-white/30 backdrop-blur-md border-2 border-dashed border-white/60 hover:border-white shadow-xs'
+                          : (cardBoxBlock.cardStyle || 'kertas') === 'kayu'
+                          ? 'bg-[#E5B582]/40 border-2 border-dashed border-[#6D3916]/40 hover:border-[#6D3916]'
+                          : (cardBoxBlock.cardStyle || 'kertas') === 'besi'
+                          ? 'bg-slate-200/70 border-2 border-dashed border-slate-400 hover:border-slate-600'
+                          : (cardBoxBlock.cardStyle || 'kertas') === 'batu'
+                          ? 'bg-slate-200/60 border-2 border-dashed border-slate-400 hover:border-slate-500'
+                          : (cardBoxBlock.cardStyle || 'kertas') === 'air'
+                          ? 'bg-white/40 backdrop-blur-sm border-2 border-dashed border-[#4DD0E1] hover:border-[#00ACC1]'
                           : 'bg-white/80 border-2 border-dashed border-[#F0DEC0] hover:border-amber-300'
                       }`}
                     >
