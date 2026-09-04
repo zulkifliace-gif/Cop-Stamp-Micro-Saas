@@ -797,7 +797,10 @@ export default function CashierDashboard() {
   async function handleToggleBluetooth() {
     if (btPrinter) {
       try {
-        if (btPrinter.device.gatt?.connected) {
+        if (btPrinter.isNative) {
+          const nb = typeof window !== 'undefined' ? (window as any).AndroidBluetooth : null
+          if (nb) nb.disconnect()
+        } else if (btPrinter.device?.gatt?.connected) {
           btPrinter.device.gatt.disconnect()
         }
       } catch (e) {
@@ -817,10 +820,12 @@ export default function CashierDashboard() {
       // 🔔 Play notification sound on successful BT connection
       playNotificationSound(0.7)
 
-      conn.device.addEventListener('gattserverdisconnected', () => {
-        setBtPrinter(null)
-        showBtToast('Printer Bluetooth terputus.', 'error')
-      })
+      if (!conn.isNative && conn.device?.addEventListener) {
+        conn.device.addEventListener('gattserverdisconnected', () => {
+          setBtPrinter(null)
+          showBtToast('Printer Bluetooth terputus.', 'error')
+        })
+      }
     } catch (err: any) {
       if (err.name !== 'NotFoundError') {
         showBtToast(err.message || 'Gagal menyambung ke printer Bluetooth.', 'error')

@@ -35,6 +35,7 @@ export interface BluetoothPrinterConnection {
   server: any
   characteristic: any
   name: string
+  isNative?: boolean
 }
 
 export interface StampReceiptData {
@@ -144,14 +145,83 @@ async function generateQrRaster(text: string, widthPx = 256): Promise<Uint8Array
 /**
  * Check if Web Bluetooth API is supported
  */
+/**
+ * Check if Web Bluetooth API or Android Native Bluetooth is supported
+ */
 export function isBluetoothSupported(): boolean {
+  if (typeof window !== 'undefined' && (window as any).AndroidBluetooth) {
+    return true
+  }
   return typeof navigator !== 'undefined' && Boolean((navigator as any).bluetooth)
 }
 
+function uint8ArrayToBase64(bytes: Uint8Array): string {
+  let binary = ''
+  const len = bytes.byteLength
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i])
+  }
+  return btoa(binary)
+}
+
+async function sendToNativePrinter(data: Uint8Array): Promise<void> {
+  const nativeBridge = typeof window !== 'undefined' ? (window as any).AndroidBluetooth : null
+  if (!nativeBridge) throw new Error('Native Bluetooth bridge tidak dijumpai.')
+  const base64 = uint8ArrayToBase64(data)
+  const success = nativeBridge.printBase64(base64)
+  if (!success) {
+    throw new Error('Gagal mencetak ke printer Bluetooth. Sila semak sambungan printer.')
+  }
+}
+
 /**
- * Connect to Bluetooth Thermal Printer via Web Bluetooth
+ * Connect to Bluetooth Thermal Printer (Native Android Bridge or Web Bluetooth)
  */
 export async function connectBluetoothPrinter(): Promise<BluetoothPrinterConnection> {
+  // 1. Android Native Bluetooth Bridge (Inside Android APK)
+  const nativeBridge = typeof window !== 'undefined' ? (window as any).AndroidBluetooth : null
+  if (nativeBridge && typeof nativeBridge.isNativeSupported === 'function') {
+    if (!nativeBridge.isBluetoothEnabled()) {
+      throw new Error('Sila hidupkan Bluetooth telefon anda terlebih dahulu.')
+    }
+    if (!nativeBridge.hasPermission()) {
+      nativeBridge.requestPermission()
+      throw new Error('Sila berikan kebenaran Bluetooth pada telefon anda dan cuba semula.')
+    }
+
+    const pairedJson = nativeBridge.getPairedDevices()
+    let pairedDevices: Array<{ name: string; address: string }> = []
+    try {
+      pairedDevices = JSON.parse(pairedJson)
+    } catch {
+      pairedDevices = []
+    }
+
+    if (!pairedDevices || pairedDevices.length === 0) {
+      throw new Error('Tiada printer Bluetooth dijumpai. Sila "Pair" printer anda dalam Tetapan Bluetooth Android terlebih dahulu.')
+    }
+
+    // Auto-detect printer with typical thermal printer names, or use the first paired device
+    const target =
+      pairedDevices.find((d) =>
+        /printer|pos|mpt|rpp|gooj|58|80|thermal|bt/i.test(d.name)
+      ) || pairedDevices[0]
+
+    const connected = nativeBridge.connect(target.address)
+    if (!connected) {
+      throw new Error(`Gagal menyambung ke "${target.name}". Pastikan printer dihidupkan dan berdekatan.`)
+    }
+
+    return {
+      device: target,
+      server: null,
+      characteristic: null,
+      name: target.name || 'Bluetooth Printer',
+      isNative: true,
+    }
+  }
+
+  // 2. Web Bluetooth (Google Chrome / Edge)
   const nav = navigator as any
   if (!nav.bluetooth) {
     throw new Error('Web Bluetooth tidak disokong pada pelayar ini. Sila gunakan Google Chrome atau Microsoft Edge.')
@@ -195,6 +265,7 @@ export async function connectBluetoothPrinter(): Promise<BluetoothPrinterConnect
     server,
     characteristic: targetCharacteristic,
     name: device.name || 'Bluetooth Printer',
+    isNative: false,
   }
 }
 
@@ -285,7 +356,11 @@ export async function printStampReceipt(
     }
 
     // Send to Bluetooth Printer
-    await sendToCharacteristic(printer.characteristic, combinedBytes)
+    if (printer.isNative) {
+      await sendToNativePrinter(combinedBytes)
+    } else {
+      await sendToCharacteristic(printer.characteristic, combinedBytes)
+    }
     return true
   } catch (error) {
     console.error('Failed to print receipt:', error)
@@ -392,7 +467,11 @@ export async function printClaimReceipt(
     }
 
     // Send to Bluetooth Printer
-    await sendToCharacteristic(printer.characteristic, combinedBytes)
+    if (printer.isNative) {
+      await sendToNativePrinter(combinedBytes)
+    } else {
+      await sendToCharacteristic(printer.characteristic, combinedBytes)
+    }
     return true
   } catch (error) {
     console.error('Failed to print claim receipt:', error)

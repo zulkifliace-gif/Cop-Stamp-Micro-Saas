@@ -12,6 +12,7 @@ public class MainActivity extends BridgeActivity {
             WebSettings settings = this.bridge.getWebView().getSettings();
             settings.setDomStorageEnabled(true);
             settings.setDatabaseEnabled(true);
+            this.bridge.getWebView().addJavascriptInterface(new AndroidBluetoothBridge(this), "AndroidBluetooth");
         }
     }
 
