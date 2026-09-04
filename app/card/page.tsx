@@ -61,94 +61,6 @@ function normalizeStampIcon(path?: string) {
   return path.startsWith('/') ? path : `/${path}`
 }
 
-function getGoogleMapsEmbedUrl(loc?: StoreLocationItem, storeNameFallback?: string) {
-  if (!loc) return ''
-  if (loc.embedUrl) {
-    return loc.embedUrl
-  }
-  if (loc.coordinates) {
-    return `https://maps.google.com/maps?q=${encodeURIComponent(loc.coordinates)}&hl=ms&z=16&output=embed`
-  }
-  if (loc.embedQuery) {
-    return `https://maps.google.com/maps?q=${encodeURIComponent(loc.embedQuery)}&hl=ms&z=16&output=embed`
-  }
-
-  const trimmed = (loc.url || '').trim()
-  if (trimmed.includes('output=embed') || trimmed.includes('/maps/embed')) {
-    return trimmed
-  }
-
-  // If iframe src was pasted
-  const iframeSrcMatch = trimmed.match(/src=["'](https:\/\/[^"']+)["']/)
-  if (iframeSrcMatch && (iframeSrcMatch[1].includes('maps.google') || iframeSrcMatch[1].includes('google.com/maps'))) {
-    return iframeSrcMatch[1]
-  }
-
-  // 1. CID match
-  const cidMatch = trimmed.match(/[?&]cid=(\d+)/) || trimmed.match(/cid:(\d+)/)
-  if (cidMatch) {
-    return `https://maps.google.com/maps?cid=${cidMatch[1]}&hl=ms&output=embed`
-  }
-
-  // 2. Exact pin coordinates: !3d<lat>!4d<lng> or !8m2!3d<lat>!4d<lng>
-  const pinMatch =
-    trimmed.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) ||
-    trimmed.match(/!8m2!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) ||
-    trimmed.match(/!1d(-?\d+\.\d+)!2d(-?\d+\.\d+)/)
-  if (pinMatch) {
-    return `https://maps.google.com/maps?q=${pinMatch[1]},${pinMatch[2]}&hl=ms&z=16&output=embed`
-  }
-
-  // 3. Query coordinates ?q=lat,lng or ?query=lat,lng or ?ll=lat,lng
-  const qCoordMatch =
-    trimmed.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/) ||
-    trimmed.match(/[?&]query=(-?\d+\.\d+),(-?\d+\.\d+)/) ||
-    trimmed.match(/[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/) ||
-    trimmed.match(/[?&]sll=(-?\d+\.\d+),(-?\d+\.\d+)/)
-  if (qCoordMatch) {
-    return `https://maps.google.com/maps?q=${qCoordMatch[1]},${qCoordMatch[2]}&hl=ms&z=16&output=embed`
-  }
-
-  // 4. Place name in /place/Place+Name/
-  const placeMatch = trimmed.match(/\/place\/([^/@?#]+)/)
-  if (placeMatch && placeMatch[1]) {
-    try {
-      const place = decodeURIComponent(placeMatch[1].replace(/\+/g, ' '))
-      return `https://maps.google.com/maps?q=${encodeURIComponent(place)}&hl=ms&z=16&output=embed`
-    } catch {
-      return `https://maps.google.com/maps?q=${encodeURIComponent(placeMatch[1].replace(/\+/g, ' '))}&hl=ms&z=16&output=embed`
-    }
-  }
-
-  // 5. Search query string ?q=... or ?query=...
-  const qMatch = trimmed.match(/[?&]q=([^&]+)/) || trimmed.match(/[?&]query=([^&]+)/)
-  if (qMatch && qMatch[1]) {
-    try {
-      const decoded = decodeURIComponent(qMatch[1].replace(/\+/g, ' '))
-      return `https://maps.google.com/maps?q=${encodeURIComponent(decoded)}&hl=ms&z=16&output=embed`
-    } catch {
-      return `https://maps.google.com/maps?q=${qMatch[1]}&hl=ms&z=16&output=embed`
-    }
-  }
-
-  // 6. Camera coordinates @lat,lng as last-resort fallback
-  const coordMatch = trimmed.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
-  if (coordMatch) {
-    return `https://maps.google.com/maps?q=${coordMatch[1]},${coordMatch[2]}&hl=ms&z=16&output=embed`
-  }
-
-  // 7. Raw lat, lng input e.g. "3.1415, 101.6869"
-  const rawCoordMatch = trimmed.match(/^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$/)
-  if (rawCoordMatch) {
-    return `https://maps.google.com/maps?q=${rawCoordMatch[1]},${rawCoordMatch[2]}&hl=ms&z=16&output=embed`
-  }
-
-  const queryToUse = loc.address
-    ? `${loc.name ? loc.name + ', ' : ''}${loc.address}`
-    : (loc.name || storeNameFallback || '')
-  if (!queryToUse) return ''
-  return `https://maps.google.com/maps?q=${encodeURIComponent(queryToUse)}&hl=ms&z=16&output=embed`
-}
 
 function formatStampDateTime(dateStr: string | null, lang: Lang) {
   if (!dateStr) {
@@ -347,18 +259,6 @@ export default function CustomerCardPage() {
   const [locations, setLocations] = useState<StoreLocationItem[]>([])
   const [showLocationsModal, setShowLocationsModal] = useState(false)
   const [activeLocationIdx, setActiveLocationIdx] = useState(0)
-  const [isMapLoading, setIsMapLoading] = useState(true)
-
-  // Preloader watchdog for Google Maps iframe
-  useEffect(() => {
-    if (showLocationsModal) {
-      setIsMapLoading(true)
-      const timer = setTimeout(() => {
-        setIsMapLoading(false)
-      }, 3000)
-      return () => clearTimeout(timer)
-    }
-  }, [showLocationsModal, activeLocationIdx])
 
   // Multi-card state & card slider
   const [selectedCardIdx, setSelectedCardIdx] = useState(0)
@@ -2605,80 +2505,69 @@ export default function CustomerCardPage() {
             {locations.length > 0 ? (
               (() => {
                 const currentLoc = locations[activeLocationIdx] || locations[0]
-                const embedUrl = getGoogleMapsEmbedUrl(currentLoc, storeName)
+                const mapUrl = currentLoc.url
+                  ? (currentLoc.url.startsWith('http') ? currentLoc.url : `https://${currentLoc.url}`)
+                  : (currentLoc.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentLoc.address)}` : '')
 
                 return (
                   <div className="space-y-3">
-                    {/* MINI GOOGLE MAP IFRAME (AUTHENTIC PINPOINT FROM GOOGLE MAPS) */}
-                    <div className="w-full h-[220px] rounded-2xl overflow-hidden border border-[#F0DEC0] relative bg-[#FFF7EA] shadow-inner select-none">
-                      {embedUrl ? (
-                        <>
-                          <iframe
-                            key={`${activeLocationIdx}_${embedUrl}`}
-                            title={currentLoc.name || 'Google Map'}
-                            src={embedUrl}
-                            onLoad={() => setIsMapLoading(false)}
-                            className={`w-full h-full border-0 pointer-events-none transition-opacity duration-300 ${
-                              isMapLoading ? 'opacity-0' : 'opacity-100'
-                            }`}
-                            loading="lazy"
-                            referrerPolicy="no-referrer-when-downgrade"
-                          />
-
-                          {/* MAP LOADING ANIMATION SKELETON */}
-                          {isMapLoading && (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#FFF7EA] z-10 transition-opacity duration-200">
-                              <div className="relative flex items-center justify-center mb-2">
-                                <div className="absolute w-12 h-12 rounded-full bg-[#FF7A45]/20 animate-ping" />
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#FF7A45] to-[#E8901B] flex items-center justify-center shadow-md relative z-10 text-white">
-                                  <svg className="w-5 h-5 animate-bounce" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                                  </svg>
-                                </div>
-                              </div>
-                              <span className="text-[11.5px] font-bold text-[#5A4B3D] tracking-tight animate-pulse">
-                                {lang === 'en' ? 'Loading map location...' : 'Memuatkan peta lokasi...'}
-                              </span>
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-center p-4">
-                          <span className="text-3xl mb-1">🗺️</span>
-                          <span className="text-xs text-[#96806B]">
-                            {lang === 'en' ? 'Map could not be loaded' : 'Peta tidak dapat dimuatkan'}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
                     {/* LOCATION DETAILS CARD */}
-                    <div className="bg-[#FFFDF8] border border-[#F0DEC0] rounded-xl p-3 text-left">
-                      <div className="font-fraunces font-bold text-sm text-[#1B0F09] flex items-center justify-between">
-                        <span>{currentLoc.name || 'Cawangan'}</span>
-                        {locations.length > 1 && (
-                          <span className="text-[10px] font-jakarta font-bold text-[#FF5A45] bg-[#FF5A45]/10 px-2 py-0.5 rounded-full">
-                            {t.locationsModal.outletLabel(activeLocationIdx + 1, locations.length)}
-                          </span>
-                        )}
+                    <div className="bg-[#FFFDF8] border border-[#F0DEC0] rounded-2xl p-4 text-left shadow-sm">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-[#FF5A45]/10 text-[#FF5A45] flex items-center justify-center font-bold text-sm shrink-0">
+                            📍
+                          </div>
+                          <div>
+                            <div className="font-fraunces font-bold text-[15px] text-[#1B0F09] leading-tight">
+                              {currentLoc.name || 'Cawangan Kedai'}
+                            </div>
+                            {locations.length > 1 && (
+                              <span className="text-[10px] font-jakarta font-bold text-[#FF5A45]">
+                                {t.locationsModal.outletLabel(activeLocationIdx + 1, locations.length)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      {currentLoc.address && (
-                        <p className="text-xs text-[#5A4B3D] mt-1 leading-relaxed">
-                          {currentLoc.address}
+
+                      {currentLoc.address ? (
+                        <div className="mt-2.5 pt-2.5 border-t border-[#F0DEC0]/60">
+                          <div className="text-[10px] uppercase font-bold text-[#96806B] tracking-wider mb-1">
+                            {lang === 'en' ? 'Address' : 'Alamat'}
+                          </div>
+                          <p className="text-xs text-[#3C2E24] leading-relaxed font-jakarta">
+                            {currentLoc.address}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-[#96806B] mt-1 italic">
+                          {lang === 'en' ? 'No address details provided' : 'Tiada butiran alamat terperinci'}
                         </p>
                       )}
                     </div>
 
                     {/* ACTION BUTTON: OPEN IN GOOGLE MAPS */}
-                    {currentLoc.url && (
+                    {mapUrl && (
                       <a
-                        href={currentLoc.url.startsWith('http') ? currentLoc.url : `https://${currentLoc.url}`}
+                        href={mapUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="modal-btn"
-                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, textDecoration: 'none' }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 8,
+                          textDecoration: 'none',
+                          marginTop: 8,
+                        }}
                       >
+                        <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                        </svg>
                         <span>{t.locationsModal.openInMaps}</span>
+                        <span className="text-xs">↗</span>
                       </a>
                     )}
                   </div>
