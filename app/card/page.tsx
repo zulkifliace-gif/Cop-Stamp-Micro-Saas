@@ -2366,12 +2366,12 @@ export default function CustomerCardPage() {
               &times;
             </button>
             <div className="modal-title" style={{ justifyContent: 'center' }}>
-              ⭐ {lang === 'en' ? 'Rate Us on Google' : 'Nilai Kami di Google'}
+              ⭐ {lang === 'en' ? `Rate ${storeName || 'Us'} on Google` : `Nilai ${storeName || 'Kedai Kami'} di Google`}
             </div>
             <div className="modal-sub">
               {lang === 'en'
-                ? 'Tap stars to give your review.'
-                : 'Sentuh bintang untuk beri penilaian anda.'}
+                ? `Tap stars to give your review for ${storeName || 'our store'}.`
+                : `Sentuh bintang untuk beri penilaian anda bagi ${storeName || 'kedai ini'}.`}
             </div>
             <div className="stars">
               {[1, 2, 3, 4, 5].map((s) => (
@@ -2386,7 +2386,7 @@ export default function CustomerCardPage() {
               ))}
             </div>
             <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 12, minHeight: 16 }}>
-              {rateHintText || (lang === 'en' ? '5 stars are greatly appreciated!' : '5 bintang amat kami hargai!')}
+              {rateHintText || (lang === 'en' ? `5 stars for ${storeName || 'our store'} are greatly appreciated!` : `5 bintang untuk ${storeName || 'kedai ini'} amat kami hargai!`)}
             </div>
             <button
               type="button"

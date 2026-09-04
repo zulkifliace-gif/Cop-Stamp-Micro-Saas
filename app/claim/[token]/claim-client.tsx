@@ -1546,18 +1546,20 @@ export default function ClaimClient({
             </div>
 
             <div className="font-fraunces font-bold text-xl text-[#0A1716] mb-1 leading-tight">
-              {t.reviewModal.title}
+              {lang === 'en' ? `Rate ${claimData.storeName} on Google` : `Nilai ${claimData.storeName} di Google`}
             </div>
             <p className="text-xs text-[#5E6F68] mb-4 leading-relaxed">
-              {t.reviewModal.message}
+              {lang === 'en'
+                ? `Help ${claimData.storeName} with a 5-star review on Google!`
+                : `Bantu ${claimData.storeName} dengan ulasan 5-bintang di Google!`}
             </p>
 
             {/* INTERACTIVE 5-STAR SELECTOR (PILIHAN A - TAP STAR TO OPEN REVIEW) */}
             <div className="bg-white/95 border border-[#E4D9BE] rounded-2xl p-5 mb-4 shadow-sm">
               <div className="text-[11.5px] font-semibold text-[#5E6F68] mb-3">
                 {lang === 'en'
-                  ? 'Tap a star below to rate us on Google:'
-                  : 'Sentuh mana-mana bintang di bawah untuk ulas di Google:'}
+                  ? `Tap a star below to rate ${claimData.storeName} on Google:`
+                  : `Sentuh bintang di bawah untuk ulas ${claimData.storeName} di Google:`}
               </div>
               <div className="flex items-center justify-center gap-2 mb-2.5">
                 {[1, 2, 3, 4, 5].map((star) => {
