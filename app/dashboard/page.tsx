@@ -1647,27 +1647,35 @@ export default function CashierDashboard() {
 
   if (authLoading || (user && settingsLoading && !storeName && !needsRegistration)) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 font-jakarta text-[#FAF2E2] bg-dot-pattern">
+      <main className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 font-jakarta text-[#2B1B12] bg-[#FFF7EA]">
+        <style dangerouslySetInnerHTML={{ __html: `
+          body {
+            background-color: #FFF7EA !important;
+            background-image: radial-gradient(circle at 1px 1px, rgba(43,27,18,0.055) 1px, transparent 1px) !important;
+            background-size: 20px 20px !important;
+            color: #2B1B12 !important;
+          }
+        `}} />
         <div className="w-full max-w-[440px] mx-auto flex flex-col items-center">
-          <div className="w-full bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/15 rounded-[26px] p-6 sm:p-7 shadow-2xl animate-pulse flex flex-col items-center">
+          <div className="w-full bg-[#FFFDF8] border border-[#F0DEC0] rounded-[28px] p-6 sm:p-7 shadow-xl animate-pulse flex flex-col items-center">
             {/* Logo Glow */}
-            <div className="w-13 h-13 rounded-full bg-[#E5A43B]/20 mb-3 flex items-center justify-center border border-[#E5A43B]/30">
+            <div className="w-13 h-13 rounded-full bg-[#FF7A45]/20 mb-3 flex items-center justify-center border border-[#FF7A45]/30">
               <img src="/logo.svg" alt="LajuS" className="w-7 h-7 object-contain opacity-85" />
             </div>
 
             {/* Store Name Skeleton */}
-            <div className="w-36 h-5 bg-[#FAF2E2]/20 rounded-full mb-1.5" />
-            <div className="w-24 h-2.5 bg-[#FAF2E2]/10 rounded-full mb-6" />
+            <div className="w-36 h-5 bg-[#2B1B12]/15 rounded-full mb-1.5" />
+            <div className="w-24 h-2.5 bg-[#2B1B12]/10 rounded-full mb-6" />
 
             {/* Dashboard Card Skeleton */}
             <div className="w-full space-y-3">
-              <div className="w-full h-14 rounded-2xl bg-[#FAF2E2]/10 border border-[#FAF2E2]/5" />
-              <div className="w-full h-32 rounded-2xl bg-[#FAF2E2]/10 border border-[#FAF2E2]/5" />
-              <div className="w-full h-12 rounded-xl bg-[#E5A43B]/20 border border-[#E5A43B]/30" />
+              <div className="w-full h-14 rounded-2xl bg-[#2B1B12]/5 border border-[#F0DEC0]" />
+              <div className="w-full h-32 rounded-2xl bg-[#2B1B12]/5 border border-[#F0DEC0]" />
+              <div className="w-full h-12 rounded-xl bg-[#FF7A45]/20 border border-[#FF7A45]/30" />
             </div>
 
             {/* Micro Caption */}
-            <div className="w-full text-center mt-5 flex items-center justify-center gap-1.5 opacity-40 text-[11px] font-space text-[#FAF2E2]">
+            <div className="w-full text-center mt-5 flex items-center justify-center gap-1.5 opacity-60 text-[11px] font-space text-[#96806B]">
               <img src="/logo.svg" alt="LajuS" className="w-3 h-3 object-contain" />
               <span>{t.loading.loadingCounter}</span>
             </div>
@@ -1678,11 +1686,21 @@ export default function CashierDashboard() {
   }
 
   return (
-    <div className="relative z-10 w-full max-w-[560px] md:max-w-[680px] lg:max-w-[760px] mx-auto px-4 sm:px-6 pt-5 sm:pt-6 pb-16 font-jakarta text-[#FAF2E2]">
+    <div className="relative z-10 w-full max-w-[560px] md:max-w-[680px] lg:max-w-[760px] mx-auto px-4 sm:px-6 pt-5 sm:pt-6 pb-16 font-jakarta text-[#2B1B12]">
+      {/* SCOPED COMPONENT STYLES MATCHING /card */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        body {
+          background-color: #FFF7EA !important;
+          background-image: radial-gradient(circle at 1px 1px, rgba(43,27,18,0.055) 1px, transparent 1px) !important;
+          background-size: 20px 20px !important;
+          color: #2B1B12 !important;
+        }
+      `}} />
+
       {/* TOPBAR */}
       <div className="flex items-center justify-between gap-2 mb-5 sm:mb-[22px]">
         <div className="flex items-center gap-2.5 sm:gap-[11px] min-w-0">
-          <div className="w-9 h-9 sm:w-[38px] sm:h-[38px] rounded-full overflow-hidden bg-[#E5A43B] flex items-center justify-center shadow-sm border border-[#FAF2E2]/20 shrink-0">
+          <div className="w-9 h-9 sm:w-[38px] sm:h-[38px] rounded-full overflow-hidden bg-[#FF7A45] flex items-center justify-center shadow-xs border border-[#F0DEC0] shrink-0">
             {logoUrl ? (
               <img src={logoUrl} alt={storeName || 'Kedai'} className="w-full h-full object-cover" />
             ) : (
@@ -1690,10 +1708,10 @@ export default function CashierDashboard() {
             )}
           </div>
           <div className="min-w-0">
-            <div className="font-fraunces font-semibold text-[16px] sm:text-[18px] leading-tight truncate">
+            <div className="font-fraunces font-semibold text-[16px] sm:text-[18px] leading-tight truncate text-[#2B1B12]">
               {storeName || (lang === 'en' ? 'Your Store' : 'Kedai Anda')}
             </div>
-            <div className="font-space text-[9px] sm:text-[9.5px] tracking-[0.1em] text-[#5E6F68] truncate">
+            <div className="font-space text-[9px] sm:text-[9.5px] tracking-[0.1em] text-[#96806B] truncate">
               {t.topbar.staffCounter}{' '}
               {user
                 ? needsRegistration
@@ -1708,14 +1726,14 @@ export default function CashierDashboard() {
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* LANGUAGE TOGGLE (MY / EN) */}
-          <div className="flex items-center bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/15 p-0.5 rounded-[12px] text-[10.5px] sm:text-[11px] font-extrabold shrink-0">
+          <div className="flex items-center bg-[#FFFDF8] border border-[#F0DEC0] p-0.5 rounded-[12px] text-[10.5px] sm:text-[11px] font-extrabold shrink-0 shadow-xs">
             <button
               type="button"
               onClick={() => switchLang('my')}
               className={`px-1.5 sm:px-2 py-1 rounded-[8px] transition-all cursor-pointer ${
                 lang === 'my'
-                  ? 'bg-[#E5A43B] text-[#1A2422] font-bold shadow-xs'
-                  : 'text-[#FAF2E2]/70 hover:text-[#FAF2E2]'
+                  ? 'bg-[#FF7A45] text-white font-bold shadow-xs'
+                  : 'text-[#96806B] hover:text-[#2B1B12]'
               }`}
               aria-label="Tukar ke Bahasa Melayu"
             >
@@ -1726,8 +1744,8 @@ export default function CashierDashboard() {
               onClick={() => switchLang('en')}
               className={`px-1.5 sm:px-2 py-1 rounded-[8px] transition-all cursor-pointer ${
                 lang === 'en'
-                  ? 'bg-[#E5A43B] text-[#1A2422] font-bold shadow-xs'
-                  : 'text-[#FAF2E2]/70 hover:text-[#FAF2E2]'
+                  ? 'bg-[#FF7A45] text-white font-bold shadow-xs'
+                  : 'text-[#96806B] hover:text-[#2B1B12]'
               }`}
               aria-label="Switch to English"
             >
@@ -1737,7 +1755,7 @@ export default function CashierDashboard() {
 
           {/* ICON ACTION GROUP — grouped in one consistent surface so icons line up neatly at any width */}
           {user && (
-            <div className="flex items-center gap-1 sm:gap-1.5 bg-[#FAF2E2]/[0.04] border border-[#FAF2E2]/10 rounded-[14px] p-1 shrink-0">
+            <div className="flex items-center gap-1 sm:gap-1.5 bg-[#FFFDF8] border border-[#F0DEC0] rounded-[14px] p-1 shrink-0 shadow-xs">
               {/* BLUETOOTH THERMAL PRINTER BUTTON (ICON ONLY WITH GLOW/STATUS) */}
               {!needsRegistration && (
                 <button
@@ -1750,8 +1768,8 @@ export default function CashierDashboard() {
                   }
                   className={`w-8 h-8 sm:w-[34px] sm:h-[34px] rounded-[10px] border transition-all flex items-center justify-center cursor-pointer active:scale-95 relative shrink-0 ${
                     btPrinter
-                      ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
-                      : 'bg-red-500/15 border-red-500/40 text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.2)] hover:border-red-400'
+                      ? 'bg-emerald-50 border-emerald-300 text-emerald-700 shadow-xs'
+                      : 'bg-red-50 border-red-200 text-red-600 shadow-xs hover:border-red-300'
                   }`}
                   aria-label="Bluetooth Printer"
                 >
@@ -1771,8 +1789,8 @@ export default function CashierDashboard() {
                   <span
                     className={`absolute top-1 right-1 w-1.5 h-1.5 rounded-full ${
                       btPrinter
-                        ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] animate-pulse'
-                        : 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.9)]'
+                        ? 'bg-emerald-500 shadow-xs animate-pulse'
+                        : 'bg-red-500 shadow-xs'
                     }`}
                   />
                 </button>
@@ -1784,8 +1802,8 @@ export default function CashierDashboard() {
                   title={showSettings ? t.topbar.settingsOpenTitle : t.topbar.settingsTitle}
                   className={`w-8 h-8 sm:w-[34px] sm:h-[34px] rounded-[10px] border transition-all flex items-center justify-center cursor-pointer active:scale-95 shrink-0 ${
                     showSettings
-                      ? 'bg-[#E5A43B] border-[#E5A43B] text-[#1A2422] shadow-[0_0_12px_rgba(229,164,59,0.35)]'
-                      : 'bg-transparent border-[#FAF2E2]/15 text-[#FAF2E2] hover:bg-[#FAF2E2]/12 hover:border-[#E5A43B]/40'
+                      ? 'bg-[#FF7A45] border-[#FF7A45] text-white shadow-xs'
+                      : 'bg-transparent border-transparent text-[#2B1B12] hover:bg-[#FCE7D2]'
                   }`}
                   aria-label="Tetapan"
                 >
@@ -1807,7 +1825,7 @@ export default function CashierDashboard() {
               <button
                 onClick={handleLogout}
                 title={t.topbar.logoutTitle}
-                className="w-8 h-8 sm:w-[34px] sm:h-[34px] rounded-[10px] border border-[#FAF2E2]/15 bg-transparent text-[#5E6F68] hover:text-[#FAF2E2] hover:bg-[#FAF2E2]/12 transition flex items-center justify-center cursor-pointer active:scale-95 shrink-0"
+                className="w-8 h-8 sm:w-[34px] sm:h-[34px] rounded-[10px] border border-transparent bg-transparent text-[#96806B] hover:text-[#2B1B12] hover:bg-[#FCE7D2] transition flex items-center justify-center cursor-pointer active:scale-95 shrink-0"
                 aria-label="Log keluar"
               >
                 <svg
@@ -1831,22 +1849,22 @@ export default function CashierDashboard() {
 
       {/* 1. GOOGLE-ONLY LOGIN CARD IF NOT AUTHENTICATED */}
       {!user ? (
-        <div className="bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-7 shadow-[0_24px_50px_rgba(0,0,0,0.45),0_0_0_1px_rgba(229,164,59,0.15)] mb-6 anim-result text-center">
-          <div className="w-20 h-20 rounded-full overflow-hidden bg-[#E5A43B] mx-auto mb-4 shadow-[0_6px_20px_rgba(229,164,59,0.35)] flex items-center justify-center">
+        <div className="bg-[#FFFDF8] text-[#2B1B12] rounded-[28px] p-7 shadow-xl border border-[#F0DEC0] mb-6 anim-result text-center">
+          <div className="w-20 h-20 rounded-full overflow-hidden bg-[#FF7A45] mx-auto mb-4 shadow-md flex items-center justify-center border-2 border-white">
             <img src="/logo.svg" alt="LajuS" className="w-full h-full object-cover" />
           </div>
-          <div className="font-fraunces font-semibold text-[22px] mb-1 text-[#0A1716]">
+          <div className="font-fraunces font-semibold text-[22px] mb-1 text-[#2B1B12]">
             {t.loginCard.title}
           </div>
-          <div className="font-space text-[10px] tracking-[0.14em] uppercase text-[#1E5E53] mb-4 font-semibold">
+          <div className="font-space text-[10px] tracking-[0.14em] uppercase text-[#FF7A45] mb-4 font-semibold">
             {t.loginCard.subtitle}
           </div>
-          <div className="text-[13.5px] text-[#5E6F68] mb-6 leading-relaxed max-w-[340px] mx-auto">
+          <div className="text-[13.5px] text-[#96806B] mb-6 leading-relaxed max-w-[340px] mx-auto">
             {t.loginCard.desc}
           </div>
 
           {loginError && (
-            <div className="mb-4 p-3 rounded-xl bg-red-100 border border-red-300 text-[#B53629] text-xs font-semibold">
+            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-[#B53629] text-xs font-semibold">
               {loginError}
             </div>
           )}
@@ -1854,7 +1872,7 @@ export default function CashierDashboard() {
           <button
             onClick={handleGoogleLogin}
             disabled={isLoggingIn}
-            className="w-full flex items-center justify-center gap-3 bg-white border border-[#E4D9BE] rounded-[14px] py-3.5 px-4 font-jakarta font-semibold text-[15px] text-[#3C3C3C] cursor-pointer active:scale-[0.98] transition hover:bg-gray-50 disabled:opacity-60 shadow-sm"
+            className="w-full flex items-center justify-center gap-3 bg-white border border-[#F0DEC0] rounded-[14px] py-3.5 px-4 font-jakarta font-semibold text-[15px] text-[#2B1B12] cursor-pointer active:scale-[0.98] transition hover:bg-[#FFF8EC] disabled:opacity-60 shadow-xs"
           >
             <svg viewBox="0 0 18 18" width="20" height="20">
               <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.87 2.7-6.62z" />
@@ -1865,27 +1883,27 @@ export default function CashierDashboard() {
             {isLoggingIn ? t.loginCard.connecting : t.loginCard.googleBtn}
           </button>
 
-          <div className="mt-5 text-xs text-[#5E6F68] font-space">
+          <div className="mt-5 text-xs text-[#96806B] font-space">
             {t.loginCard.secureNote}
           </div>
         </div>
       ) : needsRegistration ? (
         /* 2. ONBOARDING / DAFTAR KEDAI BAHARU */
-        <div className="bg-white text-[#1A2422] rounded-[24px] p-5 sm:p-6 shadow-xl border border-gray-200 mb-6 anim-result">
+        <div className="bg-[#FFFDF8] text-[#2B1B12] rounded-[28px] p-5 sm:p-6 shadow-xl border border-[#F0DEC0] mb-6 anim-result">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-2xl bg-[#1E5E53]/10 border border-[#1E5E53]/20 flex items-center justify-center text-xl">
+            <div className="w-10 h-10 rounded-2xl bg-[#FF7A45]/15 border border-[#FF7A45]/30 flex items-center justify-center text-xl">
               🏪
             </div>
             <div>
-              <div className="font-fraunces font-semibold text-[20px] text-[#0A1716] leading-tight">
+              <div className="font-fraunces font-semibold text-[20px] text-[#2B1B12] leading-tight">
                 {t.onboarding.title}
               </div>
-              <div className="text-[10.5px] text-[#1E5E53] font-bold uppercase tracking-wider">
+              <div className="text-[10.5px] text-[#FF7A45] font-bold uppercase tracking-wider">
                 {t.onboarding.subtitle}
               </div>
             </div>
           </div>
-          <div className="text-xs text-[#5E6F68] mb-4 leading-relaxed">
+          <div className="text-xs text-[#96806B] mb-4 leading-relaxed">
             {t.onboarding.desc}
           </div>
 
@@ -1897,7 +1915,7 @@ export default function CashierDashboard() {
 
           <form onSubmit={handleRegisterStore}>
             <div className="mb-3.5">
-              <label className="block text-xs font-semibold text-[#5E6F68] mb-1">
+              <label className="block text-xs font-semibold text-[#96806B] mb-1">
                 {t.onboarding.storeNameLabel} <span className="text-[#B53629]">*</span>
               </label>
               <input
@@ -1907,18 +1925,18 @@ export default function CashierDashboard() {
                 placeholder={t.onboarding.storeNamePlaceholder}
                 required
                 autoFocus
-                className="w-full border border-gray-300 rounded-xl p-2.5 font-jakarta text-xs text-[#1A2422] bg-white outline-none focus:ring-2 focus:ring-[#1E5E53] focus:border-transparent transition"
+                className="w-full border border-[#F0DEC0] rounded-xl p-2.5 font-jakarta text-xs text-[#2B1B12] bg-white outline-none focus:ring-2 focus:ring-[#FF7A45] transition"
               />
             </div>
 
             {/* GOOGLE REVIEW CONNECTION (ON/OFF TOGGLE) */}
-            <div className="mb-3.5 p-3 rounded-xl bg-gray-50 border border-gray-200">
+            <div className="mb-3.5 p-3 rounded-xl bg-[#FFF7EA] border border-[#F0DEC0]">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-xs font-bold text-[#0A1716] flex items-center gap-1.5">
+                  <div className="text-xs font-bold text-[#2B1B12] flex items-center gap-1.5">
                     <span>{t.onboarding.reviewToggleLabel}</span>
                   </div>
-                  <div className="text-[11px] text-[#5E6F68] mt-0.5 leading-snug">
+                  <div className="text-[11px] text-[#96806B] mt-0.5 leading-snug">
                     {t.onboarding.reviewToggleDesc}
                   </div>
                 </div>
@@ -1927,7 +1945,7 @@ export default function CashierDashboard() {
                   type="button"
                   onClick={() => setRegGoogleReviewMode(regGoogleReviewMode === 'google' ? 'manual' : 'google')}
                   className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    regGoogleReviewMode === 'google' ? 'bg-[#E5A43B]' : 'bg-gray-300'
+                    regGoogleReviewMode === 'google' ? 'bg-[#FF7A45]' : 'bg-gray-300'
                   }`}
                   role="switch"
                   aria-checked={regGoogleReviewMode === 'google'}
@@ -1941,16 +1959,16 @@ export default function CashierDashboard() {
               </div>
 
               {regGoogleReviewMode === 'google' && (
-                <div className="mt-3 pt-3 border-t border-gray-200 space-y-2 anim-result">
+                <div className="mt-3 pt-3 border-t border-[#F0DEC0] space-y-2 anim-result">
                   <div className="flex items-center justify-between">
-                    <label className="text-[11px] font-bold text-[#0A1716]">
+                    <label className="text-[11px] font-bold text-[#2B1B12]">
                       {t.onboarding.reviewInputLabel}
                     </label>
                     <a
                       href="https://productmate.com/google-review-link-generator"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[10.5px] font-bold text-[#1E5E53] hover:text-[#E5A43B] underline flex items-center gap-0.5 cursor-pointer"
+                      className="text-[10.5px] font-bold text-[#1C7A67] hover:text-[#FF7A45] underline flex items-center gap-0.5 cursor-pointer"
                     >
                       <span>{t.onboarding.reviewGeneratorHint}</span>
                     </a>
@@ -1960,17 +1978,17 @@ export default function CashierDashboard() {
                     value={regGoogleReviewInput}
                     onChange={(e) => setRegGoogleReviewInput(e.target.value)}
                     placeholder={t.onboarding.reviewInputPlaceholder}
-                    className="w-full border border-gray-300 rounded-lg p-2 text-xs text-[#1A2422] bg-white outline-none focus:ring-1 focus:ring-[#1E5E53]"
+                    className="w-full border border-[#F0DEC0] rounded-lg p-2 text-xs text-[#2B1B12] bg-white outline-none focus:ring-1 focus:ring-[#FF7A45]"
                   />
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10.5px] text-[#5E6F68]">
+                    <span className="text-[10.5px] text-[#96806B]">
                       {t.onboarding.reviewInputHint}
                     </span>
                     {regGoogleReviewInput.trim() && (
                       <button
                         type="button"
                         onClick={() => window.open(regGoogleReviewInput.trim(), '_blank')}
-                        className="text-[11px] font-bold text-[#1E5E53] hover:text-[#2D786B] underline cursor-pointer shrink-0"
+                        className="text-[11px] font-bold text-[#1C7A67] hover:text-[#0F5C4C] underline cursor-pointer shrink-0"
                       >
                         {t.onboarding.reviewTestButton}
                       </button>
@@ -1981,16 +1999,16 @@ export default function CashierDashboard() {
             </div>
 
             {/* STAMP ICON SELECTOR (MULTI-CATEGORY) */}
-            <div className="mb-4 border-t border-gray-100 pt-3">
+            <div className="mb-4 border-t border-[#F0DEC0] pt-3">
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-bold text-[#0A1716]">
+                <label className="block text-xs font-bold text-[#2B1B12]">
                   {t.onboarding.stampIconLabel}
                 </label>
-                <span className="text-[10px] text-[#1E5E53] font-semibold bg-[#1E5E53]/10 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] text-[#1C7A67] font-semibold bg-[#1C7A67]/10 px-2 py-0.5 rounded-full">
                   {t.onboarding.stampIconBadge}
                 </span>
               </div>
-              <div className="text-xs text-[#5E6F68] mb-2">
+              <div className="text-xs text-[#96806B] mb-2">
                 {t.onboarding.stampIconDesc}
               </div>
               <div className="grid grid-cols-4 gap-2">
@@ -2004,11 +2022,11 @@ export default function CashierDashboard() {
                       title={opt.label}
                       className={`flex flex-col items-center justify-center p-2 rounded-xl border transition cursor-pointer text-center ${
                         isSelected
-                          ? 'border-[#E5A43B] bg-[#E5A43B]/20 shadow-sm ring-2 ring-[#E5A43B]'
-                          : 'border-gray-200 bg-white hover:bg-gray-50'
+                          ? 'border-[#FF7A45] bg-[#FF7A45]/15 shadow-xs ring-2 ring-[#FF7A45]'
+                          : 'border-[#F0DEC0] bg-white hover:bg-[#FFF8EC]'
                       }`}
                     >
-                      <div className="w-8 h-8 rounded-full bg-[#B53629] flex items-center justify-center mb-1 shadow-sm">
+                      <div className="w-8 h-8 rounded-full bg-[#B53629] flex items-center justify-center mb-1 shadow-xs">
                         <img
                           src={opt.icon}
                           alt={opt.label}
@@ -2016,7 +2034,7 @@ export default function CashierDashboard() {
                           style={{ filter: 'brightness(0) invert(1)' }}
                         />
                       </div>
-                      <span className="text-[9.5px] font-bold text-[#1A2422] truncate w-full">
+                      <span className="text-[9.5px] font-bold text-[#2B1B12] truncate w-full">
                         {opt.label.split('/')[0]}
                       </span>
                     </button>
@@ -2025,7 +2043,7 @@ export default function CashierDashboard() {
               </div>
             </div>
 
-            <div className="mb-4 p-2.5 rounded-xl bg-gray-50 border border-gray-200 flex items-center gap-2 text-xs text-gray-600">
+            <div className="mb-4 p-2.5 rounded-xl bg-[#FFF7EA] border border-[#F0DEC0] flex items-center gap-2 text-xs text-[#96806B]">
               <span className="text-sm shrink-0">💡</span>
               <span>{t.onboarding.hint}</span>
             </div>
@@ -2033,7 +2051,7 @@ export default function CashierDashboard() {
             <button
               type="submit"
               disabled={isRegisteringStore}
-              className="w-full border-none rounded-xl p-3.5 bg-[#1E5E53] hover:bg-[#2D786B] text-white font-jakarta font-bold text-sm cursor-pointer active:scale-[0.98] transition disabled:opacity-60 shadow-md flex items-center justify-center gap-2"
+              className="w-full border-none rounded-xl p-3.5 bg-[#1C7A67] hover:bg-[#0F5C4C] text-white font-jakarta font-bold text-sm cursor-pointer active:scale-[0.98] transition disabled:opacity-60 shadow-md flex items-center justify-center gap-2"
             >
               {isRegisteringStore ? (
                 t.onboarding.registering
@@ -2067,11 +2085,11 @@ export default function CashierDashboard() {
               <div className="mb-4 flex flex-col gap-2">
                 {/* Plan Badge */}
                 <div className="flex items-center justify-between">
-                  <div className={`inline-flex items-center gap-1.5 text-[11px] font-bold font-space px-3 py-1 rounded-full ${isPro ? 'bg-[#E5A43B]/20 text-[#E5A43B]' : purchasedCardQuota > 0 ? 'bg-amber-400/20 text-amber-300' : 'bg-[#FAF2E2]/10 text-[#5E6F68]'}`}>
+                  <div className={`inline-flex items-center gap-1.5 text-[11px] font-bold font-space px-3 py-1 rounded-full ${isPro ? 'bg-[#FF7A45]/15 text-[#FF7A45]' : purchasedCardQuota > 0 ? 'bg-amber-100 text-amber-800' : 'bg-[#F0DEC0]/60 text-[#96806B]'}`}>
                     {badgeText}
                   </div>
                   {!isPro && (
-                    <Link href="/dashboard/billing" className="text-[10.5px] font-semibold text-[#E5A43B] hover:underline">
+                    <Link href="/dashboard/billing" className="text-[10.5px] font-semibold text-[#FF7A45] hover:underline">
                       {t.planQuota.upgrade}
                     </Link>
                   )}
@@ -2079,35 +2097,35 @@ export default function CashierDashboard() {
 
                 {/* Card Capacity Quota Bar (Non-Pro only) */}
                 {!isPro && (
-                  <div className="bg-[#FAF2E2]/[0.05] border border-[#FAF2E2]/10 rounded-xl px-3.5 py-2.5">
+                  <div className="bg-[#FFFDF8] border border-[#F0DEC0] rounded-2xl px-3.5 py-2.5 shadow-xs">
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-[10px] font-space uppercase text-[#5E6F68] font-bold tracking-wider">
+                      <span className="text-[10px] font-space uppercase text-[#96806B] font-bold tracking-wider">
                         {t.planQuota.quotaTitle}
                       </span>
                       {statsLoading ? (
-                        <div className="h-4 w-12 bg-white/20 rounded animate-pulse" />
+                        <div className="h-4 w-12 bg-black/10 rounded animate-pulse" />
                       ) : (
-                        <span className={`text-[11px] font-bold font-space ${quotaFull ? 'text-red-400' : quotaWarning ? 'text-amber-400' : 'text-[#FAF2E2]'}`}>
+                        <span className={`text-[11px] font-bold font-space ${quotaFull ? 'text-red-500' : quotaWarning ? 'text-amber-600' : 'text-[#2B1B12]'}`}>
                           {totalCustomers} / {planLimit} {lang === 'en' ? 'Cards' : 'Kad'}
                         </span>
                       )}
                     </div>
-                    <div className="w-full h-1.5 bg-[#FAF2E2]/10 rounded-full overflow-hidden">
+                    <div className="w-full h-1.5 bg-[#F0DEC0] rounded-full overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-500 ${quotaFull ? 'bg-red-500' : quotaWarning ? 'bg-amber-400' : 'bg-[#1E5E53]'}`}
+                        className={`h-full rounded-full transition-all duration-500 ${quotaFull ? 'bg-red-500' : quotaWarning ? 'bg-amber-500' : 'bg-[#1C7A67]'}`}
                         style={{ width: `${quotaPct}%` }}
                       />
                     </div>
                     {quotaFull && (
-                      <div className="mt-1.5 text-[10px] text-red-400 font-space font-semibold">
+                      <div className="mt-1.5 text-[10px] text-red-500 font-space font-semibold">
                         {t.planQuota.quotaFull}{' '}
-                        <Link href="/dashboard/billing" className="underline text-[#E5A43B]">
+                        <Link href="/dashboard/billing" className="underline text-[#FF7A45]">
                           {t.planQuota.upgradeToPro} →
                         </Link>
                       </div>
                     )}
                     {quotaWarning && !quotaFull && (
-                      <div className="mt-1.5 text-[10px] text-amber-400 font-space font-semibold">
+                      <div className="mt-1.5 text-[10px] text-amber-600 font-space font-semibold">
                         {t.planQuota.quotaWarning(planLimit - totalCustomers)}
                       </div>
                     )}
@@ -2122,48 +2140,48 @@ export default function CashierDashboard() {
             <button
               type="button"
               onClick={handleOpenCustomersListModal}
-              className="bg-[#FAF2E2]/[0.06] hover:bg-[#FAF2E2]/[0.12] active:scale-95 border border-[#FAF2E2]/12 hover:border-[#E5A43B]/40 rounded-xl sm:rounded-2xl px-1.5 py-2.5 sm:p-3 text-center min-w-0 transition cursor-pointer group flex flex-col items-center justify-between"
+              className="bg-[#FFFDF8] hover:bg-[#FCE7D2]/60 active:scale-95 border border-[#F0DEC0] hover:border-[#FF7A45]/50 rounded-xl sm:rounded-2xl px-1.5 py-2.5 sm:p-3 text-center min-w-0 transition cursor-pointer group flex flex-col items-center justify-between shadow-xs"
               title={lang === 'en' ? 'Click to view active customers list' : 'Tekan untuk lihat senarai pelanggan'}
             >
-              <div className="text-[8px] xs:text-[9px] sm:text-[10px] font-space uppercase text-[#5E6F68] group-hover:text-[#E5A43B] font-bold leading-tight truncate flex items-center justify-center w-full">
+              <div className="text-[8px] xs:text-[9px] sm:text-[10px] font-space uppercase text-[#96806B] group-hover:text-[#FF7A45] font-bold leading-tight truncate flex items-center justify-center w-full">
                 <span>{t.stats.customers}</span>
               </div>
-              <div className="text-sm xs:text-base sm:text-xl font-fraunces font-bold text-[#E5A43B] mt-0.5 min-h-[22px] sm:min-h-[28px] flex items-center justify-center">
+              <div className="text-sm xs:text-base sm:text-xl font-fraunces font-bold text-[#FF7A45] mt-0.5 min-h-[22px] sm:min-h-[28px] flex items-center justify-center">
                 {statsLoading ? (
-                  <div className="h-5 sm:h-6 w-8 sm:w-10 bg-[#E5A43B]/20 rounded-md animate-pulse" />
+                  <div className="h-5 sm:h-6 w-8 sm:w-10 bg-[#FF7A45]/20 rounded-md animate-pulse" />
                 ) : (
                   storeStats.totalCustomers
                 )}
               </div>
-              <div className="text-[8px] text-[#5E6F68] group-hover:text-[#FAF2E2] font-semibold tracking-tighter truncate mt-0.5">
+              <div className="text-[8px] text-[#96806B] group-hover:text-[#2B1B12] font-semibold tracking-tighter truncate mt-0.5">
                 {lang === 'en' ? 'View list →' : 'Semak →'}
               </div>
             </button>
-            <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-xl sm:rounded-2xl px-1.5 py-2.5 sm:p-3 text-center min-w-0">
-              <div className="text-[8px] xs:text-[9px] sm:text-[10px] font-space uppercase text-[#5E6F68] font-bold leading-tight truncate">{t.stats.stampsClaimed}</div>
-              <div className="text-sm xs:text-base sm:text-xl font-fraunces font-bold text-emerald-400 mt-0.5 min-h-[22px] sm:min-h-[28px] flex items-center justify-center">
+            <div className="bg-[#FFFDF8] border border-[#F0DEC0] rounded-xl sm:rounded-2xl px-1.5 py-2.5 sm:p-3 text-center min-w-0 shadow-xs">
+              <div className="text-[8px] xs:text-[9px] sm:text-[10px] font-space uppercase text-[#96806B] font-bold leading-tight truncate">{t.stats.stampsClaimed}</div>
+              <div className="text-sm xs:text-base sm:text-xl font-fraunces font-bold text-[#1C7A67] mt-0.5 min-h-[22px] sm:min-h-[28px] flex items-center justify-center">
                 {statsLoading ? (
-                  <div className="h-5 sm:h-6 w-8 sm:w-10 bg-emerald-400/20 rounded-md animate-pulse" />
+                  <div className="h-5 sm:h-6 w-8 sm:w-10 bg-[#1C7A67]/20 rounded-md animate-pulse" />
                 ) : (
                   storeStats.totalTokensClaimed
                 )}
               </div>
             </div>
-            <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-xl sm:rounded-2xl px-1.5 py-2.5 sm:p-3 text-center min-w-0">
-              <div className="text-[8px] xs:text-[9px] sm:text-[10px] font-space uppercase text-[#5E6F68] font-bold leading-tight truncate">{t.stats.rewardsRedeemed}</div>
-              <div className="text-sm xs:text-base sm:text-xl font-fraunces font-bold text-amber-300 mt-0.5 min-h-[22px] sm:min-h-[28px] flex items-center justify-center">
+            <div className="bg-[#FFFDF8] border border-[#F0DEC0] rounded-xl sm:rounded-2xl px-1.5 py-2.5 sm:p-3 text-center min-w-0 shadow-xs">
+              <div className="text-[8px] xs:text-[9px] sm:text-[10px] font-space uppercase text-[#96806B] font-bold leading-tight truncate">{t.stats.rewardsRedeemed}</div>
+              <div className="text-sm xs:text-base sm:text-xl font-fraunces font-bold text-[#E8901B] mt-0.5 min-h-[22px] sm:min-h-[28px] flex items-center justify-center">
                 {statsLoading ? (
-                  <div className="h-5 sm:h-6 w-8 sm:w-10 bg-amber-300/20 rounded-md animate-pulse" />
+                  <div className="h-5 sm:h-6 w-8 sm:w-10 bg-[#E8901B]/20 rounded-md animate-pulse" />
                 ) : (
                   storeStats.totalRedemptions
                 )}
               </div>
             </div>
-            <div className="bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/12 rounded-xl sm:rounded-2xl px-1.5 py-2.5 sm:p-3 text-center min-w-0">
-              <div className="text-[8px] xs:text-[9px] sm:text-[10px] font-space uppercase text-[#5E6F68] font-bold leading-tight truncate">{t.stats.activeStamps}</div>
-              <div className="text-sm xs:text-base sm:text-xl font-fraunces font-bold text-[#FAF2E2] mt-0.5 min-h-[22px] sm:min-h-[28px] flex items-center justify-center">
+            <div className="bg-[#FFFDF8] border border-[#F0DEC0] rounded-xl sm:rounded-2xl px-1.5 py-2.5 sm:p-3 text-center min-w-0 shadow-xs">
+              <div className="text-[8px] xs:text-[9px] sm:text-[10px] font-space uppercase text-[#96806B] font-bold leading-tight truncate">{t.stats.activeStamps}</div>
+              <div className="text-sm xs:text-base sm:text-xl font-fraunces font-bold text-[#2B1B12] mt-0.5 min-h-[22px] sm:min-h-[28px] flex items-center justify-center">
                 {statsLoading ? (
-                  <div className="h-5 sm:h-6 w-8 sm:w-10 bg-[#FAF2E2]/20 rounded-md animate-pulse" />
+                  <div className="h-5 sm:h-6 w-8 sm:w-10 bg-[#2B1B12]/10 rounded-md animate-pulse" />
                 ) : (
                   storeStats.totalStampsGiven
                 )}
@@ -2173,12 +2191,12 @@ export default function CashierDashboard() {
 
           {/* CUSTOMER REWARD CLAIM SEARCH BAR */}
           <div id="counter-claim-section" className="mb-6">
-            <div className="font-space text-[10.5px] tracking-[0.14em] uppercase text-[#E5A43B] mb-2.5 opacity-90 font-semibold flex items-center justify-between">
+            <div className="font-space text-[10.5px] tracking-[0.14em] uppercase text-[#96806B] mb-2.5 font-bold flex items-center justify-between">
               <span>{t.searchSection.title}</span>
-              <span className="text-[10px] text-[#5E6F68]">{t.searchSection.subTitle}</span>
+              <span className="text-[10px] text-[#96806B]/80 font-normal">{t.searchSection.subTitle}</span>
             </div>
 
-            <div className="bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-5 shadow-[0_24px_50px_rgba(0,0,0,0.45),0_0_0_1px_rgba(229,164,59,0.15)]">
+            <div className="bg-[#FFFDF8] text-[#2B1B12] rounded-[24px] p-5 shadow-xl border border-[#F0DEC0]">
               <form onSubmit={handleSearchCustomer} className="flex gap-2">
                 <div className="relative flex-1">
                   <input
@@ -2187,14 +2205,14 @@ export default function CashierDashboard() {
                     onChange={(e) => setSearchEmail(e.target.value)}
                     maxLength={100}
                     placeholder={t.searchSection.placeholder}
-                    className="w-full border border-[#E4D9BE] rounded-[12px] py-2.5 px-3 text-sm text-[#1A2422] bg-white outline-none placeholder:text-gray-400 font-jakarta"
+                    className="w-full border border-[#F0DEC0] rounded-[12px] py-2.5 px-3 text-sm text-[#2B1B12] bg-white outline-none placeholder:text-[#96806B]/50 font-jakarta focus:ring-2 focus:ring-[#FF7A45]"
                   />
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowQrScanner(true)}
                   title={t.searchSection.scanQrBtn}
-                  className="px-3.5 py-2.5 bg-[#E5A43B] hover:bg-[#d89731] active:scale-95 text-[#1A2422] font-bold text-xs rounded-[12px] transition cursor-pointer flex items-center justify-center gap-1.5 shadow-sm shrink-0"
+                  className="px-3.5 py-2.5 bg-[#FF7A45] hover:bg-[#E23F2E] active:scale-95 text-white font-bold text-xs rounded-[12px] transition cursor-pointer flex items-center justify-center gap-1.5 shadow-sm shrink-0"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
@@ -2205,7 +2223,7 @@ export default function CashierDashboard() {
                 <button
                   type="submit"
                   disabled={isSearchingCustomer}
-                  className="px-4 py-2.5 bg-[#1E5E53] hover:bg-[#2D786B] active:scale-95 text-white font-bold text-xs rounded-[12px] transition cursor-pointer disabled:opacity-60 flex items-center gap-1.5 shadow-sm shrink-0"
+                  className="px-4 py-2.5 bg-[#1C7A67] hover:bg-[#0F5C4C] active:scale-95 text-white font-bold text-xs rounded-[12px] transition cursor-pointer disabled:opacity-60 flex items-center gap-1.5 shadow-sm shrink-0"
                 >
                   {isSearchingCustomer ? (
                     t.searchSection.searching
@@ -2222,45 +2240,45 @@ export default function CashierDashboard() {
               </form>
 
               {searchError && (
-                <div className="mt-3 p-2.5 rounded-xl bg-red-100 text-[#B53629] text-xs font-semibold">
+                <div className="mt-3 p-2.5 rounded-xl bg-red-50 border border-red-200 text-[#B53629] text-xs font-semibold">
                   {searchError}
                 </div>
               )}
 
               {/* SEARCH RESULT DETAILS */}
               {searchResult && (
-                <div className="mt-4 pt-4 border-t border-[#E2CE9E] anim-result">
+                <div className="mt-4 pt-4 border-t border-[#F0DEC0] anim-result">
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div>
-                      <div className="font-bold text-[15px] text-[#0A1716] leading-tight">
+                      <div className="font-bold text-[15px] text-[#2B1B12] leading-tight">
                         {searchResult.name || (lang === 'en' ? 'Customer' : 'Pelanggan')}
                       </div>
-                      <div className="text-xs text-[#5E6F68]">{searchResult.email}</div>
+                      <div className="text-xs text-[#96806B]">{searchResult.email}</div>
                     </div>
                     <div className="text-right">
-                      <div className="font-fraunces font-bold text-2xl text-[#B53629]">
+                      <div className="font-fraunces font-bold text-2xl text-[#FF7A45]">
                         {searchResult.totalStamps}{' '}
-                        <small className="font-space text-xs text-[#5E6F68] font-normal">{t.searchSection.stampsUnit}</small>
+                        <small className="font-space text-xs text-[#96806B] font-normal">{t.searchSection.stampsUnit}</small>
                       </div>
                     </div>
                   </div>
 
                   {/* STATUS KAD & KELAYAKAN GANJARAN */}
-                  <div className="p-3 rounded-xl bg-[#EFE3C4] mb-3.5 text-xs text-[#1A2422]">
+                  <div className="p-3 rounded-xl bg-[#FFF7EA] border border-[#F0DEC0] mb-3.5 text-xs text-[#2B1B12]">
                     {searchResult.fullCardsCount > 0 ? (
-                      <div className="flex items-center gap-2 text-emerald-800 font-bold">
+                      <div className="flex items-center gap-2 text-[#1C7A67] font-bold">
                         <span className="text-base">🎁</span>
                         <span>
                           {t.searchSection.fullCardsNotice(searchResult.fullCardsCount)}
                         </span>
                       </div>
                     ) : (
-                      <div className="text-[#5E6F68]">
+                      <div className="text-[#96806B]">
                         {t.searchSection.notEnoughStamps(searchResult.currentCardStamps, searchResult.stampsRequired)}
                       </div>
                     )}
-                    <div className="text-[11px] text-[#5E6F68] mt-1">
-                      {t.searchSection.rewardLabel} <b>{searchResult.rewardDescription}</b>
+                    <div className="text-[11px] text-[#96806B] mt-1">
+                      {t.searchSection.rewardLabel} <b className="text-[#2B1B12]">{searchResult.rewardDescription}</b>
                     </div>
                   </div>
 
@@ -2269,7 +2287,7 @@ export default function CashierDashboard() {
                     Array.isArray(searchResult.rewardsCatalog) &&
                     searchResult.rewardsCatalog.length > 0 && (
                       <div className="mb-3.5">
-                        <div className="text-xs font-semibold text-[#1A2422] mb-1.5">
+                        <div className="text-xs font-semibold text-[#2B1B12] mb-1.5">
                           {t.searchSection.chooseReward}
                         </div>
                         <div className="flex flex-col gap-1.5">
@@ -2285,14 +2303,14 @@ export default function CashierDashboard() {
                                 onClick={() => setSelectedRewardId(rw.id)}
                                 className={`flex items-center justify-between gap-2 p-2.5 rounded-xl border text-left transition cursor-pointer ${
                                   isSelected
-                                    ? 'border-[#1E5E53] bg-[#1E5E53]/10 ring-1 ring-[#1E5E53]'
-                                    : 'border-[#E4D9BE] bg-white hover:bg-gray-50'
+                                    ? 'border-[#1C7A67] bg-[#1C7A67]/10 ring-1 ring-[#1C7A67]'
+                                    : 'border-[#F0DEC0] bg-white hover:bg-[#FFF8EC]'
                                 } disabled:opacity-40 disabled:cursor-not-allowed`}
                               >
-                                <span className="text-xs font-semibold text-[#1A2422]">
+                                <span className="text-xs font-semibold text-[#2B1B12]">
                                   {rw.name || (lang === 'en' ? 'Reward' : 'Hadiah')}
                                 </span>
-                                <span className="text-[10.5px] font-bold text-[#B53629] whitespace-nowrap">
+                                <span className="text-[10.5px] font-bold text-[#FF7A45] whitespace-nowrap">
                                   {rw.stampsRequired} {t.searchSection.stampsUnit.toLowerCase()}
                                 </span>
                               </button>
@@ -2307,8 +2325,8 @@ export default function CashierDashboard() {
                     <div className="space-y-2.5">
                       {/* Reward count selector (only show if >1 full cards available) */}
                       {searchResult.fullCardsCount > 1 && (
-                        <div className="flex items-center gap-2.5 bg-[#EFE3C4] rounded-xl p-2.5">
-                          <span className="text-xs font-semibold text-[#1A2422] flex-1">
+                        <div className="flex items-center gap-2.5 bg-[#FFF7EA] border border-[#F0DEC0] rounded-xl p-2.5">
+                          <span className="text-xs font-semibold text-[#2B1B12] flex-1">
                             {t.searchSection.howManyRewards}
                           </span>
                           <div className="flex items-center gap-1.5">
@@ -2316,23 +2334,23 @@ export default function CashierDashboard() {
                               type="button"
                               onClick={() => setRedeemCount((c) => Math.max(1, c - 1))}
                               disabled={redeemCount <= 1}
-                              className="w-7 h-7 rounded-full bg-white border border-[#E4D9BE] font-bold text-sm flex items-center justify-center cursor-pointer disabled:opacity-40 hover:bg-gray-100 transition"
+                              className="w-7 h-7 rounded-full bg-white border border-[#F0DEC0] font-bold text-sm flex items-center justify-center cursor-pointer disabled:opacity-40 hover:bg-gray-100 transition shadow-xs"
                             >
                               −
                             </button>
-                            <span className="w-8 text-center font-bold text-sm text-[#B53629]">
+                            <span className="w-8 text-center font-bold text-sm text-[#FF7A45]">
                               {redeemCount}
                             </span>
                             <button
                               type="button"
                               onClick={() => setRedeemCount((c) => Math.min(searchResult.fullCardsCount, c + 1))}
                               disabled={redeemCount >= searchResult.fullCardsCount}
-                              className="w-7 h-7 rounded-full bg-white border border-[#E4D9BE] font-bold text-sm flex items-center justify-center cursor-pointer disabled:opacity-40 hover:bg-gray-100 transition"
+                              className="w-7 h-7 rounded-full bg-white border border-[#F0DEC0] font-bold text-sm flex items-center justify-center cursor-pointer disabled:opacity-40 hover:bg-gray-100 transition shadow-xs"
                             >
                               +
                             </button>
                           </div>
-                          <span className="text-[10.5px] text-[#5E6F68] font-semibold">
+                          <span className="text-[10.5px] text-[#96806B] font-semibold">
                             / {searchResult.fullCardsCount} {t.searchSection.maxSuffix}
                           </span>
                         </div>
@@ -2341,7 +2359,7 @@ export default function CashierDashboard() {
                       <button
                         onClick={handleRedeemReward}
                         disabled={isRedeeming}
-                        className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold text-sm rounded-[12px] shadow-md shadow-emerald-600/30 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                        className="w-full py-3 px-4 bg-[#1C7A67] hover:bg-[#0F5C4C] active:scale-[0.98] text-white font-bold text-sm rounded-[12px] shadow-md shadow-[#1C7A67]/30 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                       >
                         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                           <path d="M20 6 9 17l-5-5" />
@@ -2361,20 +2379,20 @@ export default function CashierDashboard() {
                       </button>
                     </div>
                   ) : (
-                    <div className="text-center py-2 px-3 bg-gray-200/70 text-gray-500 rounded-xl text-xs font-semibold">
+                    <div className="text-center py-2 px-3 bg-gray-100 border border-gray-200 text-gray-500 rounded-xl text-xs font-semibold">
                       {t.searchSection.needMinStamps(searchResult.stampsRequired)}
                     </div>
                   )}
 
                   {/* LAST CLAIM RECEIPT & RE-PRINT BUTTON */}
                   {lastClaimReceipt && (
-                    <div className="mt-3.5 p-3.5 rounded-2xl bg-white border border-emerald-300/80 shadow-sm text-xs space-y-2 anim-result">
+                    <div className="mt-3.5 p-3.5 rounded-2xl bg-white border border-emerald-300/80 shadow-xs text-xs space-y-2 anim-result">
                       <div className="flex items-center justify-between font-bold text-emerald-800 border-b border-gray-100 pb-2">
                         <div className="flex items-center gap-1.5">
                           <span className="text-base">🧾</span>
                           <span>{t.searchSection.receiptTitle}</span>
                         </div>
-                        <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full uppercase tracking-wider font-space">
+                        <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider font-space">
                           {t.searchSection.doneClaimBadge}
                         </span>
                       </div>
@@ -2399,7 +2417,7 @@ export default function CashierDashboard() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-400">{t.searchSection.receiptStampsUsed}</span>
-                          <b className="text-[#B53629]">{lastClaimReceipt.stampsUsed} {t.searchSection.stampsUnit}</b>
+                          <b className="text-[#FF7A45]">{lastClaimReceipt.stampsUsed} {t.searchSection.stampsUnit}</b>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-400">{t.searchSection.receiptRemaining}</span>
@@ -2422,7 +2440,7 @@ export default function CashierDashboard() {
                       <button
                         onClick={() => handlePrintClaimReceipt(lastClaimReceipt)}
                         disabled={isPrintingClaim}
-                        className="w-full mt-2 py-2.5 px-3 bg-[#1E5E53] hover:bg-[#2D786B] active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                        className="w-full mt-2 py-2.5 px-3 bg-[#1C7A67] hover:bg-[#0F5C4C] active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                       >
                         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M6 9V2h12v7" />
@@ -2441,12 +2459,12 @@ export default function CashierDashboard() {
           {/* MAIN COUNTER OR SETTINGS */}
           {!showSettings ? (
             <div id="counterSection" className="mb-6">
-              <div className="font-space text-[10.5px] tracking-[0.14em] uppercase text-[#E5A43B] mb-2.5 opacity-90 font-semibold">
+              <div className="font-space text-[10.5px] tracking-[0.14em] uppercase text-[#96806B] mb-2.5 font-bold">
                 {t.generator.title}
               </div>
 
-              <div className="bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-[24px] shadow-[0_24px_50px_rgba(0,0,0,0.45),0_0_0_1px_rgba(229,164,59,0.15)]">
-                <div className="font-fraunces font-semibold text-[20px] mb-5 text-[#0A1716]">
+              <div className="bg-[#FFFDF8] text-[#2B1B12] rounded-[24px] p-[24px] shadow-xl border border-[#F0DEC0]">
+                <div className="font-fraunces font-semibold text-[20px] mb-5 text-[#2B1B12]">
                   {t.generator.question}
                 </div>
 
@@ -2454,26 +2472,26 @@ export default function CashierDashboard() {
                 <div className="flex items-center justify-center gap-5 mb-5">
                   <button
                     onClick={() => setStampCount(Math.max(1, stampCount - 1))}
-                    className="w-[46px] h-[46px] rounded-full border-none cursor-pointer bg-[#1E5E53] text-[#FAF2E2] text-[22px] font-bold flex items-center justify-center active:scale-95 transition hover:bg-[#2D786B]"
+                    className="w-[46px] h-[46px] rounded-full border-none cursor-pointer bg-[#1C7A67] text-white text-[22px] font-bold flex items-center justify-center active:scale-95 transition hover:bg-[#0F5C4C] shadow-xs"
                   >
                     –
                   </button>
-                  <div className="font-fraunces font-bold text-[42px] text-[#B53629] min-w-[56px] text-center select-none">
+                  <div className="font-fraunces font-bold text-[42px] text-[#FF7A45] min-w-[56px] text-center select-none">
                     {stampCount}
                   </div>
                   <button
                     onClick={() => setStampCount(Math.min(20, stampCount + 1))}
-                    className="w-[46px] h-[46px] rounded-full border-none cursor-pointer bg-[#1E5E53] text-[#FAF2E2] text-[22px] font-bold flex items-center justify-center active:scale-95 transition hover:bg-[#2D786B]"
+                    className="w-[46px] h-[46px] rounded-full border-none cursor-pointer bg-[#1C7A67] text-white text-[22px] font-bold flex items-center justify-center active:scale-95 transition hover:bg-[#0F5C4C] shadow-xs"
                   >
                     +
                   </button>
                 </div>
-                <div className="text-center font-space text-[10.5px] tracking-[0.08em] text-[#5E6F68] uppercase -mt-3 mb-5 font-semibold">
+                <div className="text-center font-space text-[10.5px] tracking-[0.08em] text-[#96806B] uppercase -mt-3 mb-5 font-semibold">
                   {t.generator.stampsUnit}
                 </div>
 
                 {/* MODE TOGGLE */}
-                <div className="flex gap-2 bg-[#EFE3C4] p-1 rounded-[14px] mb-3.5">
+                <div className="flex gap-2 bg-[#FFF7EA] border border-[#F0DEC0] p-1 rounded-[14px] mb-3.5">
                   <div
                     onClick={() => {
                       setMode('qr')
@@ -2481,8 +2499,8 @@ export default function CashierDashboard() {
                     }}
                     className={`flex-1 text-center py-[10px] px-2.5 rounded-[10px] text-[13px] font-semibold cursor-pointer flex items-center justify-center gap-1.5 transition ${
                       mode === 'qr'
-                        ? 'bg-[#FAF2E2] text-[#1A2422] shadow-[0_2px_6px_rgba(0,0,0,0.12)]'
-                        : 'text-[#5E6F68]'
+                        ? 'bg-[#FFFDF8] text-[#2B1B12] shadow-xs border border-[#F0DEC0]'
+                        : 'text-[#96806B]'
                     }`}
                   >
                     <svg
@@ -2513,10 +2531,10 @@ export default function CashierDashboard() {
                     }}
                     className={`flex-1 text-center py-[10px] px-2.5 rounded-[10px] text-[13px] font-semibold cursor-pointer flex items-center justify-center gap-1.5 transition relative ${
                       mode === 'email'
-                        ? 'bg-[#FAF2E2] text-[#1A2422] shadow-[0_2px_6px_rgba(0,0,0,0.12)]'
+                        ? 'bg-[#FFFDF8] text-[#2B1B12] shadow-xs border border-[#F0DEC0]'
                         : planType !== 'pro' || subscriptionStatus !== 'active'
-                        ? 'text-[#5E6F68] opacity-60'
-                        : 'text-[#5E6F68]'
+                        ? 'text-[#96806B] opacity-60'
+                        : 'text-[#96806B]'
                     }`}
                   >
                     <svg
@@ -2531,16 +2549,16 @@ export default function CashierDashboard() {
                     </svg>
                     {t.generator.email}
                     {(planType !== 'pro' || subscriptionStatus !== 'active') && (
-                      <span className="ml-1 text-[9px] font-bold bg-[#E5A43B]/90 text-[#1A2422] px-1.5 py-0.5 rounded-full leading-none">PRO</span>
+                      <span className="ml-1 text-[9px] font-bold bg-[#FF7A45] text-white px-1.5 py-0.5 rounded-full leading-none">PRO</span>
                     )}
                   </div>
                 </div>
 
                 {/* EMAIL FIELD */}
                 {mode === 'email' && (
-                  <div className="flex items-center gap-2.5 bg-white border border-[#E4D9BE] rounded-[12px] p-3 mb-3.5 anim-result">
+                  <div className="flex items-center gap-2.5 bg-white border border-[#F0DEC0] rounded-[12px] p-3 mb-3.5 anim-result">
                     <svg
-                      className="w-4 h-4 text-[#5E6F68] opacity-50 shrink-0"
+                      className="w-4 h-4 text-[#96806B] opacity-50 shrink-0"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -2554,13 +2572,13 @@ export default function CashierDashboard() {
                       value={customerEmail}
                       onChange={(e) => setCustomerEmail(e.target.value)}
                       placeholder={t.generator.emailPlaceholder}
-                      className="border-none outline-none flex-1 font-jakarta text-sm bg-transparent text-[#1A2422]"
+                      className="border-none outline-none flex-1 font-jakarta text-sm bg-transparent text-[#2B1B12]"
                     />
                   </div>
                 )}
 
                 {genError && (
-                  <div className="mb-3 p-2.5 rounded-lg bg-red-100 text-[#B53629] text-xs font-semibold">
+                  <div className="mb-3 p-2.5 rounded-lg bg-red-50 border border-red-200 text-[#B53629] text-xs font-semibold">
                     {genError}
                   </div>
                 )}
@@ -2569,21 +2587,21 @@ export default function CashierDashboard() {
                 <button
                   onClick={handleGenerateToken}
                   disabled={isGenerating}
-                  className="w-full border-none rounded-[12px] p-3.5 mt-0.5 bg-gradient-to-b from-[#E5A43B] to-[#C77B1B] text-[#1A2422] font-jakarta font-bold text-[14.5px] cursor-pointer active:scale-[0.98] transition disabled:opacity-60 shadow-[0_4px_12px_rgba(229,164,59,0.3)]"
+                  className="w-full border-none rounded-[14px] p-3.5 mt-0.5 bg-gradient-to-r from-[#FF7A45] to-[#FF9F45] text-white font-jakarta font-bold text-[14.5px] cursor-pointer active:scale-[0.98] transition disabled:opacity-60 shadow-[0_4px_12px_rgba(255,122,69,0.35)] hover:opacity-95"
                 >
                   {isGenerating ? t.generator.generating : t.generator.generateBtn}
                 </button>
 
                 {/* RESULT: QR PANEL */}
                 {generatedToken && mode === 'qr' && (
-                  <div className="mt-5 flex flex-col items-center text-center border-t-2 border-dashed border-[#E2CE9E] pt-5 anim-result">
+                  <div className="mt-5 flex flex-col items-center text-center border-t-2 border-dashed border-[#F0DEC0] pt-5 anim-result">
                     {/* Clickable QR Code with Enlarge Feature & Claimed Animation Overlay */}
                     <div
                       onClick={() => !isTokenClaimed && setShowLargeQr(true)}
                       className={`relative group flex flex-col items-center ${!isTokenClaimed ? 'cursor-pointer' : ''}`}
                       title={!isTokenClaimed ? t.generator.tapToEnlarge : undefined}
                     >
-                      <div className="w-[180px] h-[180px] rounded-[20px] bg-white p-2.5 mb-2 shadow-[0_8px_24px_rgba(0,0,0,0.16)] flex items-center justify-center transition-all duration-300 relative overflow-hidden border border-[#E2CE9E]">
+                      <div className="w-[180px] h-[180px] rounded-[20px] bg-white p-2.5 mb-2 shadow-md flex items-center justify-center transition-all duration-300 relative overflow-hidden border border-[#F0DEC0]">
                         {!isTokenClaimed ? (
                           qrDataUrl && (
                             <img
@@ -2594,8 +2612,8 @@ export default function CashierDashboard() {
                           )
                         ) : (
                           /* Centered Checkmark Animation if Claimed (QR image is removed so phone camera cannot re-scan) */
-                          <div className="w-full h-full bg-[#1E5E53] rounded-[16px] flex flex-col items-center justify-center anim-scale p-3 text-center">
-                            <div className="w-14 h-14 rounded-full bg-emerald-400 text-[#0A1716] flex items-center justify-center shadow-lg mb-2 animate-bounce">
+                          <div className="w-full h-full bg-[#1C7A67] rounded-[16px] flex flex-col items-center justify-center anim-scale p-3 text-center">
+                            <div className="w-14 h-14 rounded-full bg-emerald-400 text-[#2B1B12] flex items-center justify-center shadow-lg mb-2 animate-bounce">
                               <svg className="w-8 h-8 stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                                 <polyline points="20 6 9 17 4 12" />
                               </svg>
@@ -2603,7 +2621,7 @@ export default function CashierDashboard() {
                             <div className="text-white font-bold text-xs leading-tight">
                               {t.generator.claimedAnimationTitle}
                             </div>
-                            <div className="text-emerald-200 text-[10px] mt-1 font-space">
+                            <div className="text-emerald-100 text-[10px] mt-1 font-space">
                               Token Selesai Digunakan
                             </div>
                           </div>
@@ -2612,7 +2630,7 @@ export default function CashierDashboard() {
 
                       {/* Tap to Enlarge Hint Badge */}
                       {!isTokenClaimed && (
-                        <div className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1E5E53] group-hover:text-[#2D786B] transition mb-2 bg-[#1E5E53]/10 px-2.5 py-0.5 rounded-full">
+                        <div className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1C7A67] group-hover:text-[#0F5C4C] transition mb-2 bg-[#1C7A67]/10 px-2.5 py-0.5 rounded-full">
                           <span>{t.generator.tapToEnlarge}</span>
                         </div>
                       )}
@@ -2624,19 +2642,19 @@ export default function CashierDashboard() {
                         type="button"
                         onClick={handleGenerateToken}
                         disabled={isGenerating}
-                        className="w-full border-none rounded-xl py-3 px-4 bg-gradient-to-r from-[#1E5E53] to-[#2D786B] text-white font-bold text-sm cursor-pointer active:scale-[0.98] transition shadow-md my-2"
+                        className="w-full border-none rounded-xl py-3 px-4 bg-gradient-to-r from-[#1C7A67] to-[#1FA96B] text-white font-bold text-sm cursor-pointer active:scale-[0.98] transition shadow-md my-2"
                       >
                         {isGenerating ? t.generator.generating : '+ Jana Kod QR Seterusnya'}
                       </button>
                     )}
 
-                    <div className="font-space text-[14px] tracking-[0.05em] text-[#1A2422] bg-[#EFE3C4] py-1.5 px-3 rounded-[8px] mb-2 font-bold select-all">
+                    <div className="font-space text-[14px] tracking-[0.05em] text-[#2B1B12] bg-[#FFF7EA] border border-[#F0DEC0] py-1.5 px-3 rounded-[8px] mb-2 font-bold select-all">
                       {generatedToken}
                     </div>
-                    <div className="text-[12px] text-[#B53629] font-semibold mb-1">
+                    <div className="text-[12px] text-[#FF7A45] font-semibold mb-1">
                       {isTokenClaimed ? '✓ Sudah Ditebus' : timeLeftStr}
                     </div>
-                    <div className="text-[12.5px] text-[#5E6F68] max-w-[260px] mb-3">
+                    <div className="text-[12.5px] text-[#96806B] max-w-[260px] mb-3">
                       {t.generator.scanPrompt}
                     </div>
                     {claimUrl && (
@@ -2644,7 +2662,7 @@ export default function CashierDashboard() {
                         href={claimUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-xs text-[#1E5E53] underline font-semibold mb-3 hover:text-[#2D786B]"
+                        className="text-xs text-[#1C7A67] underline font-semibold mb-3 hover:text-[#0F5C4C]"
                       >
                         {t.generator.openClaimLink}
                       </a>
@@ -2654,10 +2672,10 @@ export default function CashierDashboard() {
                       <button
                         onClick={() => handlePrintReceipt()}
                         disabled={isPrinting}
-                        className={`w-full py-2.5 px-4 rounded-[12px] font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-[0.98] cursor-pointer ${
+                        className={`w-full py-2.5 px-4 rounded-[12px] font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition active:scale-[0.98] cursor-pointer ${
                           btPrinter
-                            ? 'bg-[#1E5E53] hover:bg-[#2D786B] text-white'
-                            : 'bg-[#E5A43B] hover:bg-[#C77B1B] text-[#1A2422]'
+                            ? 'bg-[#1C7A67] hover:bg-[#0F5C4C] text-white'
+                            : 'bg-[#FF7A45] hover:bg-[#E23F2E] text-white'
                         }`}
                       >
                         <svg
@@ -2683,12 +2701,12 @@ export default function CashierDashboard() {
                       </button>
 
                       {/* Auto-print toggle hint */}
-                      <label className="flex items-center justify-center gap-1.5 cursor-pointer select-none text-[11.5px] text-[#5E6F68] hover:text-[#1A2422] transition">
+                      <label className="flex items-center justify-center gap-1.5 cursor-pointer select-none text-[11.5px] text-[#96806B] hover:text-[#2B1B12] transition">
                         <input
                           type="checkbox"
                           checked={autoPrint}
                           onChange={(e) => setAutoPrint(e.target.checked)}
-                          className="accent-[#E5A43B] w-3.5 h-3.5 rounded cursor-pointer"
+                          className="accent-[#FF7A45] w-3.5 h-3.5 rounded cursor-pointer"
                         />
                         <span>{t.generator.autoPrintHint}</span>
                       </label>
@@ -2696,7 +2714,7 @@ export default function CashierDashboard() {
 
                     <button
                       onClick={handleResetToken}
-                      className="bg-transparent border border-[#E2CE9E] rounded-[10px] py-2 px-4 font-jakarta text-[12.5px] font-semibold text-[#1E5E53] cursor-pointer hover:bg-white/40 transition"
+                      className="bg-transparent border border-[#F0DEC0] rounded-[10px] py-2 px-4 font-jakarta text-[12.5px] font-semibold text-[#1C7A67] cursor-pointer hover:bg-[#FCE7D2] transition"
                     >
                       {t.generator.newTokenBtn}
                     </button>
@@ -2705,8 +2723,8 @@ export default function CashierDashboard() {
 
                 {/* RESULT: EMAIL PANEL */}
                 {generatedToken && mode === 'email' && (
-                  <div className="mt-5 flex flex-col items-center text-center border-t-2 border-dashed border-[#E2CE9E] pt-5 anim-result">
-                    <div className="flex items-center gap-2 text-[#388E5F] font-bold text-[14px] mb-1.5">
+                  <div className="mt-5 flex flex-col items-center text-center border-t-2 border-dashed border-[#F0DEC0] pt-5 anim-result">
+                    <div className="flex items-center gap-2 text-[#1FA96B] font-bold text-[14px] mb-1.5">
                       <svg
                         className="w-5 h-5"
                         viewBox="0 0 24 24"
@@ -2718,15 +2736,15 @@ export default function CashierDashboard() {
                       </svg>
                       {t.generator.emailSentTitle}
                     </div>
-                    <div className="text-[12.5px] text-[#5E6F68] max-w-[280px] mb-2">
+                    <div className="text-[12.5px] text-[#96806B] max-w-[280px] mb-2">
                       {emailSentNote}
                     </div>
-                    <div className="font-space text-xs text-[#1A2422] bg-[#EFE3C4] px-2.5 py-1 rounded mb-3">
+                    <div className="font-space text-xs text-[#2B1B12] bg-[#FFF7EA] border border-[#F0DEC0] px-2.5 py-1 rounded mb-3">
                       Token: {generatedToken}
                     </div>
                     <button
                       onClick={handleResetToken}
-                      className="bg-transparent border border-[#E2CE9E] rounded-[10px] py-2 px-4 font-jakarta text-[12.5px] font-semibold text-[#1E5E53] cursor-pointer hover:bg-white/40 transition"
+                      className="bg-transparent border border-[#F0DEC0] rounded-[10px] py-2 px-4 font-jakarta text-[12.5px] font-semibold text-[#1C7A67] cursor-pointer hover:bg-[#FCE7D2] transition"
                     >
                       {t.generator.newTokenBtn}
                     </button>
@@ -2738,13 +2756,13 @@ export default function CashierDashboard() {
             /* SETTINGS PANEL (WITH LOGO URL & REWARDS REPEATER) */
             <div id="settingsPanel" className="mb-6 anim-result">
               <div className="flex items-center justify-between mb-2.5">
-                <div className="font-space text-[10.5px] tracking-[0.14em] uppercase text-[#E5A43B] opacity-90 font-semibold">
+                <div className="font-space text-[10.5px] tracking-[0.14em] uppercase text-[#96806B] font-bold">
                   {t.settings.title}
                 </div>
                 <button
                   onClick={() => setShowSettings(false)}
                   title={t.settings.close}
-                  className="text-xs text-[#FAF2E2]/70 hover:text-[#FAF2E2] font-semibold flex items-center gap-1 cursor-pointer transition"
+                  className="text-xs text-[#96806B] hover:text-[#2B1B12] font-semibold flex items-center gap-1 cursor-pointer transition"
                 >
                   <span>{t.settings.close}</span>
                   <span className="text-sm leading-none font-bold">✕</span>
@@ -3770,17 +3788,17 @@ export default function CashierDashboard() {
           )}
 
           {/* ACTIVITY LOG (COLLAPSIBLE DROPDOWN WITH EXPORT DOWNLOAD) */}
-          <div className="border border-[#FAF2E2]/12 bg-[#FAF2E2]/[0.03] rounded-[20px] p-4 transition-all">
+          <div className="border border-[#F0DEC0] bg-[#FFFDF8] rounded-[24px] p-4 sm:p-5 shadow-xs transition-all mb-6">
             <div className="flex items-center justify-between gap-2">
               <button
                 type="button"
                 onClick={() => setShowActivityLog(!showActivityLog)}
                 className="flex items-center gap-2.5 text-left cursor-pointer group flex-1 py-1"
               >
-                <div className="w-6 h-6 rounded-lg bg-[#E5A43B]/10 border border-[#E5A43B]/20 flex items-center justify-center text-[#E5A43B] transition-transform duration-300 group-hover:bg-[#E5A43B]/20 shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-[#FF7A45]/15 text-[#FF7A45] flex items-center justify-center transition-transform duration-300 group-hover:bg-[#FF7A45]/25 shrink-0">
                   <svg
-                    className={`w-3.5 h-3.5 transition-transform duration-300 ${
-                      showActivityLog ? 'rotate-180 text-[#E5A43B]' : 'rotate-0 text-[#FAF2E2]/70'
+                    className={`w-4 h-4 transition-transform duration-300 ${
+                      showActivityLog ? 'rotate-180 text-[#FF7A45]' : 'rotate-0 text-[#96806B]'
                     }`}
                     viewBox="0 0 24 24"
                     fill="none"
@@ -3791,13 +3809,13 @@ export default function CashierDashboard() {
                   </svg>
                 </div>
                 <div>
-                  <div className="font-space text-[11px] tracking-[0.12em] uppercase text-[#E5A43B] font-bold flex items-center gap-1.5">
+                  <div className="font-fraunces font-bold text-sm text-[#2B1B12] group-hover:text-[#FF7A45] transition flex items-center gap-1.5">
                     <span>{t.activity.title}</span>
-                    <span className="text-[10px] text-[#FAF2E2]/60 font-normal">
+                    <span className="text-[10.5px] text-[#96806B] font-space font-normal">
                       ({totalActivityCount})
                     </span>
                   </div>
-                  <div className="text-[10px] text-[#5E6F68]">
+                  <div className="text-[10.5px] text-[#96806B]">
                     {t.activity.hint(showActivityLog)}
                   </div>
                 </div>
@@ -3809,7 +3827,7 @@ export default function CashierDashboard() {
                   type="button"
                   onClick={() => setShowExportModal(true)}
                   title={t.activity.downloadTooltip}
-                  className="py-1.5 px-2.5 rounded-xl border border-[#E5A43B]/30 bg-[#E5A43B]/10 hover:bg-[#E5A43B]/20 text-[#E5A43B] transition flex items-center gap-1.5 text-xs font-bold cursor-pointer active:scale-95 shadow-xs"
+                  className="py-1.5 px-2.5 rounded-xl border border-[#F0DEC0] bg-[#FFF7EA] hover:bg-[#FCE7D2] text-[#FF7A45] transition flex items-center gap-1.5 text-xs font-bold cursor-pointer active:scale-95 shadow-xs"
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -3825,10 +3843,10 @@ export default function CashierDashboard() {
                   onClick={() => loadActivity(activityPage)}
                   disabled={loadingActivity}
                   title={t.activity.refreshTooltip}
-                  className="w-8 h-8 rounded-xl border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.05] hover:bg-[#FAF2E2]/10 text-[#5E6F68] hover:text-[#FAF2E2] transition flex items-center justify-center cursor-pointer disabled:opacity-40"
+                  className="w-8 h-8 rounded-xl border border-[#F0DEC0] bg-[#FFF7EA] hover:bg-[#FCE7D2] text-[#96806B] hover:text-[#2B1B12] transition flex items-center justify-center cursor-pointer disabled:opacity-40"
                 >
                   <svg
-                    className={`w-3.5 h-3.5 ${loadingActivity ? 'animate-spin text-[#E5A43B]' : ''}`}
+                    className={`w-3.5 h-3.5 ${loadingActivity ? 'animate-spin text-[#FF7A45]' : ''}`}
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -3842,38 +3860,38 @@ export default function CashierDashboard() {
 
             {/* COLLAPSED / EXPANDED CONTENT */}
             {showActivityLog && (
-              <div className="mt-3.5 pt-3 border-t border-[#FAF2E2]/10 anim-result">
+              <div className="mt-3.5 pt-3 border-t border-[#F0DEC0] anim-result">
                 <div className="flex flex-col gap-2">
                   {activities.length === 0 ? (
-                    <div className="text-center py-6 text-xs text-[#5E6F68] bg-[#FAF2E2]/[0.02] border border-[#FAF2E2]/10 rounded-xl">
+                    <div className="text-center py-6 text-xs text-[#96806B] bg-[#FFF7EA] border border-[#F0DEC0] rounded-xl">
                       {t.activity.empty}
                     </div>
                   ) : (
                     activities.map((act) => (
                       <div
                         key={act.id}
-                        className="flex items-center justify-between gap-2.5 bg-[#FAF2E2]/[0.06] border border-[#FAF2E2]/10 rounded-[12px] p-3 hover:bg-[#FAF2E2]/[0.09] transition"
+                        className="flex items-center justify-between gap-2.5 bg-[#FFF7EA] border border-[#F0DEC0] rounded-[12px] p-3 hover:bg-[#FCE7D2]/40 transition shadow-xs"
                       >
                         <div className="flex items-center gap-2.5">
-                          <div className="w-[32px] h-[32px] rounded-full bg-[#B53629] flex items-center justify-center shrink-0 shadow-sm">
+                          <div className="w-[32px] h-[32px] rounded-full bg-[#FF7A45] flex items-center justify-center shrink-0 shadow-xs">
                             <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="none">
                               <path
                                 d="M12 2C7 2 3 6.5 3 12s4 10 9 10 9-4.5 9-10S17 2 12 2Z"
-                                fill="#FAF2E2"
+                                fill="#FFFDF8"
                               />
                               <path
                                 d="M12 3.3C13.6 6.2 12 9 10.3 11.5S8.2 17 12 20.6"
-                                stroke="#B53629"
+                                stroke="#FF7A45"
                                 strokeWidth="1.6"
                                 strokeLinecap="round"
                               />
                             </svg>
                           </div>
                           <div>
-                            <div className="font-space text-[12px] text-[#FAF2E2] font-semibold">
+                            <div className="font-space text-[12px] text-[#2B1B12] font-semibold">
                               +{act.stampCount} {t.activity.stampsUnit} • {act.deliveryMethod === 'email' ? (lang === 'en' ? 'Email' : 'Emel') : 'QR'} ({act.maskedToken})
                             </div>
-                            <div className="text-[10.5px] text-[#5E6F68] font-space">
+                            <div className="text-[10.5px] text-[#96806B] font-space">
                               {act.fullTimestamp || act.createdAt}
                             </div>
                           </div>
@@ -3883,10 +3901,10 @@ export default function CashierDashboard() {
                           <span
                             className={`text-[10px] font-bold py-1 px-2 rounded-[7px] tracking-[0.03em] whitespace-nowrap ${
                               act.status === 'claimed'
-                                ? 'bg-[#388E5F]/[0.2] text-[#388E5F]'
+                                ? 'bg-emerald-100 text-emerald-800'
                                 : act.status === 'expired'
-                                ? 'bg-red-500/20 text-red-400'
-                                : 'bg-[#E5A43B]/[0.2] text-[#E5A43B]'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-amber-100 text-amber-800'
                             }`}
                           >
                             {act.status === 'claimed'
@@ -3903,23 +3921,23 @@ export default function CashierDashboard() {
 
                 {/* PAGINATION BAR (10 ITEMS PER REQUEST) */}
                 {totalActivityPages > 1 && (
-                  <div className="mt-4 flex items-center justify-between px-2 pt-3 border-t border-[#FAF2E2]/10 font-space text-xs text-[#5E6F68]">
+                  <div className="mt-4 flex items-center justify-between px-2 pt-3 border-t border-[#F0DEC0] font-space text-xs text-[#96806B]">
                     <button
                       onClick={() => loadActivity(Math.max(1, activityPage - 1))}
                       disabled={activityPage <= 1 || loadingActivity}
-                      className="px-3 py-1.5 rounded-lg border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.05] text-[#FAF2E2] disabled:opacity-30 disabled:pointer-events-none hover:bg-[#FAF2E2]/10 transition cursor-pointer"
+                      className="px-3 py-1.5 rounded-lg border border-[#F0DEC0] bg-[#FFF7EA] text-[#2B1B12] disabled:opacity-30 disabled:pointer-events-none hover:bg-[#FCE7D2] transition cursor-pointer"
                     >
                       {t.activity.prevPage}
                     </button>
 
-                    <div className="font-bold text-[#FAF2E2]">
+                    <div className="font-bold text-[#2B1B12]">
                       {t.activity.pageInfo(activityPage, totalActivityPages)}
                     </div>
 
                     <button
                       onClick={() => loadActivity(activityPage + 1)}
                       disabled={!hasMoreActivity || loadingActivity}
-                      className="px-3 py-1.5 rounded-lg border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.05] text-[#FAF2E2] disabled:opacity-30 disabled:pointer-events-none hover:bg-[#FAF2E2]/10 transition cursor-pointer"
+                      className="px-3 py-1.5 rounded-lg border border-[#F0DEC0] bg-[#FFF7EA] text-[#2B1B12] disabled:opacity-30 disabled:pointer-events-none hover:bg-[#FCE7D2] transition cursor-pointer"
                     >
                       {t.activity.nextPage}
                     </button>
@@ -3940,7 +3958,7 @@ export default function CashierDashboard() {
                 ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500/30'
                 : btToast.type === 'error'
                 ? 'bg-red-950/90 text-red-300 border-red-500/30'
-                : 'bg-slate-900/90 text-slate-200 border-slate-700'
+                : 'bg-[#2B1B12]/90 text-[#FFFDF8] border-[#F0DEC0]/30'
             } backdrop-blur-md`}
           >
             {btToast.type === 'success' ? (
@@ -3966,25 +3984,25 @@ export default function CashierDashboard() {
       {/* POPUP MODAL: MUAT TURUN / EKSPORT LOG AKTIVITI */}
       {showExportModal && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-5 shadow-2xl border border-[#E5A43B]/30 anim-popup">
+          <div className="w-full max-w-sm bg-[#FFF7EA] text-[#2B1B12] rounded-[28px] p-5 shadow-2xl border border-[#F0DEC0] anim-popup">
             <div className="flex items-center justify-between mb-3.5">
-              <div className="font-fraunces font-bold text-base text-[#0A1716] flex items-center gap-2">
+              <div className="font-fraunces font-bold text-base text-[#2B1B12] flex items-center gap-2">
                 <span>{t.exportModal.title}</span>
               </div>
               <button
                 onClick={() => setShowExportModal(false)}
-                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-gray-500 hover:text-gray-800 text-lg font-bold transition cursor-pointer"
+                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-[#96806B] hover:text-[#2B1B12] text-lg font-bold transition cursor-pointer"
               >
                 &times;
               </button>
             </div>
 
-            <div className="text-xs text-[#5E6F68] mb-4">
+            <div className="text-xs text-[#96806B] mb-4">
               {t.exportModal.desc}
             </div>
 
             <div className="space-y-2 mb-4">
-              <label className="block text-xs font-bold text-[#1A2422] mb-1">
+              <label className="block text-xs font-bold text-[#2B1B12] mb-1">
                 {t.exportModal.periodLabel}
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -4000,8 +4018,8 @@ export default function CashierDashboard() {
                     onClick={() => setExportPeriod(opt.id as any)}
                     className={`py-2 px-3 rounded-xl border text-xs font-semibold text-left transition cursor-pointer ${
                       exportPeriod === opt.id
-                        ? 'border-[#E5A43B] bg-[#E5A43B]/20 text-[#0A1716] ring-1 ring-[#E5A43B] font-bold shadow-xs'
-                        : 'border-[#E4D9BE] bg-white text-[#5E6F68] hover:bg-gray-50'
+                        ? 'border-[#FF7A45] bg-[#FF7A45]/15 text-[#2B1B12] ring-1 ring-[#FF7A45] font-bold shadow-xs'
+                        : 'border-[#F0DEC0] bg-white text-[#96806B] hover:bg-[#FFF8EC]'
                     }`}
                   >
                     {opt.label}
@@ -4015,8 +4033,8 @@ export default function CashierDashboard() {
                 onClick={() => setExportPeriod('custom')}
                 className={`w-full mt-1 py-2 px-3 rounded-xl border text-xs font-semibold text-left transition cursor-pointer ${
                   exportPeriod === 'custom'
-                    ? 'border-[#E5A43B] bg-[#E5A43B]/20 text-[#0A1716] ring-1 ring-[#E5A43B] font-bold shadow-xs'
-                    : 'border-[#E4D9BE] bg-white text-[#5E6F68] hover:bg-gray-50'
+                    ? 'border-[#FF7A45] bg-[#FF7A45]/15 text-[#2B1B12] ring-1 ring-[#FF7A45] font-bold shadow-xs'
+                    : 'border-[#F0DEC0] bg-white text-[#96806B] hover:bg-[#FFF8EC]'
                 }`}
               >
                 {t.exportModal.customRange}
@@ -4025,25 +4043,25 @@ export default function CashierDashboard() {
               {exportPeriod === 'custom' && (
                 <div className="grid grid-cols-2 gap-2 pt-2 anim-result">
                   <div>
-                    <label className="block text-[10.5px] font-bold text-[#5E6F68] mb-1">
+                    <label className="block text-[10.5px] font-bold text-[#96806B] mb-1">
                       {t.exportModal.from}
                     </label>
                     <input
                       type="date"
                       value={exportStartDate}
                       onChange={(e) => setExportStartDate(e.target.value)}
-                      className="w-full border border-[#E4D9BE] rounded-lg p-2 text-xs bg-white text-[#1A2422] outline-none"
+                      className="w-full border border-[#F0DEC0] rounded-lg p-2 text-xs bg-white text-[#2B1B12] outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10.5px] font-bold text-[#5E6F68] mb-1">
+                    <label className="block text-[10.5px] font-bold text-[#96806B] mb-1">
                       {t.exportModal.to}
                     </label>
                     <input
                       type="date"
                       value={exportEndDate}
                       onChange={(e) => setExportEndDate(e.target.value)}
-                      className="w-full border border-[#E4D9BE] rounded-lg p-2 text-xs bg-white text-[#1A2422] outline-none"
+                      className="w-full border border-[#F0DEC0] rounded-lg p-2 text-xs bg-white text-[#2B1B12] outline-none"
                     />
                   </div>
                 </div>
@@ -4054,7 +4072,7 @@ export default function CashierDashboard() {
               <button
                 type="button"
                 onClick={() => setShowExportModal(false)}
-                className="flex-1 py-2.5 rounded-xl border border-[#E4D9BE] bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl border border-[#F0DEC0] bg-white text-xs font-bold text-[#2B1B12] hover:bg-[#FFF8EC] transition cursor-pointer shadow-xs"
               >
                 {t.exportModal.cancel}
               </button>
@@ -4062,7 +4080,7 @@ export default function CashierDashboard() {
                 type="button"
                 onClick={handleExportActivity}
                 disabled={isExporting || (exportPeriod === 'custom' && (!exportStartDate || !exportEndDate))}
-                className="flex-1 py-2.5 rounded-xl bg-[#1E5E53] hover:bg-[#2D786B] text-white text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
+                className="flex-1 py-2.5 rounded-xl bg-[#1C7A67] hover:bg-[#0F5C4C] text-white text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
               >
                 {isExporting ? (
                   <>
@@ -4085,14 +4103,14 @@ export default function CashierDashboard() {
       {/* POPUP MODAL: TAMBAH MEDIA SOSIAL / WEB */}
       {showSocialModal && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-5 shadow-2xl border border-[#E5A43B]/30 anim-popup">
+          <div className="w-full max-w-sm bg-[#FFF7EA] text-[#2B1B12] rounded-[28px] p-5 shadow-2xl border border-[#F0DEC0] anim-popup">
             <div className="flex items-center justify-between mb-3.5">
-              <div className="font-fraunces font-bold text-base text-[#0A1716]">
+              <div className="font-fraunces font-bold text-base text-[#2B1B12]">
                 {t.socialModal.title}
               </div>
               <button
                 onClick={() => setShowSocialModal(false)}
-                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-gray-500 hover:text-gray-800 text-lg font-bold transition cursor-pointer"
+                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-[#96806B] hover:text-[#2B1B12] text-lg font-bold transition cursor-pointer"
               >
                 &times;
               </button>
@@ -4100,7 +4118,7 @@ export default function CashierDashboard() {
 
             <div className="space-y-3 mb-4">
               <div>
-                <label className="block text-xs font-bold text-[#1A2422] mb-1.5">
+                <label className="block text-xs font-bold text-[#2B1B12] mb-1.5">
                   {t.socialModal.selectPlatform}
                 </label>
                 <div className="grid grid-cols-2 gap-1.5 max-h-[160px] overflow-y-auto pr-1">
@@ -4113,11 +4131,11 @@ export default function CashierDashboard() {
                         onClick={() => setNewSocialPlatform(plat.id)}
                         className={`flex items-center gap-2 p-2 rounded-xl border text-xs font-semibold transition cursor-pointer text-left ${
                           isSel
-                            ? 'border-[#E5A43B] bg-[#E5A43B]/20 text-[#0A1716] shadow-xs ring-1 ring-[#E5A43B]'
-                            : 'border-[#E4D9BE] bg-white text-[#5E6F68] hover:bg-gray-50'
+                            ? 'border-[#FF7A45] bg-[#FF7A45]/15 text-[#2B1B12] shadow-xs ring-1 ring-[#FF7A45]'
+                            : 'border-[#F0DEC0] bg-white text-[#96806B] hover:bg-[#FFF8EC]'
                         }`}
                       >
-                        <div className="w-5 h-5 rounded-full bg-[#1A2422] flex items-center justify-center p-1 shrink-0">
+                        <div className="w-5 h-5 rounded-full bg-[#2B1B12] flex items-center justify-center p-1 shrink-0">
                           <img src={plat.icon} alt={plat.label} className="w-full h-full object-contain" />
                         </div>
                         <span className="truncate">{plat.label.split('/')[0]}</span>
@@ -4128,7 +4146,7 @@ export default function CashierDashboard() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#1A2422] mb-1">
+                <label className="block text-xs font-bold text-[#2B1B12] mb-1">
                   {t.socialModal.urlLabel}
                 </label>
                 <input
@@ -4139,7 +4157,7 @@ export default function CashierDashboard() {
                     SOCIAL_PLATFORMS.find((p) => p.id === newSocialPlatform)?.placeholder ||
                     'https://...'
                   }
-                  className="w-full border border-[#E4D9BE] rounded-[10px] p-2.5 font-jakarta text-xs text-[#1A2422] bg-white outline-none"
+                  className="w-full border border-[#F0DEC0] rounded-[10px] p-2.5 font-jakarta text-xs text-[#2B1B12] bg-white outline-none focus:ring-1 focus:ring-[#FF7A45]"
                 />
               </div>
             </div>
@@ -4148,7 +4166,7 @@ export default function CashierDashboard() {
               <button
                 type="button"
                 onClick={() => setShowSocialModal(false)}
-                className="flex-1 py-2.5 rounded-xl border border-[#E4D9BE] bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl border border-[#F0DEC0] bg-white text-xs font-bold text-[#2B1B12] hover:bg-[#FFF8EC] transition cursor-pointer shadow-xs"
               >
                 {t.socialModal.cancel}
               </button>
@@ -4156,7 +4174,7 @@ export default function CashierDashboard() {
                 type="button"
                 onClick={handleAddSocialLink}
                 disabled={!newSocialUrl.trim()}
-                className="flex-1 py-2.5 rounded-xl bg-[#1E5E53] hover:bg-[#2D786B] text-white text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-sm"
+                className="flex-1 py-2.5 rounded-xl bg-[#1C7A67] hover:bg-[#0F5C4C] text-white text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-sm"
               >
                 {t.socialModal.save}
               </button>
@@ -4168,9 +4186,9 @@ export default function CashierDashboard() {
       {/* POPUP MODAL: TAMBAH / EDIT CAWANGAN / LOKASI GOOGLE MAPS */}
       {showLocationModal && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-5 shadow-2xl border border-[#E5A43B]/30 anim-popup">
+          <div className="w-full max-w-sm bg-[#FFF7EA] text-[#2B1B12] rounded-[28px] p-5 shadow-2xl border border-[#F0DEC0] anim-popup">
             <div className="flex items-center justify-between mb-3.5">
-              <div className="font-fraunces font-bold text-base text-[#0A1716] flex items-center gap-1.5">
+              <div className="font-fraunces font-bold text-base text-[#2B1B12] flex items-center gap-1.5">
                 <span>📍</span>
                 <span>
                   {editingLocationIdx !== null
@@ -4181,7 +4199,7 @@ export default function CashierDashboard() {
               <button
                 type="button"
                 onClick={() => setShowLocationModal(false)}
-                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-gray-500 hover:text-gray-800 text-lg font-bold transition cursor-pointer"
+                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-[#96806B] hover:text-[#2B1B12] text-lg font-bold transition cursor-pointer"
               >
                 &times;
               </button>
@@ -4189,7 +4207,7 @@ export default function CashierDashboard() {
 
             <div className="space-y-3 mb-4">
               <div>
-                <label className="block text-xs font-bold text-[#1A2422] mb-1">
+                <label className="block text-xs font-bold text-[#2B1B12] mb-1">
                   {lang === 'en' ? 'Outlet / Branch Name' : 'Nama Cawangan'}
                 </label>
                 <input
@@ -4198,12 +4216,12 @@ export default function CashierDashboard() {
                   onChange={(e) => setLocName(e.target.value)}
                   placeholder={t.settings.locationNamePlaceholder}
                   maxLength={80}
-                  className="w-full border border-[#E4D9BE] rounded-[10px] p-2.5 font-jakarta text-xs text-[#1A2422] bg-white outline-none"
+                  className="w-full border border-[#F0DEC0] rounded-[10px] p-2.5 font-jakarta text-xs text-[#2B1B12] bg-white outline-none focus:ring-1 focus:ring-[#FF7A45]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#1A2422] mb-1">
+                <label className="block text-xs font-bold text-[#2B1B12] mb-1">
                   {lang === 'en' ? 'Google Maps URL' : 'Pautan Google Maps'}
                 </label>
                 <input
@@ -4212,9 +4230,9 @@ export default function CashierDashboard() {
                   onChange={(e) => setLocUrl(e.target.value)}
                   placeholder={t.settings.locationUrlPlaceholder}
                   maxLength={500}
-                  className="w-full border border-[#E4D9BE] rounded-[10px] p-2.5 font-jakarta text-xs text-[#1A2422] bg-white outline-none"
+                  className="w-full border border-[#F0DEC0] rounded-[10px] p-2.5 font-jakarta text-xs text-[#2B1B12] bg-white outline-none focus:ring-1 focus:ring-[#FF7A45]"
                 />
-                <span className="text-[10px] text-[#5E6F68] mt-1 block">
+                <span className="text-[10px] text-[#96806B] mt-1 block">
                   {lang === 'en'
                     ? 'Paste Google Maps share link (e.g. https://maps.app.goo.gl/... or https://maps.google.com/...)'
                     : 'Tampal link kongsi dari Google Maps (cth: https://maps.app.goo.gl/... atau https://maps.google.com/...)'}
@@ -4222,7 +4240,7 @@ export default function CashierDashboard() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#1A2422] mb-1">
+                <label className="block text-xs font-bold text-[#2B1B12] mb-1">
                   {lang === 'en' ? 'Short Address (Optional)' : 'Alamat Ringkas (Pilihan)'}
                 </label>
                 <input
@@ -4231,7 +4249,7 @@ export default function CashierDashboard() {
                   onChange={(e) => setLocAddress(e.target.value)}
                   placeholder={t.settings.locationAddressPlaceholder}
                   maxLength={200}
-                  className="w-full border border-[#E4D9BE] rounded-[10px] p-2.5 font-jakarta text-xs text-[#1A2422] bg-white outline-none"
+                  className="w-full border border-[#F0DEC0] rounded-[10px] p-2.5 font-jakarta text-xs text-[#2B1B12] bg-white outline-none focus:ring-1 focus:ring-[#FF7A45]"
                 />
               </div>
             </div>
@@ -4240,7 +4258,7 @@ export default function CashierDashboard() {
               <button
                 type="button"
                 onClick={() => setShowLocationModal(false)}
-                className="flex-1 py-2.5 rounded-xl border border-[#E4D9BE] bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl border border-[#F0DEC0] bg-white text-xs font-bold text-[#2B1B12] hover:bg-[#FFF8EC] transition cursor-pointer shadow-xs"
               >
                 {t.socialModal.cancel}
               </button>
@@ -4248,7 +4266,7 @@ export default function CashierDashboard() {
                 type="button"
                 onClick={handleSaveLocationModal}
                 disabled={!locName.trim() && !locUrl.trim()}
-                className="flex-1 py-2.5 rounded-xl bg-[#1E5E53] hover:bg-[#2D786B] text-white text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-sm"
+                className="flex-1 py-2.5 rounded-xl bg-[#1C7A67] hover:bg-[#0F5C4C] text-white text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-sm"
               >
                 {t.socialModal.save}
               </button>
@@ -4260,30 +4278,30 @@ export default function CashierDashboard() {
       {/* ── DASHBOARD QR CAMERA SCANNER MODAL ─────────────────────────────── */}
       {showQrScanner && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 anim-fade">
-          <div className="w-full max-w-[360px] bg-[#FAF2E2] rounded-[28px] p-5 sm:p-6 shadow-2xl border border-[#E5A43B]/30 text-[#1C2624] relative text-center anim-scale">
+          <div className="w-full max-w-[360px] bg-[#FFF7EA] rounded-[28px] p-5 sm:p-6 shadow-2xl border border-[#F0DEC0] text-[#2B1B12] relative text-center anim-scale">
             <button
               onClick={() => handleCloseQrScanner()}
-              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-[#1C2624]/10 hover:bg-[#1C2624]/20 flex items-center justify-center text-sm font-bold text-[#1C2624] transition cursor-pointer z-10"
+              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-sm font-bold text-[#2B1B12] transition cursor-pointer z-10"
             >
               ✕
             </button>
 
-            <div className="w-10 h-10 rounded-2xl bg-[#E5A43B]/20 text-[#C77B1B] flex items-center justify-center mx-auto mb-2.5">
+            <div className="w-10 h-10 rounded-2xl bg-[#FF7A45]/15 text-[#FF7A45] flex items-center justify-center mx-auto mb-2.5">
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
                 <circle cx="12" cy="13" r="4" />
               </svg>
             </div>
 
-            <div className="font-fraunces font-bold text-lg text-[#0A1716] mb-1 leading-tight">
+            <div className="font-fraunces font-bold text-lg text-[#2B1B12] mb-1 leading-tight">
               {t.searchSection.scanModalTitle}
             </div>
-            <p className="text-xs text-[#5E6F68] mb-3 leading-relaxed">
+            <p className="text-xs text-[#96806B] mb-3 leading-relaxed">
               {t.searchSection.scanModalDesc}
             </p>
 
             {/* Video Viewport Container */}
-            <div className="relative w-full aspect-square bg-black rounded-2xl overflow-hidden mb-3 border-2 border-[#1E5E53]/30 shadow-inner flex items-center justify-center">
+            <div className="relative w-full aspect-square bg-black rounded-2xl overflow-hidden mb-3 border-2 border-[#1C7A67]/30 shadow-inner flex items-center justify-center">
               <div id="dashboard-qr-reader" className="w-full h-full" />
 
               {scannerError && (
@@ -4297,7 +4315,7 @@ export default function CashierDashboard() {
             <button
               type="button"
               onClick={() => handleCloseQrScanner()}
-              className="w-full py-2.5 bg-gray-200 hover:bg-gray-300 active:scale-98 text-[#1C2624] font-bold text-xs rounded-xl transition cursor-pointer"
+              className="w-full py-2.5 bg-[#FFFDF8] hover:bg-[#FCE7D2] border border-[#F0DEC0] active:scale-98 text-[#2B1B12] font-bold text-xs rounded-xl transition cursor-pointer shadow-xs"
             >
               {t.searchSection.scanCloseBtn}
             </button>
@@ -4431,7 +4449,7 @@ export default function CashierDashboard() {
       {/* POPUP MODAL: PENGESAHAN PADAM AKAUN */}
       {showDeleteAccountModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-6 shadow-2xl border border-red-300 anim-popup">
+          <div className="w-full max-w-sm bg-[#FFF7EA] text-[#2B1B12] rounded-[28px] p-6 shadow-2xl border border-red-300 anim-popup">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 text-red-600 font-fraunces font-bold text-lg">
                 <span>⚠️</span>
@@ -4441,29 +4459,29 @@ export default function CashierDashboard() {
                 type="button"
                 disabled={isDeletingAccount}
                 onClick={() => setShowDeleteAccountModal(false)}
-                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-gray-500 hover:text-gray-800 text-lg font-bold transition cursor-pointer"
+                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-[#96806B] hover:text-[#2B1B12] text-lg font-bold transition cursor-pointer"
               >
                 &times;
               </button>
             </div>
 
-            <div className="text-xs text-slate-700 leading-relaxed mb-4 space-y-2">
+            <div className="text-xs text-[#2B1B12]/80 leading-relaxed mb-4 space-y-2">
               <p className="font-semibold text-red-700">
                 {t.deleteModal.warning1}
               </p>
-              <p className="text-[#5E6F68]">
+              <p className="text-[#96806B]">
                 {t.deleteModal.warning2}
               </p>
             </div>
 
             {deleteAccountError && (
-              <div className="mb-3.5 p-3 rounded-xl bg-red-100 border border-red-300 text-red-700 text-xs font-semibold leading-relaxed">
+              <div className="mb-3.5 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold leading-relaxed">
                 {deleteAccountError}
               </div>
             )}
 
             <div className="mb-4">
-              <label className="block text-xs font-bold text-slate-800 mb-1.5">
+              <label className="block text-xs font-bold text-[#2B1B12] mb-1.5">
                 {t.deleteModal.typeToConfirm.split('PADAM')[0]}<span className="font-mono text-red-600 bg-red-100 px-1.5 py-0.5 rounded">PADAM</span>{t.deleteModal.typeToConfirm.split('PADAM')[1]}
               </label>
               <input
@@ -4472,7 +4490,7 @@ export default function CashierDashboard() {
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 placeholder="PADAM"
                 disabled={isDeletingAccount}
-                className="w-full border border-[#E4D9BE] rounded-xl p-2.5 font-mono text-sm text-center tracking-widest uppercase text-slate-900 bg-white outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full border border-[#F0DEC0] rounded-xl p-2.5 font-mono text-sm text-center tracking-widest uppercase text-[#2B1B12] bg-white outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
 
@@ -4481,7 +4499,7 @@ export default function CashierDashboard() {
                 type="button"
                 disabled={isDeletingAccount}
                 onClick={() => setShowDeleteAccountModal(false)}
-                className="flex-1 py-2.5 rounded-xl border border-[#E4D9BE] bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl border border-[#F0DEC0] bg-white text-xs font-bold text-[#2B1B12] hover:bg-[#FFF8EC] transition cursor-pointer shadow-xs"
               >
                 {t.deleteModal.cancel}
               </button>
@@ -4506,44 +4524,44 @@ export default function CashierDashboard() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-[380px] sm:max-w-[440px] bg-[#0A1716] border-2 border-[#E5A43B]/60 rounded-[32px] p-6 sm:p-8 text-center shadow-[0_0_60px_rgba(229,164,59,0.25)] flex flex-col items-center anim-scale"
+            className="relative w-full max-w-[380px] sm:max-w-[440px] bg-[#FFFDF8] border-2 border-[#F0DEC0] rounded-[32px] p-6 sm:p-8 text-center shadow-2xl flex flex-col items-center anim-scale text-[#2B1B12]"
           >
             {/* Close button */}
             <button
               onClick={() => setShowLargeQr(false)}
-              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-[#FAF2E2]/10 hover:bg-[#FAF2E2]/20 text-[#FAF2E2] flex items-center justify-center font-bold text-sm cursor-pointer transition active:scale-95"
+              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/5 hover:bg-black/10 text-[#2B1B12] flex items-center justify-center font-bold text-sm cursor-pointer transition active:scale-95"
             >
               ✕
             </button>
 
             {/* Stamp Count Badge */}
-            <div className="inline-flex items-center gap-1.5 bg-[#E5A43B] text-[#1A2422] font-black text-xs sm:text-sm font-space px-4 py-1.5 rounded-full mb-3 shadow-md">
+            <div className="inline-flex items-center gap-1.5 bg-[#FF7A45] text-white font-black text-xs sm:text-sm font-space px-4 py-1.5 rounded-full mb-3 shadow-md">
               <span>⚡ +{stampCount} {t.generator.stampsUnit || 'COP STAMP'}</span>
             </div>
 
-            <h3 className="font-fraunces font-bold text-xl sm:text-2xl text-[#FAF2E2] mb-1">
+            <h3 className="font-fraunces font-bold text-xl sm:text-2xl text-[#2B1B12] mb-1">
               {storeName || t.generator.largeQrModalTitle}
             </h3>
-            <p className="text-xs text-[#C4B897] mb-5">
+            <p className="text-xs text-[#96806B] mb-5">
               {t.generator.largeQrScanPrompt}
             </p>
 
             {/* Large QR Code Container */}
-            <div className="relative w-[260px] sm:w-[310px] h-[260px] sm:h-[310px] rounded-3xl bg-white p-3 shadow-2xl flex items-center justify-center overflow-hidden border-2 border-[#E5A43B]/30">
+            <div className="relative w-[260px] sm:w-[310px] h-[260px] sm:h-[310px] rounded-3xl bg-white p-3 shadow-md flex items-center justify-center overflow-hidden border border-[#F0DEC0]">
               {!isTokenClaimed ? (
                 <img src={qrDataUrl} alt="Large QR Cop" className="w-full h-full object-contain" />
               ) : (
-                /* Claimed Animation Overlay (QR image completely removed so phone cannot scan) */
-                <div className="w-full h-full bg-[#0A1716] rounded-2xl flex flex-col items-center justify-center anim-scale z-20 p-4">
-                  <div className="w-20 h-20 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-[0_0_35px_rgba(16,185,129,0.9)] mb-3 animate-bounce">
-                    <svg className="w-12 h-12 stroke-white" viewBox="0 0 24 24" fill="none" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                /* Claimed Animation Overlay */
+                <div className="w-full h-full bg-[#1C7A67] rounded-2xl flex flex-col items-center justify-center anim-scale z-20 p-4">
+                  <div className="w-20 h-20 rounded-full bg-emerald-400 text-[#2B1B12] flex items-center justify-center shadow-lg mb-3 animate-bounce">
+                    <svg className="w-12 h-12 stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   </div>
                   <div className="text-white font-black text-base sm:text-lg">
                     {t.generator.claimedAnimationTitle}
                   </div>
-                  <p className="text-emerald-300 text-xs mt-1">
+                  <p className="text-emerald-100 text-xs mt-1">
                     {t.generator.claimedSuccessMsg}
                   </p>
                 </div>
@@ -4551,9 +4569,9 @@ export default function CashierDashboard() {
             </div>
 
             {/* Token Code & Expiry */}
-            <div className="mt-5 flex items-center justify-between w-full max-w-[280px] bg-[#FAF2E2]/[0.08] border border-[#FAF2E2]/15 px-4 py-2 rounded-xl text-xs font-space">
-              <span className="text-[#E5A43B] font-bold">{generatedToken}</span>
-              <span className="text-[#B53629] font-bold">{timeLeftStr}</span>
+            <div className="mt-5 flex items-center justify-between w-full max-w-[280px] bg-[#FFF7EA] border border-[#F0DEC0] px-4 py-2 rounded-xl text-xs font-space">
+              <span className="text-[#2B1B12] font-bold">{generatedToken}</span>
+              <span className="text-[#FF7A45] font-bold">{timeLeftStr}</span>
             </div>
           </div>
         </div>
@@ -4567,34 +4585,34 @@ export default function CashierDashboard() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-[380px] sm:max-w-[420px] bg-[#0A1716] border-2 border-[#E5A43B]/60 rounded-[32px] p-6 sm:p-7 text-center shadow-[0_0_60px_rgba(229,164,59,0.25)] flex flex-col items-center anim-scale"
+            className="relative w-full max-w-[380px] sm:max-w-[420px] bg-[#FFFDF8] border-2 border-[#F0DEC0] rounded-[32px] p-6 sm:p-7 text-center shadow-2xl flex flex-col items-center anim-scale text-[#2B1B12]"
           >
             {/* Close button */}
             <button
               onClick={() => setShowSettingsQrModal(false)}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#FAF2E2]/10 hover:bg-[#FAF2E2]/20 text-[#FAF2E2] flex items-center justify-center font-bold text-sm cursor-pointer transition active:scale-95"
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-[#2B1B12] flex items-center justify-center font-bold text-sm cursor-pointer transition active:scale-95"
             >
               ✕
             </button>
 
             {/* Title & Store Name */}
-            <div className="inline-flex items-center gap-1.5 bg-[#E5A43B] text-[#1A2422] font-black text-xs font-space px-3.5 py-1 rounded-full mb-3 shadow-sm">
+            <div className="inline-flex items-center gap-1.5 bg-[#FF7A45] text-white font-black text-xs font-space px-3.5 py-1 rounded-full mb-3 shadow-xs">
               <span>📱 {t.settings.settingsQrModalTitle}</span>
             </div>
 
-            <h3 className="font-fraunces font-bold text-xl text-[#FAF2E2] mb-1">
+            <h3 className="font-fraunces font-bold text-xl text-[#2B1B12] mb-1">
               {storeName || 'Kedai Anda'}
             </h3>
-            <p className="text-xs text-[#C4B897] mb-3 leading-relaxed px-2">
+            <p className="text-xs text-[#96806B] mb-3 leading-relaxed px-2">
               {t.settings.settingsQrModalDesc}
             </p>
 
             {/* 6-Digit PIN Code Box */}
             {settingsCloneCode && (
-              <div className="w-full max-w-[280px] bg-[#FAF2E2]/[0.08] border border-[#E5A43B]/40 px-4 py-2 rounded-2xl mb-3 flex items-center justify-between shadow-inner">
+              <div className="w-full max-w-[280px] bg-[#FFF7EA] border border-[#F0DEC0] px-4 py-2 rounded-2xl mb-3 flex items-center justify-between shadow-xs">
                 <div className="text-left">
-                  <div className="text-[9px] uppercase font-bold text-[#E5A43B] tracking-wider">KOD PIN 6-DIGIT</div>
-                  <div className="text-2xl font-mono font-black text-[#FAF2E2] tracking-widest">{settingsCloneCode}</div>
+                  <div className="text-[9px] uppercase font-bold text-[#FF7A45] tracking-wider">KOD PIN 6-DIGIT</div>
+                  <div className="text-2xl font-mono font-black text-[#2B1B12] tracking-widest">{settingsCloneCode}</div>
                 </div>
                 <button
                   type="button"
@@ -4603,7 +4621,7 @@ export default function CashierDashboard() {
                     setConfigCopied(true)
                     setTimeout(() => setConfigCopied(false), 2000)
                   }}
-                  className="px-3 py-1 bg-[#E5A43B] text-[#0A1716] text-[11px] font-black rounded-lg cursor-pointer active:scale-95 shadow-sm"
+                  className="px-3 py-1 bg-[#FF7A45] text-white text-[11px] font-black rounded-lg cursor-pointer active:scale-95 shadow-xs"
                 >
                   {configCopied ? '✓ Disalin' : 'Salin PIN'}
                 </button>
@@ -4611,13 +4629,13 @@ export default function CashierDashboard() {
             )}
 
             {/* QR Code Container */}
-            <div className="w-[220px] sm:w-[250px] h-[220px] sm:h-[250px] rounded-2xl bg-white p-2.5 shadow-2xl flex items-center justify-center border-2 border-[#E5A43B]/40 mb-3">
+            <div className="w-[220px] sm:w-[250px] h-[220px] sm:h-[250px] rounded-2xl bg-white p-2.5 shadow-md flex items-center justify-center border border-[#F0DEC0] mb-3">
               <img src={settingsQrDataUrl} alt="Settings QR Code" className="w-full h-full object-contain" />
             </div>
 
             {/* Direct Link Preview */}
             {settingsShareUrl && (
-              <div className="w-full mb-3 bg-[#FAF2E2]/[0.08] border border-[#FAF2E2]/15 px-3 py-1.5 rounded-xl text-[11px] font-mono text-[#E5A43B] truncate select-all">
+              <div className="w-full mb-3 bg-[#FFF7EA] border border-[#F0DEC0] px-3 py-1.5 rounded-xl text-[11px] font-mono text-[#FF7A45] truncate select-all">
                 {settingsShareUrl}
               </div>
             )}
@@ -4627,7 +4645,7 @@ export default function CashierDashboard() {
               <button
                 type="button"
                 onClick={handleCopySettingsConfig}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] text-[#1A2422] text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer active:scale-98 shadow-md"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#FF7A45] to-[#FF9F45] text-white text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer active:scale-98 shadow-md"
               >
                 <span>🔗</span>
                 <span>{configCopied ? `✓ ${t.settings.configCopiedMsg}` : t.settings.copyConfigBtn}</span>
@@ -4640,30 +4658,30 @@ export default function CashierDashboard() {
       {/* ── SETTINGS QR CAMERA SCANNER MODAL ─────────────────────────────────── */}
       {showSettingsScanner && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 anim-fade">
-          <div className="w-full max-w-[360px] bg-[#FAF2E2] rounded-[28px] p-5 sm:p-6 shadow-2xl border border-[#E5A43B]/30 text-[#1C2624] relative text-center anim-scale">
+          <div className="w-full max-w-[360px] bg-[#FFF7EA] rounded-[28px] p-5 sm:p-6 shadow-2xl border border-[#F0DEC0] text-[#2B1B12] relative text-center anim-scale">
             <button
               onClick={() => handleCloseSettingsScanner()}
-              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-[#1C2624]/10 hover:bg-[#1C2624]/20 flex items-center justify-center text-sm font-bold text-[#1C2624] transition cursor-pointer z-10"
+              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-sm font-bold text-[#2B1B12] transition cursor-pointer z-10"
             >
               ✕
             </button>
 
-            <div className="w-10 h-10 rounded-2xl bg-[#1E5E53]/20 text-[#1E5E53] flex items-center justify-center mx-auto mb-2.5">
+            <div className="w-10 h-10 rounded-2xl bg-[#1C7A67]/15 text-[#1C7A67] flex items-center justify-center mx-auto mb-2.5">
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
                 <circle cx="12" cy="13" r="4" />
               </svg>
             </div>
 
-            <div className="font-fraunces font-bold text-lg text-[#0A1716] mb-1 leading-tight">
+            <div className="font-fraunces font-bold text-lg text-[#2B1B12] mb-1 leading-tight">
               {t.settings.settingsScanModalTitle}
             </div>
-            <p className="text-xs text-[#5E6F68] mb-3 leading-relaxed">
+            <p className="text-xs text-[#96806B] mb-3 leading-relaxed">
               {t.settings.settingsScanModalDesc}
             </p>
 
             {/* Video Viewport Container */}
-            <div className="relative w-full aspect-square bg-black rounded-2xl overflow-hidden mb-3 border-2 border-[#1E5E53]/30 shadow-inner flex items-center justify-center">
+            <div className="relative w-full aspect-square bg-black rounded-2xl overflow-hidden mb-3 border-2 border-[#1C7A67]/30 shadow-inner flex items-center justify-center">
               <div id="settings-qr-reader" className="w-full h-full" />
 
               {settingsScanError && (
@@ -4675,8 +4693,8 @@ export default function CashierDashboard() {
             </div>
 
             {/* Manual PIN Input Option */}
-            <div className="mb-3 p-3 bg-white/70 border border-[#1E5E53]/20 rounded-2xl">
-              <div className="text-[11px] font-bold text-gray-600 mb-1.5 uppercase tracking-wider">
+            <div className="mb-3 p-3 bg-white border border-[#F0DEC0] rounded-2xl">
+              <div className="text-[11px] font-bold text-[#96806B] mb-1.5 uppercase tracking-wider">
                 Atau Masukkan Kod PIN 6-Digit
               </div>
               <div className="flex gap-2">
@@ -4686,7 +4704,7 @@ export default function CashierDashboard() {
                   placeholder="cth. 849201"
                   value={manualClonePin}
                   onChange={(e) => setManualClonePin(e.target.value.replace(/\D/g, ''))}
-                  className="flex-1 px-3 py-2 text-center text-base font-mono font-black tracking-widest bg-white border border-[#1E5E53]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E5E53] text-[#0A1716]"
+                  className="flex-1 px-3 py-2 text-center text-base font-mono font-black tracking-widest bg-white border border-[#F0DEC0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF7A45] text-[#2B1B12]"
                 />
                 <button
                   type="button"
@@ -4697,7 +4715,7 @@ export default function CashierDashboard() {
                     }
                   }}
                   disabled={manualClonePin.length < 6}
-                  className="px-4 py-2 bg-[#1E5E53] hover:bg-[#16483f] disabled:opacity-40 text-white font-bold text-xs rounded-xl cursor-pointer transition active:scale-95 shadow-sm"
+                  className="px-4 py-2 bg-[#1C7A67] hover:bg-[#0F5C4C] disabled:opacity-40 text-white font-bold text-xs rounded-xl cursor-pointer transition active:scale-95 shadow-sm"
                 >
                   Salin
                 </button>
@@ -4707,7 +4725,7 @@ export default function CashierDashboard() {
             <button
               type="button"
               onClick={() => handleCloseSettingsScanner()}
-              className="w-full py-2.5 bg-gray-200 hover:bg-gray-300 active:scale-98 text-[#1C2624] font-bold text-xs rounded-xl transition cursor-pointer"
+              className="w-full py-2.5 bg-[#FFFDF8] hover:bg-[#FCE7D2] border border-[#F0DEC0] active:scale-98 text-[#2B1B12] font-bold text-xs rounded-xl transition cursor-pointer shadow-xs"
             >
               {t.settings.close}
             </button>
@@ -4716,10 +4734,10 @@ export default function CashierDashboard() {
       )}
 
       {/* Dashboard Footer Subtext */}
-      <div className="mt-8 text-center text-[11px] text-[#FAF2E2]/50 font-space flex items-center justify-center gap-2">
+      <div className="mt-8 text-center text-[11px] text-[#96806B] font-space flex items-center justify-center gap-2">
         <span>© {new Date().getFullYear()} LajuS</span>
         <span>•</span>
-        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#FAF2E2]/70 hover:text-[#E5A43B] underline transition">
+        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#96806B] hover:text-[#FF7A45] underline transition">
           {t.footer.privacyPolicy}
         </a>
       </div>
