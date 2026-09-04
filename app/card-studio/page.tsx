@@ -921,6 +921,7 @@ export default function CardStudioPage() {
   const [activeLang, setActiveLang] = useState<'my' | 'en'>('my')
   const [selectedBlockId, setSelectedBlockId] = useState<EditableBlockId | null>('hero_header')
   const [saveStatus, setSaveStatus] = useState<string>('')
+  const [mobileView, setMobileView] = useState<'editor' | 'preview'>('editor')
 
   const toggleBlock = (blockId: EditableBlockId) => {
     setSelectedBlockId((prev) => (prev === blockId ? null : blockId))
@@ -1421,32 +1422,32 @@ export default function CardStudioPage() {
         }
       ` }} />
 
-      {/* TOP HEADER / NAVBAR (CLEAN, PROFESSIONAL, NO EMOJIS) */}
-      <header className="h-16 border-b border-[#EBE5DB] bg-white/95 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between shrink-0 z-30 sticky top-0 shadow-2xs">
-        <div className="flex items-center gap-3">
+      {/* TOP HEADER / NAVBAR (CLEAN, PROFESSIONAL, NO EMOJIS, FULLY RESPONSIVE) */}
+      <header className="h-14 sm:h-16 border-b border-[#EBE5DB] bg-white/95 backdrop-blur-md px-3 sm:px-6 flex items-center justify-between shrink-0 z-30 sticky top-0 shadow-2xs">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link
             href="/dashboard"
-            className="flex items-center gap-1.5 text-stone-600 hover:text-stone-900 text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-stone-100 transition"
+            className="flex items-center gap-1 sm:gap-1.5 text-stone-600 hover:text-stone-900 text-xs font-semibold px-2 sm:px-2.5 py-1.5 rounded-lg hover:bg-stone-100 transition"
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
-            <span>Dashboard</span>
+            <span className="hidden xs:inline sm:inline">Dashboard</span>
           </Link>
-          <div className="h-4 w-px bg-stone-300" />
-          <div className="flex items-center gap-2">
-            <h1 className="font-extrabold text-base tracking-tight text-stone-900">
+          <div className="h-3.5 w-px bg-stone-300" />
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <h1 className="font-extrabold text-sm sm:text-base tracking-tight text-stone-900">
               Card Studio
             </h1>
-            <span className="text-[10px] bg-emerald-100/80 text-emerald-800 font-bold px-2 py-0.5 rounded-md border border-emerald-200">
+            <span className="hidden sm:inline-flex text-[10px] bg-emerald-100/80 text-emerald-800 font-bold px-2 py-0.5 rounded-md border border-emerald-200">
               Live Mirror
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
           {saveStatus && (
-            <span className="text-xs text-emerald-600 font-semibold animate-pulse hidden sm:inline flex items-center gap-1">
+            <span className="text-[11px] sm:text-xs text-emerald-600 font-semibold animate-pulse hidden md:inline flex items-center gap-1">
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
@@ -1456,7 +1457,8 @@ export default function CardStudioPage() {
           <button
             type="button"
             onClick={resetToDefault}
-            className="text-xs font-semibold bg-stone-100 hover:bg-stone-200/80 text-stone-700 px-3.5 py-1.5 rounded-xl border border-stone-200/90 transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+            className="text-xs font-semibold bg-stone-100 hover:bg-stone-200/80 text-stone-700 px-2.5 sm:px-3.5 py-1.5 rounded-xl border border-stone-200/90 transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+            title="Reset semua tetapan ke asal"
           >
             <svg className="w-3.5 h-3.5 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
@@ -1464,31 +1466,71 @@ export default function CardStudioPage() {
               <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
               <path d="M8 16H3v5" />
             </svg>
-            <span>Reset Asal</span>
+            <span className="hidden sm:inline">Reset Asal</span>
+            <span className="sm:hidden">Reset</span>
           </button>
           <Link
             href="/card-preview"
-            className="text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-4 py-1.5 rounded-xl shadow-xs transition flex items-center gap-1.5"
+            className="text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-3 sm:px-4 py-1.5 rounded-xl shadow-xs transition flex items-center gap-1.5"
+            title="Buka Pratonton Penuh"
           >
             <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
               <circle cx="12" cy="12" r="3" />
             </svg>
-            <span>Pratonton Penuh</span>
+            <span className="hidden sm:inline">Pratonton Penuh</span>
+            <span className="sm:hidden">Penuh</span>
           </Link>
         </div>
       </header>
 
-      {/* WORKSPACE AREA */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+      {/* MOBILE / SMALL TABLET VIEW TOGGLE (STICKY BELOW HEADER ON PHONES < MD BREAKPOINT) */}
+      <div className="md:hidden flex bg-[#FAF7F2] p-1.5 border-b border-[#EBE5DB] gap-1.5 sticky top-14 sm:top-16 z-20 shadow-2xs">
+        <button
+          type="button"
+          onClick={() => setMobileView('editor')}
+          className={`flex-1 py-2 px-3 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+            mobileView === 'editor'
+              ? 'bg-white text-stone-900 shadow-xs border border-stone-200'
+              : 'text-stone-500 hover:text-stone-800 hover:bg-stone-200/50'
+          }`}
+        >
+          <svg className="w-3.5 h-3.5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+          </svg>
+          <span>Panel Editor</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileView('preview')}
+          className={`flex-1 py-2 px-3 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+            mobileView === 'preview'
+              ? 'bg-white text-stone-900 shadow-xs border border-stone-200'
+              : 'text-stone-500 hover:text-stone-800 hover:bg-stone-200/50'
+          }`}
+        >
+          <svg className="w-3.5 h-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+            <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2" />
+          </svg>
+          <span>Pratonton Live</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+        </button>
+      </div>
+
+      {/* WORKSPACE AREA (TABLET & DESKTOP: SPLIT SCREEN; MOBILE: TABBED TOGGLE) */}
+      <div className="flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
         {/* LEFT PANEL: 3 TABS (4 BLOK, TEMA & WARNA, SIMULATOR) */}
-        <aside className="w-full lg:w-[460px] bg-white border-r border-[#EBE5DB] flex flex-col shrink-0 overflow-y-auto shadow-sm">
+        <aside className={`w-full md:w-[370px] lg:w-[440px] xl:w-[480px] bg-white border-r border-[#EBE5DB] flex flex-col shrink-0 overflow-y-auto shadow-sm ${
+          mobileView === 'preview' ? 'hidden md:flex' : 'flex'
+        }`}>
           {/* TABS (CLEAN & SLEEK) */}
-          <div className="flex border-b border-[#EBE5DB] p-2 gap-1.5 bg-[#FAF7F2] sticky top-0 z-20">
+          <div className="flex border-b border-[#EBE5DB] p-1.5 sm:p-2 gap-1 sm:gap-1.5 bg-[#FAF7F2] sticky top-0 z-20">
             <button
               type="button"
               onClick={() => setActiveTab('blocks')}
-              className={`flex-1 py-2 px-2.5 text-xs font-bold rounded-xl transition cursor-pointer text-center ${
+              className={`flex-1 py-2 px-1.5 sm:px-2.5 text-[11px] sm:text-xs font-bold rounded-xl transition cursor-pointer text-center ${
                 activeTab === 'blocks'
                   ? 'bg-white text-stone-900 shadow-xs border border-stone-200'
                   : 'text-stone-500 hover:text-stone-800 hover:bg-stone-200/50'
@@ -1499,7 +1541,7 @@ export default function CardStudioPage() {
             <button
               type="button"
               onClick={() => setActiveTab('presets')}
-              className={`flex-1 py-2 px-2.5 text-xs font-bold rounded-xl transition cursor-pointer text-center ${
+              className={`flex-1 py-2 px-1.5 sm:px-2.5 text-[11px] sm:text-xs font-bold rounded-xl transition cursor-pointer text-center ${
                 activeTab === 'presets'
                   ? 'bg-white text-stone-900 shadow-xs border border-stone-200'
                   : 'text-stone-500 hover:text-stone-800 hover:bg-stone-200/50'
@@ -1510,7 +1552,7 @@ export default function CardStudioPage() {
             <button
               type="button"
               onClick={() => setActiveTab('simulate')}
-              className={`flex-1 py-2 px-2.5 text-xs font-bold rounded-xl transition cursor-pointer text-center ${
+              className={`flex-1 py-2 px-1.5 sm:px-2.5 text-[11px] sm:text-xs font-bold rounded-xl transition cursor-pointer text-center ${
                 activeTab === 'simulate'
                   ? 'bg-white text-stone-900 shadow-xs border border-stone-200'
                   : 'text-stone-500 hover:text-stone-800 hover:bg-stone-200/50'
@@ -1520,7 +1562,7 @@ export default function CardStudioPage() {
             </button>
           </div>
 
-          <div className="p-4 sm:p-5 space-y-5">
+          <div className="p-3.5 sm:p-5 space-y-4 sm:space-y-5">
             {/* TAB 1: 4 BLOCKS ACCORDION */}
             {activeTab === 'blocks' && (
               <div className="space-y-3.5">
@@ -2183,19 +2225,35 @@ export default function CardStudioPage() {
         </aside>
 
         {/* RIGHT PANEL: LIVE EXACT PHONE MOCKUP (WARM SOOTHING DESK ATMOSPHERE) */}
-        <main className="flex-1 bg-gradient-to-b from-[#F7F4EE] via-[#EFEBE2] to-[#E9E4D9] p-4 sm:p-6 lg:p-8 flex flex-col items-center justify-center overflow-y-auto">
-          <div className="mb-3.5 flex items-center gap-2 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full border border-[#E2DAD0] text-[11px] text-stone-600 font-semibold shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Paparan Visual Rupa Paras (Butang Dinyahaktifkan)</span>
+        <main className={`flex-1 bg-gradient-to-b from-[#F7F4EE] via-[#EFEBE2] to-[#E9E4D9] p-3 sm:p-5 md:p-6 lg:p-8 flex flex-col items-center justify-start md:justify-center overflow-y-auto min-h-[640px] md:min-h-0 ${
+          mobileView === 'editor' ? 'hidden md:flex' : 'flex'
+        }`}>
+          <div className="mb-3 flex items-center justify-between w-full max-w-[420px] px-1">
+            <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-md px-3 sm:px-4 py-1.5 rounded-full border border-[#E2DAD0] text-[10px] sm:text-[11px] text-stone-600 font-semibold shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Paparan Visual Rupa Paras</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setMobileView('editor')}
+              className="md:hidden flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-xs cursor-pointer transition"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+              <span>Ubah Reka Bentuk</span>
+            </button>
           </div>
 
           <div
-            className="w-full max-w-[420px] rounded-[44px] shadow-2xl shadow-stone-800/15 overflow-hidden border-[10px] border-[#1E2533] relative flex flex-col pointer-events-none select-none"
+            className="w-full max-w-[340px] sm:max-w-[380px] md:max-w-[360px] lg:max-w-[420px] rounded-[32px] sm:rounded-[40px] md:rounded-[44px] shadow-2xl shadow-stone-800/15 overflow-hidden border-[6px] sm:border-[8px] md:border-[10px] border-[#1E2533] relative flex flex-col pointer-events-none select-none my-auto"
             style={{
               backgroundColor: config.pageBgColor || '#FFF7EA',
               backgroundImage: `radial-gradient(circle at 1px 1px, ${config.pageDotColor || 'rgba(43,27,18,0.055)'} 1px, transparent 1px)`,
               backgroundSize: '20px 20px',
-              minHeight: '740px',
+              minHeight: '680px',
             }}
           >
             {/* ISLAND / NOTCH */}
