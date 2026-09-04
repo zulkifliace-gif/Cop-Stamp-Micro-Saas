@@ -9,6 +9,7 @@ import {
   EditableBlockId,
   EditableBlockConfig,
   DEFAULT_4_BLOCKS,
+  HeroHeaderPattern,
 } from '../card-studio/page'
 
 function renderLiveSocialIcon(platform: string) {
@@ -121,8 +122,11 @@ export default function LiveCardPreviewPage() {
               boxShadow: heroBlock.shadowStyle === 'glow' ? `0 20px 36px -14px ${heroBlock.bgColor}77` : 'none',
             }}
           >
-            <div className="absolute w-[190px] h-[190px] rounded-full bg-white/15 -top-20 -right-12 pointer-events-none" />
-            <div className="absolute w-[130px] h-[130px] rounded-full bg-white/10 -bottom-16 -left-10 pointer-events-none" />
+            {/* CORAK MOTIF WATERMARK */}
+            <HeroHeaderPattern
+              pattern={heroBlock.pattern || 'bubbles'}
+              opacity={heroBlock.patternOpacity ?? 0.2}
+            />
 
             {/* 2. TOPBAR (Fixed Component) */}
             <div className="relative z-10 flex items-center justify-between mb-4">
@@ -211,9 +215,9 @@ export default function LiveCardPreviewPage() {
                 <div className="flex items-center justify-center gap-1.5">
                   <span
                     className="font-serif font-bold text-xl leading-tight"
-                    style={{ color: profileBlock.extraText || profileBlock.textColor || '#FFFFFF' }}
+                    style={{ color: profileBlock.textColor || '#FFFFFF' }}
                   >
-                    {profileBlock.title || config.storeName}
+                    {config.storeName}
                   </span>
                   <img
                     src="/green-checkmark-line-icon.svg"
@@ -319,7 +323,7 @@ export default function LiveCardPreviewPage() {
                 <div className="absolute -right-8 w-6 h-6 rounded-full bg-[#FFF7EA] border-l border-[#F0DEC0]" />
               </div>
 
-              {/* 5-COLUMN STAMP GRID (Fixed Component with simulation) */}
+              {/* 5-COLUMN STAMP GRID */}
               <div className="grid grid-cols-5 gap-2.5 my-4">
                 {Array.from({ length: reqStamps }).map((_, idx) => {
                   const num = idx + 1
@@ -424,7 +428,7 @@ export default function LiveCardPreviewPage() {
           <div className="w-2 h-2 rounded-full bg-[#F0DEC0]" />
         </div>
 
-        {/* 10. TIMESTAMP & CADENCE INFO (Fixed Component) */}
+        {/* 10. TIMESTAMP (Fixed Component) */}
         <div className="text-center px-4 mb-4">
           <div className="inline-flex items-center gap-1.5 bg-white/70 border border-[#F0DEC0] px-3 py-1 rounded-full text-[11px] font-semibold text-[#8C7A6B]">
             <span>⏱️ Kemaskini Terakhir: Hari ini, 2:30 PM</span>
@@ -473,7 +477,7 @@ export default function LiveCardPreviewPage() {
               </div>
               <div className="flex gap-2.5 items-start">
                 <span className="w-5 h-5 rounded-full bg-[#FF5A45] text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">3</span>
-                <p>Kumpul sehingga 10 cop dan tebus ganjaran minuman percuma serta-merta!</p>
+                <p>Kumpul sehingga {reqStamps} cop dan tebus ganjaran minuman percuma serta-merta!</p>
               </div>
             </div>
             <button
@@ -487,7 +491,7 @@ export default function LiveCardPreviewPage() {
         </div>
       )}
 
-      {/* 2. MODAL: GANJARAN (REWARDS LIST) */}
+      {/* 2. MODAL: GANJARAN */}
       {activeModal === 'rewards' && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-[#FFFDF8] border border-[#F0DEC0] w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
@@ -651,7 +655,7 @@ export default function LiveCardPreviewPage() {
             </div>
             <div className="p-4 bg-white border-2 border-dashed border-[#F0DEC0] rounded-2xl inline-block mb-3">
               <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=CARD-PREVIEW-CUSTOMER-01`}
+                src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=CARD-PREVIEW-CUSTOMER-01"
                 alt="QR Code"
                 className="w-44 h-44 object-contain mx-auto"
               />

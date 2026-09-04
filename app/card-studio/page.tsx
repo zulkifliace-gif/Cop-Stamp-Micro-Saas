@@ -9,6 +9,326 @@ export type EditableBlockId =
   | 'stamp_card_box'
   | 'progress_bar'
 
+export interface PatternOption {
+  id: string
+  label: string
+  icon: string
+  desc: string
+}
+
+export const HERO_PATTERN_OPTIONS: PatternOption[] = [
+  { id: 'bubbles', label: 'Bulat-bulat', icon: '🫧', desc: 'Geometrik bulat asal' },
+  { id: 'kereta', label: 'Kereta', icon: '🚗', desc: 'Automotif & bengkel' },
+  { id: 'salon', label: 'Salon', icon: '✂️', desc: 'Gunting rambut & kecantikan' },
+  { id: 'kek', label: 'Kek', icon: '🎂', desc: 'Kek hari lahir & patisserie' },
+  { id: 'roti_manisan', label: 'Roti Manisan', icon: '🥐', desc: 'Pastri, donut & croissant' },
+  { id: 'pisang', label: 'Pisang', icon: '🍌', desc: 'Buah-buahan segar' },
+  { id: 'air_bungkus', label: 'Air Bungkus', icon: '🧃', desc: 'Ikat tepi tradisional' },
+  { id: 'air_cup', label: 'Air Cup', icon: '🥤', desc: 'Cawan kopi & boba' },
+  { id: 'haiwan', label: 'Haiwan', icon: '🐾', desc: 'Tapak kaki & pet shop' },
+  { id: 'bunga', label: 'Bunga', icon: '🌸', desc: 'Flora & bunga mekar' },
+  { id: 'none', label: 'Kosong', icon: '🚫', desc: 'Tiada corak (plain gradient)' },
+]
+
+export function HeroHeaderPattern({
+  pattern = 'bubbles',
+  opacity = 0.2,
+}: {
+  pattern?: string
+  opacity?: number
+}) {
+  const p = (pattern || 'bubbles').toLowerCase().trim()
+  const opacityVal = Math.min(1, Math.max(0.02, opacity ?? 0.2))
+
+  if (p === 'none') {
+    return null
+  }
+
+  if (p === 'bubbles') {
+    return (
+      <div
+        className="absolute inset-0 pointer-events-none overflow-hidden select-none transition-opacity duration-300"
+        style={{ opacity: opacityVal }}
+      >
+        <div className="absolute w-[180px] h-[180px] rounded-full bg-white -top-20 -right-12 blur-[0.5px]" />
+        <div className="absolute w-[120px] h-[120px] rounded-full bg-white -bottom-16 -left-10 blur-[0.5px]" />
+        <div className="absolute w-[50px] h-[50px] rounded-full bg-white top-12 left-6" />
+        <div className="absolute w-[30px] h-[30px] rounded-full bg-white bottom-6 right-16" />
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className="absolute inset-0 pointer-events-none overflow-hidden select-none transition-opacity duration-300"
+      style={{ opacity: opacityVal }}
+    >
+      {p === 'kereta' && (
+        <svg viewBox="0 0 400 240" fill="currentColor" className="w-full h-full text-white">
+          <g transform="translate(230, -10) scale(0.42)">
+            <path d="M40 90 L85 35 L215 35 L260 90 L300 100 C312 103 320 112 320 124 L320 152 C320 158 315 162 308 162 L285 162 C285 184 266 200 244 200 C222 200 203 184 203 162 L117 162 C117 184 98 200 76 200 C54 200 35 184 35 162 L12 162 C6 162 0 158 0 152 L0 124 C0 112 8 103 20 100 Z" />
+            <circle cx="76" cy="162" r="18" fill="transparent" stroke="currentColor" strokeWidth="7" />
+            <circle cx="244" cy="162" r="18" fill="transparent" stroke="currentColor" strokeWidth="7" />
+            <path d="M90 48 L142 48 L142 85 L56 85 Z" fill="transparent" stroke="currentColor" strokeWidth="5" />
+            <path d="M158 48 L210 48 L244 85 L158 85 Z" fill="transparent" stroke="currentColor" strokeWidth="5" />
+          </g>
+          <g transform="translate(-15, 110) scale(0.32)">
+            <path d="M40 90 L90 35 L210 35 L260 90 L300 100 C312 103 320 112 320 124 L320 152 L285 162 C285 184 266 200 244 200 C222 200 203 184 203 162 L117 162 C117 184 98 200 76 200 C54 200 35 184 35 162 L12 162 L0 124 Z" />
+            <circle cx="76" cy="162" r="18" fill="transparent" stroke="currentColor" strokeWidth="6" />
+            <circle cx="244" cy="162" r="18" fill="transparent" stroke="currentColor" strokeWidth="6" />
+          </g>
+          <g transform="translate(20, 15) scale(0.75)">
+            <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" strokeWidth="4.5" />
+            <circle cx="24" cy="24" r="6" />
+            <line x1="4" y1="24" x2="18" y2="24" stroke="currentColor" strokeWidth="4" />
+            <line x1="30" y1="24" x2="44" y2="24" stroke="currentColor" strokeWidth="4" />
+            <line x1="24" y1="30" x2="24" y2="44" stroke="currentColor" strokeWidth="4" />
+          </g>
+          <line x1="125" y1="32" x2="180" y2="32" stroke="currentColor" strokeWidth="3" strokeDasharray="8 5" />
+          <line x1="140" y1="44" x2="205" y2="44" stroke="currentColor" strokeWidth="2.5" strokeDasharray="10 5" />
+          <line x1="160" y1="180" x2="225" y2="180" stroke="currentColor" strokeWidth="3" strokeDasharray="8 5" />
+          <path d="M220 70 Q220 80 210 80 Q220 80 220 90 Q220 80 230 80 Q220 80 220 70 Z" />
+        </svg>
+      )}
+
+      {p === 'salon' && (
+        <svg viewBox="0 0 400 240" fill="currentColor" className="w-full h-full text-white">
+          <g transform="translate(275, 5) rotate(25) scale(0.85)">
+            <circle cx="15" cy="50" r="11" fill="none" stroke="currentColor" strokeWidth="3.5" />
+            <circle cx="45" cy="50" r="11" fill="none" stroke="currentColor" strokeWidth="3.5" />
+            <path d="M22 42 L48 6 M38 42 L12 6" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+            <circle cx="30" cy="28" r="3" />
+          </g>
+          <g transform="translate(10, 110) scale(0.7)">
+            <path d="M12 20 Q12 8 28 8 L60 14 L60 38 L28 44 Q12 44 12 20 Z" />
+            <rect x="28" y="42" width="14" height="26" rx="5" />
+            <path d="M60 18 L76 20 L76 32 L60 34 Z" />
+            <line x1="78" y1="26" x2="92" y2="26" stroke="currentColor" strokeWidth="2.5" strokeDasharray="3 3" />
+          </g>
+          <g transform="translate(25, 18) rotate(-18) scale(0.75)">
+            <rect x="0" y="0" width="55" height="15" rx="3.5" />
+            <line x1="6" y1="15" x2="6" y2="30" stroke="currentColor" strokeWidth="2.2" />
+            <line x1="12" y1="15" x2="12" y2="30" stroke="currentColor" strokeWidth="2.2" />
+            <line x1="18" y1="15" x2="18" y2="30" stroke="currentColor" strokeWidth="2.2" />
+            <line x1="24" y1="15" x2="24" y2="30" stroke="currentColor" strokeWidth="2.2" />
+            <line x1="30" y1="15" x2="30" y2="30" stroke="currentColor" strokeWidth="2.2" />
+            <line x1="36" y1="15" x2="36" y2="30" stroke="currentColor" strokeWidth="2.2" />
+            <line x1="42" y1="15" x2="42" y2="30" stroke="currentColor" strokeWidth="2.2" />
+            <line x1="48" y1="15" x2="48" y2="30" stroke="currentColor" strokeWidth="2.2" />
+          </g>
+          <path d="M180 20 Q180 35 165 35 Q180 35 180 50 Q180 35 195 35 Q180 35 180 20 Z" />
+          <path d="M230 160 Q230 172 218 172 Q230 172 230 184 Q230 172 242 172 Q230 172 230 160 Z" />
+          <circle cx="160" cy="80" r="3" />
+        </svg>
+      )}
+
+      {p === 'kek' && (
+        <svg viewBox="0 0 400 240" fill="currentColor" className="w-full h-full text-white">
+          <g transform="translate(265, 8) scale(0.8)">
+            <rect x="10" y="52" width="76" height="32" rx="7" />
+            <rect x="22" y="26" width="52" height="27" rx="6" />
+            <line x1="35" y1="12" x2="35" y2="26" stroke="currentColor" strokeWidth="3" />
+            <circle cx="35" cy="8" r="3" />
+            <line x1="48" y1="10" x2="48" y2="26" stroke="currentColor" strokeWidth="3" />
+            <circle cx="48" cy="6" r="3" />
+            <line x1="61" y1="12" x2="61" y2="26" stroke="currentColor" strokeWidth="3" />
+            <circle cx="61" cy="8" r="3" />
+            <path d="M10 57 Q20 66 29 57 Q38 66 48 57 Q57 66 67 57 Q76 66 86 57" fill="none" stroke="currentColor" strokeWidth="2.5" />
+          </g>
+          <g transform="translate(15, 115) scale(0.75)">
+            <path d="M15 36 L22 68 L52 68 L59 36 Z" />
+            <path d="M10 36 Q37 8 64 36 Z" />
+            <circle cx="37" cy="12" r="5.5" />
+          </g>
+          <g transform="translate(25, 20) scale(0.7)">
+            <path d="M10 48 L60 20 L82 56 L10 68 Z" />
+            <circle cx="66" cy="15" r="4.5" />
+          </g>
+          <path d="M180 50 Q180 62 168 62 Q180 62 180 74 Q180 62 192 62 Q180 62 180 50 Z" />
+          <circle cx="215" cy="170" r="3.5" />
+          <circle cx="160" cy="25" r="3" />
+        </svg>
+      )}
+
+      {p === 'roti_manisan' && (
+        <svg viewBox="0 0 400 240" fill="currentColor" className="w-full h-full text-white">
+          <g transform="translate(265, 8) scale(0.8)">
+            <path d="M20 65 Q48 10 80 32 Q110 54 90 85 Q62 105 35 90 Q8 75 20 65 Z" />
+            <path d="M38 38 Q60 32 75 48" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+            <path d="M32 60 Q55 54 70 74" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          </g>
+          <g transform="translate(15, 115) scale(0.72)">
+            <circle cx="42" cy="42" r="34" />
+            <circle cx="42" cy="42" r="13" fill="transparent" stroke="currentColor" strokeWidth="7" />
+            <line x1="26" y1="26" x2="32" y2="20" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+            <line x1="53" y1="25" x2="59" y2="30" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+            <line x1="26" y1="56" x2="32" y2="62" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+            <line x1="54" y1="56" x2="60" y2="50" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          </g>
+          <g transform="translate(20, 18) scale(0.7)">
+            <rect x="10" y="20" width="65" height="36" rx="15" />
+            <line x1="26" y1="20" x2="20" y2="42" stroke="currentColor" strokeWidth="2.5" />
+            <line x1="42" y1="20" x2="36" y2="42" stroke="currentColor" strokeWidth="2.5" />
+            <line x1="58" y1="20" x2="52" y2="42" stroke="currentColor" strokeWidth="2.5" />
+          </g>
+          <g transform="translate(170, 150) scale(0.55)">
+            <path d="M20 40 Q20 10 45 10 Q70 10 70 40 Q70 70 45 70 Q20 70 20 40 Z" fill="none" stroke="currentColor" strokeWidth="6.5" />
+          </g>
+        </svg>
+      )}
+
+      {p === 'pisang' && (
+        <svg viewBox="0 0 400 240" fill="currentColor" className="w-full h-full text-white">
+          <g transform="translate(255, 5) scale(0.85)">
+            <path d="M22 24 Q55 40 82 82 Q50 72 16 30 Z" />
+            <path d="M28 18 Q72 34 98 72 Q66 62 22 24 Z" />
+            <rect x="14" y="12" width="18" height="14" rx="3.5" />
+          </g>
+          <g transform="translate(15, 105) scale(0.8) rotate(-15)">
+            <path d="M12 22 Q50 28 78 72 Q50 56 12 22 Z" />
+            <rect x="6" y="16" width="9" height="8" rx="2.5" />
+          </g>
+          <g transform="translate(20, 15) scale(0.7)">
+            <path d="M10 55 Q45 10 78 16 Q72 50 28 82 Z" />
+            <line x1="10" y1="55" x2="78" y2="16" stroke="currentColor" strokeWidth="2.5" />
+          </g>
+          <g transform="translate(180, 160) scale(0.65)">
+            <circle cx="20" cy="20" r="16" fill="none" stroke="currentColor" strokeWidth="3.5" />
+            <circle cx="20" cy="20" r="4.5" />
+          </g>
+          <g transform="translate(185, 25) scale(0.5)">
+            <circle cx="20" cy="20" r="16" fill="none" stroke="currentColor" strokeWidth="3.5" />
+            <circle cx="20" cy="20" r="4.5" />
+          </g>
+        </svg>
+      )}
+
+      {p === 'air_bungkus' && (
+        <svg viewBox="0 0 400 240" fill="currentColor" className="w-full h-full text-white">
+          <g transform="translate(265, 5) scale(0.88)">
+            <path d="M46 6 Q56 -6 66 6 Q72 20 60 26 Q46 16 46 6 Z" fill="none" stroke="currentColor" strokeWidth="3.5" />
+            <line x1="60" y1="26" x2="84" y2="12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+            <line x1="28" y1="-8" x2="52" y2="64" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" />
+            <path d="M40 26 L72 26 L88 74 Q88 90 72 96 L40 96 Q24 90 24 74 Z" />
+            <path d="M28 48 Q56 56 84 48 L85 74 Q85 87 72 92 L40 92 Q27 87 27 74 Z" opacity="0.65" fill="#ffffff" />
+            <ellipse cx="56" cy="26" rx="16" ry="4.5" />
+          </g>
+          <g transform="translate(15, 105) scale(0.7)">
+            <path d="M46 6 Q56 -6 66 6 Q72 20 60 26 Q46 16 46 6 Z" fill="none" stroke="currentColor" strokeWidth="3" />
+            <line x1="28" y1="-8" x2="52" y2="64" stroke="currentColor" strokeWidth="4" />
+            <path d="M40 26 L72 26 L88 74 Q88 90 72 96 L40 96 Q24 90 24 74 Z" />
+          </g>
+          <g transform="translate(30, 20) scale(0.65)">
+            <rect x="10" y="10" width="24" height="24" rx="4.5" fill="none" stroke="currentColor" strokeWidth="3.5" />
+          </g>
+          <g transform="translate(180, 25) scale(0.55) rotate(18)">
+            <rect x="10" y="10" width="22" height="22" rx="4" fill="none" stroke="currentColor" strokeWidth="3.5" />
+          </g>
+          <g transform="translate(180, 160) scale(0.6) rotate(-22)">
+            <rect x="10" y="10" width="24" height="24" rx="4.5" fill="none" stroke="currentColor" strokeWidth="3.5" />
+          </g>
+          <circle cx="235" cy="45" r="3.5" />
+          <circle cx="245" cy="70" r="2.5" />
+        </svg>
+      )}
+
+      {p === 'air_cup' && (
+        <svg viewBox="0 0 400 240" fill="currentColor" className="w-full h-full text-white">
+          <g transform="translate(275, 5) scale(0.82)">
+            <line x1="45" y1="-6" x2="45" y2="22" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
+            <path d="M18 22 Q45 6 72 22 Z" />
+            <path d="M20 22 L29 90 Q29 98 45 98 Q61 98 61 90 L70 22 Z" />
+            <circle cx="36" cy="80" r="4.5" fill="#ffffff" opacity="0.8" />
+            <circle cx="52" cy="80" r="4.5" fill="#ffffff" opacity="0.8" />
+            <circle cx="44" cy="68" r="4.5" fill="#ffffff" opacity="0.8" />
+          </g>
+          <g transform="translate(15, 110) scale(0.7)">
+            <rect x="18" y="14" width="54" height="9" rx="3.5" />
+            <path d="M23 23 L31 80 L59 80 L67 23 Z" />
+            <path d="M27 38 L30 62 L60 62 L63 38 Z" opacity="0.75" fill="#ffffff" />
+            <path d="M36 4 Q39 -2 36 -8 Q33 -14 36 -20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+            <path d="M52 4 Q55 -2 52 -8 Q49 -14 52 -20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+          </g>
+          <g transform="translate(25, 20) scale(0.65)">
+            <ellipse cx="20" cy="20" rx="15" ry="11" />
+            <path d="M9 20 Q20 14 20 26 Q20 38 31 20" fill="none" stroke="currentColor" strokeWidth="2.5" />
+          </g>
+          <circle cx="170" cy="30" r="3.5" />
+          <circle cx="215" cy="170" r="4" />
+        </svg>
+      )}
+
+      {p === 'haiwan' && (
+        <svg viewBox="0 0 400 240" fill="currentColor" className="w-full h-full text-white">
+          <g transform="translate(275, 10) scale(0.88) rotate(15)">
+            <path d="M25 36 C15 36 15 56 25 62 C35 67 45 67 55 62 C65 56 65 36 55 36 C45 36 40 44 25 36 Z" />
+            <ellipse cx="17" cy="22" rx="6.5" ry="10" transform="rotate(-20 17 22)" />
+            <ellipse cx="32" cy="14" rx="7" ry="10.5" transform="rotate(-6 32 14)" />
+            <ellipse cx="48" cy="14" rx="7" ry="10.5" transform="rotate(6 48 14)" />
+            <ellipse cx="63" cy="22" rx="6.5" ry="10" transform="rotate(20 63 22)" />
+          </g>
+          <g transform="translate(20, 115) scale(0.7) rotate(-22)">
+            <path d="M25 36 C15 36 15 56 25 62 C35 67 45 67 55 62 C65 56 65 36 55 36 C45 36 40 44 25 36 Z" />
+            <ellipse cx="17" cy="22" rx="6.5" ry="10" transform="rotate(-20 17 22)" />
+            <ellipse cx="32" cy="14" rx="7" ry="10.5" transform="rotate(-6 32 14)" />
+            <ellipse cx="48" cy="14" rx="7" ry="10.5" transform="rotate(6 48 14)" />
+            <ellipse cx="63" cy="22" rx="6.5" ry="10" transform="rotate(20 63 22)" />
+          </g>
+          <g transform="translate(25, 20) scale(0.7) rotate(25)">
+            <rect x="20" y="16" width="32" height="9" rx="2.5" />
+            <circle cx="18" cy="15" r="6.5" />
+            <circle cx="18" cy="26" r="6.5" />
+            <circle cx="54" cy="15" r="6.5" />
+            <circle cx="54" cy="26" r="6.5" />
+          </g>
+          <g transform="translate(180, 25) scale(0.42) rotate(12)">
+            <circle cx="40" cy="45" r="15" />
+            <circle cx="22" cy="24" r="6.5" />
+            <circle cx="36" cy="15" r="6.5" />
+            <circle cx="50" cy="15" r="6.5" />
+            <circle cx="64" cy="24" r="6.5" />
+          </g>
+          <g transform="translate(190, 160) scale(0.48) rotate(-16)">
+            <circle cx="40" cy="45" r="15" />
+            <circle cx="22" cy="24" r="6.5" />
+            <circle cx="36" cy="15" r="6.5" />
+            <circle cx="50" cy="15" r="6.5" />
+            <circle cx="64" cy="24" r="6.5" />
+          </g>
+        </svg>
+      )}
+
+      {p === 'bunga' && (
+        <svg viewBox="0 0 400 240" fill="currentColor" className="w-full h-full text-white">
+          <g transform="translate(265, 8) scale(0.88)">
+            <circle cx="40" cy="20" r="15" />
+            <circle cx="60" cy="32" r="15" />
+            <circle cx="52" cy="56" r="15" />
+            <circle cx="28" cy="56" r="15" />
+            <circle cx="20" cy="32" r="15" />
+            <circle cx="40" cy="39" r="8.5" fill="#ffffff" opacity="0.65" />
+          </g>
+          <g transform="translate(15, 110) scale(0.7)">
+            <circle cx="40" cy="20" r="15" />
+            <circle cx="60" cy="32" r="15" />
+            <circle cx="52" cy="56" r="15" />
+            <circle cx="28" cy="56" r="15" />
+            <circle cx="20" cy="32" r="15" />
+            <circle cx="40" cy="39" r="8.5" fill="#ffffff" opacity="0.65" />
+          </g>
+          <g transform="translate(25, 20) scale(0.75) rotate(-20)">
+            <path d="M10 42 Q32 10 65 22 Q52 54 10 42 Z" />
+            <path d="M10 42 Q42 42 62 74 Q32 74 10 42 Z" />
+          </g>
+          <ellipse cx="170" cy="40" rx="9" ry="4.5" transform="rotate(25 170 40)" />
+          <ellipse cx="225" cy="170" rx="8" ry="4" transform="rotate(-35 225 170)" />
+          <circle cx="190" cy="120" r="3" />
+        </svg>
+      )}
+    </div>
+  )
+}
+
 export interface EditableBlockConfig {
   id: EditableBlockId
   name: string
@@ -21,11 +341,13 @@ export interface EditableBlockConfig {
   borderColor: string
   borderRadius: number
   shadowStyle: 'none' | 'soft' | 'glow' | 'glass'
-  // Media & Content
+  // Media, Content & Pattern
   imageUrl: string
   title: string
   subtitle: string
   extraText?: string
+  pattern?: string
+  patternOpacity?: number
 }
 
 export interface LiveStudioConfig {
@@ -58,7 +380,9 @@ export const DEFAULT_4_BLOCKS: EditableBlockConfig[] = [
     shadowStyle: 'glow',
     imageUrl: '',
     title: 'Hero Banner Atas',
-    subtitle: 'Warna gradient dan lengkungan sudut bawah banner',
+    subtitle: 'Warna gradient, corak motif & lengkungan sudut bawah banner',
+    pattern: 'bubbles',
+    patternOpacity: 0.2,
   },
   {
     id: 'store_profile',
@@ -123,6 +447,7 @@ export const DEFAULT_LIVE_STUDIO_CONFIG: LiveStudioConfig = {
 export const LIVE_PRESETS = [
   {
     name: 'Warm Sunset (Asal LajuS)',
+    pattern: 'bubbles',
     pageBg: '#FFF7EA',
     pageDot: 'rgba(43,27,18,0.055)',
     hero1: '#FF7A45',
@@ -135,6 +460,7 @@ export const LIVE_PRESETS = [
   },
   {
     name: 'Royal Emerald (Cafe & Kopi)',
+    pattern: 'air_cup',
     pageBg: '#F0F9F5',
     pageDot: 'rgba(15,92,76,0.06)',
     hero1: '#0F5C4C',
@@ -146,7 +472,8 @@ export const LIVE_PRESETS = [
     progressFill2: '#2EB88A',
   },
   {
-    name: 'Golden Luxury (Bakeri & Pastri)',
+    name: 'Golden Luxury (Bakeri & Kek)',
+    pattern: 'kek',
     pageBg: '#FFF9ED',
     pageDot: 'rgba(140,83,17,0.06)',
     hero1: '#A86208',
@@ -158,7 +485,8 @@ export const LIVE_PRESETS = [
     progressFill2: '#FFD54F',
   },
   {
-    name: 'Sweet Berry (Dessert & Spa)',
+    name: 'Sweet Berry (Pastri & Dessert)',
+    pattern: 'roti_manisan',
     pageBg: '#FFF0F5',
     pageDot: 'rgba(184,46,90,0.06)',
     hero1: '#C2185B',
@@ -171,6 +499,7 @@ export const LIVE_PRESETS = [
   },
   {
     name: 'Ocean Blue (Carwash & Servis)',
+    pattern: 'kereta',
     pageBg: '#F0F8FF',
     pageDot: 'rgba(21,101,192,0.06)',
     hero1: '#1565C0',
@@ -182,7 +511,8 @@ export const LIVE_PRESETS = [
     progressFill2: '#64B5F6',
   },
   {
-    name: 'Dark Velvet (Barber & Butik)',
+    name: 'Dark Velvet (Barber & Salon)',
+    pattern: 'salon',
     pageBg: '#18181B',
     pageDot: 'rgba(255,255,255,0.05)',
     hero1: '#27272A',
@@ -205,52 +535,44 @@ function safeColor(val: any, fallback: string = '#FF7A45'): string {
 export function sanitizeLiveConfig(data: any): LiveStudioConfig {
   if (!data || typeof data !== 'object') return DEFAULT_LIVE_STUDIO_CONFIG
 
-  const pageBgColor = safeColor(data.pageBgColor, '#FFF7EA')
-  const pageDotColor = typeof data.pageDotColor === 'string' ? data.pageDotColor : 'rgba(43,27,18,0.055)'
-  const primaryAccent = safeColor(data.primaryAccent, '#FF7A45')
-  const secondaryAccent = safeColor(data.secondaryAccent, '#FFC24D')
-  const storeName = typeof data.storeName === 'string' ? data.storeName : 'Diana Bakery & Cafe'
-  const rewardDesc = typeof data.rewardDesc === 'string' ? data.rewardDesc : '1 Minuman Panas Percuma'
-  const stampsRequired = typeof data.stampsRequired === 'number' ? data.stampsRequired : 10
-  const simulatedStamps = typeof data.simulatedStamps === 'number' ? data.simulatedStamps : 4
-  const stampIcon = typeof data.stampIcon === 'string' ? data.stampIcon : '/icons/stamps/makanan.svg'
+  const baseBlocks = Array.isArray(data.blocks) ? data.blocks : []
 
-  let mergedBlocks = DEFAULT_4_BLOCKS.map((defaultBlock) => {
-    const found = Array.isArray(data.blocks)
-      ? data.blocks.find((b: any) => b && b.id === defaultBlock.id)
-      : null
-
-    if (!found) return { ...defaultBlock }
-
+  const mergedBlocks: EditableBlockConfig[] = DEFAULT_4_BLOCKS.map((def) => {
+    const found = baseBlocks.find((b: any) => b && b.id === def.id)
+    if (!found) return def
     return {
-      id: defaultBlock.id,
-      name: defaultBlock.name,
-      icon: defaultBlock.icon,
-      visible: typeof found.visible === 'boolean' ? found.visible : defaultBlock.visible,
-      bgColor: safeColor(found.bgColor, defaultBlock.bgColor),
-      bgColor2: typeof found.bgColor2 === 'string' ? found.bgColor2 : defaultBlock.bgColor2,
-      textColor: safeColor(found.textColor, defaultBlock.textColor),
-      borderColor: safeColor(found.borderColor, defaultBlock.borderColor),
-      borderRadius: typeof found.borderRadius === 'number' ? found.borderRadius : defaultBlock.borderRadius,
-      shadowStyle: found.shadowStyle || defaultBlock.shadowStyle,
-      imageUrl: typeof found.imageUrl === 'string' ? found.imageUrl : defaultBlock.imageUrl,
-      title: typeof found.title === 'string' ? found.title : defaultBlock.title,
-      subtitle: typeof found.subtitle === 'string' ? found.subtitle : defaultBlock.subtitle,
-      extraText: typeof found.extraText === 'string' ? found.extraText : defaultBlock.extraText,
+      id: def.id,
+      name: typeof found.name === 'string' ? found.name : def.name,
+      icon: typeof found.icon === 'string' ? found.icon : def.icon,
+      visible: typeof found.visible === 'boolean' ? found.visible : def.visible,
+      bgColor: safeColor(found.bgColor, def.bgColor),
+      bgColor2: found.bgColor2 ? safeColor(found.bgColor2, def.bgColor2 || '#FFC24D') : def.bgColor2,
+      textColor: safeColor(found.textColor, def.textColor),
+      borderColor: typeof found.borderColor === 'string' ? found.borderColor : def.borderColor,
+      borderRadius: typeof found.borderRadius === 'number' ? found.borderRadius : def.borderRadius,
+      shadowStyle: ['none', 'soft', 'glow', 'glass'].includes(found.shadowStyle)
+        ? found.shadowStyle
+        : def.shadowStyle,
+      imageUrl: typeof found.imageUrl === 'string' ? found.imageUrl : def.imageUrl,
+      title: typeof found.title === 'string' ? found.title : def.title,
+      subtitle: typeof found.subtitle === 'string' ? found.subtitle : def.subtitle,
+      extraText: typeof found.extraText === 'string' ? found.extraText : def.extraText,
+      pattern: typeof found.pattern === 'string' ? found.pattern : def.pattern || 'bubbles',
+      patternOpacity: typeof found.patternOpacity === 'number' ? found.patternOpacity : def.patternOpacity ?? 0.2,
     }
   })
 
   return {
-    templateName: typeof data.templateName === 'string' ? data.templateName : 'Tema Kustom Live',
-    pageBgColor,
-    pageDotColor,
-    primaryAccent,
-    secondaryAccent,
-    storeName,
-    rewardDesc,
-    stampsRequired,
-    simulatedStamps,
-    stampIcon,
+    templateName: typeof data.templateName === 'string' ? data.templateName : DEFAULT_LIVE_STUDIO_CONFIG.templateName,
+    pageBgColor: safeColor(data.pageBgColor, DEFAULT_LIVE_STUDIO_CONFIG.pageBgColor),
+    pageDotColor: typeof data.pageDotColor === 'string' ? data.pageDotColor : DEFAULT_LIVE_STUDIO_CONFIG.pageDotColor,
+    primaryAccent: safeColor(data.primaryAccent, DEFAULT_LIVE_STUDIO_CONFIG.primaryAccent),
+    secondaryAccent: safeColor(data.secondaryAccent, DEFAULT_LIVE_STUDIO_CONFIG.secondaryAccent),
+    storeName: typeof data.storeName === 'string' ? data.storeName : DEFAULT_LIVE_STUDIO_CONFIG.storeName,
+    rewardDesc: typeof data.rewardDesc === 'string' ? data.rewardDesc : DEFAULT_LIVE_STUDIO_CONFIG.rewardDesc,
+    stampsRequired: typeof data.stampsRequired === 'number' ? data.stampsRequired : DEFAULT_LIVE_STUDIO_CONFIG.stampsRequired,
+    simulatedStamps: typeof data.simulatedStamps === 'number' ? data.simulatedStamps : DEFAULT_LIVE_STUDIO_CONFIG.simulatedStamps,
+    stampIcon: typeof data.stampIcon === 'string' ? data.stampIcon : DEFAULT_LIVE_STUDIO_CONFIG.stampIcon,
     blocks: mergedBlocks,
   }
 }
@@ -288,17 +610,19 @@ function renderLiveSocialIcon(platform: string) {
   }
 }
 
-export default function LiveCardStudioPage() {
+export default function CardStudioPage() {
   const [config, setConfig] = useState<LiveStudioConfig>(DEFAULT_LIVE_STUDIO_CONFIG)
   const [activeTab, setActiveTab] = useState<'blocks' | 'settings' | 'simulate'>('blocks')
   const [expandedBlockId, setExpandedBlockId] = useState<EditableBlockId | null>('hero_header')
-  const [savedSuccess, setSavedSuccess] = useState(false)
-  const [activeLang, setActiveLang] = useState<'my' | 'en'>('my')
+  const [savedSuccess, setSavedSuccess] = useState<boolean>(false)
 
+  // Simulation & Modal States
+  const [activeLang, setActiveLang] = useState<'my' | 'en'>('my')
   const [activeModal, setActiveModal] = useState<'none' | 'how_to_redeem' | 'rewards' | 'google_review' | 'locations' | 'qr' | 'stamp_detail'>('none')
   const [selectedStampSlot, setSelectedStampSlot] = useState<number>(1)
   const [reviewRating, setReviewRating] = useState<number>(0)
 
+  // Load configuration from localStorage on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem('cop_card_studio_config')
@@ -307,7 +631,7 @@ export default function LiveCardStudioPage() {
         setConfig(sanitizeLiveConfig(parsed))
       }
     } catch (e) {
-      console.error('Error loading studio config:', e)
+      console.error('Error loading config from localStorage:', e)
     }
   }, [])
 
@@ -317,28 +641,43 @@ export default function LiveCardStudioPage() {
       setSavedSuccess(true)
       setTimeout(() => setSavedSuccess(false), 2500)
     } catch (e) {
-      alert('Gagal menyimpan draf')
+      console.error('Error saving config:', e)
+      alert('Gagal menyimpan draf. Sila semak ruang simpanan pelayar anda.')
     }
   }
 
   const handleReset = () => {
-    if (confirm('Set semula semua rekabentuk kepada template asal live /card?')) {
+    if (confirm('Adakah anda pasti untuk menetapkan semula tetapan kepada reka bentuk asal?')) {
       setConfig(DEFAULT_LIVE_STUDIO_CONFIG)
       localStorage.removeItem('cop_card_studio_config')
     }
   }
 
-  const applyPreset = (p: typeof LIVE_PRESETS[0]) => {
+  const applyPreset = (p: (typeof LIVE_PRESETS)[0]) => {
     setConfig((prev) => {
       const updatedBlocks = prev.blocks.map((b) => {
         if (b.id === 'hero_header') {
-          return { ...b, bgColor: p.hero1, bgColor2: p.hero2 }
+          return {
+            ...b,
+            bgColor: p.hero1,
+            bgColor2: p.hero2,
+            pattern: p.pattern || 'bubbles',
+          }
         }
         if (b.id === 'stamp_card_box') {
-          return { ...b, bgColor: p.stampBg, borderColor: p.stampBorder }
+          return {
+            ...b,
+            bgColor: p.stampBg,
+            borderColor: p.stampBorder,
+          }
         }
         if (b.id === 'progress_bar') {
-          return { ...b, bgColor: p.progressTrack, textColor: p.progressFill1, bgColor2: p.progressFill2 }
+          return {
+            ...b,
+            bgColor: p.progressTrack,
+            bgColor2: p.progressFill2,
+            textColor: p.progressFill1,
+          }
         }
         return b
       })
@@ -436,7 +775,7 @@ export default function LiveCardStudioPage() {
       {/* WORKSPACE */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* LEFT PANEL: 4 CORE BLOCKS */}
-        <aside className="w-full lg:w-[480px] xl:w-[500px] bg-[#111827] border-r border-gray-800 flex flex-col shrink-0 h-full overflow-hidden">
+        <aside className="w-full lg:w-[480px] xl:w-[520px] bg-[#111827] border-r border-gray-800 flex flex-col shrink-0 h-full overflow-hidden">
           {/* NAVIGATION TABS */}
           <div className="p-3 border-b border-gray-800 flex items-center gap-1.5 bg-[#1F2937]/50 shrink-0">
             <button
@@ -479,7 +818,7 @@ export default function LiveCardStudioPage() {
             {activeTab === 'blocks' && (
               <div className="space-y-3">
                 <div className="bg-[#1F2937] p-3 rounded-xl border border-gray-800 text-xs text-gray-300">
-                  💡 <b className="text-amber-400">4 Bahagian Utama:</b> Ubah warna, gaya, logo, nama dan lengkungan bagi 4 blok utama ini. Komponen lain kekal mengikut format live rasmi.
+                  💡 <b className="text-amber-400">4 Bahagian Utama:</b> Ubah warna gradient, corak motif watermark, logo, nama kedai, bingkai kad dan bar kemajuan.
                 </div>
 
                 {/* 1. HERO HEADER */}
@@ -499,15 +838,78 @@ export default function LiveCardStudioPage() {
                       <span className="text-lg">👑</span>
                       <div>
                         <div className="font-bold">1. Hero Header Banner</div>
-                        <div className="text-[11px] font-normal text-gray-400">Warna gradient & lengkungan banner atas</div>
+                        <div className="text-[11px] font-normal text-gray-400">Warna gradient, corak motif & lengkungan banner atas</div>
                       </div>
                     </div>
                     <span className="text-xs text-gray-400">{expandedBlockId === 'hero_header' ? '▲' : '▼'}</span>
                   </button>
 
                   {expandedBlockId === 'hero_header' && (
-                    <div className="p-4 border-t border-gray-800/80 bg-black/20 space-y-3 text-xs">
-                      <div className="grid grid-cols-2 gap-3">
+                    <div className="p-4 border-t border-gray-800/80 bg-black/20 space-y-4 text-xs">
+                      {/* CORAK MOTIF WATERMARK */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="block text-gray-300 font-bold">
+                            Pilihan Corak / Motif Banner
+                          </label>
+                          <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-semibold border border-amber-500/30">
+                            {HERO_PATTERN_OPTIONS.find((p) => p.id === (heroBlock.pattern || 'bubbles'))?.label || 'Bulat-bulat'}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {HERO_PATTERN_OPTIONS.map((p) => {
+                            const isSelected = (heroBlock.pattern || 'bubbles') === p.id
+                            return (
+                              <button
+                                key={p.id}
+                                type="button"
+                                onClick={() => updateBlock('hero_header', { pattern: p.id })}
+                                className={`p-2 rounded-xl text-left transition border flex items-center gap-2 cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-amber-500/20 border-amber-500 text-white font-bold ring-1 ring-amber-500/50'
+                                    : 'bg-gray-900/80 border-gray-800 text-gray-400 hover:text-gray-200 hover:border-gray-700'
+                                }`}
+                              >
+                                <span className="text-lg shrink-0">{p.icon}</span>
+                                <div className="min-w-0">
+                                  <div className="text-xs truncate">{p.label}</div>
+                                  <div className="text-[9px] text-gray-400 truncate">{p.desc}</div>
+                                </div>
+                              </button>
+                            )
+                          })}
+                        </div>
+
+                        {/* KETELUSAN CORAK (OPACITY SLIDER) */}
+                        {(heroBlock.pattern || 'bubbles') !== 'none' && (
+                          <div className="mt-3 bg-gray-900/60 p-2.5 rounded-xl border border-gray-800">
+                            <div className="flex justify-between text-gray-400 font-semibold mb-1.5 text-[11px]">
+                              <span>Ketelusan Corak (Opacity)</span>
+                              <span className="text-amber-400 font-mono font-bold">
+                                {Math.round((heroBlock.patternOpacity ?? 0.2) * 100)}%
+                              </span>
+                            </div>
+                            <input
+                              type="range"
+                              min="0.05"
+                              max="0.5"
+                              step="0.05"
+                              value={heroBlock.patternOpacity ?? 0.2}
+                              onChange={(e) => updateBlock('hero_header', { patternOpacity: Number(e.target.value) })}
+                              className="w-full accent-amber-500 cursor-pointer"
+                            />
+                            <div className="flex justify-between text-[9px] text-gray-400 mt-1 font-mono">
+                              <span>Samar (5%)</span>
+                              <span>Sederhana (20%)</span>
+                              <span>Jelas (50%)</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* WARNA GRADIENT BANNER */}
+                      <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-800">
                         <div>
                           <label className="block text-gray-400 font-semibold mb-1">Warna Gradient 1</label>
                           <div className="flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl p-1.5">
@@ -545,6 +947,7 @@ export default function LiveCardStudioPage() {
                         </div>
                       </div>
 
+                      {/* LENGKUNGAN & BAYANG */}
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <div className="flex justify-between text-gray-400 font-semibold mb-1">
@@ -557,7 +960,7 @@ export default function LiveCardStudioPage() {
                             max="50"
                             value={heroBlock.borderRadius}
                             onChange={(e) => updateBlock('hero_header', { borderRadius: Number(e.target.value) })}
-                            className="w-full accent-amber-500"
+                            className="w-full accent-amber-500 cursor-pointer"
                           />
                         </div>
 
@@ -673,7 +1076,7 @@ export default function LiveCardStudioPage() {
                       <span className="text-lg">🃏</span>
                       <div>
                         <div className="font-bold">3. Kotak Kad Cop</div>
-                        <div className="text-[11px] font-normal text-gray-400">Warna kad, bingkai border & lengkungan kad</div>
+                        <div className="text-[11px] font-normal text-gray-400">Latar kad, garisan bingkai & kelengkungan</div>
                       </div>
                     </div>
                     <span className="text-xs text-gray-400">{expandedBlockId === 'stamp_card_box' ? '▲' : '▼'}</span>
@@ -683,7 +1086,7 @@ export default function LiveCardStudioPage() {
                     <div className="p-4 border-t border-gray-800/80 bg-black/20 space-y-3 text-xs">
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-gray-400 font-semibold mb-1">Warna Latar Kad</label>
+                          <label className="block text-gray-400 font-semibold mb-1">Latar Belakang Kad</label>
                           <div className="flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl p-1.5">
                             <input
                               type="color"
@@ -701,7 +1104,7 @@ export default function LiveCardStudioPage() {
                         </div>
 
                         <div>
-                          <label className="block text-gray-400 font-semibold mb-1">Warna Border Kad</label>
+                          <label className="block text-gray-400 font-semibold mb-1">Garisan Bingkai (Border)</label>
                           <div className="flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl p-1.5">
                             <input
                               type="color"
@@ -722,7 +1125,7 @@ export default function LiveCardStudioPage() {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <div className="flex justify-between text-gray-400 font-semibold mb-1">
-                            <span>Lengkungan Kad</span>
+                            <span>Lengkungan Sudut</span>
                             <span className="text-amber-400 font-mono">{cardBoxBlock.borderRadius}px</span>
                           </div>
                           <input
@@ -731,12 +1134,12 @@ export default function LiveCardStudioPage() {
                             max="40"
                             value={cardBoxBlock.borderRadius}
                             onChange={(e) => updateBlock('stamp_card_box', { borderRadius: Number(e.target.value) })}
-                            className="w-full accent-amber-500"
+                            className="w-full accent-amber-500 cursor-pointer"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-gray-400 font-semibold mb-1">Gaya Bayang (Shadow)</label>
+                          <label className="block text-gray-400 font-semibold mb-1">Gaya Bayang Kad</label>
                           <select
                             value={cardBoxBlock.shadowStyle}
                             onChange={(e) => updateBlock('stamp_card_box', { shadowStyle: e.target.value as any })}
@@ -769,7 +1172,7 @@ export default function LiveCardStudioPage() {
                       <span className="text-lg">📊</span>
                       <div>
                         <div className="font-bold">4. Bar Kemajuan</div>
-                        <div className="text-[11px] font-normal text-gray-400">Warna trek & gradient meter pengisian cop</div>
+                        <div className="text-[11px] font-normal text-gray-400">Warna trek dan gradient bar pengisian</div>
                       </div>
                     </div>
                     <span className="text-xs text-gray-400">{expandedBlockId === 'progress_bar' ? '▲' : '▼'}</span>
@@ -777,59 +1180,59 @@ export default function LiveCardStudioPage() {
 
                   {expandedBlockId === 'progress_bar' && (
                     <div className="p-4 border-t border-gray-800/80 bg-black/20 space-y-3 text-xs">
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-gray-400 font-semibold mb-1">Warna Trek Dasar</label>
-                          <div className="flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl p-1.5">
-                            <input
-                              type="color"
-                              value={progressBlock.bgColor}
-                              onChange={(e) => updateBlock('progress_bar', { bgColor: e.target.value })}
-                              className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
-                            />
-                            <input
-                              type="text"
-                              value={progressBlock.bgColor}
-                              onChange={(e) => updateBlock('progress_bar', { bgColor: e.target.value })}
-                              className="w-full bg-transparent text-white font-mono text-[11px] outline-none"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-gray-400 font-semibold mb-1">Warna Fill 1 (Mula)</label>
-                          <div className="flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl p-1.5">
-                            <input
-                              type="color"
-                              value={progressBlock.textColor}
-                              onChange={(e) => updateBlock('progress_bar', { textColor: e.target.value })}
-                              className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
-                            />
-                            <input
-                              type="text"
-                              value={progressBlock.textColor}
-                              onChange={(e) => updateBlock('progress_bar', { textColor: e.target.value })}
-                              className="w-full bg-transparent text-white font-mono text-[11px] outline-none"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
                       <div>
-                        <label className="block text-gray-400 font-semibold mb-1">Warna Fill 2 (Hujung Gradient)</label>
+                        <label className="block text-gray-400 font-semibold mb-1">Warna Trek Asas (Track)</label>
                         <div className="flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl p-1.5">
                           <input
                             type="color"
-                            value={progressBlock.bgColor2 || '#FFB238'}
-                            onChange={(e) => updateBlock('progress_bar', { bgColor2: e.target.value })}
+                            value={progressBlock.bgColor}
+                            onChange={(e) => updateBlock('progress_bar', { bgColor: e.target.value })}
                             className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
                           />
                           <input
                             type="text"
-                            value={progressBlock.bgColor2 || '#FFB238'}
-                            onChange={(e) => updateBlock('progress_bar', { bgColor2: e.target.value })}
+                            value={progressBlock.bgColor}
+                            onChange={(e) => updateBlock('progress_bar', { bgColor: e.target.value })}
                             className="w-full bg-transparent text-white font-mono text-[11px] outline-none"
                           />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-gray-400 font-semibold mb-1">Gradient Pengisian 1</label>
+                          <div className="flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl p-1.5">
+                            <input
+                              type="color"
+                              value={progressBlock.textColor}
+                              onChange={(e) => updateBlock('progress_bar', { textColor: e.target.value })}
+                              className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
+                            />
+                            <input
+                              type="text"
+                              value={progressBlock.textColor}
+                              onChange={(e) => updateBlock('progress_bar', { textColor: e.target.value })}
+                              className="w-full bg-transparent text-white font-mono text-[11px] outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-400 font-semibold mb-1">Gradient Pengisian 2</label>
+                          <div className="flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl p-1.5">
+                            <input
+                              type="color"
+                              value={progressBlock.bgColor2 || '#FFB238'}
+                              onChange={(e) => updateBlock('progress_bar', { bgColor2: e.target.value })}
+                              className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
+                            />
+                            <input
+                              type="text"
+                              value={progressBlock.bgColor2 || '#FFB238'}
+                              onChange={(e) => updateBlock('progress_bar', { bgColor2: e.target.value })}
+                              className="w-full bg-transparent text-white font-mono text-[11px] outline-none"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -838,92 +1241,66 @@ export default function LiveCardStudioPage() {
               </div>
             )}
 
-            {/* TAB: SETTINGS & PRESETS */}
+            {/* TAB: PRESET THEMES */}
             {activeTab === 'settings' && (
-              <div className="space-y-4">
-                <div className="bg-[#1F2937] p-4 rounded-2xl border border-gray-800">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-3">
-                    🎨 Pilihan Tema Siap Pakai (Presets)
-                  </h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {LIVE_PRESETS.map((p) => (
-                      <button
-                        key={p.name}
-                        type="button"
-                        onClick={() => applyPreset(p)}
-                        className="p-3 rounded-xl border border-gray-700 hover:border-amber-500 text-left transition flex flex-col gap-1.5 bg-gray-900/60 cursor-pointer"
-                      >
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-4 h-4 rounded-full" style={{ background: p.hero1 }} />
-                          <div className="w-4 h-4 rounded-full" style={{ background: p.hero2 }} />
-                          <div className="w-4 h-4 rounded-full" style={{ background: p.pageBg }} />
-                        </div>
-                        <span className="text-[11px] font-bold text-gray-200">{p.name}</span>
-                      </button>
-                    ))}
-                  </div>
+              <div className="space-y-3">
+                <div className="bg-[#1F2937] p-3 rounded-xl border border-gray-800 text-xs text-gray-300">
+                  🎨 <b>Pilihan Tema Siap Sedia:</b> Klik mana-mana tema untuk menukar padanan warna dan corak secara automatik.
                 </div>
 
-                <div className="bg-[#1F2937] p-4 rounded-2xl border border-gray-800 space-y-3.5">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-2">
-                    🌍 Latar Belakang Skrin
-                  </h3>
-                  <div>
-                    <label className="block text-gray-400 text-xs font-semibold mb-1">
-                      Warna Background Body
-                    </label>
-                    <div className="flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl p-1.5">
-                      <input
-                        type="color"
-                        value={config.pageBgColor}
-                        onChange={(e) => setConfig({ ...config, pageBgColor: e.target.value })}
-                        className="w-7 h-7 rounded border-0 cursor-pointer bg-transparent"
-                      />
-                      <input
-                        type="text"
-                        value={config.pageBgColor}
-                        onChange={(e) => setConfig({ ...config, pageBgColor: e.target.value })}
-                        className="w-full bg-transparent text-white font-mono text-xs outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-400 text-xs font-semibold mb-1">
-                      Nama Hadiah Ganjaran
-                    </label>
-                    <input
-                      type="text"
-                      value={config.rewardDesc}
-                      onChange={(e) => setConfig({ ...config, rewardDesc: e.target.value })}
-                      className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500 text-xs"
-                    />
-                  </div>
+                <div className="grid grid-cols-1 gap-2.5">
+                  {LIVE_PRESETS.map((p) => (
+                    <button
+                      key={p.name}
+                      type="button"
+                      onClick={() => applyPreset(p)}
+                      className="p-3 bg-[#1F2937] hover:bg-gray-800 border border-gray-800 hover:border-amber-500/50 rounded-2xl text-left transition flex items-center justify-between cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center text-xs font-bold border border-white/20 shadow-inner"
+                          style={{
+                            background: `linear-gradient(135deg, ${p.hero1} 0%, ${p.hero2} 100%)`,
+                          }}
+                        >
+                          {HERO_PATTERN_OPTIONS.find((opt) => opt.id === p.pattern)?.icon || '🎨'}
+                        </div>
+                        <div>
+                          <div className="font-bold text-xs text-gray-200">{p.name}</div>
+                          <div className="text-[10px] text-gray-400">
+                            Corak: {HERO_PATTERN_OPTIONS.find((opt) => opt.id === p.pattern)?.label || 'Bulat-bulat'}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        <div className="w-4 h-4 rounded-full border border-gray-700" style={{ backgroundColor: p.hero1 }} />
+                        <div className="w-4 h-4 rounded-full border border-gray-700" style={{ backgroundColor: p.hero2 }} />
+                        <div className="w-4 h-4 rounded-full border border-gray-700" style={{ backgroundColor: p.stampBg }} />
+                      </div>
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* TAB: SIMULATE */}
+            {/* TAB: SIMULATE STAMPS */}
             {activeTab === 'simulate' && (
-              <div className="bg-[#1F2937] p-4 rounded-2xl border border-gray-800 space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-2">
-                  🧪 Simulator Interaktif Cop
-                </h3>
+              <div className="space-y-4">
+                <div className="bg-[#1F2937] p-3 rounded-xl border border-gray-800 text-xs text-gray-300">
+                  🧪 <b>Simulator Cop:</b> Uji rupa paras kad pelanggan apabila menerima cop bertambah atau penuh.
+                </div>
+
                 <div>
-                  <div className="flex justify-between text-xs text-gray-300 font-semibold mb-1.5">
-                    <span>Jumlah Cop Semasa:</span>
-                    <span className="text-amber-400 font-bold font-mono text-sm">
-                      {config.simulatedStamps} / {config.stampsRequired} Cop
-                    </span>
+                  <div className="flex justify-between text-gray-400 text-xs font-semibold mb-1.5">
+                    <span>Bilangan Cop Semasa (Simulasi):</span>
+                    <span className="text-amber-400 font-bold font-mono">{config.simulatedStamps} / {config.stampsRequired}</span>
                   </div>
                   <input
                     type="range"
                     min="0"
                     max={config.stampsRequired}
                     value={config.simulatedStamps}
-                    onChange={(e) =>
-                      setConfig({ ...config, simulatedStamps: Number(e.target.value) })
-                    }
+                    onChange={(e) => setConfig({ ...config, simulatedStamps: Number(e.target.value) })}
                     className="w-full accent-amber-500 cursor-pointer"
                   />
                 </div>
@@ -980,7 +1357,7 @@ export default function LiveCardStudioPage() {
             <div className="absolute top-2 left-1/2 -translate-x-1/2 w-28 h-4 bg-[#2A2E39] rounded-full z-40" />
 
             {/* LIVE CARD CONTENT */}
-            <div className="w-full flex-1 flex flex-col font-jakarta pb-6">
+            <div className="w-full flex-1 flex flex-col font-sans pb-6">
               {/* 1. HERO HEADER */}
               <div
                 className="relative overflow-hidden pt-7 px-4 pb-6 transition-all"
@@ -990,8 +1367,11 @@ export default function LiveCardStudioPage() {
                   boxShadow: heroBlock.shadowStyle === 'glow' ? `0 20px 36px -14px ${heroBlock.bgColor}77` : 'none',
                 }}
               >
-                <div className="absolute w-[180px] h-[180px] rounded-full bg-white/15 -top-20 -right-12 pointer-events-none" />
-                <div className="absolute w-[120px] h-[120px] rounded-full bg-white/10 -bottom-16 -left-10 pointer-events-none" />
+                {/* CORAK MOTIF WATERMARK */}
+                <HeroHeaderPattern
+                  pattern={heroBlock.pattern || 'bubbles'}
+                  opacity={heroBlock.patternOpacity ?? 0.2}
+                />
 
                 {/* TOPBAR (FIXED LIVE) */}
                 <div className="relative z-10 flex items-center justify-between mb-4">
@@ -1056,9 +1436,15 @@ export default function LiveCardStudioPage() {
                   </div>
                 </div>
 
-                {/* 2. STORE PROFILE (CUSTOMIZED) */}
+                {/* 2. STORE PROFILE */}
                 <div className="relative z-10 flex flex-col items-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-white shadow-lg border-[3px] border-white/60 mb-2 overflow-hidden flex items-center justify-center shrink-0">
+                  <div
+                    className="w-20 h-20 rounded-full shadow-xl mb-2 overflow-hidden flex items-center justify-center shrink-0"
+                    style={{
+                      backgroundColor: profileBlock.bgColor || '#FFFFFF',
+                      border: `3px solid ${profileBlock.borderColor || 'rgba(255,255,255,0.6)'}`,
+                    }}
+                  >
                     {profileBlock.imageUrl ? (
                       <img
                         src={profileBlock.imageUrl}
@@ -1066,14 +1452,14 @@ export default function LiveCardStudioPage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <img src="/logo.svg" alt="LajuS" className="w-8 h-8 object-contain" />
+                      <img src="/logo.svg" alt="LajuS" className="w-10 h-10 object-contain" />
                     )}
                   </div>
 
                   <div className="flex items-center justify-center gap-1.5">
                     <span
-                      className="font-serif font-bold text-lg leading-tight"
-                      style={{ color: profileBlock.textColor }}
+                      className="font-serif font-bold text-xl leading-tight"
+                      style={{ color: profileBlock.textColor || '#FFFFFF' }}
                     >
                       {config.storeName}
                     </span>
@@ -1086,13 +1472,13 @@ export default function LiveCardStudioPage() {
                 </div>
 
                 {/* SOCIAL LINKS (FIXED LIVE) */}
-                <div className="relative z-10 flex items-center justify-center gap-1.5 mt-2.5">
+                <div className="relative z-10 flex items-center justify-center gap-2 mt-3">
                   {['whatsapp', 'instagram', 'tiktok', 'facebook'].map((plat) => (
                     <button
                       key={plat}
                       type="button"
-                      onClick={() => alert(`Buka pautan ${plat}`)}
-                      className="w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 border border-white/30 flex items-center justify-center text-white transition cursor-pointer"
+                      onClick={() => alert(`Simulator: Pautan ${plat}`)}
+                      className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 border border-white/30 flex items-center justify-center text-white transition cursor-pointer"
                     >
                       {renderLiveSocialIcon(plat)}
                     </button>
@@ -1100,11 +1486,11 @@ export default function LiveCardStudioPage() {
                 </div>
 
                 {/* ACTION PILLS (FIXED LIVE) */}
-                <div className="relative z-10 flex items-center justify-center gap-2 mt-3.5 flex-wrap">
+                <div className="relative z-10 flex items-center justify-center gap-2 mt-4 flex-wrap">
                   <button
                     type="button"
                     onClick={() => setActiveModal('google_review')}
-                    className="bg-white hover:bg-amber-50 text-[#1B0F09] font-bold text-[11px] px-3 py-1.5 rounded-xl shadow-sm border border-[#F0DEC0] flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                    className="bg-white hover:bg-amber-50 text-[#1B0F09] font-bold text-xs px-3.5 py-1.5 rounded-xl shadow-sm border border-[#F0DEC0] flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
                   >
                     <img src="/Google-Review.svg" alt="Review" className="w-3.5 h-3.5 object-contain" />
                     <span>Review</span>
@@ -1113,9 +1499,9 @@ export default function LiveCardStudioPage() {
                   <button
                     type="button"
                     onClick={() => setActiveModal('how_to_redeem')}
-                    className="bg-white hover:bg-amber-50 text-[#1B0F09] font-bold text-[11px] px-3 py-1.5 rounded-xl shadow-sm border border-[#F0DEC0] flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                    className="bg-white hover:bg-amber-50 text-[#1B0F09] font-bold text-xs px-3.5 py-1.5 rounded-xl shadow-sm border border-[#F0DEC0] flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
                   >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3 h-3 text-[#FF5A45]">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 text-[#FF5A45]">
                       <circle cx="12" cy="12" r="10" />
                       <line x1="12" y1="16" x2="12" y2="12" />
                       <line x1="12" y1="8" x2="12.01" y2="8" />
@@ -1126,426 +1512,437 @@ export default function LiveCardStudioPage() {
                   <button
                     type="button"
                     onClick={() => setActiveModal('rewards')}
-                    className="bg-white hover:bg-amber-50 text-[#1B0F09] font-bold text-[11px] px-3 py-1.5 rounded-xl shadow-sm border border-[#F0DEC0] flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                    className="bg-white hover:bg-amber-50 text-[#1B0F09] font-bold text-xs px-3.5 py-1.5 rounded-xl shadow-sm border border-[#F0DEC0] flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
                   >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="w-3 h-3 text-[#FF5A45]">
-                      <polyline points="20 12 20 22 4 22 4 12" />
-                      <rect x="2" y="7" width="20" height="5" />
-                      <line x1="12" y1="22" x2="12" y2="7" />
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 text-amber-500">
+                      <path d="M20 12v10H4V12" />
+                      <path d="M2 7h20v5H2z" />
+                      <path d="M12 22V7" />
+                      <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+                      <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
                     </svg>
                     <span>Ganjaran</span>
                   </button>
                 </div>
               </div>
 
-              {/* BODY: 3. KOTAK KAD COP & 4. BAR KEMAJUAN */}
-              <div className="px-4 pt-3.5 space-y-3">
-                {/* MULTI-STORE TABS (FIXED LIVE) */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-                  <button
-                    type="button"
-                    className="bg-[#FF5A45] text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-xs shrink-0 flex items-center gap-1"
-                  >
-                    <span>{config.storeName}</span>
-                    <span className="bg-white/30 text-white text-[9px] px-1.5 py-0.2 rounded-full">
-                      {totalStamps} cop
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    className="bg-[#FFFDF8] text-[#96806B] border border-[#F0DEC0] text-[11px] font-bold px-3 py-1 rounded-full shrink-0 flex items-center gap-1"
-                  >
-                    <span>Cawangan Bangi</span>
-                    <span className="bg-[#FF5A45]/15 text-[#FF5A45] text-[9px] px-1.5 py-0.2 rounded-full">
-                      2 cop
-                    </span>
-                  </button>
-                </div>
-
-                {/* 3. STAMP CARD BOX (CUSTOMIZED) */}
+              {/* 3. STAMP CARD BOX */}
+              <div className="px-4 -mt-3 relative z-20">
                 <div
-                  className="p-5 text-[#2B1B12] transition-all"
+                  className="p-5 relative transition-all"
                   style={{
-                    backgroundColor: cardBoxBlock.bgColor,
-                    borderColor: cardBoxBlock.borderColor,
-                    borderRadius: `${cardBoxBlock.borderRadius}px`,
+                    backgroundColor: cardBoxBlock.bgColor || '#FFFDF8',
+                    borderColor: cardBoxBlock.borderColor || '#F0DEC0',
                     borderWidth: '1px',
                     borderStyle: 'solid',
-                    boxShadow: cardBoxBlock.shadowStyle === 'glow' ? `0 8px 24px ${cardBoxBlock.borderColor}88` : '0 8px 24px rgba(43,27,18,0.06)',
+                    borderRadius: `${cardBoxBlock.borderRadius || 28}px`,
+                    boxShadow:
+                      cardBoxBlock.shadowStyle === 'glow'
+                        ? '0 16px 36px -10px rgba(255,122,69,0.22)'
+                        : cardBoxBlock.shadowStyle === 'soft'
+                        ? '0 12px 32px -8px rgba(43,27,18,0.08)'
+                        : 'none',
                   }}
                 >
-                  {/* HEAD (FIXED LIVE) */}
-                  <div className="text-center mb-1">
-                    <div className="text-[10.5px] font-extrabold uppercase tracking-wider mb-0.5 text-[#1C7A67]">
-                      {isFull
-                        ? activeLang === 'en'
-                          ? 'CARD 1 • FULL'
-                          : 'KAD 1 • PENUH'
-                        : activeLang === 'en'
-                        ? 'CARD 1 • IN PROGRESS'
-                        : 'KAD 1 • SEDANG DIISI'}
+                  {/* VOUCHER HEADER */}
+                  <div className="text-center mb-3">
+                    <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500/15 to-orange-500/15 border border-amber-500/30 px-3 py-1 rounded-full mb-1.5">
+                      <span className="text-xs">🎁</span>
+                      <span className="text-[10px] font-extrabold text-amber-900 tracking-wide uppercase">
+                        Ganjaran Lengkap
+                      </span>
                     </div>
-                    <div className="font-serif font-bold text-3xl leading-none text-[#FF5A45]">
-                      {totalStamps} <small className="text-sm font-normal text-[#96806B]">/ {reqStamps}</small>
-                    </div>
+                    <h3 className="font-serif font-black text-base text-[#1B0F09] leading-snug">
+                      {config.rewardDesc || '1 Minuman Panas Percuma (Saiz Regular)'}
+                    </h3>
                   </div>
 
-                  {/* PERFORATION (FIXED LIVE) */}
-                  <div className="flex items-center justify-center gap-1.5 my-3 opacity-60">
-                    {Array.from({ length: 15 }).map((_, pIdx) => (
-                      <span key={pIdx} className="w-1 h-1 rounded-full bg-[#F0DEC0]" />
-                    ))}
+                  {/* PERFORATION DIVIDER LINE (FIXED LIVE) */}
+                  <div className="relative my-3 flex items-center justify-center">
+                    <div className="absolute -left-8 w-6 h-6 rounded-full bg-[#FFF7EA] border-r border-[#F0DEC0]" />
+                    <div className="w-full border-b-2 border-dashed border-[#F0DEC0]" />
+                    <div className="absolute -right-8 w-6 h-6 rounded-full bg-[#FFF7EA] border-l border-[#F0DEC0]" />
                   </div>
 
-                  {/* STAMP GRID 5-COLUMNS (FIXED LIVE) */}
+                  {/* 5-COLUMN STAMP GRID */}
                   <div className="grid grid-cols-5 gap-2 my-3">
-                    {Array.from({ length: reqStamps }).map((_, sIdx) => {
-                      const slotNum = sIdx + 1
-                      const isStampFilled = slotNum <= totalStamps
+                    {Array.from({ length: reqStamps }).map((_, idx) => {
+                      const num = idx + 1
+                      const isStamped = num <= totalStamps
+                      const isLast = num === reqStamps
 
                       return (
                         <button
-                          key={slotNum}
+                          key={num}
                           type="button"
                           onClick={() => {
-                            setSelectedStampSlot(slotNum)
+                            setSelectedStampSlot(num)
                             setActiveModal('stamp_detail')
                           }}
-                          className={`aspect-square rounded-full flex items-center justify-center transition active:scale-90 cursor-pointer ${
-                            isStampFilled
-                              ? 'bg-gradient-to-br from-[#FF5A45] to-[#E23F2E] shadow-md'
-                              : 'border-2 border-dashed border-[#F0DEC0] bg-[#FFB238]/10 text-[#D8B98C]'
+                          className={`aspect-square rounded-2xl flex flex-col items-center justify-center relative transition-all active:scale-95 cursor-pointer ${
+                            isStamped
+                              ? 'bg-gradient-to-br from-[#FFF7EA] to-[#FFE8D6] border-2 border-[#FF5A45] shadow-sm'
+                              : isLast
+                              ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/15 border-2 border-dashed border-amber-400/80'
+                              : 'bg-white/80 border-2 border-dashed border-[#F0DEC0] hover:border-amber-300'
                           }`}
-                          title={`Cop #${slotNum}`}
                         >
-                          {isStampFilled ? (
-                            <img
-                              src="/icons/stamps/makanan.svg"
-                              alt="Cop"
-                              className="w-[52%] h-[52%] object-contain"
-                              style={{ filter: 'brightness(0) invert(1)' }}
-                            />
+                          {isStamped ? (
+                            <div className="flex flex-col items-center">
+                              <img
+                                src={config.stampIcon || '/icons/stamps/makanan.svg'}
+                                alt="Cop"
+                                className="w-5 h-5 object-contain"
+                              />
+                              <span className="text-[8.5px] font-black text-[#FF5A45] mt-0.5">#{num}</span>
+                            </div>
+                          ) : isLast ? (
+                            <div className="flex flex-col items-center text-amber-700">
+                              <span className="text-sm">🎁</span>
+                              <span className="text-[8px] font-black mt-0.5">HADIAH</span>
+                            </div>
                           ) : (
-                            <span className="font-bold text-xs">{slotNum}</span>
+                            <span className="text-xs font-black text-[#8C7A6B]/50">{num}</span>
                           )}
                         </button>
                       )
                     })}
                   </div>
 
-                  {/* 4. PROGRESS BAR (CUSTOMIZED) */}
-                  <div
-                    className="h-2 rounded-full overflow-hidden my-3"
-                    style={{ backgroundColor: progressBlock.bgColor }}
-                  >
-                    <div
-                      className="h-full transition-all duration-500 rounded-full"
-                      style={{
-                        width: `${percentFill}%`,
-                        background: `linear-gradient(90deg, ${progressBlock.textColor}, ${progressBlock.bgColor2 || '#FFB238'})`,
-                      }}
-                    />
-                  </div>
-
-                  {/* STATUS TEXT (FIXED LIVE) */}
-                  <div className="text-center font-bold text-xs leading-snug my-2 text-[#0F5C4C]">
-                    {isFull ? (
-                      <span>🎉 Lengkap! Tebus ganjaran sekarang: <b>{config.rewardDesc}</b></span>
-                    ) : (
-                      <span>
-                        Lagi <b className="text-[#E23F2E]">{remainStamps}</b> cop untuk: {config.rewardDesc}
+                  {/* 4. PROGRESS BAR */}
+                  <div className="mt-3 pt-1">
+                    <div className="flex items-center justify-between text-[11px] font-bold mb-1">
+                      <span className="text-[#8C7A6B]">Kemajuan Cop</span>
+                      <span className="text-[#1B0F09]">
+                        <b style={{ color: progressBlock.textColor || '#FF5A45' }}>{totalStamps}</b> / {reqStamps} Cop ({percentFill}%)
                       </span>
-                    )}
-                  </div>
+                    </div>
 
-                  {/* CARD DOTS (FIXED LIVE) */}
-                  <div className="flex items-center justify-center gap-1.5 mt-3">
-                    <span className="w-5 h-2 rounded-full bg-[#FF5A45]" />
-                    <span className="w-2 h-2 rounded-full bg-[#F0DEC0]" />
-                  </div>
-                </div>
-
-                {/* TIMESTAMP (FIXED LIVE) */}
-                <div className="text-center font-semibold text-[10px] text-[#96806B]">
-                  Kemas kini: 8:45 PM, Hari Ini
-                </div>
-
-                {/* FOOTER (FIXED LIVE) */}
-                <div className="text-center pt-2 space-y-1">
-                  <div className="flex items-center justify-center gap-1.5 font-extrabold text-xs text-[#2B1B12]">
-                    <img src="/logo.svg" alt="LajuS" className="w-3.5 h-3.5 object-contain" />
-                    <span>LajuS</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2 text-[10px] text-[#96806B]">
-                    <a href="#privacy" className="underline">Dasar Privasi</a>
-                    <span>•</span>
-                    <a href="#delete" className="underline text-red-500">Padam Akaun</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* LIVE MODALS (SAME AS PRODUCTION) */}
-            {activeModal !== 'none' && (
-              <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4"
-                onClick={() => setActiveModal('none')}
-              >
-                {activeModal === 'how_to_redeem' && (
-                  <div
-                    className="w-full bg-[#FFFDF8] text-[#2B1B12] rounded-3xl p-5 border border-[#F0DEC0] shadow-2xl relative"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setActiveModal('none')}
-                      className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/5 text-gray-500 flex items-center justify-center font-bold text-sm cursor-pointer"
-                    >
-                      &times;
-                    </button>
-                    <div className="flex items-center gap-2 mb-2 font-serif font-bold text-lg text-[#1B0F09]">
-                      <span>💡</span>
-                      <span>Cara Mengumpul & Tebus</span>
-                    </div>
-                    <p className="text-xs text-[#96806B] mb-3">Ikuti 3 langkah mudah ini:</p>
-                    <div className="space-y-2 text-xs text-[#3C2E24]">
-                      <div className="flex gap-2">
-                        <span className="w-5 h-5 rounded-full bg-[#FFB238] text-black font-bold flex items-center justify-center shrink-0 text-[11px]">1</span>
-                        <span>Kumpul cop setiap kali pembelian di kaunter kedai.</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <span className="w-5 h-5 rounded-full bg-[#FFB238] text-black font-bold flex items-center justify-center shrink-0 text-[11px]">2</span>
-                        <span>Bila kad penuh ({reqStamps}/{reqStamps}), tunjukkan skrin ini kepada kakitangan.</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <span className="w-5 h-5 rounded-full bg-[#FFB238] text-black font-bold flex items-center justify-center shrink-0 text-[11px]">3</span>
-                        <span>Kakitangan sahkan dan serahkan ganjaran percuma anda serta-merta!</span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setActiveModal('none')}
-                      className="w-full mt-4 py-2.5 rounded-xl bg-[#1C7A67] text-white font-bold text-xs cursor-pointer"
-                    >
-                      Faham & Tutup
-                    </button>
-                  </div>
-                )}
-
-                {activeModal === 'rewards' && (
-                  <div
-                    className="w-full bg-[#FFFDF8] text-[#2B1B12] rounded-3xl overflow-hidden border border-[#F0DEC0] shadow-2xl relative"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setActiveModal('none')}
-                      className="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-white/80 backdrop-blur text-gray-700 flex items-center justify-center font-bold text-sm cursor-pointer shadow-sm"
-                    >
-                      &times;
-                    </button>
-                    <div className="h-44 bg-[#FFF7EA] flex items-center justify-center relative border-b border-[#F0DEC0]">
-                      <span className="text-5xl">🎁</span>
-                      <div className="absolute top-3 left-3 bg-[#FF5A45] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                        Perlu {reqStamps} Cop
-                      </div>
-                    </div>
-                    <div className="p-4 text-center">
-                      <h4 className="font-serif font-bold text-base text-[#1B0F09] mb-1">
-                        {config.rewardDesc}
-                      </h4>
-                      <p className="text-xs text-[#96806B] mb-3">
-                        Tebus ganjaran istimewa ini sebaik sahaja kad anda mencukupi {reqStamps} cop penuh!
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setActiveModal('none')}
-                        className="w-full py-2.5 rounded-xl bg-[#1C7A67] text-white font-bold text-xs cursor-pointer"
-                      >
-                        Tutup
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {activeModal === 'google_review' && (
-                  <div
-                    className="w-full bg-[#FFFDF8] text-[#2B1B12] rounded-3xl p-5 border border-[#F0DEC0] shadow-2xl text-center relative"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setActiveModal('none')}
-                      className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/5 text-gray-500 flex items-center justify-center font-bold text-sm cursor-pointer"
-                    >
-                      &times;
-                    </button>
-                    <div className="font-serif font-bold text-base text-[#1B0F09] mb-1">
-                      ⭐ Nilai {config.storeName} di Google
-                    </div>
-                    <p className="text-xs text-[#96806B] mb-3">
-                      Sentuh bintang untuk bantu beri ulasan bagi kedai ini.
-                    </p>
-                    <div className="flex items-center justify-center gap-1.5 text-2xl my-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => {
-                            setReviewRating(star)
-                            setTimeout(() => {
-                              alert(`Membuka Google Review bagi rating ${star} Bintang!`)
-                              setActiveModal('none')
-                            }, 400)
-                          }}
-                          className={`cursor-pointer transition-transform hover:scale-125 ${
-                            reviewRating >= star ? 'text-amber-400' : 'text-gray-300'
-                          }`}
-                        >
-                          ★
-                        </button>
-                      ))}
-                    </div>
-                    <div className="text-[11px] text-[#96806B] mt-2 mb-3">
-                      {reviewRating > 0 ? `Rating ${reviewRating} bintang dipilih!` : '5 bintang amat kami hargai!'}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setActiveModal('none')}
-                      className="w-full py-2 rounded-xl bg-white border border-[#F0DEC0] text-[#5A4B3D] font-bold text-xs cursor-pointer"
-                    >
-                      Mungkin Nanti
-                    </button>
-                  </div>
-                )}
-
-                {activeModal === 'locations' && (
-                  <div
-                    className="w-full bg-[#FFFDF8] text-[#2B1B12] rounded-3xl p-5 border border-[#F0DEC0] shadow-2xl relative"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setActiveModal('none')}
-                      className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/5 text-gray-500 flex items-center justify-center font-bold text-sm cursor-pointer"
-                    >
-                      &times;
-                    </button>
-                    <div className="flex items-center gap-2 mb-1 font-serif font-bold text-base text-[#1B0F09]">
-                      <span>📍</span>
-                      <span>Lokasi Cawangan</span>
-                    </div>
-                    <p className="text-xs text-[#96806B] mb-3">{config.storeName}</p>
-                    <div className="bg-white p-3 rounded-2xl border border-[#F0DEC0] text-xs space-y-1 mb-3">
-                      <div className="font-bold text-[#1B0F09]">Cawangan Utama</div>
-                      <div className="text-gray-600">No. 12, Jalan Niaga 3, 43650 Bandar Baru Bangi, Selangor</div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => alert('Membuka Peta Google Maps')}
-                      className="w-full py-2.5 rounded-xl bg-[#1C7A67] text-white font-bold text-xs cursor-pointer flex items-center justify-center gap-1.5"
-                    >
-                      <span>Buka di Google Maps</span>
-                      <span>↗</span>
-                    </button>
-                  </div>
-                )}
-
-                {activeModal === 'qr' && (
-                  <div
-                    className="w-full bg-[#FFFDF8] text-[#2B1B12] rounded-3xl p-5 border border-[#F0DEC0] shadow-2xl text-center relative"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setActiveModal('none')}
-                      className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/5 text-gray-500 flex items-center justify-center font-bold text-sm cursor-pointer"
-                    >
-                      &times;
-                    </button>
-                    <div className="font-serif font-bold text-base text-[#1B0F09] mb-1">
-                      📱 Kod QR Pelanggan
-                    </div>
-                    <p className="text-xs text-[#96806B] mb-3">
-                      Tunjukkan kod QR ini kepada staf kedai untuk mengimbas cop.
-                    </p>
-                    <div className="w-36 h-36 mx-auto bg-white p-2 rounded-2xl border border-[#F0DEC0] flex items-center justify-center shadow-inner mb-3">
-                      <div className="w-full h-full bg-gray-900 rounded-lg flex items-center justify-center text-white text-[10px] font-mono">
-                        [QR DEMO]
-                      </div>
-                    </div>
-                    <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold py-1.5 px-3 rounded-xl mb-3">
-                      pelanggan@gmail.com
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setActiveModal('none')}
-                      className="w-full py-2 rounded-xl bg-[#1C7A67] text-white font-bold text-xs cursor-pointer"
-                    >
-                      Tutup
-                    </button>
-                  </div>
-                )}
-
-                {activeModal === 'stamp_detail' && (
-                  <div
-                    className="w-full bg-[#FFFDF8] text-[#2B1B12] rounded-3xl p-5 border border-[#F0DEC0] shadow-2xl text-center relative"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setActiveModal('none')}
-                      className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/5 text-gray-500 flex items-center justify-center font-bold text-sm cursor-pointer"
-                    >
-                      &times;
-                    </button>
                     <div
-                      className="w-14 h-14 rounded-full mx-auto mb-2 flex items-center justify-center shadow-md"
+                      className="w-full h-3 overflow-hidden p-0.5"
                       style={{
-                        background: selectedStampSlot <= totalStamps
-                          ? 'linear-gradient(145deg, #FF5A45, #E23F2E)'
-                          : '#F0DEC0',
+                        backgroundColor: progressBlock.bgColor || '#F0DEC0',
+                        borderRadius: `${progressBlock.borderRadius || 6}px`,
                       }}
                     >
-                      <img
-                        src="/icons/stamps/makanan.svg"
-                        alt="Stamp"
-                        className="w-7 h-7 object-contain"
-                        style={{ filter: selectedStampSlot <= totalStamps ? 'brightness(0) invert(1)' : 'none' }}
+                      <div
+                        className="h-full transition-all duration-500 rounded-full"
+                        style={{
+                          width: `${percentFill}%`,
+                          background: `linear-gradient(90deg, ${progressBlock.textColor || '#FF5A45'} 0%, ${progressBlock.bgColor2 || '#FFB238'} 100%)`,
+                        }}
                       />
                     </div>
-                    <div className="font-serif font-bold text-base text-[#1B0F09] mb-0.5">
-                      Cop #{selectedStampSlot} — Kad 1
+                  </div>
+
+                  {/* STATUS TEXT & ACTIONS (FIXED LIVE) */}
+                  <div className="mt-3 pt-2.5 border-t border-[#F0DEC0]/70 flex items-center justify-between gap-2">
+                    <div>
+                      <p className="text-[11px] font-bold text-[#1B0F09]">
+                        {isFull ? '🎉 Kad telah penuh!' : `Kumpul ${remainStamps} cop lagi.`}
+                      </p>
+                      <p className="text-[9px] text-[#8C7A6B]">Tunjukkan kad ini semasa bayaran</p>
                     </div>
-                    <p className="text-xs text-[#96806B] mb-3">{config.storeName}</p>
-                    <div className="bg-white p-3 rounded-xl border border-[#F0DEC0] text-xs text-left space-y-1 mb-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Status:</span>
-                        <b className={selectedStampSlot <= totalStamps ? 'text-emerald-600' : 'text-gray-400'}>
-                          {selectedStampSlot <= totalStamps ? '✓ Telah Ditebus' : 'Belum Ditebus'}
-                        </b>
-                      </div>
-                      {selectedStampSlot <= totalStamps && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Tarikh:</span>
-                          <b>Hari Ini, 8:45 PM</b>
-                        </div>
-                      )}
-                    </div>
+
                     <button
                       type="button"
-                      onClick={() => setActiveModal('none')}
-                      className="w-full py-2 rounded-xl bg-[#1C7A67] text-white font-bold text-xs cursor-pointer"
+                      onClick={() => setActiveModal('qr')}
+                      className="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-[#1B0F09] text-white hover:bg-black transition active:scale-95 cursor-pointer shrink-0 flex items-center gap-1"
                     >
-                      Tutup
+                      <span>QR Ahli</span>
                     </button>
                   </div>
-                )}
+                </div>
               </div>
-            )}
+
+              {/* PAGINATION DOTS (FIXED LIVE) */}
+              <div className="flex items-center justify-center gap-1.5 my-3">
+                <div className="w-5 h-1.5 rounded-full bg-[#FF5A45]" />
+                <div className="w-1.5 h-1.5 rounded-full bg-[#F0DEC0]" />
+              </div>
+
+              {/* FOOTER (FIXED LIVE) */}
+              <footer className="px-4 text-center mt-2">
+                <div className="flex items-center justify-center gap-1 mb-0.5">
+                  <img src="/logo.svg" alt="LajuS" className="w-3.5 h-3.5 object-contain opacity-70" />
+                  <span className="text-[11px] font-bold text-[#8C7A6B]">Dikuasakan oleh LajuS Cop Stamp</span>
+                </div>
+                <p className="text-[9px] text-[#8C7A6B]/70">Kad Kesetiaan Digital Pintar untuk Peniaga</p>
+              </footer>
+            </div>
           </div>
         </main>
       </div>
+
+      {/* ============================================================ */}
+      {/* AUTHENTIC INTERACTIVE MODALS                                 */}
+      {/* ============================================================ */}
+
+      {/* 1. MODAL: CARA PENEBUSAN */}
+      {activeModal === 'how_to_redeem' && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FFFDF8] border border-[#F0DEC0] w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">ℹ️</span>
+                <h4 className="font-serif font-black text-lg text-[#1B0F09]">Cara Penebusan</h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveModal('none')}
+                className="w-8 h-8 rounded-full bg-[#F0DEC0]/50 hover:bg-[#F0DEC0] text-[#1B0F09] font-bold flex items-center justify-center transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-3 text-xs text-[#2B1B12] leading-relaxed">
+              <div className="flex gap-2.5 items-start">
+                <span className="w-5 h-5 rounded-full bg-[#FF5A45] text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
+                <p>Buat pembelian apa-apa minuman atau set bakeri di kaunter.</p>
+              </div>
+              <div className="flex gap-2.5 items-start">
+                <span className="w-5 h-5 rounded-full bg-[#FF5A45] text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">2</span>
+                <p>Tunjukkan Kod QR pelanggan anda kepada staf untuk diimbas.</p>
+              </div>
+              <div className="flex gap-2.5 items-start">
+                <span className="w-5 h-5 rounded-full bg-[#FF5A45] text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">3</span>
+                <p>Kumpul sehingga {reqStamps} cop dan tebus ganjaran minuman percuma serta-merta!</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveModal('none')}
+              className="mt-6 w-full py-2.5 bg-[#FF5A45] hover:bg-[#e04835] text-white rounded-xl font-bold text-xs transition cursor-pointer shadow-md"
+            >
+              Faham & Tutup
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 2. MODAL: GANJARAN */}
+      {activeModal === 'rewards' && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FFFDF8] border border-[#F0DEC0] w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🎁</span>
+                <h4 className="font-serif font-black text-lg text-[#1B0F09]">Senarai Ganjaran</h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveModal('none')}
+                className="w-8 h-8 rounded-full bg-[#F0DEC0]/50 hover:bg-[#F0DEC0] text-[#1B0F09] font-bold flex items-center justify-center transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div className="p-3.5 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-xl shrink-0">
+                  ☕
+                </div>
+                <div>
+                  <h5 className="font-bold text-xs text-[#1B0F09]">{config.rewardDesc}</h5>
+                  <p className="text-[10px] text-amber-800">Perlu {reqStamps} Cop Keseluruhan</p>
+                </div>
+              </div>
+              <div className="p-3.5 bg-white border border-[#F0DEC0] rounded-2xl flex items-center gap-3 opacity-70">
+                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-xl shrink-0">
+                  🥐
+                </div>
+                <div>
+                  <h5 className="font-bold text-xs text-[#1B0F09]">Diskaun 20% Pastri Hari Lahir</h5>
+                  <p className="text-[10px] text-[#8C7A6B]">Ganjaran Ahli VIP Sahaja</p>
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveModal('none')}
+              className="mt-6 w-full py-2.5 bg-[#1B0F09] text-white rounded-xl font-bold text-xs transition cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 3. MODAL: GOOGLE REVIEW */}
+      {activeModal === 'google_review' && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FFFDF8] border border-[#F0DEC0] w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center animate-in fade-in zoom-in-95 duration-150">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 mx-auto flex items-center justify-center mb-3">
+              <img src="/Google-Review.svg" alt="Google" className="w-7 h-7 object-contain" />
+            </div>
+            <h4 className="font-serif font-black text-lg text-[#1B0F09] mb-1">Beri Ulasan Kami</h4>
+            <p className="text-xs text-[#8C7A6B] mb-4">
+              Sokong <b>{config.storeName}</b> dengan meninggalkan ulasan 5-bintang di Google Maps!
+            </p>
+            <div className="flex items-center justify-center gap-2 mb-5">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setReviewRating(star)}
+                  className={`text-2xl transition hover:scale-125 cursor-pointer ${
+                    star <= reviewRating ? 'text-amber-400' : 'text-gray-300'
+                  }`}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveModal('none')}
+                className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-[#1B0F09] rounded-xl font-bold text-xs transition cursor-pointer"
+              >
+                Nanti Dulu
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  alert('Simulator: Membuka Google Review')
+                  setActiveModal('none')
+                }}
+                className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs transition cursor-pointer shadow-md"
+              >
+                Beri Ulasan ↗
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. MODAL: LOKASI CAWANGAN */}
+      {activeModal === 'locations' && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FFFDF8] border border-[#F0DEC0] w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">📍</span>
+                <h4 className="font-serif font-black text-lg text-[#1B0F09]">Cawangan Kami</h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveModal('none')}
+                className="w-8 h-8 rounded-full bg-[#F0DEC0]/50 hover:bg-[#F0DEC0] text-[#1B0F09] font-bold flex items-center justify-center transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div className="p-3.5 bg-white border border-[#F0DEC0] rounded-2xl">
+                <h5 className="font-bold text-xs text-[#1B0F09] mb-1">Cawangan Utama (Bangsar)</h5>
+                <p className="text-[11px] text-[#8C7A6B] leading-relaxed mb-2.5">
+                  No 12, Jalan Telawi 3, Bangsar Baru, 59100 Kuala Lumpur.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => alert('Simulator: Buka Google Maps')}
+                    className="flex-1 py-1.5 bg-[#FFF7EA] text-[#FF5A45] border border-[#FF5A45]/30 rounded-lg text-[10px] font-bold transition hover:bg-[#FFE8D6] cursor-pointer"
+                  >
+                    Google Maps
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => alert('Simulator: Buka Waze')}
+                    className="flex-1 py-1.5 bg-[#FFF7EA] text-[#FF5A45] border border-[#FF5A45]/30 rounded-lg text-[10px] font-bold transition hover:bg-[#FFE8D6] cursor-pointer"
+                  >
+                    Waze
+                  </button>
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveModal('none')}
+              className="mt-5 w-full py-2.5 bg-[#1B0F09] text-white rounded-xl font-bold text-xs transition cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 5. MODAL: QR PELANGGAN */}
+      {activeModal === 'qr' && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FFFDF8] border border-[#F0DEC0] w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-serif font-black text-lg text-[#1B0F09]">Kod QR Ahli</h4>
+              <button
+                type="button"
+                onClick={() => setActiveModal('none')}
+                className="w-8 h-8 rounded-full bg-[#F0DEC0]/50 hover:bg-[#F0DEC0] text-[#1B0F09] font-bold flex items-center justify-center transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-4 bg-white border-2 border-dashed border-[#F0DEC0] rounded-2xl inline-block mb-3">
+              <img
+                src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=CARD-STUDIO-PREVIEW-01"
+                alt="QR Code"
+                className="w-40 h-40 object-contain mx-auto"
+              />
+            </div>
+            <p className="text-xs font-bold text-[#1B0F09]">ID Ahli: #CS-88392</p>
+            <p className="text-[11px] text-[#8C7A6B] mt-1">Tunjukkan kod ini kepada juruwang semasa membuat bayaran.</p>
+            <button
+              type="button"
+              onClick={() => setActiveModal('none')}
+              className="mt-5 w-full py-2.5 bg-[#FF5A45] hover:bg-[#e04835] text-white rounded-xl font-bold text-xs transition cursor-pointer shadow-md"
+            >
+              Selesai
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 6. MODAL: DETAIL SLOT COP */}
+      {activeModal === 'stamp_detail' && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FFFDF8] border border-[#F0DEC0] w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center animate-in fade-in zoom-in-95 duration-150">
+            <div className="w-14 h-14 rounded-2xl bg-amber-100 mx-auto flex items-center justify-center mb-3">
+              {selectedStampSlot <= totalStamps ? (
+                <img
+                  src={config.stampIcon || '/icons/stamps/makanan.svg'}
+                  alt="Cop"
+                  className="w-8 h-8 object-contain"
+                />
+              ) : selectedStampSlot === reqStamps ? (
+                <span className="text-3xl">🎁</span>
+              ) : (
+                <span className="text-2xl font-black text-amber-800">#{selectedStampSlot}</span>
+              )}
+            </div>
+            <h4 className="font-serif font-black text-lg text-[#1B0F09] mb-1">
+              {selectedStampSlot <= totalStamps
+                ? `Cop #${selectedStampSlot} Diterima`
+                : selectedStampSlot === reqStamps
+                ? `Ganjaran #${selectedStampSlot}: ${config.rewardDesc}`
+                : `Slot Cop #${selectedStampSlot}`}
+            </h4>
+            <p className="text-xs text-[#8C7A6B] mb-5">
+              {selectedStampSlot <= totalStamps
+                ? 'Cop ini telah berjaya disahkan oleh juruwang.'
+                : selectedStampSlot === reqStamps
+                ? 'Lengkapkan cop untuk membuka penebusan ganjaran istimewa ini.'
+                : 'Buat pembelian untuk mendapatkan cop seterusnya.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => setActiveModal('none')}
+              className="w-full py-2.5 bg-[#1B0F09] text-white rounded-xl font-bold text-xs transition cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
