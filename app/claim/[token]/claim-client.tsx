@@ -18,6 +18,7 @@ interface ClaimClientProps {
   storeName: string
   stampsRequired: number
   rewardDescription: string
+  logoUrl?: string | null
   initialError?: string | null
   errorCode?: string | null
 }
@@ -60,6 +61,7 @@ export default function ClaimClient({
   storeName: initialStoreName,
   stampsRequired: initialStampsRequired,
   rewardDescription: initialRewardDesc,
+  logoUrl: initialLogoUrl = null,
   initialError = null,
   errorCode: initialErrorCode = null,
 }: ClaimClientProps) {
@@ -438,14 +440,21 @@ export default function ClaimClient({
           </div>
         </div>
 
-        {/* BRAND ICON & HEADER (SAMA MACAM /CARD) */}
+        {/* STORE LOGO / BRAND ICON & HEADER */}
         <div className="text-center mb-6">
-          <div className="w-14 h-14 rounded-full bg-[#E5A43B] mx-auto mb-3 shadow-lg flex items-center justify-center p-2.5">
-            <img src="/logo.svg" alt="LajuS" className="w-full h-full object-contain" />
-          </div>
-          <div className="font-fraunces font-bold text-2xl text-[#FAF2E2] mb-1">
-            Laju<span className="text-[#E5A43B]">S</span>
-          </div>
+          {initialLogoUrl ? (
+            <div className="w-16 h-16 rounded-full bg-white mx-auto mb-3 shadow-lg flex items-center justify-center p-1 overflow-hidden border-2 border-[#E5A43B]">
+              <img
+                src={initialLogoUrl}
+                alt={initialStoreName || 'Logo Kedai'}
+                className="w-full h-full rounded-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-14 h-14 rounded-full bg-[#E5A43B] mx-auto mb-3 shadow-lg flex items-center justify-center p-2.5">
+              <img src="/logo.svg" alt="LajuS" className="w-full h-full object-contain" />
+            </div>
+          )}
           <div className="text-xs text-[#FAF2E2]/80 font-medium">
             {t.loginScene.claimHeaderPrefix} <span className="text-[#E5A43B] font-bold">+{initialStampCount} {lang === 'en' ? 'Stamps' : 'Cop Stamp'}</span> {t.loginScene.claimHeaderSuffix} <span className="font-bold text-white">{initialStoreName}</span>
           </div>

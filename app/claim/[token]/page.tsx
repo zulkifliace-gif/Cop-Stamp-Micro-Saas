@@ -17,7 +17,7 @@ export default async function ClaimPage({ params }: PageProps) {
   // 1. Fetch token status and validity on server
   const { data: tokenRecord, error } = await admin
     .from('stamp_tokens')
-    .select('token, stamp_count, status, expires_at, stores(name, stamps_required, reward_description)')
+    .select('token, stamp_count, status, expires_at, stores(name, logo_url, stamps_required, reward_description)')
     .eq('token', cleanToken)
     .single()
 
@@ -49,6 +49,7 @@ export default async function ClaimPage({ params }: PageProps) {
           token={cleanToken}
           stampCount={tokenRecord?.stamp_count || 1}
           storeName={storeInfo?.name || 'Kopi & Kawan'}
+          logoUrl={storeInfo?.logo_url || null}
           stampsRequired={storeInfo?.stamps_required || 10}
           rewardDescription={storeInfo?.reward_description || '1 minuman percuma'}
           initialError={initialError}
