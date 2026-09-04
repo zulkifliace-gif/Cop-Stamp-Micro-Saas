@@ -10,6 +10,7 @@ import {
   EditableBlockConfig,
   DEFAULT_4_BLOCKS,
   HeroHeaderPattern,
+  STORE_FONT_OPTIONS,
 } from '../card-studio/page'
 
 function renderLiveSocialIcon(platform: string) {
@@ -194,28 +195,35 @@ export default function LiveCardPreviewPage() {
             {/* 3. STORE PROFILE (Editable Block) */}
             {profileBlock.visible && (
               <div className="relative z-10 flex flex-col items-center text-center">
-                <div
-                  className="w-20 h-20 rounded-full shadow-xl mb-2.5 overflow-hidden flex items-center justify-center shrink-0"
-                  style={{
-                    backgroundColor: profileBlock.bgColor || '#FFFFFF',
-                    border: `3px solid ${profileBlock.borderColor || 'rgba(255,255,255,0.6)'}`,
-                  }}
-                >
-                  {profileBlock.imageUrl ? (
-                    <img
-                      src={profileBlock.imageUrl}
-                      alt="Logo"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <img src="/logo.svg" alt="LajuS" className="w-10 h-10 object-contain" />
-                  )}
-                </div>
+                {profileBlock.showLogo !== false && (
+                  <div
+                    className="w-20 h-20 rounded-full shadow-xl mb-2.5 overflow-hidden flex items-center justify-center shrink-0 transition-all duration-300"
+                    style={{
+                      backgroundColor: profileBlock.bgColor || '#FFFFFF',
+                      border: `3px solid ${profileBlock.borderColor || 'rgba(255,255,255,0.6)'}`,
+                    }}
+                  >
+                    {profileBlock.imageUrl ? (
+                      <img
+                        src={profileBlock.imageUrl}
+                        alt="Logo"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <img src="/logo.svg" alt="LajuS" className="w-10 h-10 object-contain" />
+                    )}
+                  </div>
+                )}
 
-                <div className="flex items-center justify-center gap-1.5">
+                <div className="flex items-center justify-center gap-1.5 flex-wrap px-2">
                   <span
-                    className="font-serif font-bold text-xl leading-tight"
-                    style={{ color: profileBlock.textColor || '#FFFFFF' }}
+                    className="font-bold text-xl leading-tight transition-all"
+                    style={{
+                      color: profileBlock.textColor || '#FFFFFF',
+                      fontFamily:
+                        STORE_FONT_OPTIONS.find((f) => f.id === (profileBlock.fontId || 'fraunces'))?.fontFamily ||
+                        '"Fraunces", serif',
+                    }}
                   >
                     {config.storeName}
                   </span>

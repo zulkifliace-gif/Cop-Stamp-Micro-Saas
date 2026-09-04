@@ -30,6 +30,94 @@ export const HERO_PATTERN_OPTIONS: PatternOption[] = [
   { id: 'none', label: 'Kosong', icon: '🚫', desc: 'Tiada corak (plain gradient)' },
 ]
 
+export interface FontOption {
+  id: string
+  name: string
+  fontFamily: string
+  category: string
+  sampleText: string
+}
+
+export const STORE_FONT_OPTIONS: FontOption[] = [
+  {
+    id: 'fraunces',
+    name: 'Fraunces (Klasik Mewah)',
+    fontFamily: '"Fraunces", serif',
+    category: 'Mewah & Klasik',
+    sampleText: 'Diana Bakery & Cafe',
+  },
+  {
+    id: 'playfair',
+    name: 'Playfair Display',
+    fontFamily: '"Playfair Display", serif',
+    category: 'Elegan & Anggun',
+    sampleText: 'Diana Bakery & Cafe',
+  },
+  {
+    id: 'cinzel',
+    name: 'Cinzel Royal',
+    fontFamily: '"Cinzel", serif',
+    category: 'Eksklusif & Diraja',
+    sampleText: 'DIANA BAKERY & CAFE',
+  },
+  {
+    id: 'jakarta',
+    name: 'Plus Jakarta Sans',
+    fontFamily: '"Plus Jakarta Sans", sans-serif',
+    category: 'Moden & Bersih',
+    sampleText: 'Diana Bakery & Cafe',
+  },
+  {
+    id: 'poppins',
+    name: 'Poppins',
+    fontFamily: '"Poppins", sans-serif',
+    category: 'Bulat & Ceria',
+    sampleText: 'Diana Bakery & Cafe',
+  },
+  {
+    id: 'montserrat',
+    name: 'Montserrat',
+    fontFamily: '"Montserrat", sans-serif',
+    category: 'Tegas & Premium',
+    sampleText: 'Diana Bakery & Cafe',
+  },
+  {
+    id: 'dancing',
+    name: 'Dancing Script',
+    fontFamily: '"Dancing Script", cursive',
+    category: 'Tulisan Tangan',
+    sampleText: 'Diana Bakery & Cafe',
+  },
+  {
+    id: 'pacifico',
+    name: 'Pacifico Retro',
+    fontFamily: '"Pacifico", cursive',
+    category: 'Retro & Kafe',
+    sampleText: 'Diana Bakery & Cafe',
+  },
+  {
+    id: 'bebas',
+    name: 'Bebas Neue',
+    fontFamily: '"Bebas Neue", sans-serif',
+    category: 'Tegap & Impak',
+    sampleText: 'DIANA BAKERY & CAFE',
+  },
+  {
+    id: 'quicksand',
+    name: 'Quicksand',
+    fontFamily: '"Quicksand", sans-serif',
+    category: 'Comel & Manis',
+    sampleText: 'Diana Bakery & Cafe',
+  },
+  {
+    id: 'comfortaa',
+    name: 'Comfortaa',
+    fontFamily: '"Comfortaa", cursive',
+    category: 'Geometrik Moden',
+    sampleText: 'Diana Bakery & Cafe',
+  },
+]
+
 export function HeroHeaderPattern({
   pattern = 'bubbles',
   opacity = 0.2,
@@ -341,8 +429,10 @@ export interface EditableBlockConfig {
   borderColor: string
   borderRadius: number
   shadowStyle: 'none' | 'soft' | 'glow' | 'glass'
-  // Media, Content & Pattern
+  // Media, Content & Customization
   imageUrl: string
+  showLogo?: boolean
+  fontId?: string
   title: string
   subtitle: string
   extraText?: string
@@ -386,7 +476,7 @@ export const DEFAULT_4_BLOCKS: EditableBlockConfig[] = [
   },
   {
     id: 'store_profile',
-    name: '2. Profile Kedai (Logo, Nama & Warna Teks)',
+    name: '2. Profile Kedai (Logo, Nama & Pilihan Fon)',
     icon: '🏪',
     visible: true,
     bgColor: '#FFFFFF',
@@ -395,6 +485,8 @@ export const DEFAULT_4_BLOCKS: EditableBlockConfig[] = [
     borderRadius: 999,
     shadowStyle: 'soft',
     imageUrl: '/mascot.png',
+    showLogo: true,
+    fontId: 'fraunces',
     title: 'Diana Bakery & Cafe',
     subtitle: 'Kopi & Pastri Premium Segar',
     extraText: '#FFFFFF',
@@ -448,6 +540,7 @@ export const LIVE_PRESETS = [
   {
     name: 'Warm Sunset (Asal LajuS)',
     pattern: 'bubbles',
+    fontId: 'fraunces',
     pageBg: '#FFF7EA',
     pageDot: 'rgba(43,27,18,0.055)',
     hero1: '#FF7A45',
@@ -461,6 +554,7 @@ export const LIVE_PRESETS = [
   {
     name: 'Royal Emerald (Cafe & Kopi)',
     pattern: 'air_cup',
+    fontId: 'playfair',
     pageBg: '#F0F9F5',
     pageDot: 'rgba(15,92,76,0.06)',
     hero1: '#0F5C4C',
@@ -474,6 +568,7 @@ export const LIVE_PRESETS = [
   {
     name: 'Golden Luxury (Bakeri & Kek)',
     pattern: 'kek',
+    fontId: 'cinzel',
     pageBg: '#FFF9ED',
     pageDot: 'rgba(140,83,17,0.06)',
     hero1: '#A86208',
@@ -487,6 +582,7 @@ export const LIVE_PRESETS = [
   {
     name: 'Sweet Berry (Pastri & Dessert)',
     pattern: 'roti_manisan',
+    fontId: 'quicksand',
     pageBg: '#FFF0F5',
     pageDot: 'rgba(184,46,90,0.06)',
     hero1: '#C2185B',
@@ -500,6 +596,7 @@ export const LIVE_PRESETS = [
   {
     name: 'Ocean Blue (Carwash & Servis)',
     pattern: 'kereta',
+    fontId: 'bebas',
     pageBg: '#F0F8FF',
     pageDot: 'rgba(21,101,192,0.06)',
     hero1: '#1565C0',
@@ -513,6 +610,7 @@ export const LIVE_PRESETS = [
   {
     name: 'Dark Velvet (Barber & Salon)',
     pattern: 'salon',
+    fontId: 'montserrat',
     pageBg: '#18181B',
     pageDot: 'rgba(255,255,255,0.05)',
     hero1: '#27272A',
@@ -554,6 +652,8 @@ export function sanitizeLiveConfig(data: any): LiveStudioConfig {
         ? found.shadowStyle
         : def.shadowStyle,
       imageUrl: typeof found.imageUrl === 'string' ? found.imageUrl : def.imageUrl,
+      showLogo: typeof found.showLogo === 'boolean' ? found.showLogo : def.showLogo ?? true,
+      fontId: typeof found.fontId === 'string' ? found.fontId : def.fontId || 'fraunces',
       title: typeof found.title === 'string' ? found.title : def.title,
       subtitle: typeof found.subtitle === 'string' ? found.subtitle : def.subtitle,
       extraText: typeof found.extraText === 'string' ? found.extraText : def.extraText,
@@ -613,7 +713,7 @@ function renderLiveSocialIcon(platform: string) {
 export default function CardStudioPage() {
   const [config, setConfig] = useState<LiveStudioConfig>(DEFAULT_LIVE_STUDIO_CONFIG)
   const [activeTab, setActiveTab] = useState<'blocks' | 'settings' | 'simulate'>('blocks')
-  const [expandedBlockId, setExpandedBlockId] = useState<EditableBlockId | null>('hero_header')
+  const [expandedBlockId, setExpandedBlockId] = useState<EditableBlockId | null>('store_profile')
   const [savedSuccess, setSavedSuccess] = useState<boolean>(false)
 
   // Simulation & Modal States
@@ -662,6 +762,12 @@ export default function CardStudioPage() {
             bgColor: p.hero1,
             bgColor2: p.hero2,
             pattern: p.pattern || 'bubbles',
+          }
+        }
+        if (b.id === 'store_profile') {
+          return {
+            ...b,
+            fontId: p.fontId || 'fraunces',
           }
         }
         if (b.id === 'stamp_card_box') {
@@ -818,7 +924,7 @@ export default function CardStudioPage() {
             {activeTab === 'blocks' && (
               <div className="space-y-3">
                 <div className="bg-[#1F2937] p-3 rounded-xl border border-gray-800 text-xs text-gray-300">
-                  💡 <b className="text-amber-400">4 Bahagian Utama:</b> Ubah warna gradient, corak motif watermark, logo, nama kedai, bingkai kad dan bar kemajuan.
+                  💡 <b className="text-amber-400">4 Bahagian Utama:</b> Ubah warna gradient, corak motif watermark, logo on/off, fon nama kedai, bingkai kad dan bar kemajuan.
                 </div>
 
                 {/* 1. HERO HEADER */}
@@ -998,14 +1104,76 @@ export default function CardStudioPage() {
                       <span className="text-lg">🏪</span>
                       <div>
                         <div className="font-bold">2. Profile Kedai</div>
-                        <div className="text-[11px] font-normal text-gray-400">Logo kedai, nama kedai & warna teks</div>
+                        <div className="text-[11px] font-normal text-gray-400">On/off gambar profil & pilihan pelbagai fon nama kedai</div>
                       </div>
                     </div>
                     <span className="text-xs text-gray-400">{expandedBlockId === 'store_profile' ? '▲' : '▼'}</span>
                   </button>
 
                   {expandedBlockId === 'store_profile' && (
-                    <div className="p-4 border-t border-gray-800/80 bg-black/20 space-y-3 text-xs">
+                    <div className="p-4 border-t border-gray-800/80 bg-black/20 space-y-4 text-xs">
+                      {/* TOGGLE ON/OFF GAMBAR PROFIL */}
+                      <div className="flex items-center justify-between bg-gray-900/90 p-3 rounded-xl border border-gray-800">
+                        <div>
+                          <div className="font-bold text-gray-200">Gambar Profil / Logo Kedai</div>
+                          <div className="text-[10px] text-gray-400">
+                            {profileBlock.showLogo !== false ? 'Logo dipaparkan di bahagian atas' : 'Logo disembunyikan (teks sahaja)'}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => updateBlock('store_profile', { showLogo: profileBlock.showLogo === false ? true : false })}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition cursor-pointer ${
+                            profileBlock.showLogo !== false ? 'bg-emerald-500' : 'bg-gray-700'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition duration-200 ease-in-out ${
+                              profileBlock.showLogo !== false ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      {/* INPUT URL GAMBAR (HANYA APABILA ON) */}
+                      {profileBlock.showLogo !== false && (
+                        <div className="space-y-2 bg-gray-900/50 p-3 rounded-xl border border-gray-800/80">
+                          <label className="block text-gray-400 font-semibold">URL Logo / Gambar Profil</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={profileBlock.imageUrl}
+                              onChange={(e) => updateBlock('store_profile', { imageUrl: e.target.value })}
+                              className="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500 font-mono text-[11px]"
+                              placeholder="/mascot.png"
+                            />
+                            {profileBlock.imageUrl && (
+                              <div className="w-9 h-9 rounded-xl bg-white p-1 border border-gray-700 flex items-center justify-center shrink-0">
+                                <img src={profileBlock.imageUrl} alt="preview" className="w-full h-full object-contain" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex gap-2 text-[10px] text-gray-400">
+                            <button
+                              type="button"
+                              onClick={() => updateBlock('store_profile', { imageUrl: '/mascot.png' })}
+                              className="hover:text-amber-400 underline cursor-pointer"
+                            >
+                              Guna Maskot LajuS
+                            </button>
+                            <span>•</span>
+                            <button
+                              type="button"
+                              onClick={() => updateBlock('store_profile', { imageUrl: '/logo.svg' })}
+                              className="hover:text-amber-400 underline cursor-pointer"
+                            >
+                              Guna Logo LajuS
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* INPUT NAMA KEDAI */}
                       <div>
                         <label className="block text-gray-400 font-semibold mb-1">Nama Kedai</label>
                         <input
@@ -1015,29 +1183,55 @@ export default function CardStudioPage() {
                             setConfig({ ...config, storeName: e.target.value })
                             updateBlock('store_profile', { title: e.target.value })
                           }}
-                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                          className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500 font-bold"
                           placeholder="Nama Kedai Anda..."
                         />
                       </div>
 
+                      {/* PILIHAN FON NAMA KEDAI */}
                       <div>
-                        <label className="block text-gray-400 font-semibold mb-1">URL Logo / Gambar Profil</label>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={profileBlock.imageUrl}
-                            onChange={(e) => updateBlock('store_profile', { imageUrl: e.target.value })}
-                            className="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500"
-                            placeholder="/mascot.png"
-                          />
-                          {profileBlock.imageUrl && (
-                            <div className="w-9 h-9 rounded-xl bg-white p-1 border border-gray-700 flex items-center justify-center shrink-0">
-                              <img src={profileBlock.imageUrl} alt="preview" className="w-full h-full object-contain" />
-                            </div>
-                          )}
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="block text-gray-300 font-bold">
+                            Pilihan Fon Nama Kedai
+                          </label>
+                          <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-semibold border border-amber-500/30">
+                            {STORE_FONT_OPTIONS.find((f) => f.id === (profileBlock.fontId || 'fraunces'))?.name || 'Fraunces'}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1">
+                          {STORE_FONT_OPTIONS.map((f) => {
+                            const isSelected = (profileBlock.fontId || 'fraunces') === f.id
+                            return (
+                              <button
+                                key={f.id}
+                                type="button"
+                                onClick={() => updateBlock('store_profile', { fontId: f.id })}
+                                className={`p-2.5 rounded-xl text-left transition border flex flex-col justify-between cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-amber-500/20 border-amber-500 text-white font-bold ring-1 ring-amber-500/50'
+                                    : 'bg-gray-900/80 border-gray-800 text-gray-300 hover:text-white hover:border-gray-700'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between w-full mb-1">
+                                  <span className="text-[11px] font-bold text-gray-200">{f.name}</span>
+                                  <span className="text-[9px] text-gray-400 bg-black/40 px-1.5 py-0.5 rounded">
+                                    {f.category}
+                                  </span>
+                                </div>
+                                <div
+                                  className="text-base text-amber-300 truncate w-full"
+                                  style={{ fontFamily: f.fontFamily }}
+                                >
+                                  {config.storeName || f.sampleText}
+                                </div>
+                              </button>
+                            )
+                          })}
                         </div>
                       </div>
 
+                      {/* WARNA TEKS NAMA KEDAI */}
                       <div>
                         <label className="block text-gray-400 font-semibold mb-1">Warna Teks Nama Kedai</label>
                         <div className="flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl p-1.5">
@@ -1245,7 +1439,7 @@ export default function CardStudioPage() {
             {activeTab === 'settings' && (
               <div className="space-y-3">
                 <div className="bg-[#1F2937] p-3 rounded-xl border border-gray-800 text-xs text-gray-300">
-                  🎨 <b>Pilihan Tema Siap Sedia:</b> Klik mana-mana tema untuk menukar padanan warna dan corak secara automatik.
+                  🎨 <b>Pilihan Tema Siap Sedia:</b> Klik mana-mana tema untuk menukar padanan warna, fon dan corak secara automatik.
                 </div>
 
                 <div className="grid grid-cols-1 gap-2.5">
@@ -1268,7 +1462,7 @@ export default function CardStudioPage() {
                         <div>
                           <div className="font-bold text-xs text-gray-200">{p.name}</div>
                           <div className="text-[10px] text-gray-400">
-                            Corak: {HERO_PATTERN_OPTIONS.find((opt) => opt.id === p.pattern)?.label || 'Bulat-bulat'}
+                            Fon: {STORE_FONT_OPTIONS.find((f) => f.id === p.fontId)?.name || 'Fraunces'} • Corak: {HERO_PATTERN_OPTIONS.find((opt) => opt.id === p.pattern)?.label || 'Bulat-bulat'}
                           </div>
                         </div>
                       </div>
@@ -1437,39 +1631,48 @@ export default function CardStudioPage() {
                 </div>
 
                 {/* 2. STORE PROFILE */}
-                <div className="relative z-10 flex flex-col items-center text-center">
-                  <div
-                    className="w-20 h-20 rounded-full shadow-xl mb-2 overflow-hidden flex items-center justify-center shrink-0"
-                    style={{
-                      backgroundColor: profileBlock.bgColor || '#FFFFFF',
-                      border: `3px solid ${profileBlock.borderColor || 'rgba(255,255,255,0.6)'}`,
-                    }}
-                  >
-                    {profileBlock.imageUrl ? (
-                      <img
-                        src={profileBlock.imageUrl}
-                        alt="Logo"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <img src="/logo.svg" alt="LajuS" className="w-10 h-10 object-contain" />
+                {profileBlock.visible && (
+                  <div className="relative z-10 flex flex-col items-center text-center">
+                    {profileBlock.showLogo !== false && (
+                      <div
+                        className="w-20 h-20 rounded-full shadow-xl mb-2.5 overflow-hidden flex items-center justify-center shrink-0 transition-all duration-300"
+                        style={{
+                          backgroundColor: profileBlock.bgColor || '#FFFFFF',
+                          border: `3px solid ${profileBlock.borderColor || 'rgba(255,255,255,0.6)'}`,
+                        }}
+                      >
+                        {profileBlock.imageUrl ? (
+                          <img
+                            src={profileBlock.imageUrl}
+                            alt="Logo"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <img src="/logo.svg" alt="LajuS" className="w-10 h-10 object-contain" />
+                        )}
+                      </div>
                     )}
-                  </div>
 
-                  <div className="flex items-center justify-center gap-1.5">
-                    <span
-                      className="font-serif font-bold text-xl leading-tight"
-                      style={{ color: profileBlock.textColor || '#FFFFFF' }}
-                    >
-                      {config.storeName}
-                    </span>
-                    <img
-                      src="/green-checkmark-line-icon.svg"
-                      alt="Verified"
-                      className="w-4 h-4 object-contain shrink-0"
-                    />
+                    <div className="flex items-center justify-center gap-1.5 flex-wrap px-2">
+                      <span
+                        className="font-bold text-xl leading-tight transition-all"
+                        style={{
+                          color: profileBlock.textColor || '#FFFFFF',
+                          fontFamily:
+                            STORE_FONT_OPTIONS.find((f) => f.id === (profileBlock.fontId || 'fraunces'))?.fontFamily ||
+                            '"Fraunces", serif',
+                        }}
+                      >
+                        {config.storeName}
+                      </span>
+                      <img
+                        src="/green-checkmark-line-icon.svg"
+                        alt="Verified"
+                        className="w-4 h-4 object-contain shrink-0"
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* SOCIAL LINKS (FIXED LIVE) */}
                 <div className="relative z-10 flex items-center justify-center gap-2 mt-3">
