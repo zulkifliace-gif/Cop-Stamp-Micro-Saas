@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import QRCode from 'qrcode'
 import { createClient } from '@/lib/supabase/client'
 import { Lang, I18N_CARD } from '@/lib/i18n/card'
@@ -99,7 +99,7 @@ function getSocialIcon(platform: string) {
 export default function CustomerCardPage() {
   const supabase = createClient()
 
-  // Language state (defaults to 'my', persists to localStorage)
+  // Language state (defaults to 'my', persists in localStorage)
   const [lang, setLang] = useState<Lang>('my')
 
   useEffect(() => {
@@ -137,25 +137,31 @@ export default function CustomerCardPage() {
   const [isDeletingAccount, setIsDeletingAccount] = useState<boolean>(false)
   const [deleteAccountError, setDeleteAccountError] = useState<string>('')
 
-  // Multi-Store Loyalty Data (Live - No mock defaults)
+  // Multi-Store Loyalty Data
   const [allStores, setAllStores] = useState<CustomerStoreCard[]>([])
   const [activeStoreId, setActiveStoreId] = useState<string>('')
   const [storeName, setStoreName] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
   const [rewardImageUrl, setRewardImageUrl] = useState('')
   const [rewardsList, setRewardsList] = useState<RewardItem[]>([])
-  const [stampIcon, setStampIcon] = useState('/icons/stamps/makan.svg')
+  const [stampIcon, setStampIcon] = useState('/icons/stamps/makanan.svg')
   const [socialLinks, setSocialLinks] = useState<SocialLinkItem[]>([])
   const [totalStamps, setTotalStamps] = useState(0)
   const [stampsRequired, setStampsRequired] = useState(10)
   const [rewardDesc, setRewardDesc] = useState('')
   const [updatedAt, setUpdatedAt] = useState<string | null>(null)
   const [stampDates, setStampDates] = useState<string[]>([])
-  const [cardImpact, setCardImpact] = useState(false)
-  const [stampedSlots, setStampedSlots] = useState<Set<number>>(new Set())
 
-  // Multi-card state
+  // Multi-card state & card slider
   const [selectedCardIdx, setSelectedCardIdx] = useState(0)
+  const cardSliderRef = useRef<HTMLDivElement>(null)
+  const cardTrackRef = useRef<HTMLDivElement>(null)
+
+  // Touch / Drag slider state refs
+  const isDraggingRef = useRef(false)
+  const dragStartXRef = useRef(0)
+  const dragDeltaXRef = useRef(0)
+  const sliderWidthRef = useRef(0)
 
   // Modals state
   const [showInfoModal, setShowInfoModal] = useState(false)
@@ -165,7 +171,7 @@ export default function CustomerCardPage() {
   const [showReviewPopup, setShowReviewPopup] = useState<boolean>(false)
   const [googleReviewUrl, setGoogleReviewUrl] = useState<string | null>(null)
   const [reviewRating, setReviewRating] = useState<number>(0)
-  const [rewardSlideIdx, setRewardSlideIdx] = useState(0)
+  const [rateHintText, setRateHintText] = useState<string>('')
 
   // Stamp circle touch/click detail popup modal state
   const [selectedStampDetail, setSelectedStampDetail] = useState<{
@@ -175,6 +181,11 @@ export default function CustomerCardPage() {
     isFilled: boolean
     date: string | null
   } | null>(null)
+
+  const TOTAL = stampsRequired || 10
+  const fullCardsCount = Math.floor(totalStamps / TOTAL)
+  const remainderStamps = totalStamps % TOTAL
+  const totalCardsCount = Math.max(1, fullCardsCount + (remainderStamps > 0 ? 1 : 0))
 
   useEffect(() => {
     async function checkAuth() {
@@ -240,7 +251,17 @@ export default function CustomerCardPage() {
         const gReviewUrl = data.googleReviewUrl || null
         setGoogleReviewUrl(gReviewUrl)
 
-        // Auto-popup Slide-up Sheet Google Review (2.5s) HANYA bila pelanggan baru sahaja claim cop
+        // Focus on latest active card
+        const fullCards = Math.floor(stamps / req)
+        const rem = stamps % req
+        const numCards = Math.max(1, fullCards + (rem > 0 ? 1 : 0))
+        const activeCard = numCards - 1
+        setSelectedCardIdx(activeCard)
+        setTimeout(() => {
+          goToCard(activeCard, false)
+        }, 50)
+
+        // Auto popup Google Review if redirected with claimed=true
         try {
           const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
           const isClaimedParam = searchParams?.get('claimed') === 'true'
@@ -256,39 +277,10 @@ export default function CustomerCardPage() {
 
             setTimeout(() => {
               setShowReviewPopup(true)
-            }, 2500)
+            }, 2000)
           }
         } catch (e) {
           console.warn('Review popup trigger error:', e)
-        }
-
-        // Automatically focus on the latest active card
-        const fullCards = Math.floor(stamps / req)
-        const rem = stamps % req
-        const totalCards = Math.max(1, fullCards + (rem > 0 ? 1 : 0))
-        const activeCard = totalCards - 1
-        setSelectedCardIdx(activeCard)
-
-        // Determine how many stamps are visible on the active card
-        const cardStampCount = (() => {
-          const isFullCard = activeCard < fullCards
-          if (isFullCard) return req
-          if (rem === 0 && fullCards > 0 && activeCard === fullCards - 1) return req
-          return rem
-        })()
-
-        // Reset animated slots then stagger-animate each filled stamp slot
-        setStampedSlots(new Set())
-        setTimeout(() => setCardImpact(true), 150)
-        for (let i = 1; i <= cardStampCount; i++) {
-          const delay = 250 + (i - 1) * 60 // start at 250ms, 60ms apart per stamp
-          setTimeout(() => {
-            setStampedSlots((prev) => {
-              const next = new Set(prev)
-              next.add(i)
-              return next
-            })
-          }, delay)
         }
       }
     } catch (e) {
@@ -298,6 +290,58 @@ export default function CustomerCardPage() {
     }
   }
 
+  // Card slider track transformation
+  function setTrackTransform(cardIdx: number, deltaPx: number, rotateDeg: number, withTransition: boolean) {
+    if (!cardTrackRef.current) return
+    cardTrackRef.current.style.transition = withTransition
+      ? 'transform .5s cubic-bezier(.22,.9,.32,1)'
+      : 'none'
+    const percentShift = (cardIdx * 100) / totalCardsCount
+    cardTrackRef.current.style.transform = `translateX(calc(-${percentShift}% + ${deltaPx}px)) rotateZ(${rotateDeg}deg)`
+  }
+
+  function goToCard(idx: number, animate: boolean = true) {
+    const clamped = Math.max(0, Math.min(totalCardsCount - 1, idx))
+    setSelectedCardIdx(clamped)
+    setTrackTransform(clamped, 0, 0, animate)
+  }
+
+  // Touch and mouse drag handlers for paper slide
+  function handleDragStart(clientX: number) {
+    isDraggingRef.current = true
+    dragStartXRef.current = clientX
+    dragDeltaXRef.current = 0
+    if (cardSliderRef.current) {
+      sliderWidthRef.current = cardSliderRef.current.getBoundingClientRect().width
+    }
+  }
+
+  function handleDragMove(clientX: number) {
+    if (!isDraggingRef.current) return
+    dragDeltaXRef.current = clientX - dragStartXRef.current
+    const width = sliderWidthRef.current || 360
+    const rot = Math.max(-6, Math.min(6, (dragDeltaXRef.current / width) * 10))
+    setTrackTransform(selectedCardIdx, dragDeltaXRef.current, rot, false)
+  }
+
+  function handleDragEnd() {
+    if (!isDraggingRef.current) return
+    isDraggingRef.current = false
+    const width = sliderWidthRef.current || 360
+    const threshold = width * 0.16
+    const delta = dragDeltaXRef.current
+
+    if (delta <= -threshold) {
+      goToCard(selectedCardIdx + 1, true)
+    } else if (delta >= threshold) {
+      goToCard(selectedCardIdx - 1, true)
+    } else {
+      goToCard(selectedCardIdx, true)
+    }
+    dragDeltaXRef.current = 0
+  }
+
+  // Google OAuth
   async function handleGoogleLogin() {
     setIsAuthenticating(true)
     setAuthError('')
@@ -314,6 +358,7 @@ export default function CustomerCardPage() {
     }
   }
 
+  // Email / Password Auth
   async function handleEmailAuth(e: React.FormEvent) {
     e.preventDefault()
     if (!email || !password) {
@@ -363,19 +408,16 @@ export default function CustomerCardPage() {
     setAllStores([])
   }
 
-  function handleCloseReviewPopup() {
-    setShowReviewPopup(false)
-    setReviewRating(0)
-  }
-
   function handleSelectStarAndReview(star: number) {
     setReviewRating(star)
+    setRateHintText(lang === 'en' ? '⭐ Opening Google Review...' : '⭐ Membuka Google Review...')
     if (googleReviewUrl) {
       setTimeout(() => {
         window.open(googleReviewUrl, '_blank')
         setShowReviewPopup(false)
         setReviewRating(0)
-      }, 250)
+        setRateHintText('')
+      }, 500)
     }
   }
 
@@ -397,7 +439,7 @@ export default function CustomerCardPage() {
     }
   }
 
-  // Handle Account Deletion
+  // Delete Account
   async function handleDeleteAccount() {
     if (deleteConfirmText.trim() !== 'PADAM') return
     setIsDeletingAccount(true)
@@ -421,29 +463,47 @@ export default function CustomerCardPage() {
     }
   }
 
-  // 1. SLEEK ANIMATED LOADING SKELETON
+  // Store verification check
+  const isStoreVerified = Boolean(
+    storeName &&
+    logoUrl &&
+    rewardDesc &&
+    stampsRequired &&
+    socialLinks.length > 0
+  )
+
+  const formattedUpdate = formatStampDateTime(updatedAt, lang)
+
+  // 1. LOADING SKELETON
   if (loading || (user && !storeName && refreshing)) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 font-jakarta text-[#F7EEDA] bg-dot-pattern">
-        <div className="w-full max-w-[380px] mx-auto flex flex-col items-center justify-center">
-          <div className="w-full bg-[#FAF2E2]/[0.07] border border-[#FAF2E2]/15 rounded-[26px] p-6 sm:p-7 shadow-2xl animate-pulse flex flex-col items-center">
-            <div className="w-14 h-14 rounded-full bg-[#E5A43B]/20 mb-3" />
-            <div className="w-28 h-5 bg-[#FAF2E2]/20 rounded-full mb-2" />
-            <div className="w-20 h-2.5 bg-[#FAF2E2]/10 rounded-full mb-6" />
+      <main className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 font-jakarta text-[#2B1B12] bg-[#FFF7EA]">
+        <style dangerouslySetInnerHTML={{ __html: `
+          body {
+            background-color: #FFF7EA;
+            background-image: radial-gradient(circle at 1px 1px, rgba(43,27,18,0.055) 1px, transparent 1px);
+            background-size: 20px 20px;
+          }
+        `}} />
+        <div className="w-full max-w-[420px] mx-auto flex flex-col items-center justify-center">
+          <div className="w-full bg-[#FFFDF8] border border-[#F0DEC0] rounded-[28px] p-6 shadow-xl animate-pulse flex flex-col items-center">
+            <div className="w-16 h-16 rounded-full bg-[#FF7A45]/20 mb-3" />
+            <div className="w-32 h-5 bg-[#2B1B12]/15 rounded-full mb-2" />
+            <div className="w-20 h-3 bg-[#2B1B12]/10 rounded-full mb-6" />
 
             <div className="grid grid-cols-5 gap-2.5 w-full mb-5">
               {Array.from({ length: 10 }).map((_, i) => (
                 <div
                   key={i}
-                  className="aspect-square rounded-full border border-dashed border-[#FAF2E2]/20 bg-[#FAF2E2]/5"
+                  className="aspect-square rounded-full border-2 border-dashed border-[#F0DEC0] bg-[#FFB238]/10"
                 />
               ))}
             </div>
-            <div className="w-full h-2 rounded-full bg-[#FAF2E2]/10 mb-4" />
-            <div className="w-36 h-3 bg-[#FAF2E2]/15 rounded-full" />
+            <div className="w-full h-2.5 rounded-full bg-[#F0DEC0] mb-4" />
+            <div className="w-40 h-3.5 bg-[#2B1B12]/15 rounded-full" />
           </div>
 
-          <footer className="w-full text-center mt-6 flex items-center justify-center gap-1.5 opacity-35 text-[11px] font-space text-[#FAF2E2]">
+          <footer className="w-full text-center mt-6 flex items-center justify-center gap-1.5 opacity-40 text-[11px] font-space text-[#2B1B12]">
             <img src="/logo.svg" alt="LajuS" className="w-3.5 h-3.5 object-contain" />
             <span>LajuS</span>
           </footer>
@@ -452,643 +512,1354 @@ export default function CustomerCardPage() {
     )
   }
 
-  // Multi-card calculations
-  const TOTAL = stampsRequired || 10
-  const fullCardsCount = Math.floor(totalStamps / TOTAL)
-  const remainderStamps = totalStamps % TOTAL
-  const totalCardsCount = Math.max(1, fullCardsCount + (remainderStamps > 0 ? 1 : 0))
-
-  // Store verification check:
-  // Verified checkmark ONLY displays if:
-  // 1. Logo URL is provided
-  // 2. Main Reward Image URL is provided
-  // 3. At least 1 Social Media / Website link is provided
-  const isStoreVerified = Boolean(
-    logoUrl &&
-    logoUrl.trim().length > 0 &&
-    rewardImageUrl &&
-    rewardImageUrl.trim().length > 0 &&
-    Array.isArray(socialLinks) &&
-    socialLinks.some((s) => s.url && s.url.trim().length > 0)
-  )
-
-  // Determine current viewing card stamps
-  const isViewingFullCard = selectedCardIdx < fullCardsCount
-  const cardStamps = isViewingFullCard
-    ? TOTAL
-    : remainderStamps === 0 && fullCardsCount > 0 && selectedCardIdx === fullCardsCount - 1
-    ? TOTAL
-    : remainderStamps
-
-  const cardRemain = Math.max(0, TOTAL - cardStamps)
-  const percentFill = Math.min(100, Math.round((cardStamps / TOTAL) * 100))
-
-  const effectiveRewards =
-    rewardsList.length > 0
-      ? rewardsList
-      : [
-          {
-            name: rewardDesc || (lang === 'en' ? 'Free Reward' : 'Ganjaran Percuma'),
-            stampsRequired: TOTAL,
-            imageUrl: rewardImageUrl || '',
-            description: lang === 'en' ? 'Reward for customer loyalty.' : 'Ganjaran bagi kesetiaan pelanggan.',
-          },
-        ]
-
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 font-jakarta text-[#F7EEDA] bg-dot-pattern">
-      <div className="w-full max-w-[390px] mx-auto flex flex-col items-center justify-center z-10 relative">
-        {/* TOP ACTIONS BAR (REFRESH, LOGOUT & MY/EN TOGGLE) */}
-        <div className="w-full flex items-center justify-between mb-3">
-          <div className="flex items-center gap-1 bg-[#FAF2E2]/[0.08] border border-[#FAF2E2]/15 rounded-full p-0.5 backdrop-blur-xs">
-            <button
-              type="button"
-              onClick={() => switchLang('my')}
-              className={`px-2 py-0.5 text-[10.5px] font-bold rounded-full transition-all cursor-pointer font-space ${
-                lang === 'my'
-                  ? 'bg-[#E5A43B] text-[#1A2422] shadow-xs'
-                  : 'text-[#FAF2E2]/60 hover:text-[#FAF2E2]'
-              }`}
-            >
-              MY
-            </button>
-            <button
-              type="button"
-              onClick={() => switchLang('en')}
-              className={`px-2 py-0.5 text-[10.5px] font-bold rounded-full transition-all cursor-pointer font-space ${
-                lang === 'en'
-                  ? 'bg-[#E5A43B] text-[#1A2422] shadow-xs'
-                  : 'text-[#FAF2E2]/60 hover:text-[#FAF2E2]'
-              }`}
-            >
-              EN
-            </button>
-          </div>
+    <main className="min-h-screen text-[#2B1B12] font-jakarta">
+      {/* SCOPED COMPONENT STYLES FAITHFULLY TRANSLATED FROM loyalty_card.html */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        :root {
+          --bg: #FFF7EA;
+          --bg-dot: rgba(43,27,18,0.055);
+          --hero-1: #FF7A45;
+          --hero-2: #FF9F45;
+          --hero-3: #FFC24D;
+          --cream: #FFFDF8;
+          --ink: #2B1B12;
+          --ink-strong: #1B0F09;
+          --muted: #96806B;
+          --muted-on-hero: rgba(255,253,248,0.82);
+          --border-warm: #F0DEC0;
+          --gold: #FFB238;
+          --gold-deep: #E8901B;
+          --teal: #1C7A67;
+          --teal-deep: #0F5C4C;
+          --coral: #FF5A45;
+          --coral-deep: #E23F2E;
+          --coral-soft: rgba(255,90,69,0.12);
+          --green: #1FA96B;
+          --panel-hero: rgba(255,255,255,0.20);
+          --panel-hero-border: rgba(255,255,255,0.38);
+          --r-lg: 28px;
+          --r-md: 18px;
+          --r-sm: 13px;
+          --r-full: 999px;
+        }
 
-          {user && (
-            <div className="flex items-center gap-2">
-              {googleReviewUrl && (
-                <button
-                  type="button"
-                  onClick={() => setShowReviewPopup(true)}
-                  title="Google Review"
-                  className="h-8 px-2.5 rounded-full border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.06] hover:bg-[#FAF2E2]/15 transition flex items-center justify-center cursor-pointer shadow-sm active:scale-95"
-                >
-                  <img
-                    src="/Google-Review.svg"
-                    alt="Google Review"
-                    className="h-4 w-auto object-contain"
-                  />
-                </button>
-              )}
+        body {
+          background-color: var(--bg);
+          background-image: radial-gradient(circle at 1px 1px, var(--bg-dot) 1px, transparent 1px);
+          background-size: 20px 20px;
+          color: var(--ink);
+        }
 
-              {/* CUSTOMER PROFILE QR CODE BUTTON */}
-              <button
-                type="button"
-                onClick={handleOpenCustomerQrModal}
-                title={t.topbar.qrTooltip}
-                className="w-8 h-8 rounded-full border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.06] text-[#E5A43B] hover:bg-[#FAF2E2]/15 transition flex items-center justify-center cursor-pointer shadow-sm active:scale-95"
-              >
-                <svg
-                  className="w-4 h-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="3" y="3" width="7" height="7" rx="1.5" />
-                  <rect x="14" y="3" width="7" height="7" rx="1.5" />
-                  <rect x="3" y="14" width="7" height="7" rx="1.5" />
-                  <path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v.01" />
-                </svg>
-              </button>
+        .card-app {
+          width: 100%;
+          max-width: 430px;
+          margin: 0 auto;
+          padding-bottom: 44px;
+        }
 
-              <button
-                onClick={() => fetchLoyalty(activeStoreId)}
-                disabled={refreshing}
-                title={t.topbar.refreshTooltip}
-                className="w-8 h-8 rounded-full border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.06] text-[#FAF2E2] hover:bg-[#FAF2E2]/15 transition flex items-center justify-center cursor-pointer shadow-sm active:scale-95"
-              >
-                <svg
-                  className={`w-3.5 h-3.5 text-[#E5A43B] ${refreshing ? 'animate-spin' : ''}`}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
-                </svg>
-              </button>
+        .hscroll {
+          display: flex;
+          gap: 7px;
+          overflow-x: auto;
+          padding-bottom: 2px;
+          scrollbar-width: none;
+        }
+        .hscroll::-webkit-scrollbar {
+          display: none;
+        }
 
-              <button
-                onClick={handleLogout}
-                title={t.topbar.logoutTooltip}
-                className="w-8 h-8 rounded-full border border-[#FAF2E2]/15 bg-[#FAF2E2]/[0.06] text-[#5B6B64] hover:text-[#FAF2E2] hover:bg-[#FAF2E2]/15 transition flex items-center justify-center cursor-pointer shadow-sm active:scale-95"
-              >
-                <svg
-                  className="w-3.5 h-3.5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                  <polyline points="16 17 21 12 16 7" />
-                  <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-              </button>
-            </div>
-          )}
-        </div>
+        /* HERO */
+        .hero {
+          position: relative;
+          overflow: hidden;
+          background: linear-gradient(135deg, var(--hero-1) 0%, var(--hero-2) 55%, var(--hero-3) 100%);
+          border-radius: 0 0 34px 34px;
+          padding: 16px 16px 26px;
+          box-shadow: 0 20px 36px -14px rgba(226,63,46,0.45);
+        }
+        .hero::before {
+          content: '';
+          position: absolute;
+          width: 190px;
+          height: 190px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.16);
+          top: -90px;
+          right: -60px;
+          pointer-events: none;
+        }
+        .hero::after {
+          content: '';
+          position: absolute;
+          width: 130px;
+          height: 130px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.13);
+          bottom: -70px;
+          left: -40px;
+          pointer-events: none;
+        }
+        .hero-inner {
+          position: relative;
+          z-index: 1;
+        }
 
-        {/* IF NOT LOGGED IN: CLEAN LOGIN */}
-        {!user ? (
-          <div className="w-full bg-[#FAF2E2] rounded-[26px] p-6 sm:p-7 shadow-[0_24px_50px_rgba(0,0,0,0.5),0_0_0_1px_rgba(229,164,59,0.2)] text-[#1C2624] anim-result">
-            <div className="text-center mb-5">
-              <div className="w-14 h-14 rounded-full bg-[#E5A43B] mx-auto mb-3 shadow-md flex items-center justify-center">
-                <img src="/logo.svg" alt="LajuS" className="w-8 h-8 object-contain" />
-              </div>
-              <div className="font-fraunces font-bold text-xl text-[#0A1716] mb-0.5">
-                {t.login.digitalStampCard}
-              </div>
-              <div className="text-xs text-[#5E6F68]">
-                {t.login.checkStampsSubtitle}
-              </div>
-            </div>
+        .topbar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 18px;
+        }
 
-            {/* GOOGLE LOGIN */}
-            <button
-              onClick={handleGoogleLogin}
-              disabled={isAuthenticating}
-              className="w-full flex items-center justify-center gap-2.5 bg-white border border-[#E4D9BE] rounded-[12px] py-3 px-3.5 font-jakarta font-semibold text-[13.5px] text-[#3C3C3C] cursor-pointer active:scale-[0.98] transition hover:bg-gray-50 disabled:opacity-60 shadow-sm"
-            >
-              <svg viewBox="0 0 18 18" width="18" height="18">
-                <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.87 2.7-6.62z" />
-                <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.98v2.33A9 9 0 0 0 9 18z" />
-                <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.98A9 9 0 0 0 0 9c0 1.45.35 2.83.98 4.03l2.97-2.33z" />
-                <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.9 11.42 0 9 0A9 9 0 0 0 .98 4.97l2.97 2.33C4.66 5.17 6.65 3.58 9 3.58z" />
-              </svg>
-              {t.login.loginWithGoogle}
-            </button>
+        .lang-toggle {
+          display: flex;
+          align-items: center;
+          gap: 2px;
+          background: var(--panel-hero);
+          border: 1px solid var(--panel-hero-border);
+          border-radius: var(--r-full);
+          padding: 3px;
+        }
+        .lang-toggle button {
+          border: none;
+          background: transparent;
+          color: var(--muted-on-hero);
+          font-weight: 700;
+          font-size: 11.5px;
+          padding: 6px 12px;
+          border-radius: var(--r-full);
+          transition: .15s;
+          cursor: pointer;
+        }
+        .lang-toggle button.active {
+          background: #fff;
+          color: var(--coral-deep);
+        }
 
-            <div className="flex items-center gap-2.5 my-3.5 text-[#5B6B64] font-space text-[9.5px] tracking-[0.1em] before:content-[''] before:flex-1 before:h-[1px] before:bg-[#E2CE9E] after:content-[''] after:flex-1 after:h-[1px] after:bg-[#E2CE9E]">
-              {t.login.orDivider}
-            </div>
+        .top-actions {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+        }
+        .icon-btn {
+          width: 33px;
+          height: 33px;
+          border-radius: 50%;
+          border: 1px solid var(--panel-hero-border);
+          background: var(--panel-hero);
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: .15s;
+          cursor: pointer;
+        }
+        .icon-btn:hover {
+          background: rgba(255,255,255,0.32);
+        }
+        .icon-btn:active {
+          transform: scale(0.92);
+        }
+        .icon-btn.gold {
+          color: #FFEBC2;
+        }
+        .icon-btn svg {
+          width: 15px;
+          height: 15px;
+        }
 
-            {authError && (
-              <div className="mb-3 p-2.5 rounded-lg bg-red-100 text-[#B23A2E] text-xs font-semibold">
-                {authError}
-              </div>
-            )}
+        /* Profile */
+        .profile {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+        }
+        .avatar {
+          width: 76px;
+          height: 76px;
+          border-radius: 50%;
+          background: #fff;
+          color: var(--coral-deep);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 29px;
+          font-weight: 700;
+          font-family: 'Fraunces', serif;
+          box-shadow: 0 10px 22px rgba(0,0,0,0.18);
+          border: 3px solid rgba(255,255,255,0.55);
+          margin-bottom: 10px;
+          overflow: hidden;
+        }
 
-            <form onSubmit={handleEmailAuth}>
-              <div className="flex items-center gap-2.5 bg-white border border-[#E4D9BE] rounded-[12px] p-2.5 mb-2">
-                <input
-                  type="text"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t.login.emailPlaceholder}
-                  className="border-none outline-none flex-1 font-jakarta text-sm text-[#1C2624] bg-transparent"
-                />
-              </div>
+        .store-name {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          justify-content: center;
+          font-family: 'Fraunces', serif;
+          font-weight: 700;
+          font-size: 20px;
+          color: #fff;
+          line-height: 1.2;
+        }
+        .verified-badge {
+          width: 17px;
+          height: 17px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
 
-              <div className="flex items-center gap-2.5 bg-white border border-[#E4D9BE] rounded-[12px] p-2.5 mb-3">
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={t.login.passwordPlaceholder}
-                  className="border-none outline-none flex-1 font-jakarta text-sm text-[#1C2624] bg-transparent"
-                />
-              </div>
+        .socials {
+          display: flex;
+          gap: 7px;
+          justify-content: center;
+          margin-top: 9px;
+          flex-wrap: wrap;
+        }
+        .social-btn {
+          width: 26px;
+          height: 26px;
+          border-radius: 50%;
+          background: var(--panel-hero);
+          border: 1px solid var(--panel-hero-border);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-decoration: none;
+          transition: transform .15s;
+        }
+        .social-btn:hover {
+          transform: scale(1.08);
+          background: rgba(255,255,255,0.32);
+        }
 
-              <button
-                type="submit"
-                disabled={isAuthenticating}
-                className="w-full border-none rounded-[12px] py-3 px-4 bg-gradient-to-b from-[#E7A33E] to-[#C97F1F] text-[#1C2624] font-jakarta font-bold text-sm cursor-pointer active:scale-[0.98] transition disabled:opacity-60 shadow"
-              >
-                {isAuthenticating ? t.login.processing : isSignup ? t.login.signupBtn : t.login.loginBtn}
-              </button>
-            </form>
+        .pill-row {
+          display: flex;
+          gap: 8px;
+          justify-content: center;
+          margin-top: 16px;
+        }
+        .pill-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          border: none;
+          background: #fff;
+          color: var(--ink-strong);
+          border-radius: var(--r-full);
+          padding: 9px 15px;
+          font-size: 12px;
+          font-weight: 700;
+          box-shadow: 0 8px 16px rgba(0,0,0,0.14);
+          cursor: pointer;
+          transition: transform .15s;
+        }
+        .pill-btn svg {
+          width: 13px;
+          height: 13px;
+          color: var(--coral);
+        }
+        .pill-btn:hover {
+          transform: translateY(-1px);
+        }
+        .pill-btn:active {
+          transform: translateY(0);
+        }
 
-            <div className="text-center mt-3.5 text-xs text-[#5B6B64]">
-              {isSignup ? t.login.alreadyHaveAccount : t.login.newAccount}
-              <button
-                onClick={() => setIsSignup(!isSignup)}
-                className="text-[#1F5C52] font-semibold underline cursor-pointer hover:text-[#2E7568]"
-              >
-                {isSignup ? t.login.loginLink : t.login.signupLink}
-              </button>
-            </div>
-          </div>
-        ) : (
-          /* LOGGED IN: LIVE STAMP CARD */
-          <div className="w-full flex flex-col items-center anim-result">
-            {/* MULTI-STORE SELECTOR (MINIMAL PILLS - NO EXTRA TEXT) */}
-            {allStores.length > 1 && (
-              <div className="w-full flex items-center gap-1.5 overflow-x-auto pb-1 mb-3 scrollbar-none">
-                {allStores.map((st) => {
-                  const isActive = st.storeId === activeStoreId
-                  return (
-                    <button
-                      key={st.storeId}
-                      onClick={() => fetchLoyalty(st.storeId)}
-                      className={`py-1.5 px-3 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
-                        isActive
-                          ? 'bg-[#E5A43B] text-[#1A2422] font-bold shadow-md'
-                          : 'bg-[#FAF2E2]/10 text-[#FAF2E2]/80 hover:bg-[#FAF2E2]/20'
-                      }`}
-                    >
-                      <span className="truncate max-w-[120px]">{st.storeName}</span>
-                      <span
-                        className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                          isActive
-                            ? 'bg-[#1A2422] text-[#E5A43B]'
-                            : 'bg-[#E5A43B]/20 text-[#E5A43B]'
-                        }`}
-                      >
-                        {st.totalStamps} {t.card.stampsUnit}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-            )}
+        /* Content */
+        .card-content {
+          padding: 18px 16px 0;
+        }
 
-            {/* STORE NAME WITH VERIFIED CHECKMARK & SOCIAL LINKS */}
-            <div className="flex flex-col items-center text-center mb-3 w-full">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#E7A33E] text-[#1C2624] font-fraunces font-bold flex items-center justify-center text-3xl shrink-0 shadow-lg mb-2 overflow-hidden border-2 border-[#FAF2E2]/30 ring-2 ring-[#E5A43B]/20">
-                {logoUrl ? (
-                  <img src={logoUrl} alt={storeName} className="w-full h-full object-cover" />
-                ) : (
-                  (storeName || 'K').charAt(0).toUpperCase()
-                )}
-              </div>
+        /* Store tabs */
+        .store-tabs-wrap {
+          margin-bottom: 14px;
+        }
+        .store-tab {
+          border: 1.5px solid var(--border-warm);
+          border-radius: var(--r-full);
+          padding: 7px 13px;
+          font-size: 11.5px;
+          font-weight: 700;
+          white-space: nowrap;
+          flex-shrink: 0;
+          background: var(--cream);
+          color: var(--muted);
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          cursor: pointer;
+          transition: .15s;
+        }
+        .store-tab.active {
+          background: var(--coral);
+          border-color: var(--coral);
+          color: #fff;
+        }
+        .store-tab .badge {
+          font-size: 9.5px;
+          padding: 1px 6px;
+          border-radius: var(--r-full);
+          font-weight: 700;
+          background: var(--coral-soft);
+          color: var(--coral-deep);
+        }
+        .store-tab.active .badge {
+          background: rgba(255,255,255,0.28);
+          color: #fff;
+        }
 
-              {/* STORE NAME WITH GREEN VERIFIED CHECKMARK SVG (ONLY WHEN FULLY CONFIGURED) */}
-              <div className="flex items-center justify-center gap-1.5 font-fraunces text-xl font-bold text-[#F7EEDA] leading-tight">
-                <span>{storeName}</span>
-                {isStoreVerified && (
-                  <img
-                    src="/green-checkmark-line-icon.svg"
-                    alt={t.card.verifiedStoreTitle}
-                    title={t.card.verifiedStoreTitle}
-                    className="w-4 h-4 object-contain inline-block shrink-0"
-                  />
-                )}
-              </div>
+        /* Card slider */
+        .card-slider {
+          position: relative;
+          overflow: hidden;
+          padding: 4px 0 10px;
+          margin: 0 -2px;
+          touch-action: pan-y;
+        }
+        .card-slider-track {
+          display: flex;
+          transform-origin: center bottom;
+          transition: transform .5s cubic-bezier(.22,.9,.32,1);
+          will-change: transform;
+          cursor: grab;
+        }
+        .card-slider-track:active {
+          cursor: grabbing;
+        }
 
-              {/* SOCIAL MEDIA / WEBSITE ICONS (BELOW STORE NAME) */}
-              {socialLinks.length > 0 && (
-                <div className="flex items-center justify-center gap-2 mt-1.5 flex-wrap">
-                  {socialLinks.map((s, idx) => (
-                    <a
-                      key={idx}
-                      href={s.url.startsWith('http') ? s.url : `https://${s.url}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-6.5 h-6.5 rounded-full bg-[#FAF2E2]/10 hover:bg-[#FAF2E2]/25 border border-[#FAF2E2]/15 flex items-center justify-center p-1.5 transition active:scale-95 shadow-xs"
-                      title={s.platform}
-                    >
-                      <img
-                        src={getSocialIcon(s.platform)}
-                        alt={s.platform}
-                        className="w-full h-full object-contain"
-                      />
-                    </a>
-                  ))}
-                </div>
-              )}
+        /* Stamp card */
+        .stamp-card {
+          background: var(--cream);
+          border-radius: var(--r-lg);
+          padding: 24px 18px 20px;
+          color: var(--ink);
+          border: 1px solid var(--border-warm);
+          box-sizing: border-box;
+          box-shadow: 0 12px 28px -8px rgba(43,27,18,0.08);
+        }
 
-              {/* ACTION PILLS: INFO 'i' AND REWARDS */}
-              <div className="flex items-center justify-center gap-2 mt-2">
-                <button
-                  onClick={() => setShowInfoModal(true)}
-                  title={t.card.howToRedeemBtn}
-                  className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full border border-[#F7EEDA]/15 bg-[#F7EEDA]/[0.07] text-[11px] font-semibold text-[#F7EEDA] hover:bg-[#F7EEDA]/15 transition cursor-pointer"
-                >
-                  <svg className="w-3 h-3 text-[#E7A33E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="16" x2="12" y2="12" />
-                    <line x1="12" y1="8" x2="12.01" y2="8" />
-                  </svg>
-                  <span>{t.card.howToRedeemBtn}</span>
-                </button>
+        .stamp-card-head {
+          text-align: center;
+          margin-bottom: 6px;
+        }
+        .stamp-card-head .label {
+          font-size: 11px;
+          letter-spacing: 0.04em;
+          color: var(--teal);
+          font-weight: 800;
+          margin-bottom: 2px;
+          text-transform: uppercase;
+        }
+        .stamp-card-head .count {
+          font-family: 'Fraunces', serif;
+          font-weight: 700;
+          font-size: 36px;
+          color: var(--coral);
+          line-height: 1;
+        }
+        .stamp-card-head .count small {
+          font-size: 15px;
+          color: var(--muted);
+          font-weight: 600;
+        }
 
-                <button
-                  onClick={() => setShowRewardsModal(true)}
-                  title={t.card.rewardsBtn}
-                  className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full border border-[#F7EEDA]/15 bg-[#F7EEDA]/[0.07] text-[11px] font-semibold text-[#F7EEDA] hover:bg-[#F7EEDA]/15 transition cursor-pointer"
-                >
-                  <svg className="w-3 h-3 text-[#E7A33E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                    <polyline points="20 12 20 22 4 22 4 12" />
-                    <rect x="2" y="7" width="20" height="5" />
-                    <line x1="12" y1="22" x2="12" y2="7" />
-                    <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
-                    <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
-                  </svg>
-                  <span>{t.card.rewardsBtn}</span>
-                </button>
-              </div>
-            </div>
+        .perforation {
+          display: flex;
+          gap: 5px;
+          justify-content: center;
+          margin: 12px 0 16px;
+          opacity: 0.5;
+        }
+        .perforation span {
+          width: 4px;
+          height: 4px;
+          border-radius: 50%;
+          background: var(--border-warm);
+        }
 
+        .stamp-grid {
+          display: grid;
+          grid-template-columns: repeat(5, 1fr);
+          gap: 10px;
+          margin-bottom: 16px;
+        }
 
-            {/* MULTI-CARD TABS */}
-            {totalCardsCount > 1 && (
-              <div className="w-full flex items-center gap-1.5 mb-2.5 overflow-x-auto pb-1 scrollbar-none">
-                {Array.from({ length: totalCardsCount }).map((_, idx) => {
-                  const isFull = idx < fullCardsCount
-                  const isActive = idx === selectedCardIdx
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => setSelectedCardIdx(idx)}
-                      className={`py-1 px-2.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 ${
-                        isActive
-                          ? 'bg-[#E5A43B] text-[#1A2422] font-bold shadow'
-                          : 'bg-[#FAF2E2]/10 text-[#FAF2E2]/70 hover:bg-[#FAF2E2]/20'
-                      }`}
-                    >
-                      <span>{t.card.cardTab(idx + 1)}</span>
-                      {isFull ? (
-                        <span className="text-[9px] bg-emerald-600 text-white px-1.5 py-0.2 rounded-full">
-                          {t.card.fullBadge}
-                        </span>
-                      ) : (
-                        <span className="text-[9px] opacity-75">
-                          {remainderStamps}/{TOTAL}
-                        </span>
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-            )}
+        .stamp {
+          aspect-ratio: 1/1;
+          border-radius: 50%;
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          cursor: pointer;
+          transition: transform .15s, filter .15s;
+        }
+        .stamp.empty {
+          border: 2px dashed var(--border-warm);
+          background: rgba(255,178,56,0.07);
+          color: #D8B98C;
+          font-weight: 700;
+          font-size: 11px;
+        }
+        .stamp.filled {
+          background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.4), transparent 55%), linear-gradient(145deg, var(--coral), var(--coral-deep));
+          box-shadow: 0 5px 12px rgba(255,90,69,0.4);
+        }
+        .stamp:hover {
+          filter: brightness(1.05);
+        }
+        .stamp:active {
+          transform: scale(0.92);
+        }
 
-            {/* STAMP CARD CONTAINER (RICH PARCHMENT TEXTURE - NO PERFORATIONS/BIG BLACK HOLES) */}
-            <div
-              className={`relative w-full bg-gradient-to-b from-[#FFFDF9] via-[#FAF3E3] to-[#F2E5C9] rounded-[26px] px-5 sm:px-6 pt-6 pb-5 shadow-[0_20px_45px_rgba(0,0,0,0.55),0_1px_0_rgba(255,255,255,0.9)_inset,0_0_0_1px_rgba(229,164,59,0.3)] text-[#1C2624] ${
-                cardImpact ? 'anim-card-impact' : ''
-              }`}
-            >
-              <div className="text-center mb-4">
-                <div className="font-space text-[10px] tracking-[0.14em] uppercase text-[#1E5E53] mb-0.5 font-semibold">
-                  {t.card.cardHeader(selectedCardIdx + 1, isViewingFullCard)}
-                </div>
-                <div className="font-fraunces font-bold text-[30px] text-[#B53629] leading-none">
-                  <span>{cardStamps}</span>
-                  <small className="font-space text-[14px] text-[#5E6F68] font-normal">
-                    {' '}/ {TOTAL}
-                  </small>
-                </div>
-              </div>
+        .progress-bar {
+          height: 9px;
+          border-radius: 6px;
+          background: var(--border-warm);
+          overflow: hidden;
+          margin-bottom: 13px;
+        }
+        .progress-bar-fill {
+          height: 100%;
+          border-radius: 6px;
+          background: linear-gradient(90deg, var(--coral), var(--gold));
+          transition: width .8s ease;
+        }
 
-              {/* STAMP GRID (RENDER SELECTED STAMP ICON - CLICKABLE TO VIEW DATE & TIME) */}
-              <div className="grid grid-cols-5 gap-2.5 my-2 mb-4">
-                {Array.from({ length: TOTAL }).map((_, i) => {
-                  const slotNum = i + 1
-                  const isFilled = slotNum <= cardStamps
-                  const isAnimated = stampedSlots.has(slotNum)
-                  const globalIdx = selectedCardIdx * TOTAL + slotNum - 1
-                  const stampDate = isFilled ? (stampDates[globalIdx] || updatedAt) : null
+        .status-text {
+          text-align: center;
+          font-size: 13px;
+          color: var(--teal-deep);
+          font-weight: 700;
+          line-height: 1.4;
+        }
+        .status-text b {
+          color: var(--coral-deep);
+        }
 
-                  return (
+        /* Dots pagination */
+        .card-dots {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 7px;
+          margin-top: 16px;
+        }
+        .dot {
+          width: 8px;
+          height: 8px;
+          padding: 0;
+          border: none;
+          border-radius: var(--r-full);
+          background: var(--border-warm);
+          transition: .25s ease;
+          flex-shrink: 0;
+          cursor: pointer;
+        }
+        .dot.full {
+          background: var(--green);
+          opacity: 0.55;
+        }
+        .dot.active {
+          width: 24px;
+          background: var(--coral);
+          opacity: 1;
+        }
+        .dot.active.full {
+          background: var(--green);
+          opacity: 1;
+        }
+
+        .updated-text {
+          text-align: center;
+          margin-top: 12px;
+          font-size: 10.5px;
+          color: var(--muted);
+          font-weight: 600;
+        }
+
+        /* Footer */
+        .card-footer {
+          text-align: center;
+          margin-top: 26px;
+        }
+        .footer-brand {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          font-size: 12px;
+          margin-bottom: 7px;
+          font-weight: 800;
+          color: var(--ink);
+        }
+        .footer-links {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          font-size: 10.5px;
+        }
+        .footer-links a {
+          color: var(--muted);
+          text-decoration: underline;
+        }
+        .footer-links button {
+          border: none;
+          background: none;
+          color: #D9483A;
+          text-decoration: underline;
+          font-size: 10.5px;
+          padding: 0;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        .footer-links .dot-sep {
+          color: var(--border-warm);
+        }
+
+        /* Modals */
+        .overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(27,15,9,0.68);
+          backdrop-filter: blur(3px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 18px;
+          z-index: 50;
+        }
+        .modal {
+          width: 100%;
+          max-width: 340px;
+          background: var(--cream);
+          color: var(--ink);
+          border-radius: 26px;
+          padding: 22px 20px;
+          position: relative;
+          box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+        }
+        .modal-close {
+          position: absolute;
+          top: 14px;
+          right: 14px;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background: rgba(43,27,18,0.06);
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 15px;
+          color: #7A6A5A;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .modal-title {
+          font-family: 'Fraunces', serif;
+          font-weight: 700;
+          font-size: 19px;
+          color: var(--ink-strong);
+          margin-bottom: 4px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .modal-sub {
+          font-size: 11.5px;
+          color: var(--muted);
+          margin-bottom: 14px;
+        }
+
+        .modal-btn {
+          width: 100%;
+          padding: 12px;
+          border-radius: 14px;
+          border: none;
+          background: var(--teal);
+          color: #fff;
+          font-weight: 700;
+          font-size: 12.5px;
+          margin-top: 6px;
+          cursor: pointer;
+          transition: .15s;
+        }
+        .modal-btn:hover {
+          background: var(--teal-deep);
+        }
+        .modal-btn.danger {
+          background: var(--coral-deep);
+        }
+        .modal-btn.danger:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+        .modal-btn.ghost {
+          background: #fff;
+          color: #5A4B3D;
+          border: 1px solid var(--border-warm);
+        }
+
+        .step-item {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 11px;
+          font-size: 12px;
+          color: #4A3B2E;
+          line-height: 1.4;
+        }
+        .step-num {
+          width: 21px;
+          height: 21px;
+          border-radius: 50%;
+          background: var(--gold);
+          color: var(--ink-strong);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 10.5px;
+          font-weight: 800;
+          flex-shrink: 0;
+        }
+
+        .reward-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 11px;
+          border: 1px solid var(--border-warm);
+          border-radius: 16px;
+          margin-bottom: 8px;
+          background: #fff;
+        }
+        .reward-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 12px;
+          background: var(--coral-soft);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .reward-name {
+          font-size: 12.5px;
+          font-weight: 700;
+          color: var(--ink-strong);
+        }
+        .reward-req {
+          font-size: 10.5px;
+          color: var(--muted);
+        }
+
+        .qr-box {
+          width: 170px;
+          height: 170px;
+          margin: 0 auto 14px;
+          background: #fff;
+          border: 1px solid var(--border-warm);
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+        .email-pill {
+          background: rgba(28,122,103,0.08);
+          border: 1px solid rgba(28,122,103,0.2);
+          border-radius: 14px;
+          padding: 9px 10px;
+          text-align: center;
+          margin-bottom: 14px;
+        }
+        .email-pill .lbl {
+          font-size: 9px;
+          letter-spacing: 0.04em;
+          color: var(--muted);
+          font-weight: 700;
+        }
+        .email-pill .val {
+          font-size: 11px;
+          font-weight: 700;
+          color: var(--ink-strong);
+        }
+
+        .del-warn {
+          font-size: 12px;
+          color: #C0392B;
+          font-weight: 700;
+          margin-bottom: 6px;
+        }
+        .del-warn2 {
+          font-size: 11.5px;
+          color: var(--muted);
+          margin-bottom: 14px;
+          line-height: 1.4;
+        }
+        .confirm-input {
+          width: 100%;
+          border: 1px solid var(--border-warm);
+          border-radius: 12px;
+          padding: 10px;
+          text-align: center;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          font-weight: 700;
+          margin-bottom: 12px;
+          outline: none;
+        }
+
+        .stars {
+          display: flex;
+          gap: 6px;
+          justify-content: center;
+          margin-bottom: 8px;
+        }
+        .stars button {
+          font-size: 31px;
+          background: none;
+          border: none;
+          color: #E5DACB;
+          cursor: pointer;
+          transition: transform .1s;
+        }
+        .stars button:hover {
+          transform: scale(1.15);
+        }
+        .stars button.active {
+          color: var(--gold);
+        }
+
+        .stamp-detail-icon {
+          width: 62px;
+          height: 62px;
+          border-radius: 50%;
+          margin: 0 auto 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.4), transparent 55%), linear-gradient(145deg, var(--coral), var(--coral-deep));
+          box-shadow: 0 6px 14px rgba(255,90,69,0.35);
+        }
+
+        .info-card {
+          background: #fff;
+          border: 1px solid var(--border-warm);
+          border-radius: 14px;
+          padding: 11px 12px;
+          display: flex;
+          justify-content: space-between;
+          font-size: 12px;
+          margin-bottom: 8px;
+        }
+        .info-card b {
+          color: var(--ink-strong);
+        }
+      `}} />
+
+      <div className="card-app">
+        {/* ========================================================= */}
+        {/* LOGGED IN: HERO HEADER + STORE IDENTITY                  */}
+        {/* ========================================================= */}
+        {user ? (
+          <>
+            <div className="hero">
+              <div className="hero-inner">
+                {/* TOPBAR */}
+                <div className="topbar">
+                  <div className="lang-toggle">
                     <button
                       type="button"
-                      key={slotNum}
-                      onClick={() => {
-                        setSelectedStampDetail({
-                          slotNum,
-                          cardNum: selectedCardIdx + 1,
-                          globalStampNum: globalIdx + 1,
-                          isFilled,
-                          date: stampDate,
-                        })
-                      }}
-                      title={
-                        isFilled
-                          ? `${t.stampDetailModal.title(slotNum, selectedCardIdx + 1)} • ${t.stampDetailModal.earnedBadge}`
-                          : `${t.stampDetailModal.title(slotNum, selectedCardIdx + 1)} • ${t.stampDetailModal.notEarnedBadge}`
-                      }
-                      className={`aspect-square rounded-full flex items-center justify-center relative overflow-hidden transition-transform duration-150 active:scale-90 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#E5A43B]/60 ${
-                        isFilled
-                          ? 'bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,0.22),transparent_55%),#B53629] shadow-[0_4px_10px_rgba(181,54,41,0.45)] hover:scale-105'
-                          : 'border-2 border-dashed border-[#E2CE9E] bg-[#FAF2E2]/50 hover:bg-[#FAF2E2]/80'
-                      }`}
-                      style={{
-                        transform: isFilled
-                          ? slotNum % 3 === 0
-                            ? 'rotate(-6deg)'
-                            : slotNum % 3 === 1
-                            ? 'rotate(4deg)'
-                            : 'rotate(-2deg)'
-                          : undefined,
-                      }}
+                      className={lang === 'my' ? 'active' : ''}
+                      onClick={() => switchLang('my')}
                     >
-                      {/* Ink burst ring — appears only during stamp animation */}
-                      {isFilled && isAnimated && (
-                        <span
-                          className="absolute inset-0 rounded-full border-2 border-[#B53629]/60 anim-ink-burst pointer-events-none"
-                        />
-                      )}
-                      {isFilled ? (
-                        <img
-                          src={normalizeStampIcon(stampIcon)}
-                          alt="Stamp"
-                          className={`w-[58%] h-[58%] object-contain pointer-events-none ${isAnimated ? 'anim-stamp-impact' : ''}`}
-                        />
-                      ) : (
-                        <span className="font-space text-[10.5px] font-bold text-[#C2B18A] pointer-events-none">
-                          {slotNum}
-                        </span>
-                      )}
+                      MY
                     </button>
-                  )
-                })}
-              </div>
+                    <button
+                      type="button"
+                      className={lang === 'en' ? 'active' : ''}
+                      onClick={() => switchLang('en')}
+                    >
+                      EN
+                    </button>
+                  </div>
 
-              {/* PROGRESS BAR */}
-              <div className="h-2 rounded-md bg-[#E2CE9E] overflow-hidden mb-3">
-                <div
-                  className="h-full rounded-md bg-gradient-to-r from-[#C77B1B] to-[#E5A43B] transition-all duration-1000 ease-out"
-                  style={{ width: `${percentFill}%` }}
-                />
-              </div>
-
-              {/* STATUS TEXT */}
-              <div className="text-center text-[12.5px] text-[#1E5E53] font-semibold">
-                {isViewingFullCard ? (
-                  <span className="text-emerald-800 font-bold">
-                    {t.card.completeRedeem(rewardDesc)}
-                  </span>
-                ) : cardRemain > 0 ? (
-                  <>
-                    {lang === 'en' ? (
-                      <>
-                        <b className="text-[#B53629]">{cardRemain}</b> more stamp{cardRemain > 1 ? 's' : ''} for: {rewardDesc}
-                      </>
-                    ) : (
-                      <>
-                        Lagi <b className="text-[#B53629]">{cardRemain}</b> cop untuk: {rewardDesc}
-                      </>
+                  <div className="top-actions">
+                    {/* 3. OFFICIAL GOOGLE REVIEW ICON (REPLACES GENERIC STAR) */}
+                    {googleReviewUrl && (
+                      <button
+                        type="button"
+                        className="icon-btn gold"
+                        title="Google Review"
+                        onClick={() => setShowReviewPopup(true)}
+                      >
+                        <img
+                          src="/Google-Review.svg"
+                          alt="Google Review"
+                          className="w-4 h-4 object-contain"
+                        />
+                      </button>
                     )}
-                  </>
-                ) : (
-                  <>
-                    <b className="text-[#B53629]">{lang === 'en' ? 'Congratulations!' : 'Tahniah!'}</b> {t.card.congratsFull}
-                  </>
-                )}
+
+                    {/* CUSTOMER QR BUTTON */}
+                    <button
+                      type="button"
+                      className="icon-btn gold"
+                      title={t.topbar.qrTooltip}
+                      onClick={handleOpenCustomerQrModal}
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <rect x="3" y="3" width="7" height="7" rx="1.2" />
+                        <rect x="14" y="3" width="7" height="7" rx="1.2" />
+                        <rect x="3" y="14" width="7" height="7" rx="1.2" />
+                        <path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v.01" />
+                      </svg>
+                    </button>
+
+                    {/* REFRESH BUTTON */}
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      title={t.topbar.refreshTooltip}
+                      onClick={() => fetchLoyalty(activeStoreId)}
+                      disabled={refreshing}
+                    >
+                      <svg
+                        className={refreshing ? 'animate-spin' : ''}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                      </svg>
+                    </button>
+
+                    {/* LOGOUT BUTTON */}
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      title={t.topbar.logoutTooltip}
+                      onClick={handleLogout}
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* STORE PROFILE */}
+                <div className="profile">
+                  <div className="avatar">
+                    {logoUrl ? (
+                      <img
+                        src={logoUrl}
+                        alt={storeName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      (storeName || 'K').charAt(0).toUpperCase()
+                    )}
+                  </div>
+
+                  <div className="store-name">
+                    <span>{storeName || 'Kad Cop'}</span>
+                    {/* 2. OFFICIAL VERIFIED BADGE (REPLACES GENERIC TICK) */}
+                    {isStoreVerified && (
+                      <span className="verified-badge" title={t.card.verifiedStoreTitle}>
+                        <img
+                          src="/green-checkmark-line-icon.svg"
+                          alt={t.card.verifiedStoreTitle}
+                          className="w-4 h-4 object-contain"
+                        />
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 4. OFFICIAL SOCIAL MEDIA ICONS (REPLACES GENERIC SKETCHES) */}
+                  {socialLinks.length > 0 && (
+                    <div className="socials">
+                      {socialLinks.map((s, idx) => (
+                        <a
+                          key={idx}
+                          href={s.url.startsWith('http') ? s.url : `https://${s.url}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="social-btn"
+                          title={s.platform}
+                        >
+                          <img
+                            src={getSocialIcon(s.platform)}
+                            alt={s.platform}
+                            className="w-3.5 h-3.5 object-contain filter invert brightness-200"
+                          />
+                        </a>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* PILL ROW: CARA TEBUS & GANJARAN */}
+                  <div className="pill-row">
+                    <button
+                      type="button"
+                      className="pill-btn"
+                      onClick={() => setShowInfoModal(true)}
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="16" x2="12" y2="12" />
+                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                      </svg>
+                      <span>{t.card.howToRedeemBtn}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="pill-btn"
+                      onClick={() => setShowRewardsModal(true)}
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                      >
+                        <polyline points="20 12 20 22 4 22 4 12" />
+                        <rect x="2" y="7" width="20" height="5" />
+                        <line x1="12" y1="22" x2="12" y2="7" />
+                        <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+                        <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+                      </svg>
+                      <span>{t.card.rewardsBtn}</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="w-full text-center mt-3 text-[11px] text-[#5B6B64] font-space">
-              {updatedAt
-                ? t.card.lastUpdated(
-                    new Date(updatedAt).toLocaleTimeString(lang === 'en' ? 'en-US' : 'ms-MY', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })
-                  )
-                : t.card.scanHint}
-            </div>
-          </div>
-        )}
+            {/* ========================================================= */}
+            {/* CONTENT BELOW HERO: TABS + SLIDER + FOOTER                 */}
+            {/* ========================================================= */}
+            <div className="card-content">
+              {/* STORE TABS (MULTI-STORE) */}
+              {allStores.length > 1 && (
+                <div className="store-tabs-wrap">
+                  <div className="hscroll">
+                    {allStores.map((st) => {
+                      const isActive = st.storeId === activeStoreId
+                      return (
+                        <button
+                          type="button"
+                          key={st.storeId}
+                          onClick={() => {
+                            setActiveStoreId(st.storeId)
+                            fetchLoyalty(st.storeId)
+                          }}
+                          className={`store-tab ${isActive ? 'active' : ''}`}
+                        >
+                          <span>{st.storeName}</span>
+                          <span className="badge">
+                            {st.totalStamps} {t.card.stampsUnit}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
 
-        {/* FOOTPAGE LAJUS BRANDING (CENTERED & COMPACT) */}
-        <footer className="w-full text-center mt-6 mb-2 flex flex-col items-center justify-center gap-1.5 opacity-60 hover:opacity-100 transition text-[11px] font-space text-[#FAF2E2]">
-          <div className="flex items-center gap-1.5">
-            <img src="/logo.svg" alt="LajuS" className="w-3.5 h-3.5 object-contain" />
-            <span>LajuS</span>
-          </div>
-          <div className="flex items-center gap-2 text-[10px]">
-            <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#FAF2E2]/70 hover:text-[#E5A43B] underline">
-              {t.footer.privacyPolicy}
-            </a>
-            {user && (
-              <>
-                <span className="text-[#FAF2E2]/30">•</span>
+              {/* CARD SLIDER (SWIPEABLE "KERTAS" SLIDE TRACK) */}
+              <div
+                className="card-slider"
+                ref={cardSliderRef}
+                onTouchStart={(e) => handleDragStart(e.touches[0].clientX)}
+                onTouchMove={(e) => handleDragMove(e.touches[0].clientX)}
+                onTouchEnd={handleDragEnd}
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  handleDragStart(e.clientX)
+                }}
+                onMouseMove={(e) => handleDragMove(e.clientX)}
+                onMouseUp={handleDragEnd}
+                onMouseLeave={handleDragEnd}
+              >
+                <div
+                  className="card-slider-track"
+                  ref={cardTrackRef}
+                  style={{
+                    width: `${totalCardsCount * 100}%`,
+                  }}
+                >
+                  {Array.from({ length: totalCardsCount }).map((_, cardIdx) => {
+                    const isFull = cardIdx < fullCardsCount
+                    const cardStamps = isFull ? TOTAL : remainderStamps
+                    const cardRemain = Math.max(0, TOTAL - cardStamps)
+                    const percentFill = Math.min(100, Math.round((cardStamps / TOTAL) * 100))
+
+                    return (
+                      <div
+                        key={cardIdx}
+                        className="stamp-card"
+                        style={{
+                          flex: `0 0 ${100 / totalCardsCount}%`,
+                          width: `${100 / totalCardsCount}%`,
+                        }}
+                      >
+                        {/* HEAD */}
+                        <div className="stamp-card-head">
+                          <div className="label">
+                            {isFull
+                              ? `${lang === 'en' ? 'CARD' : 'KAD'} ${cardIdx + 1} • ${lang === 'en' ? 'FULL' : 'PENUH'}`
+                              : `${lang === 'en' ? 'CARD' : 'KAD'} ${cardIdx + 1} • ${lang === 'en' ? 'IN PROGRESS' : 'SEDANG DIISI'}`}
+                          </div>
+                          <div className="count">
+                            {cardStamps}
+                            <small> / {TOTAL}</small>
+                          </div>
+                        </div>
+
+                        {/* PERFORATION LINE */}
+                        <div className="perforation">
+                          {Array.from({ length: 15 }).map((_, pIdx) => (
+                            <span key={pIdx} />
+                          ))}
+                        </div>
+
+                        {/* 5. STAMP GRID WITH OFFICIAL STAMP ICON (REPLACES FORK SVG) */}
+                        <div className="stamp-grid">
+                          {Array.from({ length: TOTAL }).map((_, slotIdx) => {
+                            const slotNum = slotIdx + 1
+                            const filled = slotNum <= cardStamps
+                            const globalStampNum = cardIdx * TOTAL + slotNum
+                            const stampDate = filled ? (stampDates[globalStampNum - 1] || updatedAt) : null
+
+                            return (
+                              <button
+                                type="button"
+                                key={slotNum}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setSelectedStampDetail({
+                                    slotNum,
+                                    cardNum: cardIdx + 1,
+                                    globalStampNum,
+                                    isFilled: filled,
+                                    date: stampDate,
+                                  })
+                                }}
+                                className={`stamp ${filled ? 'filled' : 'empty'}`}
+                                title={
+                                  filled
+                                    ? `Cop #${slotNum} — ${lang === 'en' ? 'Earned' : 'Diperoleh'}`
+                                    : `Cop #${slotNum} — ${lang === 'en' ? 'Not earned yet' : 'Belum diperoleh'}`
+                                }
+                              >
+                                {filled ? (
+                                  <img
+                                    src={normalizeStampIcon(stampIcon)}
+                                    alt="Cop Stamp"
+                                    className="w-[52%] h-[52%] object-contain filter invert brightness-200 pointer-events-none"
+                                  />
+                                ) : (
+                                  <span className="pointer-events-none">{slotNum}</span>
+                                )}
+                              </button>
+                            )
+                          })}
+                        </div>
+
+                        {/* PROGRESS BAR */}
+                        <div className="progress-bar">
+                          <div
+                            className="progress-bar-fill"
+                            style={{ width: `${percentFill}%` }}
+                          />
+                        </div>
+
+                        {/* STATUS TEXT */}
+                        <div className="status-text">
+                          {isFull ? (
+                            <span>🎉 {t.card.completeRedeem(rewardDesc)}</span>
+                          ) : cardRemain > 0 ? (
+                            <span>
+                              {lang === 'en' ? (
+                                <>
+                                  <b>{cardRemain}</b> more stamp{cardRemain > 1 ? 's' : ''} for: {rewardDesc}
+                                </>
+                              ) : (
+                                <>
+                                  Lagi <b>{cardRemain}</b> cop untuk: {rewardDesc}
+                                </>
+                              )}
+                            </span>
+                          ) : (
+                            <span>
+                              <b>{lang === 'en' ? 'Congratulations!' : 'Tahniah!'}</b> {t.card.congratsFull}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* CARD DOTS PAGINATION */}
+                        <div className="card-dots">
+                          {Array.from({ length: totalCardsCount }).map((_, dotIdx) => {
+                            const isDotFull = dotIdx < fullCardsCount
+                            const isDotActive = dotIdx === selectedCardIdx
+                            return (
+                              <button
+                                type="button"
+                                key={dotIdx}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  goToCard(dotIdx, true)
+                                }}
+                                className={`dot ${isDotFull ? 'full' : ''} ${isDotActive ? 'active' : ''} ${
+                                  isDotActive && isDotFull ? 'full' : ''
+                                }`}
+                                aria-label={`Kad ${dotIdx + 1}`}
+                                title={`Kad ${dotIdx + 1}`}
+                              />
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* UPDATED TIMESTAMP */}
+              <div className="updated-text">
+                {t.card.lastUpdated(formattedUpdate.time ? `${formattedUpdate.time}, ${formattedUpdate.date}` : formattedUpdate.date)}
+              </div>
+
+              {/* 1. FOOTER BRAND WITH OFFICIAL LAJUS LOGO (REPLACES DOT PLACEHOLDER) */}
+              <div className="card-footer">
+                <div className="footer-brand">
+                  <img
+                    src="/logo.svg"
+                    alt="LajuS"
+                    className="w-3.5 h-3.5 object-contain"
+                  />
+                  <span>LajuS</span>
+                </div>
+                <div className="footer-links">
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer">
+                    {t.footer.privacyPolicy}
+                  </a>
+                  <span className="dot-sep">•</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteAccountModal(true)}
+                  >
+                    {t.footer.deleteAccount}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          /* ========================================================= */
+          /* LOGGED OUT: CLEAN WARM LOGIN CARD                        */
+          /* ========================================================= */
+          <div className="p-4 pt-10 flex flex-col items-center">
+            {/* TOP ACTIONS BAR */}
+            <div className="w-full flex items-center justify-end mb-4">
+              <div className="lang-toggle">
                 <button
                   type="button"
-                  onClick={() => {
-                    setDeleteConfirmText('')
-                    setDeleteAccountError('')
-                    setShowDeleteAccountModal(true)
-                  }}
-                  className="text-red-400/80 hover:text-red-300 underline cursor-pointer"
+                  className={lang === 'my' ? 'active' : ''}
+                  onClick={() => switchLang('my')}
                 >
-                  {t.footer.deleteAccount}
+                  MY
                 </button>
-              </>
-            )}
+                <button
+                  type="button"
+                  className={lang === 'en' ? 'active' : ''}
+                  onClick={() => switchLang('en')}
+                >
+                  EN
+                </button>
+              </div>
+            </div>
+
+            <div className="w-full bg-[#FFFDF8] border border-[#F0DEC0] rounded-[28px] p-6 sm:p-7 shadow-xl text-[#2B1B12]">
+              <div className="text-center mb-5">
+                <div className="w-14 h-14 rounded-full bg-[#FF7A45] mx-auto mb-3 shadow-md flex items-center justify-center p-2.5">
+                  <img src="/logo.svg" alt="LajuS" className="w-full h-full object-contain" />
+                </div>
+                <div className="font-fraunces font-bold text-2xl text-[#1B0F09] mb-1">
+                  {t.login.digitalStampCard}
+                </div>
+                <div className="text-xs text-[#96806B]">
+                  {t.login.checkStampsSubtitle}
+                </div>
+              </div>
+
+              {/* GOOGLE LOGIN */}
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                disabled={isAuthenticating}
+                className="w-full flex items-center justify-center gap-2.5 bg-white border border-[#F0DEC0] rounded-2xl py-3 px-3.5 font-semibold text-[13.5px] text-[#2B1B12] cursor-pointer active:scale-[0.98] transition hover:bg-[#FFF7EA] disabled:opacity-60 shadow-sm"
+              >
+                <svg viewBox="0 0 18 18" width="18" height="18">
+                  <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.87 2.7-6.62z" />
+                  <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.98v2.33A9 9 0 0 0 9 18z" />
+                  <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.98A9 9 0 0 0 0 9c0 1.45.35 2.83.98 4.03l2.97-2.33z" />
+                  <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.9 11.42 0 9 0A9 9 0 0 0 .98 4.97l2.97 2.33C4.66 5.17 6.65 3.58 9 3.58z" />
+                </svg>
+                {t.login.loginWithGoogle}
+              </button>
+
+              <div className="flex items-center gap-2.5 my-4 text-[#96806B] font-space text-[10px] tracking-[0.1em] before:content-[''] before:flex-1 before:h-[1px] before:bg-[#F0DEC0] after:content-[''] after:flex-1 after:h-[1px] after:bg-[#F0DEC0]">
+                {t.login.orDivider}
+              </div>
+
+              {authError && (
+                <div className="mb-3 p-2.5 rounded-xl bg-red-100 text-[#B23A2E] text-xs font-semibold text-center">
+                  {authError}
+                </div>
+              )}
+
+              <form onSubmit={handleEmailAuth} className="space-y-2.5">
+                <div className="flex items-center gap-2.5 bg-white border border-[#F0DEC0] rounded-xl p-2.5">
+                  <input
+                    type="text"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t.login.emailPlaceholder}
+                    className="border-none outline-none flex-1 text-sm text-[#2B1B12] bg-transparent"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2.5 bg-white border border-[#F0DEC0] rounded-xl p-2.5">
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={t.login.passwordPlaceholder}
+                    className="border-none outline-none flex-1 text-sm text-[#2B1B12] bg-transparent"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isAuthenticating}
+                  className="w-full border-none rounded-xl py-3 px-4 bg-gradient-to-r from-[#FF7A45] to-[#E8901B] text-white font-bold text-sm cursor-pointer active:scale-[0.98] transition disabled:opacity-60 shadow-md"
+                >
+                  {isAuthenticating ? t.login.processing : isSignup ? t.login.signupBtn : t.login.loginBtn}
+                </button>
+              </form>
+
+              <div className="text-center mt-4 text-xs text-[#96806B]">
+                {isSignup ? t.login.alreadyHaveAccount : t.login.newAccount}
+                <button
+                  type="button"
+                  onClick={() => setIsSignup(!isSignup)}
+                  className="text-[#FF7A45] font-bold underline cursor-pointer hover:text-[#E23F2E]"
+                >
+                  {isSignup ? t.login.loginLink : t.login.signupLink}
+                </button>
+              </div>
+            </div>
+
+            <footer className="w-full text-center mt-6 flex items-center justify-center gap-1.5 opacity-40 text-[11px] font-space text-[#2B1B12]">
+              <img src="/logo.svg" alt="LajuS" className="w-3.5 h-3.5 object-contain" />
+              <span>LajuS</span>
+            </footer>
           </div>
-        </footer>
+        )}
       </div>
 
-      {/* 0. POPUP MODAL: BUTIRAN TARIKH & MASA COP STAMP */}
+      {/* ========================================================= */}
+      {/* MODALS                                                    */}
+      {/* ========================================================= */}
+
+      {/* 1. STAMP DETAIL MODAL */}
       {selectedStampDetail && (
         <div
-          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4"
+          className="overlay"
           onClick={() => setSelectedStampDetail(null)}
         >
-          <div
-            className="w-full max-w-xs bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-5 shadow-2xl border border-[#E5A43B]/30 anim-popup relative text-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* CLOSE BUTTON */}
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
+              className="modal-close"
               onClick={() => setSelectedStampDetail(null)}
-              className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-gray-500 hover:text-gray-800 text-base font-bold transition cursor-pointer"
             >
               &times;
             </button>
-
-            {/* STAMP ICON / BADGE */}
-            <div className="flex flex-col items-center justify-center mb-3">
-              <div
-                className={`w-16 h-16 rounded-full flex items-center justify-center shadow-md mb-2.5 relative overflow-hidden ${
-                  selectedStampDetail.isFilled
-                    ? 'bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,0.22),transparent_55%),#B53629] shadow-[0_6px_15px_rgba(181,54,41,0.4)]'
-                    : 'border-2 border-dashed border-[#E2CE9E] bg-[#FAF2E2]/80'
-                }`}
-              >
-                {selectedStampDetail.isFilled ? (
-                  <img
-                    src={normalizeStampIcon(stampIcon)}
-                    alt="Stamp"
-                    className="w-9 h-9 object-contain"
-                  />
-                ) : (
-                  <span className="font-space text-base font-bold text-[#A89872]">
-                    {selectedStampDetail.slotNum}
-                  </span>
-                )}
+            <div
+              className="stamp-detail-icon"
+              style={{ opacity: selectedStampDetail.isFilled ? 1 : 0.4 }}
+            >
+              <img
+                src={normalizeStampIcon(stampIcon)}
+                alt="Stamp"
+                className="w-7 h-7 object-contain filter invert brightness-200"
+              />
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div className="modal-title" style={{ justifyContent: 'center' }}>
+                Cop #{selectedStampDetail.slotNum} — Kad {selectedStampDetail.cardNum}
               </div>
-
-              <div className="font-fraunces font-bold text-lg text-[#0A1716] leading-tight">
-                {t.stampDetailModal.title(selectedStampDetail.slotNum, selectedStampDetail.cardNum)}
-              </div>
-              <div className="text-[11px] font-space text-[#5E6F68] mt-0.5">
+              <div className="modal-sub" style={{ marginBottom: 12 }}>
                 {storeName}
               </div>
-            </div>
-
-            {selectedStampDetail.isFilled ? (
-              <div className="space-y-2.5 mb-4">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-800 text-[11.5px] font-bold">
-                  <span>✓</span>
-                  <span>{t.stampDetailModal.earnedBadge}</span>
-                </div>
-
-                {/* DATE & TIME CARD */}
-                <div className="bg-white rounded-xl p-3 border border-[#E4D9BE] text-left space-y-1.5 shadow-xs">
-                  {(() => {
-                    const { date, time } = formatStampDateTime(selectedStampDetail.date, lang)
-                    return (
-                      <>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-gray-500 font-medium flex items-center gap-1.5">
-                            <span>📅</span>
-                            <span>{t.stampDetailModal.dateLabel}:</span>
-                          </span>
-                          <span className="font-bold text-gray-800">{date}</span>
-                        </div>
-                        {time && (
-                          <div className="flex items-center justify-between text-xs pt-1 border-t border-gray-100">
-                            <span className="text-gray-500 font-medium flex items-center gap-1.5">
-                              <span>⏰</span>
-                              <span>{t.stampDetailModal.timeLabel}:</span>
-                            </span>
-                            <span className="font-bold text-gray-800 font-mono text-[11.5px]">{time}</span>
-                          </div>
-                        )}
-                      </>
-                    )
-                  })()}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2 mb-4">
-                <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-200/80 text-gray-600 text-[11px] font-semibold">
-                  <span>⚪</span>
-                  <span>{t.stampDetailModal.notEarnedBadge}</span>
-                </div>
-                <p className="text-xs text-gray-600 bg-white p-3 rounded-xl border border-[#E4D9BE] leading-relaxed">
+              {selectedStampDetail.isFilled && selectedStampDetail.date ? (
+                <>
+                  <div className="info-card">
+                    <span>📅 {lang === 'en' ? 'Date' : 'Tarikh'}</span>
+                    <b>{formatStampDateTime(selectedStampDetail.date, lang).date}</b>
+                  </div>
+                  <div className="info-card">
+                    <span>⏰ {lang === 'en' ? 'Time' : 'Masa'}</span>
+                    <b>{formatStampDateTime(selectedStampDetail.date, lang).time || '-'}</b>
+                  </div>
+                </>
+              ) : (
+                <div className="info-card" style={{ justifyContent: 'center', color: '#96806B' }}>
                   {t.stampDetailModal.notEarnedHint}
-                </p>
-              </div>
-            )}
-
+                </div>
+              )}
+            </div>
             <button
               type="button"
+              className="modal-btn"
               onClick={() => setSelectedStampDetail(null)}
-              className="w-full py-2.5 bg-[#1E5E53] hover:bg-[#2D786B] text-white font-bold text-xs rounded-xl transition cursor-pointer active:scale-98 shadow-sm"
             >
               {t.stampDetailModal.closeBtn}
             </button>
@@ -1096,55 +1867,51 @@ export default function CustomerCardPage() {
         </div>
       )}
 
-      {/* 1. POPUP MODAL: CARA PENEBUSAN (LIGHTWEIGHT POPUP ANIMATION) */}
+      {/* 2. HOW TO REDEEM MODAL (CARA TEBUS) */}
       {showInfoModal && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-5 shadow-2xl border border-[#E5A43B]/30 anim-popup">
-            <div className="flex items-center justify-between mb-3.5">
-              <div className="font-fraunces font-bold text-base text-[#0A1716]">
-                {t.infoModal.title}
-              </div>
-              <button
-                onClick={() => setShowInfoModal(false)}
-                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-gray-500 hover:text-gray-800 text-lg font-bold transition cursor-pointer"
-              >
-                &times;
-              </button>
-            </div>
-
-            <div className="space-y-2 text-xs text-gray-700 mb-4">
-              <div className="flex items-center gap-2.5 bg-white p-2.5 rounded-xl border border-[#E4D9BE]">
-                <div className="w-5 h-5 rounded-full bg-[#1E5E53] text-white font-bold text-[10px] flex items-center justify-center shrink-0">
-                  1
-                </div>
-                <div>{t.infoModal.step1}</div>
-              </div>
-
-              <div className="flex items-center gap-2.5 bg-white p-2.5 rounded-xl border border-[#E4D9BE]">
-                <div className="w-5 h-5 rounded-full bg-[#1E5E53] text-white font-bold text-[10px] flex items-center justify-center shrink-0">
-                  2
-                </div>
-                <div>{t.infoModal.step2}</div>
-              </div>
-
-              <div className="flex items-center gap-2.5 bg-white p-2.5 rounded-xl border border-[#E4D9BE]">
-                <div className="w-5 h-5 rounded-full bg-[#1E5E53] text-white font-bold text-[10px] flex items-center justify-center shrink-0">
-                  3
-                </div>
-                <div>{t.infoModal.step3(user?.email || (lang === 'en' ? 'your email' : 'emel anda'))}</div>
-              </div>
-
-              <div className="flex items-center gap-2.5 bg-white p-2.5 rounded-xl border border-[#E4D9BE]">
-                <div className="w-5 h-5 rounded-full bg-[#1E5E53] text-white font-bold text-[10px] flex items-center justify-center shrink-0">
-                  4
-                </div>
-                <div>{t.infoModal.step4}</div>
-              </div>
-            </div>
-
+        <div className="overlay" onClick={() => setShowInfoModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <button
+              type="button"
+              className="modal-close"
               onClick={() => setShowInfoModal(false)}
-              className="w-full py-2.5 bg-[#1E5E53] hover:bg-[#2D786B] text-white font-bold text-xs rounded-xl transition cursor-pointer"
+            >
+              &times;
+            </button>
+            <div className="modal-title">ℹ️ {t.infoModal.title}</div>
+            <div className="modal-sub">
+              {lang === 'en'
+                ? 'Follow 3 simple steps to redeem your reward.'
+                : 'Ikuti 3 langkah mudah untuk tebus ganjaran anda.'}
+            </div>
+            <div className="step-item">
+              <span className="step-num">1</span>
+              <span>
+                {lang === 'en'
+                  ? 'Collect stamps every time you make a purchase at this store.'
+                  : 'Kumpul cop setiap kali beli-belah di kedai ini.'}
+              </span>
+            </div>
+            <div className="step-item">
+              <span className="step-num">2</span>
+              <span>
+                {lang === 'en'
+                  ? `When the card is full (${TOTAL}/${TOTAL}), show this digital card to the store staff.`
+                  : `Bila kad penuh (${TOTAL}/${TOTAL}), tunjukkan kad ini kepada kakitangan kedai.`}
+              </span>
+            </div>
+            <div className="step-item">
+              <span className="step-num">3</span>
+              <span>
+                {lang === 'en'
+                  ? 'Staff will verify your card & grant your free reward immediately.'
+                  : 'Kakitangan akan sahkan & berikan ganjaran percuma anda serta-merta.'}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="modal-btn"
+              onClick={() => setShowInfoModal(false)}
             >
               {t.infoModal.gotItBtn}
             </button>
@@ -1152,328 +1919,218 @@ export default function CustomerCardPage() {
         </div>
       )}
 
-      {/* 2. POPUP MODAL: KATALOG HADIAH (FULLSCREEN CAROUSEL + LIGHTWEIGHT ANIMATION) */}
-      {showRewardsModal && (() => {
-        const slide = effectiveRewards[rewardSlideIdx] ?? effectiveRewards[0]
-        const total = effectiveRewards.length
-        return (
-          <div
-            className="fixed inset-0 z-50 flex flex-col bg-[#0A1716] anim-popup"
-            onContextMenu={(e) => e.preventDefault()}
-            style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
-          >
-            {/* TOP BAR */}
-            <div className="flex items-center justify-between px-4 pt-4 pb-2 shrink-0">
-              <div
-                className="font-fraunces font-bold text-base text-[#F7EEDA]"
-                style={{ userSelect: 'none' }}
-              >
-                {t.rewardsModal.title}
-              </div>
-              <button
-                onClick={() => setShowRewardsModal(false)}
-                className="w-8 h-8 rounded-full bg-[#FAF2E2]/10 flex items-center justify-center text-[#F7EEDA] hover:bg-[#FAF2E2]/20 transition cursor-pointer text-lg font-bold"
-              >
-                ×
-              </button>
-            </div>
-
-            {/* IMAGE */}
-            <div className="flex-1 relative overflow-hidden mx-0">
-              {slide?.imageUrl ? (
-                <img
-                  src={slide.imageUrl}
-                  alt={slide.name}
-                  draggable={false}
-                  className="w-full h-full object-cover"
-                  style={{ pointerEvents: 'none', userSelect: 'none' }}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-7xl bg-[#1A2B29]">
-                  🎁
-                </div>
-              )}
-
-              <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#0A1716] to-transparent pointer-events-none" />
-
-              {/* SLIDE ARROWS */}
-              {total > 1 && (
-                <>
-                  <button
-                    onClick={() => setRewardSlideIdx((rewardSlideIdx - 1 + total) % total)}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 text-white flex items-center justify-center text-xl hover:bg-black/60 transition cursor-pointer"
-                  >
-                    ‹
-                  </button>
-                  <button
-                    onClick={() => setRewardSlideIdx((rewardSlideIdx + 1) % total)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 text-white flex items-center justify-center text-xl hover:bg-black/60 transition cursor-pointer"
-                  >
-                    ›
-                  </button>
-                </>
-              )}
-
-              {/* INFO OVERLAY */}
-              <div className="absolute inset-x-0 bottom-0 px-5 pb-3 pt-10">
-                <div
-                  className="font-fraunces font-bold text-xl text-[#FAF2E2] leading-tight mb-1"
-                  style={{ userSelect: 'none' }}
-                >
-                  {slide?.name}
-                </div>
-                {slide?.description && (
-                  <div
-                    className="text-xs text-[#C4B897] mb-2 line-clamp-2"
-                    style={{ userSelect: 'none' }}
-                  >
-                    {slide.description}
-                  </div>
-                )}
-                <div
-                  className="inline-flex items-center gap-1 font-space text-[10.5px] font-bold text-[#E5A43B] bg-[#E5A43B]/15 border border-[#E5A43B]/30 px-2.5 py-0.5 rounded-full"
-                  style={{ userSelect: 'none' }}
-                >
-                  {t.rewardsModal.stampsRequiredBadge(slide?.stampsRequired || TOTAL)}
-                </div>
-              </div>
-            </div>
-
-            {/* DOTS + CLOSE BUTTON */}
-            <div className="shrink-0 px-5 pb-5 pt-2.5 flex flex-col items-center gap-2.5">
-              {total > 1 && (
-                <div className="flex items-center gap-1.5">
-                  {Array.from({ length: total }).map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setRewardSlideIdx(i)}
-                      className={`rounded-full transition-all cursor-pointer ${
-                        i === rewardSlideIdx
-                          ? 'w-4 h-1.5 bg-[#E5A43B]'
-                          : 'w-1.5 h-1.5 bg-[#FAF2E2]/30 hover:bg-[#FAF2E2]/60'
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
-              <button
-                onClick={() => setShowRewardsModal(false)}
-                className="w-full py-2.5 bg-[#1E5E53] hover:bg-[#2D786B] text-white font-bold text-xs rounded-xl transition cursor-pointer"
-              >
-                {t.rewardsModal.closeBtn}
-              </button>
-            </div>
-          </div>
-        )
-      })()}
-
-      {/* ── CUSTOMER EMAIL QR CODE MODAL ────────────────────────────────────── */}
-      {showCustomerQrModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 anim-fade">
-          <div className="w-full max-w-[340px] bg-[#FAF2E2] rounded-[28px] p-6 shadow-2xl border border-[#E5A43B]/30 text-[#1C2624] relative text-center anim-scale">
+      {/* 3. REWARDS MODAL (SENARAI GANJARAN) */}
+      {showRewardsModal && (
+        <div className="overlay" onClick={() => setShowRewardsModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => setShowCustomerQrModal(false)}
-              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-[#1C2624]/10 hover:bg-[#1C2624]/20 flex items-center justify-center text-sm font-bold text-[#1C2624] transition cursor-pointer"
+              type="button"
+              className="modal-close"
+              onClick={() => setShowRewardsModal(false)}
             >
-              ✕
+              &times;
             </button>
-
-            <div className="w-11 h-11 rounded-2xl bg-[#1E5E53]/15 text-[#1E5E53] flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="7" height="7" rx="1.5" />
-                <rect x="14" y="3" width="7" height="7" rx="1.5" />
-                <rect x="3" y="14" width="7" height="7" rx="1.5" />
-                <path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v.01" />
-              </svg>
+            <div className="modal-title">🎁 {t.rewardsModal.title}</div>
+            <div className="modal-sub">
+              {lang === 'en'
+                ? 'Rewards you can redeem at this store.'
+                : 'Ganjaran yang boleh anda tebus di kedai ini.'}
             </div>
 
-            <div className="font-fraunces font-bold text-xl text-[#0A1716] mb-1 leading-tight">
-              {t.qrModal.title}
-            </div>
-            <p className="text-xs text-[#5E6F68] mb-3 leading-relaxed">
-              {t.qrModal.desc}
-            </p>
-
-            {/* QR Code Card */}
-            <div className="bg-white p-3.5 rounded-2xl border border-[#E4D9BE] shadow-sm inline-block mb-3">
-              {customerQrDataUrl ? (
-                <img
-                  src={customerQrDataUrl}
-                  alt="Customer Email QR Code"
-                  className="w-48 h-48 sm:w-52 sm:h-52 object-contain mx-auto"
-                />
+            <div className="max-h-[300px] overflow-y-auto pr-1 space-y-2">
+              {rewardsList.length > 0 ? (
+                rewardsList.map((rw, rIdx) => (
+                  <div key={rw.id || rIdx} className="reward-item">
+                    <div className="reward-icon">
+                      {rw.imageUrl ? (
+                        <img
+                          src={rw.imageUrl}
+                          alt={rw.name}
+                          className="w-full h-full object-cover rounded-xl"
+                        />
+                      ) : (
+                        <span className="text-xl">🎁</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="reward-name truncate">{rw.name}</div>
+                      <div className="reward-req">
+                        {t.rewardsModal.stampsRequiredBadge(rw.stampsRequired || TOTAL)}
+                      </div>
+                    </div>
+                  </div>
+                ))
               ) : (
-                <div className="w-48 h-48 flex items-center justify-center text-gray-400 text-xs">
-                  Memuatkan QR...
+                <div className="reward-item">
+                  <div className="reward-icon">
+                    {rewardImageUrl ? (
+                      <img
+                        src={rewardImageUrl}
+                        alt={rewardDesc}
+                        className="w-full h-full object-cover rounded-xl"
+                      />
+                    ) : (
+                      <span className="text-xl">🎁</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="reward-name truncate">{rewardDesc || 'Ganjaran Percuma'}</div>
+                    <div className="reward-req">
+                      {t.rewardsModal.stampsRequiredBadge(TOTAL)}
+                    </div>
+                  </div>
                 </div>
               )}
-            </div>
-
-            {/* Customer Email Pill */}
-            <div className="bg-[#1E5E53]/10 border border-[#1E5E53]/20 rounded-xl py-2 px-3 mb-4 text-center">
-              <div className="text-[10px] text-[#5E6F68] font-semibold uppercase tracking-wider font-space">
-                {t.qrModal.emailLabel}
-              </div>
-              <div className="text-xs font-bold text-[#0F2B2A] break-all font-mono mt-0.5">
-                {user?.email}
-              </div>
             </div>
 
             <button
               type="button"
+              className="modal-btn"
+              onClick={() => setShowRewardsModal(false)}
+            >
+              {t.rewardsModal.closeBtn}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 4. CUSTOMER QR CODE MODAL */}
+      {showCustomerQrModal && (
+        <div className="overlay" onClick={() => setShowCustomerQrModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="modal-close"
               onClick={() => setShowCustomerQrModal(false)}
-              className="w-full py-2.5 bg-[#1E5E53] hover:bg-[#2D786B] active:scale-98 text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-sm"
+            >
+              &times;
+            </button>
+            <div className="modal-title" style={{ justifyContent: 'center' }}>
+              {t.qrModal.title}
+            </div>
+            <div className="modal-sub" style={{ textAlign: 'center' }}>
+              {t.qrModal.desc}
+            </div>
+            <div className="qr-box">
+              {customerQrDataUrl ? (
+                <img
+                  src={customerQrDataUrl}
+                  alt="Customer QR Code"
+                  className="w-full h-full object-contain p-2"
+                />
+              ) : (
+                <div className="text-xs text-gray-400">Loading QR...</div>
+              )}
+            </div>
+            <div className="email-pill">
+              <div className="lbl">{t.qrModal.emailLabel}</div>
+              <div className="val truncate">{user?.email}</div>
+            </div>
+            <button
+              type="button"
+              className="modal-btn"
+              onClick={() => setShowCustomerQrModal(false)}
             >
               {t.qrModal.closeBtn}
             </button>
           </div>
         </div>
       )}
-      {/* POPUP MODAL: PENGESAHAN PADAM AKAUN */}
-      {showDeleteAccountModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-[#FAF2E2] text-[#1A2422] rounded-[24px] p-6 shadow-2xl border border-red-300 anim-popup">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2 text-red-600 font-fraunces font-bold text-lg">
-                <span>⚠️</span>
-                <span>{t.deleteModal.title}</span>
-              </div>
-              <button
-                type="button"
-                disabled={isDeletingAccount}
-                onClick={() => setShowDeleteAccountModal(false)}
-                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-gray-500 hover:text-gray-800 text-lg font-bold transition cursor-pointer"
-              >
-                &times;
-              </button>
-            </div>
 
-            <div className="text-xs text-slate-700 leading-relaxed mb-4 space-y-2">
-              <p className="font-semibold text-red-700">
-                {t.deleteModal.warning1}
-              </p>
-              <p className="text-[#5E6F68]">
-                {t.deleteModal.warning2}
-              </p>
+      {/* 5. GOOGLE REVIEW MODAL */}
+      {showReviewPopup && (
+        <div className="overlay" onClick={() => setShowReviewPopup(false)}>
+          <div className="modal" style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="modal-close"
+              onClick={() => setShowReviewPopup(false)}
+            >
+              &times;
+            </button>
+            <div className="modal-title" style={{ justifyContent: 'center' }}>
+              ⭐ {lang === 'en' ? 'Rate Us on Google' : 'Nilai Kami di Google'}
             </div>
+            <div className="modal-sub">
+              {lang === 'en'
+                ? 'Tap stars to give your review.'
+                : 'Sentuh bintang untuk beri penilaian anda.'}
+            </div>
+            <div className="stars">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className={reviewRating >= s ? 'active' : ''}
+                  onClick={() => handleSelectStarAndReview(s)}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 12, minHeight: 16 }}>
+              {rateHintText || (lang === 'en' ? '5 stars are greatly appreciated!' : '5 bintang amat kami hargai!')}
+            </div>
+            <button
+              type="button"
+              className="modal-btn ghost"
+              onClick={() => setShowReviewPopup(false)}
+            >
+              {lang === 'en' ? 'Maybe Later' : 'Mungkin Nanti'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 6. DELETE ACCOUNT MODAL */}
+      {showDeleteAccountModal && (
+        <div className="overlay" onClick={() => setShowDeleteAccountModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="modal-close"
+              onClick={() => setShowDeleteAccountModal(false)}
+            >
+              &times;
+            </button>
+            <div className="modal-title">⚠️ {t.deleteModal.title}</div>
+            <div className="del-warn">{t.deleteModal.warning1}</div>
+            <div className="del-warn2">{t.deleteModal.warning2}</div>
 
             {deleteAccountError && (
-              <div className="mb-3.5 p-3 rounded-xl bg-red-100 border border-red-300 text-red-700 text-xs font-semibold leading-relaxed">
+              <div className="p-2 mb-2 bg-red-100 text-red-700 text-xs rounded-lg font-semibold">
                 {deleteAccountError}
               </div>
             )}
 
-            <div className="mb-4">
-              <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                {t.deleteModal.typeToConfirm.split('PADAM')[0]}<span className="font-mono text-red-600 bg-red-100 px-1.5 py-0.5 rounded">PADAM</span>{t.deleteModal.typeToConfirm.split('PADAM')[1]}
-              </label>
-              <input
-                type="text"
-                value={deleteConfirmText}
-                onChange={(e) => setDeleteConfirmText(e.target.value)}
-                placeholder="PADAM"
-                disabled={isDeletingAccount}
-                className="w-full border border-[#E4D9BE] rounded-xl p-2.5 font-mono text-sm text-center tracking-widest uppercase text-slate-900 bg-white outline-none focus:ring-2 focus:ring-red-500"
-              />
-            </div>
+            <label style={{ fontSize: 11.5, fontWeight: 700, display: 'block', marginBottom: 6 }}>
+              {t.deleteModal.typeToConfirm}
+            </label>
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value.toUpperCase())}
+              className="confirm-input"
+              placeholder="PADAM"
+            />
 
-            <div className="flex gap-2">
+            <div style={{ display: 'flex', gap: 8 }}>
               <button
                 type="button"
-                disabled={isDeletingAccount}
+                className="modal-btn ghost"
+                style={{ marginTop: 0 }}
                 onClick={() => setShowDeleteAccountModal(false)}
-                className="flex-1 py-2.5 rounded-xl border border-[#E4D9BE] bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
               >
                 {t.deleteModal.cancel}
               </button>
               <button
                 type="button"
+                className="modal-btn danger"
+                style={{ marginTop: 0 }}
                 disabled={deleteConfirmText.trim() !== 'PADAM' || isDeletingAccount}
                 onClick={handleDeleteAccount}
-                className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-sm active:scale-95"
               >
                 {isDeletingAccount ? t.deleteModal.deleting : t.deleteModal.confirmDelete}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── GOOGLE REVIEW INTERACTIVE SLIDE-UP SHEET (PILIHAN A) ─────────────────── */}
-      {showReviewPopup && googleReviewUrl && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm p-0 sm:p-4 anim-fade">
-          <div className="w-full max-w-[400px] bg-[#FAF2E2] rounded-t-[32px] sm:rounded-[32px] p-6 sm:p-7 shadow-2xl border-t sm:border border-[#E5A43B]/30 text-[#1C2624] relative text-center anim-scale">
-            {/* Top pull handle indicator for mobile */}
-            <div className="w-12 h-1.5 bg-[#1C2624]/15 rounded-full mx-auto mb-4 sm:hidden" />
-
-            <button
-              onClick={handleCloseReviewPopup}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#1C2624]/10 hover:bg-[#1C2624]/20 flex items-center justify-center text-sm font-bold text-[#1C2624] transition cursor-pointer"
-            >
-              ✕
-            </button>
-
-            {/* Google Review Badge Header */}
-            <div className="flex items-center justify-center mb-3">
-              <div className="bg-white px-3.5 py-1.5 rounded-full shadow-sm border border-[#E4D9BE] flex items-center gap-2">
-                <img
-                  src="/Google-Review.svg"
-                  alt="Google Review"
-                  className="h-4 w-auto object-contain"
-                />
-              </div>
-            </div>
-
-            <div className="font-fraunces font-bold text-xl text-[#0A1716] mb-1 leading-tight">
-              {t.reviewModal.title}
-            </div>
-            <p className="text-xs text-[#5E6F68] mb-4 leading-relaxed">
-              {t.reviewModal.message}
-            </p>
-
-            {/* INTERACTIVE 5-STAR SELECTOR (PILIHAN A - TAP STAR TO OPEN REVIEW) */}
-            <div className="bg-white/95 border border-[#E4D9BE] rounded-2xl p-5 mb-4 shadow-sm">
-              <div className="text-[11.5px] font-semibold text-[#5E6F68] mb-3">
-                {lang === 'en'
-                  ? 'Tap a star below to rate us on Google:'
-                  : 'Sentuh mana-mana bintang di bawah untuk ulas di Google:'}
-              </div>
-              <div className="flex items-center justify-center gap-2 mb-2.5">
-                {[1, 2, 3, 4, 5].map((star) => {
-                  const isFilled = reviewRating > 0 && star <= reviewRating
-                  return (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => handleSelectStarAndReview(star)}
-                      className="p-1 text-4xl sm:text-5xl transition-transform hover:scale-125 active:scale-95 cursor-pointer leading-none"
-                      title={`${star} Bintang`}
-                    >
-                      <span className={isFilled ? 'text-amber-400 drop-shadow-[0_2px_8px_rgba(251,191,36,0.6)]' : 'text-gray-300 hover:text-amber-300'}>
-                        ★
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-              <div className="text-xs font-bold text-[#1E5E53] min-h-[20px] transition">
-                {reviewRating > 0 ? (
-                  lang === 'en' ? '⭐ Opening Google Review...' : '⭐ Membuka Google Review...'
-                ) : (
-                  <span className="text-[#5E6F68]/70 text-[11px] font-normal">
-                    {lang === 'en' ? '⭐ 5 stars is greatly appreciated!' : '⭐ 5 bintang amat kami hargai!'}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className="flex flex-col">
-              <button
-                type="button"
-                onClick={handleCloseReviewPopup}
-                className="w-full py-2.5 px-3 bg-transparent hover:bg-black/5 text-xs text-[#5E6F68] hover:text-[#1C2624] font-semibold rounded-xl transition cursor-pointer"
-              >
-                {t.reviewModal.secondaryBtn}
               </button>
             </div>
           </div>
