@@ -77,7 +77,6 @@ export async function GET(req: NextRequest) {
 
         const parsedLocations = await Promise.all(
           rawLocations.map(async (loc: any) => {
-            if (loc.coordinates && loc.embedUrl) return loc
             if (!loc.url) return loc
             try {
               const res = await resolveGoogleMapsLocation(loc.url, loc.address || loc.name)
@@ -163,7 +162,6 @@ export async function GET(req: NextRequest) {
             []
           defaultLocations = await Promise.all(
             rawDefLocs.map(async (loc: any) => {
-              if (loc.coordinates && loc.embedUrl) return loc
               if (!loc.url) return loc
               try {
                 const res = await resolveGoogleMapsLocation(loc.url, loc.address || loc.name)
