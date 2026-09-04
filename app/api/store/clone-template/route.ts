@@ -227,6 +227,24 @@ export async function POST(req: NextRequest) {
         extractedLocations = sourceData.rewards.locations
       }
 
+      let extractedCardTemplate: any = null
+      if (sourceData.cardTemplate && typeof sourceData.cardTemplate === 'object') {
+        extractedCardTemplate = sourceData.cardTemplate
+      } else if (sourceData.card_template && typeof sourceData.card_template === 'object') {
+        extractedCardTemplate = sourceData.card_template
+      } else if (sourceData.rewards?.cardTemplate && typeof sourceData.rewards.cardTemplate === 'object') {
+        extractedCardTemplate = sourceData.rewards.cardTemplate
+      }
+
+      let extractedCustomTemplates: any[] = []
+      if (Array.isArray(sourceData.customTemplates)) {
+        extractedCustomTemplates = sourceData.customTemplates
+      } else if (Array.isArray(sourceData.custom_templates)) {
+        extractedCustomTemplates = sourceData.custom_templates
+      } else if (Array.isArray(sourceData.rewards?.customTemplates)) {
+        extractedCustomTemplates = sourceData.rewards.customTemplates
+      }
+
       // DIRECTLY UPDATE KEDAI B in Supabase stores table with full schema compatibility!
       const updatePayload: Record<string, any> = {
         logo_url: sourceData.logo_url || sourceData.logoUrl || null,
@@ -242,6 +260,10 @@ export async function POST(req: NextRequest) {
           stampIcon: extractedStampIcon,
           socialLinks: extractedSocialLinks,
           locations: extractedLocations,
+          ...(extractedCardTemplate ? { cardTemplate: extractedCardTemplate } : {}),
+          ...(extractedCustomTemplates.length > 0
+            ? { customTemplates: extractedCustomTemplates.slice(0, 3) }
+            : {}),
         },
         google_review_mode: sourceData.google_review_mode || sourceData.googleReviewMode || 'manual',
         google_review_url: sourceData.google_review_url || sourceData.googleReviewUrl || null,

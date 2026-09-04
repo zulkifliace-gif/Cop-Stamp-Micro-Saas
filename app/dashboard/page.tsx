@@ -1425,6 +1425,10 @@ export default function CashierDashboard() {
             google_place_id: googlePlaceId,
             social_links: socialLinks,
             locations: locations,
+            card_template: cardTemplate,
+            cardTemplate: cardTemplate,
+            custom_templates: customTemplates,
+            customTemplates: customTemplates,
           },
         }),
       })
