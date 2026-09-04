@@ -114,6 +114,58 @@ export default function ClaimClient({
   const [revealLogoLoading, setRevealLogoLoading] = useState(true)
   const [revealLogoError, setRevealLogoError] = useState(false)
 
+  useEffect(() => {
+    if (!initialLogoUrl) {
+      setLoginLogoLoading(false)
+      setLoginLogoError(false)
+      return
+    }
+
+    setLoginLogoLoading(true)
+    setLoginLogoError(false)
+
+    let isMounted = true
+    const img = new Image()
+    img.src = initialLogoUrl
+
+    // If already in browser cache
+    if (img.complete && img.naturalWidth > 0) {
+      setLoginLogoLoading(false)
+      return
+    }
+
+    // Safety timeout: max 2.5s so spinner never hangs indefinitely
+    const timer = setTimeout(() => {
+      if (isMounted) {
+        if (!img.complete || img.naturalWidth === 0) {
+          setLoginLogoError(true)
+        }
+        setLoginLogoLoading(false)
+      }
+    }, 2500)
+
+    img.onload = () => {
+      if (isMounted) {
+        clearTimeout(timer)
+        setLoginLogoLoading(false)
+        setLoginLogoError(false)
+      }
+    }
+
+    img.onerror = () => {
+      if (isMounted) {
+        clearTimeout(timer)
+        setLoginLogoError(true)
+        setLoginLogoLoading(false)
+      }
+    }
+
+    return () => {
+      isMounted = false
+      clearTimeout(timer)
+    }
+  }, [initialLogoUrl])
+
   // Claim result data
   const [claimData, setClaimData] = useState<{
     previousStamps: number
@@ -380,17 +432,17 @@ export default function ClaimClient({
     }
 
     return (
-      <div className="w-full max-w-[360px] flex flex-col items-center anim-result">
+      <div className="w-full max-w-[380px] flex flex-col items-center anim-result">
         {/* TOP TOGGLE */}
-        <div className="w-full flex items-center justify-end mb-3">
-          <div className="flex items-center gap-1 bg-[#FAF2E2]/[0.08] border border-[#FAF2E2]/15 rounded-full p-0.5 backdrop-blur-xs">
+        <div className="w-full flex items-center justify-end mb-4">
+          <div className="flex items-center bg-white border border-[#F0DEC0] rounded-full p-0.5 shadow-xs">
             <button
               type="button"
               onClick={() => switchLang('my')}
-              className={`px-2 py-0.5 text-[10.5px] font-bold rounded-full transition-all cursor-pointer font-space ${
+              className={`px-2.5 py-0.5 text-[11px] font-bold rounded-full transition-all cursor-pointer font-jakarta ${
                 lang === 'my'
-                  ? 'bg-[#E5A43B] text-[#1A2422] shadow-xs'
-                  : 'text-[#FAF2E2]/60 hover:text-[#FAF2E2]'
+                  ? 'bg-[#FF7A45] text-white shadow-xs'
+                  : 'text-[#96806B] hover:text-[#2B1B12]'
               }`}
             >
               MY
@@ -398,10 +450,10 @@ export default function ClaimClient({
             <button
               type="button"
               onClick={() => switchLang('en')}
-              className={`px-2 py-0.5 text-[10.5px] font-bold rounded-full transition-all cursor-pointer font-space ${
+              className={`px-2.5 py-0.5 text-[11px] font-bold rounded-full transition-all cursor-pointer font-jakarta ${
                 lang === 'en'
-                  ? 'bg-[#E5A43B] text-[#1A2422] shadow-xs'
-                  : 'text-[#FAF2E2]/60 hover:text-[#FAF2E2]'
+                  ? 'bg-[#FF7A45] text-white shadow-xs'
+                  : 'text-[#96806B] hover:text-[#2B1B12]'
               }`}
             >
               EN
@@ -409,28 +461,28 @@ export default function ClaimClient({
           </div>
         </div>
 
-        <div className="w-full bg-[#F7EEDA] rounded-[22px] p-7 text-[#1C2624] text-center shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
+        <div className="w-full bg-[#FFFDF8] border border-[#F0DEC0] rounded-[24px] p-6 sm:p-7 text-[#2B1B12] text-center shadow-xl">
           <div className="w-14 h-14 rounded-full bg-red-100 text-[#B23A2E] flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
             !
           </div>
-          <div className="font-fraunces font-bold text-xl text-[#0F2B2A] mb-2">
+          <div className="font-fraunces font-bold text-xl text-[#1B0F09] mb-2">
             {errorTitle}
           </div>
-          <div className="text-[13.5px] text-[#5B6B64] mb-6 leading-relaxed">
+          <div className="text-[13.5px] text-[#96806B] mb-6 leading-relaxed">
             {errorDesc}
           </div>
           <a
             href="/card"
-            className="inline-block w-full py-3 px-4 bg-[#1F5C52] text-[#F7EEDA] rounded-[12px] font-jakarta font-bold text-sm hover:bg-[#2E7568] transition text-center cursor-pointer"
+            className="inline-block w-full py-3 px-4 bg-[#FF7A45] hover:bg-[#E23F2E] text-white rounded-xl font-bold text-sm transition text-center cursor-pointer shadow-md"
           >
             {t.errorScene.viewMyCard}
           </a>
-          <div className="mt-4 pt-3.5 border-t border-[#E2CE9E]/60 text-xs text-[#5B6B64] text-center">
+          <div className="mt-4 pt-3.5 border-t border-[#F0DEC0] text-xs text-[#96806B] text-center">
             <a
               href="https://lajus.lajuq.my/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#1F5C52] hover:text-[#2E7568] font-semibold underline underline-offset-2 inline-flex items-center gap-1 transition"
+              className="text-[#FF7A45] hover:text-[#E23F2E] font-semibold underline underline-offset-2 inline-flex items-center gap-1 transition"
             >
               <span>{t.errorScene.useAtYourStore}</span>
               <span className="text-[10px]">↗</span>
@@ -449,14 +501,14 @@ export default function ClaimClient({
       <div className="w-full max-w-[380px] flex flex-col items-center anim-result">
         {/* TOP TOGGLE */}
         <div className="w-full flex items-center justify-end mb-4">
-          <div className="flex items-center gap-1 bg-[#FAF2E2]/[0.08] border border-[#FAF2E2]/15 rounded-full p-0.5 backdrop-blur-xs">
+          <div className="flex items-center bg-white border border-[#F0DEC0] rounded-full p-0.5 shadow-xs">
             <button
               type="button"
               onClick={() => switchLang('my')}
-              className={`px-2 py-0.5 text-[10.5px] font-bold rounded-full transition-all cursor-pointer font-space ${
+              className={`px-2.5 py-0.5 text-[11px] font-bold rounded-full transition-all cursor-pointer font-jakarta ${
                 lang === 'my'
-                  ? 'bg-[#E5A43B] text-[#1A2422] shadow-xs'
-                  : 'text-[#FAF2E2]/60 hover:text-[#FAF2E2]'
+                  ? 'bg-[#FF7A45] text-white shadow-xs'
+                  : 'text-[#96806B] hover:text-[#2B1B12]'
               }`}
             >
               MY
@@ -464,10 +516,10 @@ export default function ClaimClient({
             <button
               type="button"
               onClick={() => switchLang('en')}
-              className={`px-2 py-0.5 text-[10.5px] font-bold rounded-full transition-all cursor-pointer font-space ${
+              className={`px-2.5 py-0.5 text-[11px] font-bold rounded-full transition-all cursor-pointer font-jakarta ${
                 lang === 'en'
-                  ? 'bg-[#E5A43B] text-[#1A2422] shadow-xs'
-                  : 'text-[#FAF2E2]/60 hover:text-[#FAF2E2]'
+                  ? 'bg-[#FF7A45] text-white shadow-xs'
+                  : 'text-[#96806B] hover:text-[#2B1B12]'
               }`}
             >
               EN
@@ -475,23 +527,23 @@ export default function ClaimClient({
           </div>
         </div>
 
-        <div className="w-full bg-[#FAF2E2] rounded-[24px] p-6 sm:p-7 text-[#1C2624] text-center shadow-[0_20px_40px_rgba(0,0,0,0.4)] border border-[#E5A43B]/30">
+        <div className="w-full bg-[#FFFDF8] border border-[#F0DEC0] rounded-[24px] p-6 sm:p-7 text-[#2B1B12] text-center shadow-xl">
           <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-3 shadow-md">
             <svg className="w-9 h-9 stroke-emerald-600" viewBox="0 0 24 24" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </div>
-          <div className="font-fraunces font-bold text-xl text-[#0A1716] mb-1">
+          <div className="font-fraunces font-bold text-xl text-[#1B0F09] mb-1">
             {lang === 'en' ? 'Stamp Already Claimed!' : 'Cop Telah Berjaya Dituntut!'}
           </div>
-          <div className="text-xs text-[#5E6F68] mb-5 leading-relaxed">
+          <div className="text-xs text-[#96806B] mb-5 leading-relaxed">
             {lang === 'en'
               ? `You have already claimed +${initialStampCount} stamp(s) for ${initialStoreName}. Open your card to view your updated balance.`
               : `Anda telah pun menuntut +${initialStampCount} cop untuk ${initialStoreName}. Buka kad anda untuk melihat baki cop terkini.`}
           </div>
           <a
             href={initialStoreId ? `/card?storeId=${initialStoreId}&claimed=true` : '/card?claimed=true'}
-            className="inline-flex items-center justify-center gap-2 w-full py-3.5 px-4 bg-[#1E5E53] hover:bg-[#2D786B] text-[#FAF2E2] rounded-2xl font-bold text-sm shadow-md transition active:scale-95 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 w-full py-3.5 px-4 bg-[#FF7A45] hover:bg-[#E23F2E] text-white rounded-xl font-bold text-sm shadow-md transition active:scale-95 cursor-pointer"
           >
             <span>{lang === 'en' ? 'Open My Stamp Card →' : 'Buka Kad Cop Saya →'}</span>
           </a>
@@ -508,14 +560,14 @@ export default function ClaimClient({
       <div className="w-full max-w-[380px] flex flex-col items-center anim-result">
         {/* TOP TOGGLE */}
         <div className="w-full flex items-center justify-end mb-4">
-          <div className="flex items-center gap-1 bg-[#FAF2E2]/[0.08] border border-[#FAF2E2]/15 rounded-full p-0.5 backdrop-blur-xs">
+          <div className="flex items-center bg-white border border-[#F0DEC0] rounded-full p-0.5 shadow-xs">
             <button
               type="button"
               onClick={() => switchLang('my')}
-              className={`px-2 py-0.5 text-[10.5px] font-bold rounded-full transition-all cursor-pointer font-space ${
+              className={`px-2.5 py-0.5 text-[11px] font-bold rounded-full transition-all cursor-pointer font-jakarta ${
                 lang === 'my'
-                  ? 'bg-[#E5A43B] text-[#1A2422] shadow-xs'
-                  : 'text-[#FAF2E2]/60 hover:text-[#FAF2E2]'
+                  ? 'bg-[#FF7A45] text-white shadow-xs'
+                  : 'text-[#96806B] hover:text-[#2B1B12]'
               }`}
             >
               MY
@@ -523,10 +575,10 @@ export default function ClaimClient({
             <button
               type="button"
               onClick={() => switchLang('en')}
-              className={`px-2 py-0.5 text-[10.5px] font-bold rounded-full transition-all cursor-pointer font-space ${
+              className={`px-2.5 py-0.5 text-[11px] font-bold rounded-full transition-all cursor-pointer font-jakarta ${
                 lang === 'en'
-                  ? 'bg-[#E5A43B] text-[#1A2422] shadow-xs'
-                  : 'text-[#FAF2E2]/60 hover:text-[#FAF2E2]'
+                  ? 'bg-[#FF7A45] text-white shadow-xs'
+                  : 'text-[#96806B] hover:text-[#2B1B12]'
               }`}
             >
               EN
@@ -536,18 +588,23 @@ export default function ClaimClient({
 
         {/* STORE LOGO / BRAND ICON & HEADER */}
         <div className="text-center mb-6">
-          <div className="relative w-16 h-16 rounded-full bg-white mx-auto mb-3 shadow-lg flex items-center justify-center p-1 overflow-hidden border-2 border-[#E5A43B]">
+          <div className="relative w-16 h-16 rounded-full bg-white mx-auto mb-3 shadow-md flex items-center justify-center p-1 overflow-hidden border-2 border-[#F0DEC0]">
             {initialLogoUrl && !loginLogoError ? (
               <>
                 {/* ANIMASI LOADING PROFILE: Berterusan sehingga gambar selesai dimuatkan */}
                 {loginLogoLoading && (
                   <div className="absolute inset-0 bg-[#FFF7EA] flex items-center justify-center z-10">
-                    <div className="w-6 h-6 border-[2.5px] border-[#E5A43B] border-t-transparent rounded-full animate-spin" />
+                    <div className="w-6 h-6 border-[2.5px] border-[#FF7A45] border-t-transparent rounded-full animate-spin" />
                   </div>
                 )}
                 <img
                   src={initialLogoUrl}
                   alt={initialStoreName || 'Logo Kedai'}
+                  ref={(el) => {
+                    if (el && el.complete && el.naturalWidth > 0) {
+                      setLoginLogoLoading(false)
+                    }
+                  }}
                   onLoad={() => setLoginLogoLoading(false)}
                   onError={() => {
                     setLoginLogoError(true)
@@ -565,13 +622,13 @@ export default function ClaimClient({
               </div>
             )}
           </div>
-          <div className="text-xs text-[#FAF2E2]/80 font-medium">
-            {t.loginScene.claimHeaderPrefix} <span className="text-[#E5A43B] font-bold">+{initialStampCount} {lang === 'en' ? 'Stamps' : 'Cop Stamp'}</span> {t.loginScene.claimHeaderSuffix} <span className="font-bold text-white">{initialStoreName}</span>
+          <div className="text-xs text-[#96806B] font-medium">
+            {t.loginScene.claimHeaderPrefix} <span className="text-[#FF7A45] font-bold">+{initialStampCount} {lang === 'en' ? 'Stamps' : 'Cop Stamp'}</span> {t.loginScene.claimHeaderSuffix} <span className="font-bold text-[#2B1B12]">{initialStoreName}</span>
           </div>
         </div>
 
         {authError && (
-          <div className="w-full mb-3.5 p-3 rounded-xl bg-red-500/20 border border-red-400/40 text-red-100 text-xs font-semibold text-center">
+          <div className="w-full mb-3.5 p-3 rounded-xl bg-red-100 border border-red-200 text-[#B23A2E] text-xs font-semibold text-center">
             {authError}
           </div>
         )}
@@ -580,7 +637,7 @@ export default function ClaimClient({
         <button
           onClick={handleGoogleLogin}
           disabled={isAuthenticating}
-          className="w-full flex items-center justify-center gap-2.5 bg-white hover:bg-slate-50 active:scale-[0.98] border border-[#E4D9BE] rounded-2xl py-3.5 px-4 font-jakarta font-semibold text-[14px] text-[#3C3C3C] cursor-pointer transition shadow-md disabled:opacity-60"
+          className="w-full flex items-center justify-center gap-2.5 bg-white hover:bg-[#FFF7EA] active:scale-[0.98] border border-[#F0DEC0] rounded-2xl py-3.5 px-4 font-jakarta font-semibold text-[14px] text-[#2B1B12] cursor-pointer transition shadow-sm disabled:opacity-60"
         >
           <svg viewBox="0 0 18 18" width="18" height="18">
             <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.87 2.7-6.62z" />
@@ -596,11 +653,11 @@ export default function ClaimClient({
           <button
             type="button"
             onClick={() => setShowManualEmail(!showManualEmail)}
-            className="inline-flex items-center gap-1.5 text-xs text-[#FAF2E2]/75 hover:text-[#FAF2E2] font-semibold py-1.5 px-3 rounded-full hover:bg-white/10 transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-xs text-[#96806B] hover:text-[#2B1B12] font-semibold py-1.5 px-3 rounded-full hover:bg-black/5 transition cursor-pointer"
           >
             <span>{t.loginScene.orManualEmail}</span>
             <svg
-              className={`w-3.5 h-3.5 transition-transform duration-200 ${showManualEmail ? 'rotate-180 text-[#E5A43B]' : ''}`}
+              className={`w-3.5 h-3.5 transition-transform duration-200 ${showManualEmail ? 'rotate-180 text-[#FF7A45]' : ''}`}
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -614,8 +671,8 @@ export default function ClaimClient({
         {/* EXPANDABLE MANUAL EMAIL LOGIN (SLIDE DOWN) */}
         {showManualEmail && (
           <form onSubmit={handleEmailAuth} className="w-full space-y-2.5 anim-result">
-            <div className="flex items-center gap-2.5 bg-white border border-[#E4D9BE] rounded-2xl p-3 shadow-sm">
-              <svg className="w-4 h-4 shrink-0 text-[#5B6B64] opacity-55" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <div className="flex items-center gap-2.5 bg-white border border-[#F0DEC0] rounded-xl p-2.5 shadow-sm">
+              <svg className="w-4 h-4 shrink-0 text-[#96806B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="8" r="4" />
                 <path d="M4 21c0-4 4-6 8-6s8 2 8 6" />
               </svg>
@@ -625,12 +682,12 @@ export default function ClaimClient({
                 onChange={(e) => setEmail(e.target.value)}
                 maxLength={100}
                 placeholder={t.loginScene.usernameOrEmail}
-                className="border-none outline-none flex-1 font-jakarta text-sm text-[#1C2624] bg-transparent placeholder:text-gray-400"
+                className="border-none outline-none flex-1 font-jakarta text-sm text-[#2B1B12] bg-transparent placeholder:text-gray-400"
               />
             </div>
 
-            <div className="flex items-center gap-2.5 bg-white border border-[#E4D9BE] rounded-2xl p-3 shadow-sm">
-              <svg className="w-4 h-4 shrink-0 text-[#5B6B64] opacity-55" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <div className="flex items-center gap-2.5 bg-white border border-[#F0DEC0] rounded-xl p-2.5 shadow-sm">
+              <svg className="w-4 h-4 shrink-0 text-[#96806B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="5" y="11" width="14" height="9" rx="2" />
                 <path d="M8 11V7a4 4 0 0 1 8 0v4" />
               </svg>
@@ -640,14 +697,14 @@ export default function ClaimClient({
                 onChange={(e) => setPassword(e.target.value)}
                 maxLength={100}
                 placeholder={t.loginScene.password}
-                className="border-none outline-none flex-1 font-jakarta text-sm text-[#1C2624] bg-transparent placeholder:text-gray-400"
+                className="border-none outline-none flex-1 font-jakarta text-sm text-[#2B1B12] bg-transparent placeholder:text-gray-400"
               />
             </div>
 
             <button
               type="submit"
               disabled={isAuthenticating}
-              className="w-full border-none rounded-2xl py-3.5 px-4 bg-gradient-to-b from-[#E7A33E] to-[#C97F1F] text-[#1C2624] font-jakarta font-bold text-[14px] cursor-pointer active:scale-[0.98] transition disabled:opacity-60 shadow-md"
+              className="w-full border-none rounded-xl py-3 px-4 bg-gradient-to-r from-[#FF7A45] to-[#E8901B] text-white font-bold text-sm cursor-pointer active:scale-[0.98] transition disabled:opacity-60 shadow-md"
             >
               {isAuthenticating
                 ? t.loginScene.processing
@@ -656,12 +713,12 @@ export default function ClaimClient({
                 : t.loginScene.loginBtn}
             </button>
 
-            <div className="text-center pt-1 text-xs text-[#FAF2E2]/70">
+            <div className="text-center pt-1 text-xs text-[#96806B]">
               {isSignup ? t.loginScene.alreadyHaveAccount : t.loginScene.newAccount}
               <button
                 type="button"
                 onClick={() => setIsSignup(!isSignup)}
-                className="text-[#E5A43B] font-bold underline cursor-pointer hover:text-white"
+                className="text-[#FF7A45] font-bold underline cursor-pointer hover:text-[#E23F2E]"
               >
                 {isSignup ? t.loginScene.loginLink : t.loginScene.signupLink}
               </button>

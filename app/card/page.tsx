@@ -235,11 +235,54 @@ export default function CustomerCardPage() {
   const [rewardImageUrl, setRewardImageUrl] = useState('')
 
   useEffect(() => {
-    if (logoUrl) {
-      setLogoLoading(true)
-      setLogoError(false)
-    } else {
+    if (!logoUrl) {
       setLogoLoading(false)
+      setLogoError(false)
+      return
+    }
+
+    setLogoLoading(true)
+    setLogoError(false)
+
+    let isMounted = true
+    const img = new Image()
+    img.src = logoUrl
+
+    // If already in browser cache
+    if (img.complete && img.naturalWidth > 0) {
+      setLogoLoading(false)
+      return
+    }
+
+    // Safety timeout: max 2.5s to prevent infinite loading spinner
+    const timer = setTimeout(() => {
+      if (isMounted) {
+        if (!img.complete || img.naturalWidth === 0) {
+          setLogoError(true)
+        }
+        setLogoLoading(false)
+      }
+    }, 2500)
+
+    img.onload = () => {
+      if (isMounted) {
+        clearTimeout(timer)
+        setLogoLoading(false)
+        setLogoError(false)
+      }
+    }
+
+    img.onerror = () => {
+      if (isMounted) {
+        clearTimeout(timer)
+        setLogoError(true)
+        setLogoLoading(false)
+      }
+    }
+
+    return () => {
+      isMounted = false
+      clearTimeout(timer)
     }
   }, [logoUrl])
   const [rewardsList, setRewardsList] = useState<RewardItem[]>([])
@@ -1581,6 +1624,11 @@ export default function CustomerCardPage() {
                         <img
                           src={logoUrl}
                           alt={storeName}
+                          ref={(el) => {
+                            if (el && el.complete && el.naturalWidth > 0) {
+                              setLogoLoading(false)
+                            }
+                          }}
                           onLoad={() => setLogoLoading(false)}
                           onError={() => {
                             setLogoError(true)

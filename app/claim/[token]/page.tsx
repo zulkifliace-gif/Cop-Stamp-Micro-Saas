@@ -54,7 +54,15 @@ export default async function ClaimPage({ params }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4 sm:p-6 font-jakarta text-[#F7EEDA]">
+    <main className="min-h-screen flex items-center justify-center p-4 sm:p-6 font-jakarta text-[#2B1B12] bg-[#FFF7EA]">
+      <style dangerouslySetInnerHTML={{ __html: `
+        body {
+          background-color: #FFF7EA !important;
+          background-image: radial-gradient(circle at 1px 1px, rgba(43,27,18,0.055) 1px, transparent 1px) !important;
+          background-size: 20px 20px !important;
+          color: #2B1B12 !important;
+        }
+      `}} />
       <div className="w-full max-w-[420px] mx-auto flex flex-col items-center justify-center z-10 relative">
         <ClaimClient
           token={cleanToken}
@@ -70,11 +78,11 @@ export default async function ClaimPage({ params }: PageProps) {
         />
 
         {/* FOOTPAGE LAJUS BRANDING & DASAR PRIVASI */}
-        <footer className="w-full text-center mt-6 mb-2 flex items-center justify-center gap-2 opacity-50 hover:opacity-90 transition text-[11px] font-space text-[#FAF2E2]">
+        <footer className="w-full text-center mt-6 mb-2 flex items-center justify-center gap-2 opacity-50 hover:opacity-90 transition text-[11px] font-space text-[#2B1B12]">
           <img src="/logo.svg" alt="LajuS" className="w-3.5 h-3.5 object-contain" />
           <span>LajuS</span>
-          <span className="text-[#FAF2E2]/40">•</span>
-          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#FAF2E2]/70 hover:text-[#E5A43B] underline">
+          <span className="text-[#2B1B12]/40">•</span>
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#2B1B12]/70 hover:text-[#FF7A45] underline">
             Dasar Privasi
           </a>
         </footer>
