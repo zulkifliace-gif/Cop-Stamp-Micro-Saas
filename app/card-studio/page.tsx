@@ -233,6 +233,75 @@ const DEFAULT_STUDIO_CONFIG: StudioConfig = {
   stampsRequired: 10,
 }
 
+function safeColor(val: any, fallback = '#FFFDF8'): string {
+  if (typeof val === 'string' && val.trim().startsWith('#')) return val.trim()
+  return fallback
+}
+
+function sanitizeConfig(data: any): StudioConfig {
+  if (!data || typeof data !== 'object') return DEFAULT_STUDIO_CONFIG
+
+  const pageBgColor = typeof data.pageBgColor === 'string' ? data.pageBgColor : '#FFF7EA'
+  const pageDotColor =
+    typeof data.pageDotColor === 'string' ? data.pageDotColor : 'rgba(43,27,18,0.055)'
+  const primaryAccent = typeof data.primaryAccent === 'string' ? data.primaryAccent : '#FF7A45'
+  const simulatedStamps = typeof data.simulatedStamps === 'number' ? data.simulatedStamps : 4
+  const stampsRequired = typeof data.stampsRequired === 'number' ? data.stampsRequired : 10
+
+  let blocks: CardBlockConfig[] = []
+
+  if (Array.isArray(data.blocks)) {
+    const isNewFormat = data.blocks.some(
+      (b: any) => b && typeof b === 'object' && b.id === 'hero_header'
+    )
+    if (isNewFormat) {
+      blocks = data.blocks.map((b: any) => {
+        const fallback =
+          DEFAULT_12_BLOCKS.find((def) => def.id === b?.id) || DEFAULT_12_BLOCKS[0]
+        return {
+          id: b?.id || fallback.id,
+          name: b?.name || fallback.name,
+          icon: b?.icon || fallback.icon,
+          visible: typeof b?.visible === 'boolean' ? b.visible : fallback.visible,
+          bgColor: typeof b?.bgColor === 'string' ? b.bgColor : fallback.bgColor,
+          textColor: typeof b?.textColor === 'string' ? b.textColor : fallback.textColor,
+          borderColor: typeof b?.borderColor === 'string' ? b.borderColor : fallback.borderColor,
+          borderRadius:
+            typeof b?.borderRadius === 'number' ? b.borderRadius : fallback.borderRadius,
+          shadowStyle: b?.shadowStyle || fallback.shadowStyle,
+          imageUrl: typeof b?.imageUrl === 'string' ? b.imageUrl : (fallback.imageUrl || ''),
+          title: typeof b?.title === 'string' ? b.title : fallback.title,
+          subtitle: typeof b?.subtitle === 'string' ? b.subtitle : fallback.subtitle,
+          extraText:
+            typeof b?.extraText === 'string' ? b.extraText : (fallback.extraText || ''),
+        }
+      })
+    } else {
+      blocks = DEFAULT_12_BLOCKS
+    }
+  } else {
+    blocks = DEFAULT_12_BLOCKS
+  }
+
+  // Ensure all 12 default blocks exist
+  const existingIds = new Set(blocks.map((b) => b.id))
+  for (const defBlock of DEFAULT_12_BLOCKS) {
+    if (!existingIds.has(defBlock.id)) {
+      blocks.push(defBlock)
+    }
+  }
+
+  return {
+    templateName: data.templateName || 'Tema Custom 12 Blok',
+    pageBgColor,
+    pageDotColor,
+    primaryAccent,
+    simulatedStamps,
+    stampsRequired,
+    blocks,
+  }
+}
+
 export default function CardStudioPage() {
   const [config, setConfig] = useState<StudioConfig>(DEFAULT_STUDIO_CONFIG)
   const [expandedBlockId, setExpandedBlockId] = useState<string | null>('hero_header')
@@ -240,17 +309,18 @@ export default function CardStudioPage() {
   const [savedSuccess, setSavedSuccess] = useState(false)
   const [mobileViewTab, setMobileViewTab] = useState<'controls' | 'preview'>('controls')
 
-  // Load from LocalStorage on mount
+  // Load from LocalStorage on mount with safe schema migration
   useEffect(() => {
     try {
       const saved = localStorage.getItem('cop_card_studio_config')
       if (saved) {
         const parsed = JSON.parse(saved)
-        if (parsed && Array.isArray(parsed.blocks)) {
-          setConfig(parsed)
-        }
+        const sanitized = sanitizeConfig(parsed)
+        setConfig(sanitized)
       }
-    } catch {}
+    } catch {
+      setConfig(DEFAULT_STUDIO_CONFIG)
+    }
   }, [])
 
   const handleSaveToLocalStorage = () => {
@@ -369,7 +439,7 @@ export default function CardStudioPage() {
                 🧱 Senarai 12 Blok Halaman (/card)
               </span>
               <span className="text-[11px] font-mono bg-[#FF7A45]/20 text-[#FF7A45] px-2 py-0.5 rounded-full font-bold">
-                {config.blocks.filter((b) => b.visible).length} / 12 Aktif
+                {(config?.blocks || []).filter((b) => b?.visible).length} / 12 Aktif
               </span>
             </div>
 
@@ -395,32 +465,37 @@ export default function CardStudioPage() {
               <span className="text-[11px] font-semibold text-gray-400">Latar Page:</span>
               <input
                 type="color"
-                value={config.pageBgColor}
+                value={safeColor(config?.pageBgColor, '#FFF7EA')}
                 onChange={(e) => setConfig({ ...config, pageBgColor: e.target.value })}
                 className="w-6 h-6 rounded cursor-pointer bg-transparent border-0"
               />
-              <span className="text-[10px] font-mono text-gray-400">{config.pageBgColor}</span>
+              <span className="text-[10px] font-mono text-gray-400">{config?.pageBgColor || '#FFF7EA'}</span>
             </div>
 
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-semibold text-gray-400">Warna Aksen:</span>
               <input
                 type="color"
-                value={config.primaryAccent}
+                value={safeColor(config?.primaryAccent, '#FF7A45')}
                 onChange={(e) => setConfig({ ...config, primaryAccent: e.target.value })}
                 className="w-6 h-6 rounded cursor-pointer bg-transparent border-0"
               />
-              <span className="text-[10px] font-mono text-gray-400">{config.primaryAccent}</span>
+              <span className="text-[10px] font-mono text-gray-400">{config?.primaryAccent || '#FF7A45'}</span>
             </div>
           </div>
 
           {/* 12 Blocks Accordion List (Scrollable) */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {config.blocks.map((block, idx) => {
+            {(config?.blocks || []).map((block, idx) => {
+              if (!block) return null
               const isExpanded = expandedBlockId === block.id
+              const safeBg = safeColor(block.bgColor, '#FFFDF8')
+              const safeText = safeColor(block.textColor, '#2B1B12')
+              const safeBorder = safeColor(block.borderColor, '#F0DEC0')
+
               return (
                 <div
-                  key={block.id}
+                  key={block.id || idx}
                   className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
                     block.visible
                       ? isExpanded
@@ -452,14 +527,14 @@ export default function CardStudioPage() {
                         {block.visible ? '✓' : ''}
                       </button>
 
-                      <span className="text-base shrink-0">{block.icon}</span>
+                      <span className="text-base shrink-0">{block.icon || '🧱'}</span>
 
                       <div className="min-w-0">
                         <div className="text-xs font-bold text-white flex items-center gap-1.5 truncate">
-                          <span>{block.name}</span>
+                          <span>{block.name || 'Blok'}</span>
                         </div>
                         <span className="text-[10px] text-gray-400 truncate block">
-                          {block.title || block.subtitle}
+                          {block.title || block.subtitle || ''}
                         </span>
                       </div>
                     </div>
@@ -508,13 +583,13 @@ export default function CardStudioPage() {
                             <div className="flex items-center gap-1.5">
                               <input
                                 type="color"
-                                value={block.bgColor.startsWith('#') ? block.bgColor : '#FFFDF8'}
+                                value={safeBg}
                                 onChange={(e) => handleUpdateBlockField(idx, 'bgColor', e.target.value)}
                                 className="w-5 h-5 rounded cursor-pointer bg-transparent border-0"
                               />
                               <input
                                 type="text"
-                                value={block.bgColor}
+                                value={block.bgColor || ''}
                                 onChange={(e) => handleUpdateBlockField(idx, 'bgColor', e.target.value)}
                                 className="w-full bg-transparent text-[10px] font-mono text-white outline-none"
                               />
@@ -526,13 +601,13 @@ export default function CardStudioPage() {
                             <div className="flex items-center gap-1.5">
                               <input
                                 type="color"
-                                value={block.textColor.startsWith('#') ? block.textColor : '#2B1B12'}
+                                value={safeText}
                                 onChange={(e) => handleUpdateBlockField(idx, 'textColor', e.target.value)}
                                 className="w-5 h-5 rounded cursor-pointer bg-transparent border-0"
                               />
                               <input
                                 type="text"
-                                value={block.textColor}
+                                value={block.textColor || ''}
                                 onChange={(e) => handleUpdateBlockField(idx, 'textColor', e.target.value)}
                                 className="w-full bg-transparent text-[10px] font-mono text-white outline-none"
                               />
@@ -544,13 +619,13 @@ export default function CardStudioPage() {
                             <div className="flex items-center gap-1.5">
                               <input
                                 type="color"
-                                value={block.borderColor.startsWith('#') ? block.borderColor : '#F0DEC0'}
+                                value={safeBorder}
                                 onChange={(e) => handleUpdateBlockField(idx, 'borderColor', e.target.value)}
                                 className="w-5 h-5 rounded cursor-pointer bg-transparent border-0"
                               />
                               <input
                                 type="text"
-                                value={block.borderColor}
+                                value={block.borderColor || ''}
                                 onChange={(e) => handleUpdateBlockField(idx, 'borderColor', e.target.value)}
                                 className="w-full bg-transparent text-[10px] font-mono text-white outline-none"
                               />
@@ -564,14 +639,14 @@ export default function CardStudioPage() {
                         <div className="bg-[#111827] p-2.5 rounded-xl border border-gray-700">
                           <div className="flex justify-between items-center mb-1">
                             <label className="text-[10px] text-gray-400">Bentuk Sudut (Radius)</label>
-                            <span className="text-[10px] font-mono text-[#FF7A45]">{block.borderRadius}px</span>
+                            <span className="text-[10px] font-mono text-[#FF7A45]">{block.borderRadius ?? 20}px</span>
                           </div>
                           <input
                             type="range"
                             min="0"
                             max="40"
                             step="2"
-                            value={block.borderRadius}
+                            value={block.borderRadius ?? 20}
                             onChange={(e) => handleUpdateBlockField(idx, 'borderRadius', parseInt(e.target.value))}
                             className="w-full accent-[#FF7A45] cursor-pointer"
                           />
@@ -580,7 +655,7 @@ export default function CardStudioPage() {
                         <div className="bg-[#111827] p-2.5 rounded-xl border border-gray-700">
                           <label className="text-[10px] text-gray-400 block mb-1">Gaya Bayang (Shadow)</label>
                           <select
-                            value={block.shadowStyle}
+                            value={block.shadowStyle || 'soft'}
                             onChange={(e) => handleUpdateBlockField(idx, 'shadowStyle', e.target.value)}
                             className="w-full bg-[#1F2937] text-white text-[11px] p-1 rounded border border-gray-600 outline-none"
                           >
@@ -599,7 +674,7 @@ export default function CardStudioPage() {
                         </label>
                         <input
                           type="text"
-                          value={block.imageUrl}
+                          value={block.imageUrl || ''}
                           onChange={(e) => handleUpdateBlockField(idx, 'imageUrl', e.target.value)}
                           placeholder="https://contoh.com/gambar-poster.jpg atau /mascot.png"
                           className="w-full bg-[#111827] border border-gray-700 text-xs px-3 py-2 rounded-xl text-white outline-none focus:border-[#FF7A45]"
@@ -613,14 +688,14 @@ export default function CardStudioPage() {
                         </label>
                         <input
                           type="text"
-                          value={block.title}
+                          value={block.title || ''}
                           onChange={(e) => handleUpdateBlockField(idx, 'title', e.target.value)}
                           placeholder="Tajuk Blok"
                           className="w-full bg-[#111827] border border-gray-700 text-xs px-3 py-2 rounded-xl text-white outline-none focus:border-[#FF7A45]"
                         />
                         <textarea
                           rows={2}
-                          value={block.subtitle}
+                          value={block.subtitle || ''}
                           onChange={(e) => handleUpdateBlockField(idx, 'subtitle', e.target.value)}
                           placeholder="Penerangan atau Sub-teks blok..."
                           className="w-full bg-[#111827] border border-gray-700 text-xs px-3 py-2 rounded-xl text-white outline-none focus:border-[#FF7A45]"
@@ -652,14 +727,14 @@ export default function CardStudioPage() {
             <div
               className="flex-1 rounded-[36px] overflow-y-auto relative text-[#2B1B12] font-sans pb-8 space-y-3"
               style={{
-                backgroundColor: config.pageBgColor,
-                backgroundImage: `radial-gradient(circle at 1px 1px, ${config.pageDotColor} 1px, transparent 1px)`,
+                backgroundColor: config.pageBgColor || '#FFF7EA',
+                backgroundImage: `radial-gradient(circle at 1px 1px, ${config.pageDotColor || 'rgba(43,27,18,0.055)'} 1px, transparent 1px)`,
                 backgroundSize: '20px 20px',
               }}
             >
               {/* Render 12 Blocks in exact order */}
-              {config.blocks
-                .filter((b) => b.visible)
+              {(config?.blocks || [])
+                .filter((b) => b && b.visible)
                 .map((block) => {
                   const shadowClass =
                     block.shadowStyle === 'soft'
@@ -678,10 +753,10 @@ export default function CardStudioPage() {
                           key={block.id}
                           className="relative overflow-hidden px-4 pt-4 pb-6 text-center transition-all"
                           style={{
-                            backgroundColor: block.bgColor,
-                            color: block.textColor,
-                            borderRadius: `0 0 ${block.borderRadius}px ${block.borderRadius}px`,
-                            boxShadow: `0 18px 34px -14px ${config.primaryAccent}60`,
+                            backgroundColor: block.bgColor || '#FF7A45',
+                            color: block.textColor || '#FFFFFF',
+                            borderRadius: `0 0 ${block.borderRadius ?? 34}px ${block.borderRadius ?? 34}px`,
+                            boxShadow: `0 18px 34px -14px ${config.primaryAccent || '#FF7A45'}60`,
                           }}
                         >
                           <div className="absolute w-44 h-44 rounded-full bg-white/15 -top-20 -right-12 pointer-events-none" />
@@ -698,7 +773,7 @@ export default function CardStudioPage() {
                               <span>{block.title || 'Nama Kedai'}</span>
                               <img src="/green-checkmark-line-icon.svg" alt="Verified" className="w-4 h-4" />
                             </div>
-                            <p className="text-[11px] opacity-90 mt-0.5">{block.subtitle}</p>
+                            <p className="text-[11px] opacity-90 mt-0.5">{block.subtitle || ''}</p>
                           </div>
                         </div>
                       )
@@ -712,10 +787,10 @@ export default function CardStudioPage() {
                               key={sIdx}
                               className="px-3 py-1 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
                               style={{
-                                backgroundColor: block.bgColor,
-                                color: block.textColor,
-                                border: `1px solid ${block.borderColor}`,
-                                borderRadius: `${block.borderRadius}px`,
+                                backgroundColor: block.bgColor || 'rgba(255,255,255,0.20)',
+                                color: block.textColor || '#FFFFFF',
+                                border: `1px solid ${block.borderColor || 'rgba(255,255,255,0.38)'}`,
+                                borderRadius: `${block.borderRadius ?? 999}px`,
                               }}
                             >
                               <span>🔗</span>
@@ -733,10 +808,10 @@ export default function CardStudioPage() {
                             type="button"
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition shadow-xs cursor-pointer"
                             style={{
-                              backgroundColor: block.bgColor,
-                              color: block.textColor,
-                              border: `1px solid ${block.borderColor}`,
-                              borderRadius: `${block.borderRadius}px`,
+                              backgroundColor: block.bgColor || '#FFFFFF',
+                              color: block.textColor || '#1B0F09',
+                              border: `1px solid ${block.borderColor || '#F0DEC0'}`,
+                              borderRadius: `${block.borderRadius ?? 12}px`,
                             }}
                           >
                             <img src="/Google-Review.svg" alt="Review" className="w-3.5 h-3.5 object-contain" />
@@ -746,10 +821,10 @@ export default function CardStudioPage() {
                             type="button"
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition shadow-xs cursor-pointer"
                             style={{
-                              backgroundColor: block.bgColor,
-                              color: block.textColor,
-                              border: `1px solid ${block.borderColor}`,
-                              borderRadius: `${block.borderRadius}px`,
+                              backgroundColor: block.bgColor || '#FFFFFF',
+                              color: block.textColor || '#1B0F09',
+                              border: `1px solid ${block.borderColor || '#F0DEC0'}`,
+                              borderRadius: `${block.borderRadius ?? 12}px`,
                             }}
                           >
                             <span>ℹ️</span>
@@ -759,10 +834,10 @@ export default function CardStudioPage() {
                             type="button"
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition shadow-xs cursor-pointer"
                             style={{
-                              backgroundColor: block.bgColor,
-                              color: block.textColor,
-                              border: `1px solid ${block.borderColor}`,
-                              borderRadius: `${block.borderRadius}px`,
+                              backgroundColor: block.bgColor || '#FFFFFF',
+                              color: block.textColor || '#1B0F09',
+                              border: `1px solid ${block.borderColor || '#F0DEC0'}`,
+                              borderRadius: `${block.borderRadius ?? 12}px`,
                             }}
                           >
                             <span>🎁</span>
@@ -778,10 +853,10 @@ export default function CardStudioPage() {
                           key={block.id}
                           className={`mx-4 p-4 border transition-all ${shadowClass}`}
                           style={{
-                            backgroundColor: block.bgColor,
-                            color: block.textColor,
-                            borderColor: block.borderColor,
-                            borderRadius: `${block.borderRadius}px`,
+                            backgroundColor: block.bgColor || '#FFF3E0',
+                            color: block.textColor || '#8C3B00',
+                            borderColor: block.borderColor || '#FFE0B2',
+                            borderRadius: `${block.borderRadius ?? 20}px`,
                           }}
                         >
                           {block.imageUrl && (
@@ -791,8 +866,8 @@ export default function CardStudioPage() {
                               className="w-full h-28 object-cover rounded-xl mb-2.5"
                             />
                           )}
-                          <div className="font-bold text-xs mb-1">{block.title}</div>
-                          <div className="text-[11px] leading-relaxed opacity-90">{block.subtitle}</div>
+                          <div className="font-bold text-xs mb-1">{block.title || ''}</div>
+                          <div className="text-[11px] leading-relaxed opacity-90">{block.subtitle || ''}</div>
                         </div>
                       )
 
@@ -803,19 +878,19 @@ export default function CardStudioPage() {
                           key={block.id}
                           className={`mx-4 p-5 border transition-all ${shadowClass}`}
                           style={{
-                            backgroundColor: block.bgColor,
-                            color: block.textColor,
-                            borderColor: block.borderColor,
-                            borderRadius: `${block.borderRadius}px`,
+                            backgroundColor: block.bgColor || '#FFFDF8',
+                            color: block.textColor || '#2B1B12',
+                            borderColor: block.borderColor || '#F0DEC0',
+                            borderRadius: `${block.borderRadius ?? 28}px`,
                           }}
                         >
                           <div className="text-center mb-1">
                             <div className="text-[11px] font-extrabold uppercase tracking-wider text-[#1C7A67]">
-                              {block.title}
+                              {block.title || 'KAD 1 • SEDANG DIISI'}
                             </div>
                             <div className="text-3xl font-bold font-serif leading-tight text-[#FF7A45] mt-0.5">
-                              {config.simulatedStamps}
-                              <small className="text-sm font-sans text-[#96806B]"> / {config.stampsRequired}</small>
+                              {config.simulatedStamps ?? 4}
+                              <small className="text-sm font-sans text-[#96806B]"> / {config.stampsRequired ?? 10}</small>
                             </div>
                           </div>
 
@@ -828,9 +903,9 @@ export default function CardStudioPage() {
 
                           {/* Stamp Slots */}
                           <div className="grid grid-cols-5 gap-2.5 mb-4">
-                            {Array.from({ length: config.stampsRequired }).map((_, slotIdx) => {
+                            {Array.from({ length: config.stampsRequired || 10 }).map((_, slotIdx) => {
                               const slotNum = slotIdx + 1
-                              const filled = slotNum <= config.simulatedStamps
+                              const filled = slotNum <= (config.simulatedStamps ?? 4)
                               return (
                                 <div
                                   key={slotNum}
@@ -845,7 +920,7 @@ export default function CardStudioPage() {
                                   }`}
                                   style={{
                                     background: filled
-                                      ? `linear-gradient(145deg, ${config.primaryAccent}, #E23F2E)`
+                                      ? `linear-gradient(145deg, ${config.primaryAccent || '#FF7A45'}, #E23F2E)`
                                       : 'rgba(255,178,56,0.08)',
                                     border: filled ? 'none' : `2px dashed #F0DEC0`,
                                     color: filled ? '#ffffff' : '#D8B98C',
@@ -867,7 +942,7 @@ export default function CardStudioPage() {
 
                           {/* Status text */}
                           <div className="text-center text-xs font-bold text-[#1C7A67]">
-                            🎁 {block.subtitle}
+                            🎁 {block.subtitle || '1 Minuman Panas Percuma'}
                           </div>
                         </div>
                       )
@@ -879,13 +954,13 @@ export default function CardStudioPage() {
                           key={block.id}
                           className={`mx-4 p-4 border space-y-2 transition-all ${shadowClass}`}
                           style={{
-                            backgroundColor: block.bgColor,
-                            color: block.textColor,
-                            borderColor: block.borderColor,
-                            borderRadius: `${block.borderRadius}px`,
+                            backgroundColor: block.bgColor || '#FFFDF8',
+                            color: block.textColor || '#2B1B12',
+                            borderColor: block.borderColor || '#F0DEC0',
+                            borderRadius: `${block.borderRadius ?? 20}px`,
                           }}
                         >
-                          <div className="font-bold text-xs mb-1">{block.title}</div>
+                          <div className="font-bold text-xs mb-1">{block.title || 'Katalog Hadiah'}</div>
                           {block.imageUrl && (
                             <img src={block.imageUrl} alt="Reward" className="w-full h-24 object-cover rounded-xl mb-2" />
                           )}
@@ -917,17 +992,17 @@ export default function CardStudioPage() {
                           key={block.id}
                           className={`mx-4 p-4 border flex items-center justify-between transition-all ${shadowClass}`}
                           style={{
-                            backgroundColor: block.bgColor,
-                            color: block.textColor,
-                            borderColor: block.borderColor,
-                            borderRadius: `${block.borderRadius}px`,
+                            backgroundColor: block.bgColor || '#FFFDF8',
+                            color: block.textColor || '#2B1B12',
+                            borderColor: block.borderColor || '#F0DEC0',
+                            borderRadius: `${block.borderRadius ?? 20}px`,
                           }}
                         >
                           <div className="flex items-center gap-2.5">
                             <span className="text-2xl">⭐</span>
                             <div>
-                              <div className="font-bold text-xs">{block.title}</div>
-                              <div className="text-[10px] opacity-80">{block.subtitle}</div>
+                              <div className="font-bold text-xs">{block.title || 'Nilai Kami'}</div>
+                              <div className="text-[10px] opacity-80">{block.subtitle || ''}</div>
                             </div>
                           </div>
                           <span className="px-3 py-1.5 text-[11px] font-bold rounded-xl text-white bg-[#FF7A45] shrink-0">
@@ -943,13 +1018,13 @@ export default function CardStudioPage() {
                           key={block.id}
                           className={`mx-4 p-4 border text-xs space-y-2 transition-all ${shadowClass}`}
                           style={{
-                            backgroundColor: block.bgColor,
-                            color: block.textColor,
-                            borderColor: block.borderColor,
-                            borderRadius: `${block.borderRadius}px`,
+                            backgroundColor: block.bgColor || '#FFFDF8',
+                            color: block.textColor || '#2B1B12',
+                            borderColor: block.borderColor || '#F0DEC0',
+                            borderRadius: `${block.borderRadius ?? 20}px`,
                           }}
                         >
-                          <div className="font-bold text-xs mb-1">{block.title}</div>
+                          <div className="font-bold text-xs mb-1">{block.title || 'Cara Tebus'}</div>
                           <div className="flex items-start gap-2 text-[11px] opacity-90">
                             <span className="font-bold text-[#FF7A45]">1.</span>
                             <span>Kumpul cop setiap pembelian di kaunter kedai.</span>
@@ -968,13 +1043,13 @@ export default function CardStudioPage() {
                           key={block.id}
                           className={`mx-4 p-4 border space-y-2 transition-all ${shadowClass}`}
                           style={{
-                            backgroundColor: block.bgColor,
-                            color: block.textColor,
-                            borderColor: block.borderColor,
-                            borderRadius: `${block.borderRadius}px`,
+                            backgroundColor: block.bgColor || '#FFFDF8',
+                            color: block.textColor || '#2B1B12',
+                            borderColor: block.borderColor || '#F0DEC0',
+                            borderRadius: `${block.borderRadius ?? 20}px`,
                           }}
                         >
-                          <div className="font-bold text-xs mb-1">{block.title}</div>
+                          <div className="font-bold text-xs mb-1">{block.title || 'Lokasi Cawangan'}</div>
                           {block.imageUrl && (
                             <img src={block.imageUrl} alt="Location" className="w-full h-24 object-cover rounded-xl mb-2" />
                           )}
@@ -997,16 +1072,16 @@ export default function CardStudioPage() {
                           key={block.id}
                           className={`mx-4 p-4 border flex items-center gap-3 transition-all ${shadowClass}`}
                           style={{
-                            backgroundColor: block.bgColor,
-                            color: block.textColor,
-                            borderColor: block.borderColor,
-                            borderRadius: `${block.borderRadius}px`,
+                            backgroundColor: block.bgColor || '#F4FAF8',
+                            color: block.textColor || '#0F5C4C',
+                            borderColor: block.borderColor || '#C8E6C9',
+                            borderRadius: `${block.borderRadius ?? 18}px`,
                           }}
                         >
                           <span className="text-2xl">🕒</span>
                           <div>
-                            <div className="font-bold text-xs">{block.title}</div>
-                            <div className="text-[11px] opacity-90">{block.subtitle}</div>
+                            <div className="font-bold text-xs">{block.title || 'Waktu Operasi'}</div>
+                            <div className="text-[11px] opacity-90">{block.subtitle || ''}</div>
                           </div>
                         </div>
                       )
@@ -1018,14 +1093,14 @@ export default function CardStudioPage() {
                           key={block.id}
                           className={`mx-4 p-4 border space-y-2 transition-all ${shadowClass}`}
                           style={{
-                            backgroundColor: block.bgColor,
-                            color: block.textColor,
-                            borderColor: block.borderColor,
-                            borderRadius: `${block.borderRadius}px`,
+                            backgroundColor: block.bgColor || '#FFFDF8',
+                            color: block.textColor || '#2B1B12',
+                            borderColor: block.borderColor || '#F0DEC0',
+                            borderRadius: `${block.borderRadius ?? 20}px`,
                           }}
                         >
-                          <div className="font-bold text-xs mb-1">{block.title}</div>
-                          <div className="text-[11px] opacity-80">{block.subtitle}</div>
+                          <div className="font-bold text-xs mb-1">{block.title || 'Galeri Menu'}</div>
+                          <div className="text-[11px] opacity-80">{block.subtitle || ''}</div>
                           {block.imageUrl ? (
                             <img src={block.imageUrl} alt="Gallery" className="w-full h-32 object-cover rounded-xl" />
                           ) : (
@@ -1042,10 +1117,10 @@ export default function CardStudioPage() {
                         <div key={block.id} className="text-center pt-3 pb-4">
                           <div className="flex items-center justify-center gap-1.5 text-xs font-extrabold text-[#2B1B12] mb-1">
                             <img src={block.imageUrl || '/logo.svg'} alt="LajuS" className="w-3.5 h-3.5 object-contain" />
-                            <span>{block.title}</span>
+                            <span>{block.title || 'Dikuasakan oleh LajuS'}</span>
                           </div>
                           <div className="text-[10px] text-[#96806B] underline flex items-center justify-center gap-2">
-                            <span>{block.subtitle}</span>
+                            <span>{block.subtitle || 'Dasar Privasi • Padam Akaun'}</span>
                           </div>
                         </div>
                       )
