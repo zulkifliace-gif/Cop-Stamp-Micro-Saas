@@ -3,76 +3,65 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 
-// Types for Card Custom Template Sandbox
-export interface BlockConfig {
-  id: 'header' | 'banner' | 'card' | 'rewards' | 'instructions' | 'google_review' | 'locations' | 'socials'
-  title: string
-  visible: boolean
-}
-
 export interface CardThemeConfig {
   templateName: string
   // Color palette
   pageBgColor: string
-  pagePattern: 'dots' | 'grid' | 'clean' | 'mesh'
+  pageDotColor: string
+  heroGradient1: string
+  heroGradient2: string
+  heroGradient3: string
   cardBgColor: string
   cardBorderColor: string
   primaryColor: string
   textColor: string
   mutedTextColor: string
-  borderRadius: number // e.g. 24
+  tealColor: string
+  goldColor: string
   
-  // Store info
+  // Store Branding
   storeName: string
-  storeTagline: string
+  isVerified: boolean
   logoUrl: string
   
-  // Promo banner block
-  bannerUrl: string
-  bannerTitle: string
-  bannerSubtitle: string
-  
-  // Stamp card configuration
+  // Stamp Card configuration
   stampsRequired: number
   stampIcon: string
   simulatedStamps: number
   rewardDescription: string
   
-  // Google review
+  // Google review & links
   googleReviewEnabled: boolean
   googleReviewUrl: string
   
-  // Blocks ordering
-  blocks: BlockConfig[]
+  // Social Links
+  socialLinks: Array<{ platform: string; url: string }>
   
-  // Sample rewards
+  // Rewards list
   rewards: Array<{ id: string; name: string; stampsRequired: number; desc: string }>
   
-  // Sample locations
+  // Locations list
   locations: Array<{ name: string; address: string; mapUrl: string }>
-  
-  // Sample socials
-  socials: Array<{ platform: string; url: string }>
 }
 
 const DEFAULT_THEME_CONFIG: CardThemeConfig = {
-  templateName: 'Tema Hangat (Warm Cream)',
+  templateName: 'Warm Coral & Cream (Original Live)',
   pageBgColor: '#FFF7EA',
-  pagePattern: 'dots',
+  pageDotColor: 'rgba(43,27,18,0.055)',
+  heroGradient1: '#FF7A45',
+  heroGradient2: '#FF9F45',
+  heroGradient3: '#FFC24D',
   cardBgColor: '#FFFDF8',
   cardBorderColor: '#F0DEC0',
   primaryColor: '#FF7A45',
   textColor: '#2B1B12',
   mutedTextColor: '#96806B',
-  borderRadius: 24,
+  tealColor: '#1C7A67',
+  goldColor: '#FFB238',
   
   storeName: 'Diana Bakery & Cafe',
-  storeTagline: 'Pastri Segar & Kopi Premium Setiap Hari',
+  isVerified: true,
   logoUrl: '/mascot.png',
-  
-  bannerUrl: '',
-  bannerTitle: 'Promosi Hujung Minggu!',
-  bannerSubtitle: 'Dapatkan 2x cop untuk setiap pembelian kopi & croissant.',
   
   stampsRequired: 10,
   stampIcon: '/icons/stamps/pastri.svg',
@@ -82,15 +71,10 @@ const DEFAULT_THEME_CONFIG: CardThemeConfig = {
   googleReviewEnabled: true,
   googleReviewUrl: 'https://maps.google.com',
   
-  blocks: [
-    { id: 'header', title: 'Header & Logo Kedai', visible: true },
-    { id: 'banner', title: 'Banner Promosi', visible: false },
-    { id: 'card', title: 'Kad Cop Utama', visible: true },
-    { id: 'rewards', title: 'Katalog Ganjaran & Hadiah', visible: true },
-    { id: 'google_review', title: 'Butang Google Review (5-Bintang)', visible: true },
-    { id: 'instructions', title: 'Panduan & Cara Tebus', visible: true },
-    { id: 'locations', title: 'Lokasi Cawangan Kedai', visible: true },
-    { id: 'socials', title: 'Pautan Media Sosial', visible: true },
+  socialLinks: [
+    { platform: 'instagram', url: 'https://instagram.com' },
+    { platform: 'tiktok', url: 'https://tiktok.com' },
+    { platform: 'whatsapp', url: 'https://whatsapp.com' },
   ],
   
   rewards: [
@@ -100,89 +84,98 @@ const DEFAULT_THEME_CONFIG: CardThemeConfig = {
   
   locations: [
     { name: 'Cawangan Utama Bangi', address: 'No 12, Jalan Medan Pusat Bandar 1, Bangi', mapUrl: 'https://maps.google.com' },
-    { name: 'Cawangan Putrajaya IOI', address: 'LG-22, IOI City Mall, Putrajaya', mapUrl: 'https://maps.google.com' },
-  ],
-  
-  socials: [
-    { platform: 'Instagram', url: 'https://instagram.com' },
-    { platform: 'TikTok', url: 'https://tiktok.com' },
-    { platform: 'WhatsApp', url: 'https://whatsapp.com' },
+    { name: 'Cawangan IOI City Mall', address: 'LG-22, IOI City Mall, Putrajaya', mapUrl: 'https://maps.google.com' },
   ]
 }
 
 const PRESET_THEMES: Array<{ name: string; config: Partial<CardThemeConfig> }> = [
   {
-    name: '🥐 Warm Cream (Klasik)',
+    name: '🥐 Warm Coral (Original /card)',
     config: {
-      templateName: 'Warm Cream (Klasik)',
+      templateName: 'Warm Coral (Original)',
       pageBgColor: '#FFF7EA',
-      pagePattern: 'dots',
+      pageDotColor: 'rgba(43,27,18,0.055)',
+      heroGradient1: '#FF7A45',
+      heroGradient2: '#FF9F45',
+      heroGradient3: '#FFC24D',
       cardBgColor: '#FFFDF8',
       cardBorderColor: '#F0DEC0',
       primaryColor: '#FF7A45',
       textColor: '#2B1B12',
       mutedTextColor: '#96806B',
-      borderRadius: 24,
+      tealColor: '#1C7A67',
       stampIcon: '/icons/stamps/pastri.svg',
     },
   },
   {
-    name: '☕ Dark Espresso & Gold',
+    name: '☕ Espresso Dark & Luxury Gold',
     config: {
-      templateName: 'Dark Espresso & Gold',
-      pageBgColor: '#120D0A',
-      pagePattern: 'grid',
-      cardBgColor: '#1C1512',
-      cardBorderColor: '#3A2C24',
+      templateName: 'Espresso Dark & Luxury Gold',
+      pageBgColor: '#100B08',
+      pageDotColor: 'rgba(255,255,255,0.06)',
+      heroGradient1: '#261811',
+      heroGradient2: '#3D251A',
+      heroGradient3: '#543424',
+      cardBgColor: '#1C1410',
+      cardBorderColor: '#3D2D24',
       primaryColor: '#E5A43B',
       textColor: '#FDFBF7',
       mutedTextColor: '#A8998C',
-      borderRadius: 20,
+      tealColor: '#D4AF37',
       stampIcon: '/icons/stamps/coffee.svg',
     },
   },
   {
-    name: '🌸 Sakura & Dessert Pink',
+    name: '🌸 Sakura & Sweet Dessert',
     config: {
-      templateName: 'Sakura & Dessert Pink',
-      pageBgColor: '#FFF0F5',
-      pagePattern: 'dots',
+      templateName: 'Sakura & Sweet Dessert',
+      pageBgColor: '#FFF2F5',
+      pageDotColor: 'rgba(225,29,72,0.045)',
+      heroGradient1: '#F43F5E',
+      heroGradient2: '#FB7185',
+      heroGradient3: '#FDA4AF',
       cardBgColor: '#FFFFFF',
-      cardBorderColor: '#FBCFE8',
+      cardBorderColor: '#FCE7F3',
       primaryColor: '#E11D48',
       textColor: '#4C0519',
       mutedTextColor: '#9D174D',
-      borderRadius: 28,
+      tealColor: '#BE185D',
       stampIcon: '/icons/stamps/kek.svg',
     },
   },
   {
-    name: '🍵 Matcha Eco Green',
+    name: '🍵 Matcha Eco Cafe Green',
     config: {
-      templateName: 'Matcha Eco Green',
+      templateName: 'Matcha Eco Cafe Green',
       pageBgColor: '#F2F8F5',
-      pagePattern: 'clean',
+      pageDotColor: 'rgba(22,101,52,0.05)',
+      heroGradient1: '#166534',
+      heroGradient2: '#22C55E',
+      heroGradient3: '#86EFAC',
       cardBgColor: '#FFFFFF',
-      cardBorderColor: '#C6E7D9',
-      primaryColor: '#166534',
+      cardBorderColor: '#DCFCE7',
+      primaryColor: '#15803D',
       textColor: '#052E16',
-      mutedTextColor: '#15803D',
-      borderRadius: 22,
+      mutedTextColor: '#166534',
+      tealColor: '#0F766E',
       stampIcon: '/icons/stamps/makanan.svg',
     },
   },
   {
-    name: '💈 Vintage Barber Classic',
+    name: '💈 Royal Barber Blue',
     config: {
-      templateName: 'Vintage Barber Classic',
-      pageBgColor: '#0F172A',
-      pagePattern: 'grid',
-      cardBgColor: '#1E293B',
-      cardBorderColor: '#334155',
-      primaryColor: '#38BDF8',
+      templateName: 'Royal Barber Blue',
+      pageBgColor: '#0B132B',
+      pageDotColor: 'rgba(255,255,255,0.06)',
+      heroGradient1: '#1C2541',
+      heroGradient2: '#3A506B',
+      heroGradient3: '#5BC0BE',
+      cardBgColor: '#121C38',
+      cardBorderColor: '#28385E',
+      primaryColor: '#5BC0BE',
       textColor: '#F8FAFC',
-      mutedTextColor: '#94A3B8',
-      borderRadius: 16,
+      mutedTextColor: '#8D99AE',
+      tealColor: '#6FFFE9',
       stampIcon: '/icons/stamps/barber.svg',
     },
   },
@@ -204,10 +197,16 @@ const STAMP_ICONS = [
 
 export default function CardStudioPage() {
   const [config, setConfig] = useState<CardThemeConfig>(DEFAULT_THEME_CONFIG)
-  const [activeTab, setActiveTab] = useState<'theme' | 'card' | 'blocks' | 'export'>('theme')
+  const [activeTab, setActiveTab] = useState<'theme' | 'card' | 'rewards' | 'export'>('theme')
   const [copiedJson, setCopiedJson] = useState(false)
   const [savedSuccess, setSavedSuccess] = useState(false)
   const [mobileViewTab, setMobileViewTab] = useState<'controls' | 'preview'>('controls')
+
+  // Modals simulation state inside mockup
+  const [showHowToRedeemModal, setShowHowToRedeemModal] = useState(false)
+  const [showRewardsModal, setShowRewardsModal] = useState(false)
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [showLocationModal, setShowLocationModal] = useState(false)
 
   // Load from LocalStorage on mount
   useEffect(() => {
@@ -222,7 +221,6 @@ export default function CardStudioPage() {
     } catch {}
   }, [])
 
-  // Auto-save to LocalStorage
   const handleSaveToLocalStorage = () => {
     try {
       localStorage.setItem('cop_card_studio_config', JSON.stringify(config))
@@ -237,22 +235,6 @@ export default function CardStudioPage() {
     setConfig((prev) => ({ ...prev, ...preset }))
   }
 
-  const handleMoveBlock = (index: number, direction: 'up' | 'down') => {
-    const targetIdx = direction === 'up' ? index - 1 : index + 1
-    if (targetIdx < 0 || targetIdx >= config.blocks.length) return
-    const newBlocks = [...config.blocks]
-    const temp = newBlocks[index]
-    newBlocks[index] = newBlocks[targetIdx]
-    newBlocks[targetIdx] = temp
-    setConfig((prev) => ({ ...prev, blocks: newBlocks }))
-  }
-
-  const handleToggleBlockVisibility = (index: number) => {
-    const newBlocks = [...config.blocks]
-    newBlocks[index].visible = !newBlocks[index].visible
-    setConfig((prev) => ({ ...prev, blocks: newBlocks }))
-  }
-
   const handleCopyJson = () => {
     navigator.clipboard.writeText(JSON.stringify(config, null, 2))
     setCopiedJson(true)
@@ -260,37 +242,22 @@ export default function CardStudioPage() {
   }
 
   const handleReset = () => {
-    if (confirm('Adakah anda pasti untuk reset semua tetapan editor ke lalai?')) {
+    if (confirm('Adakah anda pasti untuk reset semua tetapan editor ke lalai original?')) {
       setConfig(DEFAULT_THEME_CONFIG)
       localStorage.removeItem('cop_card_studio_config')
     }
   }
 
-  // Get background pattern CSS
-  const getPatternStyle = () => {
-    if (config.pagePattern === 'dots') {
-      return {
-        backgroundImage: `radial-gradient(circle at 1px 1px, rgba(43,27,18,0.065) 1px, transparent 1px)`,
-        backgroundSize: '18px 18px',
-      }
-    }
-    if (config.pagePattern === 'grid') {
-      return {
-        backgroundImage: `linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`,
-        backgroundSize: '20px 20px',
-      }
-    }
-    if (config.pagePattern === 'mesh') {
-      return {
-        backgroundImage: `radial-gradient(at 0% 0%, ${config.primaryColor}18 0px, transparent 50%), radial-gradient(at 100% 100%, ${config.primaryColor}15 0px, transparent 50%)`,
-      }
-    }
-    return {}
-  }
+  const percentFill = Math.min(
+    100,
+    Math.round((config.simulatedStamps / config.stampsRequired) * 100)
+  )
+  const isFull = config.simulatedStamps >= config.stampsRequired
+  const cardRemain = Math.max(0, config.stampsRequired - config.simulatedStamps)
 
   return (
     <div className="min-h-screen bg-[#111827] text-white flex flex-col font-sans">
-      {/* Top Navigation Bar */}
+      {/* Top Header */}
       <header className="h-16 bg-[#1F2937] border-b border-gray-800 px-4 sm:px-6 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-[#FF7A45] flex items-center justify-center font-bold text-lg text-white shadow-md">
@@ -298,10 +265,10 @@ export default function CardStudioPage() {
           </div>
           <div>
             <h1 className="font-bold text-sm sm:text-base leading-none text-white">
-              Card Studio Sandbox (DIY Editor)
+              Card Studio (Exact Live Replica)
             </h1>
             <p className="text-[11px] text-gray-400 mt-0.5">
-              Ubah warna, susun blok & uji paparan /card secara langsung
+              Ubahsuai warna & susunan kad mengikut reka bentuk live page /card
             </p>
           </div>
         </div>
@@ -344,71 +311,79 @@ export default function CardStudioPage() {
         </div>
       </header>
 
-      {/* Main Studio Body: 2 Columns on Desktop */}
+      {/* Main Studio Split Layout */}
       <div className="flex-1 flex overflow-hidden">
         {/* LEFT COLUMN: CONTROL PANEL */}
         <div
-          className={`w-full sm:w-[480px] lg:w-[540px] bg-[#1F2937] border-r border-gray-800 flex flex-col shrink-0 ${
+          className={`w-full sm:w-[460px] lg:w-[500px] bg-[#1F2937] border-r border-gray-800 flex flex-col shrink-0 ${
             mobileViewTab === 'preview' ? 'hidden sm:flex' : 'flex'
           }`}
         >
-          {/* Tabs Navigation */}
+          {/* Tab Bar */}
           <div className="flex border-b border-gray-800 bg-[#1A2230] p-1.5 gap-1 shrink-0">
             <button
               onClick={() => setActiveTab('theme')}
               className={`flex-1 py-2 text-xs font-bold rounded-lg transition text-center ${
-                activeTab === 'theme' ? 'bg-[#374151] text-[#FF7A45] shadow-xs' : 'text-gray-400 hover:text-white'
+                activeTab === 'theme'
+                  ? 'bg-[#374151] text-[#FF7A45] shadow-xs'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
-              🎨 Tema & Warna
+              🎨 Tema & Hero
             </button>
             <button
               onClick={() => setActiveTab('card')}
               className={`flex-1 py-2 text-xs font-bold rounded-lg transition text-center ${
-                activeTab === 'card' ? 'bg-[#374151] text-[#FF7A45] shadow-xs' : 'text-gray-400 hover:text-white'
+                activeTab === 'card'
+                  ? 'bg-[#374151] text-[#FF7A45] shadow-xs'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
-              🃏 Kad Cop
+              🃏 Kad Cop & Ikon
             </button>
             <button
-              onClick={() => setActiveTab('blocks')}
+              onClick={() => setActiveTab('rewards')}
               className={`flex-1 py-2 text-xs font-bold rounded-lg transition text-center ${
-                activeTab === 'blocks' ? 'bg-[#374151] text-[#FF7A45] shadow-xs' : 'text-gray-400 hover:text-white'
+                activeTab === 'rewards'
+                  ? 'bg-[#374151] text-[#FF7A45] shadow-xs'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
-              🧱 Susun Blok ({config.blocks.filter((b) => b.visible).length})
+              🎁 Ganjaran & Hadiah
             </button>
             <button
               onClick={() => setActiveTab('export')}
               className={`flex-1 py-2 text-xs font-bold rounded-lg transition text-center ${
-                activeTab === 'export' ? 'bg-[#374151] text-[#FF7A45] shadow-xs' : 'text-gray-400 hover:text-white'
+                activeTab === 'export'
+                  ? 'bg-[#374151] text-[#FF7A45] shadow-xs'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
-              📋 JSON Data
+              📋 JSON
             </button>
           </div>
 
-          {/* Tab Content (Scrollable) */}
+          {/* Tab Contents */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-6">
-            {/* ── TAB 1: TEMA & WARNA ── */}
+            {/* ── TAB 1: TEMA & HERO GRADIENT ── */}
             {activeTab === 'theme' && (
               <div className="space-y-5">
                 {/* Preset Themes */}
                 <div>
                   <label className="text-xs font-bold text-gray-300 block mb-2">
-                    ⚡ Pilihan Tema Segera (Presets)
+                    ⚡ Preset Warna Tema
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {PRESET_THEMES.map((preset) => (
                       <button
                         key={preset.name}
                         onClick={() => handleApplyPreset(preset.config)}
                         className="p-2.5 bg-[#111827] hover:bg-[#374151] border border-gray-700 rounded-xl text-left text-xs font-semibold text-gray-200 transition flex items-center justify-between"
                       >
-                        <span>{preset.name}</span>
+                        <span className="truncate">{preset.name}</span>
                         <div
-                          className="w-3.5 h-3.5 rounded-full border border-white/20"
-                          style={{ backgroundColor: preset.config.primaryColor }}
+                          className="w-3.5 h-3.5 rounded-full border border-white/20 shrink-0"
+                          style={{ backgroundColor: preset.config.heroGradient1 }}
                         />
                       </button>
                     ))}
@@ -417,15 +392,50 @@ export default function CardStudioPage() {
 
                 <hr className="border-gray-800" />
 
-                {/* Color Pickers */}
-                <div className="space-y-3.5">
+                {/* Hero Gradient Controls */}
+                <div className="space-y-3">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                    Palet Warna Kustom
+                    Warna Header Atas (Hero Banner)
                   </h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-[#111827] p-2.5 rounded-xl border border-gray-700">
+                      <label className="text-[10px] text-gray-400 block mb-1">Gradien 1</label>
+                      <input
+                        type="color"
+                        value={config.heroGradient1}
+                        onChange={(e) => setConfig({ ...config, heroGradient1: e.target.value })}
+                        className="w-full h-7 rounded cursor-pointer bg-transparent border-0"
+                      />
+                    </div>
+                    <div className="bg-[#111827] p-2.5 rounded-xl border border-gray-700">
+                      <label className="text-[10px] text-gray-400 block mb-1">Gradien 2</label>
+                      <input
+                        type="color"
+                        value={config.heroGradient2}
+                        onChange={(e) => setConfig({ ...config, heroGradient2: e.target.value })}
+                        className="w-full h-7 rounded cursor-pointer bg-transparent border-0"
+                      />
+                    </div>
+                    <div className="bg-[#111827] p-2.5 rounded-xl border border-gray-700">
+                      <label className="text-[10px] text-gray-400 block mb-1">Gradien 3</label>
+                      <input
+                        type="color"
+                        value={config.heroGradient3}
+                        onChange={(e) => setConfig({ ...config, heroGradient3: e.target.value })}
+                        className="w-full h-7 rounded cursor-pointer bg-transparent border-0"
+                      />
+                    </div>
+                  </div>
+                </div>
 
+                {/* Page Background & Card Color */}
+                <div className="space-y-3">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                    Warna Latar & Kad
+                  </h3>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-[#111827] p-3 rounded-xl border border-gray-700/80">
-                      <label className="text-[11px] font-semibold text-gray-400 block mb-1">
+                    <div className="bg-[#111827] p-3 rounded-xl border border-gray-700">
+                      <label className="text-[11px] text-gray-400 block mb-1">
                         Latar Page (Background)
                       </label>
                       <div className="flex items-center gap-2">
@@ -433,7 +443,7 @@ export default function CardStudioPage() {
                           type="color"
                           value={config.pageBgColor}
                           onChange={(e) => setConfig({ ...config, pageBgColor: e.target.value })}
-                          className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0"
+                          className="w-7 h-7 rounded cursor-pointer bg-transparent border-0"
                         />
                         <input
                           type="text"
@@ -444,28 +454,8 @@ export default function CardStudioPage() {
                       </div>
                     </div>
 
-                    <div className="bg-[#111827] p-3 rounded-xl border border-gray-700/80">
-                      <label className="text-[11px] font-semibold text-gray-400 block mb-1">
-                        Warna Utama / Aksen
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={config.primaryColor}
-                          onChange={(e) => setConfig({ ...config, primaryColor: e.target.value })}
-                          className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0"
-                        />
-                        <input
-                          type="text"
-                          value={config.primaryColor}
-                          onChange={(e) => setConfig({ ...config, primaryColor: e.target.value })}
-                          className="w-full bg-[#1F2937] text-xs font-mono px-2 py-1 rounded border border-gray-600 uppercase"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="bg-[#111827] p-3 rounded-xl border border-gray-700/80">
-                      <label className="text-[11px] font-semibold text-gray-400 block mb-1">
+                    <div className="bg-[#111827] p-3 rounded-xl border border-gray-700">
+                      <label className="text-[11px] text-gray-400 block mb-1">
                         Permukaan Kad (Card BG)
                       </label>
                       <div className="flex items-center gap-2">
@@ -473,7 +463,7 @@ export default function CardStudioPage() {
                           type="color"
                           value={config.cardBgColor}
                           onChange={(e) => setConfig({ ...config, cardBgColor: e.target.value })}
-                          className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0"
+                          className="w-7 h-7 rounded cursor-pointer bg-transparent border-0"
                         />
                         <input
                           type="text"
@@ -484,16 +474,16 @@ export default function CardStudioPage() {
                       </div>
                     </div>
 
-                    <div className="bg-[#111827] p-3 rounded-xl border border-gray-700/80">
-                      <label className="text-[11px] font-semibold text-gray-400 block mb-1">
-                        Garisan Sempadan (Border)
+                    <div className="bg-[#111827] p-3 rounded-xl border border-gray-700">
+                      <label className="text-[11px] text-gray-400 block mb-1">
+                        Border Sempadan Kad
                       </label>
                       <div className="flex items-center gap-2">
                         <input
                           type="color"
                           value={config.cardBorderColor}
                           onChange={(e) => setConfig({ ...config, cardBorderColor: e.target.value })}
-                          className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0"
+                          className="w-7 h-7 rounded cursor-pointer bg-transparent border-0"
                         />
                         <input
                           type="text"
@@ -504,100 +494,33 @@ export default function CardStudioPage() {
                       </div>
                     </div>
 
-                    <div className="bg-[#111827] p-3 rounded-xl border border-gray-700/80">
-                      <label className="text-[11px] font-semibold text-gray-400 block mb-1">
-                        Warna Tulisan (Text)
+                    <div className="bg-[#111827] p-3 rounded-xl border border-gray-700">
+                      <label className="text-[11px] text-gray-400 block mb-1">
+                        Warna Utama (Primary)
                       </label>
                       <div className="flex items-center gap-2">
                         <input
                           type="color"
-                          value={config.textColor}
-                          onChange={(e) => setConfig({ ...config, textColor: e.target.value })}
-                          className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0"
+                          value={config.primaryColor}
+                          onChange={(e) => setConfig({ ...config, primaryColor: e.target.value })}
+                          className="w-7 h-7 rounded cursor-pointer bg-transparent border-0"
                         />
                         <input
                           type="text"
-                          value={config.textColor}
-                          onChange={(e) => setConfig({ ...config, textColor: e.target.value })}
-                          className="w-full bg-[#1F2937] text-xs font-mono px-2 py-1 rounded border border-gray-600 uppercase"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="bg-[#111827] p-3 rounded-xl border border-gray-700/80">
-                      <label className="text-[11px] font-semibold text-gray-400 block mb-1">
-                        Teks Pudar (Muted)
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={config.mutedTextColor}
-                          onChange={(e) => setConfig({ ...config, mutedTextColor: e.target.value })}
-                          className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0"
-                        />
-                        <input
-                          type="text"
-                          value={config.mutedTextColor}
-                          onChange={(e) => setConfig({ ...config, mutedTextColor: e.target.value })}
+                          value={config.primaryColor}
+                          onChange={(e) => setConfig({ ...config, primaryColor: e.target.value })}
                           className="w-full bg-[#1F2937] text-xs font-mono px-2 py-1 rounded border border-gray-600 uppercase"
                         />
                       </div>
                     </div>
                   </div>
-                </div>
-
-                {/* Background Pattern */}
-                <div>
-                  <label className="text-xs font-bold text-gray-300 block mb-2">
-                    Corak Latar Belakang (Texture Pattern)
-                  </label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {[
-                      { id: 'dots', label: '• Dots' },
-                      { id: 'grid', label: '▦ Grid' },
-                      { id: 'mesh', label: '🌈 Mesh' },
-                      { id: 'clean', label: '⬜ Clean' },
-                    ].map((pat) => (
-                      <button
-                        key={pat.id}
-                        onClick={() => setConfig({ ...config, pagePattern: pat.id as any })}
-                        className={`py-2 text-xs font-bold rounded-xl border transition ${
-                          config.pagePattern === pat.id
-                            ? 'bg-[#FF7A45] text-white border-[#FF7A45]'
-                            : 'bg-[#111827] text-gray-300 border-gray-700 hover:border-gray-600'
-                        }`}
-                      >
-                        {pat.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Border Radius */}
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="text-xs font-bold text-gray-300">
-                      Kelengkungan Sudut Kad (Border Radius)
-                    </label>
-                    <span className="text-xs font-mono text-[#FF7A45]">{config.borderRadius}px</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="8"
-                    max="36"
-                    step="2"
-                    value={config.borderRadius}
-                    onChange={(e) => setConfig({ ...config, borderRadius: parseInt(e.target.value) })}
-                    className="w-full accent-[#FF7A45] cursor-pointer"
-                  />
                 </div>
               </div>
             )}
 
-            {/* ── TAB 2: KAD COP ── */}
+            {/* ── TAB 2: KAD COP & STORE BRANDING ── */}
             {activeTab === 'card' && (
               <div className="space-y-4">
-                {/* Store Branding */}
                 <div>
                   <label className="text-xs font-bold text-gray-300 block mb-1">Nama Kedai</label>
                   <input
@@ -605,18 +528,20 @@ export default function CardStudioPage() {
                     value={config.storeName}
                     onChange={(e) => setConfig({ ...config, storeName: e.target.value })}
                     className="w-full bg-[#111827] border border-gray-700 text-xs px-3 py-2.5 rounded-xl text-white outline-none focus:border-[#FF7A45]"
-                    placeholder="Contoh: Diana Bakery & Cafe"
+                    placeholder="Nama Kedai"
                   />
                 </div>
 
-                <div>
-                  <label className="text-xs font-bold text-gray-300 block mb-1">Tagline / Penerangan Kedai</label>
+                <div className="flex items-center justify-between p-3 bg-[#111827] rounded-xl border border-gray-700">
+                  <div className="text-xs font-bold text-gray-300 flex items-center gap-2">
+                    <img src="/green-checkmark-line-icon.svg" alt="Verified" className="w-4 h-4" />
+                    <span>Lencana Pengesahan Rasmi (Verified Store)</span>
+                  </div>
                   <input
-                    type="text"
-                    value={config.storeTagline}
-                    onChange={(e) => setConfig({ ...config, storeTagline: e.target.value })}
-                    className="w-full bg-[#111827] border border-gray-700 text-xs px-3 py-2.5 rounded-xl text-white outline-none focus:border-[#FF7A45]"
-                    placeholder="Contoh: Pastri Segar Setiap Hari"
+                    type="checkbox"
+                    checked={config.isVerified}
+                    onChange={(e) => setConfig({ ...config, isVerified: e.target.checked })}
+                    className="w-4 h-4 accent-[#FF7A45] cursor-pointer"
                   />
                 </div>
 
@@ -641,7 +566,7 @@ export default function CardStudioPage() {
                   </div>
                 </div>
 
-                {/* Stamps required */}
+                {/* Stamp requirement */}
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <label className="text-xs font-bold text-gray-300">
@@ -653,7 +578,7 @@ export default function CardStudioPage() {
                   </div>
                   <input
                     type="range"
-                    min="4"
+                    min="5"
                     max="12"
                     step="1"
                     value={config.stampsRequired}
@@ -669,14 +594,14 @@ export default function CardStudioPage() {
                   />
                 </div>
 
-                {/* Simulated Progress for Live Testing */}
+                {/* Simulated Stamps Slider */}
                 <div className="p-3.5 bg-[#111827] rounded-xl border border-amber-500/30">
                   <div className="flex justify-between items-center mb-1">
                     <label className="text-xs font-bold text-amber-400">
-                      🧪 Uji Simulasi Cop Pelanggan (0 hingga {config.stampsRequired})
+                      🧪 Simulasi Jumlah Cop Terkumpul
                     </label>
                     <span className="text-xs font-mono font-bold text-white bg-amber-600 px-2 py-0.5 rounded">
-                      {config.simulatedStamps} / {config.stampsRequired}
+                      {config.simulatedStamps} / {config.stampsRequired} Cop
                     </span>
                   </div>
                   <input
@@ -685,18 +610,20 @@ export default function CardStudioPage() {
                     max={config.stampsRequired}
                     step="1"
                     value={config.simulatedStamps}
-                    onChange={(e) => setConfig({ ...config, simulatedStamps: parseInt(e.target.value) })}
+                    onChange={(e) =>
+                      setConfig({ ...config, simulatedStamps: parseInt(e.target.value) })
+                    }
                     className="w-full accent-amber-500 cursor-pointer"
                   />
                   <p className="text-[11px] text-gray-400 mt-1">
-                    Tolak slider ini untuk melihat bagaimana rupa kad bila cop bertambah atau penuh.
+                    Gerakkan slider ini untuk melihat animasi cop terisi dan teks status pada kad.
                   </p>
                 </div>
 
                 {/* Reward Description */}
                 <div>
                   <label className="text-xs font-bold text-gray-300 block mb-1">
-                    Penerangan Ganjaran Utama
+                    Penerangan Ganjaran Penuh
                   </label>
                   <input
                     type="text"
@@ -709,56 +636,75 @@ export default function CardStudioPage() {
               </div>
             )}
 
-            {/* ── TAB 3: SUSUN BLOK DINAMIK ── */}
-            {activeTab === 'blocks' && (
-              <div className="space-y-3">
-                <p className="text-xs text-gray-400">
-                  Susun keutamaan bahagian blok di page kad. Anda boleh naik/turunkan blok atau padam mana-mana bahagian yang tidak diperlukan.
-                </p>
+            {/* ── TAB 3: HADIAH & GANJARAN ── */}
+            {activeTab === 'rewards' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-300">Senarai Katalog Hadiah</span>
+                  <button
+                    onClick={() => {
+                      const newId = String(config.rewards.length + 1)
+                      setConfig({
+                        ...config,
+                        rewards: [
+                          ...config.rewards,
+                          {
+                            id: newId,
+                            name: `Ganjaran Hadiah #${newId}`,
+                            stampsRequired: 10,
+                            desc: 'Keterangan hadiah percuma',
+                          },
+                        ],
+                      })
+                    }}
+                    className="px-2.5 py-1 bg-[#FF7A45] hover:bg-[#ff682e] text-white rounded-lg text-xs font-bold transition"
+                  >
+                    + Tambah Hadiah
+                  </button>
+                </div>
 
-                <div className="space-y-2">
-                  {config.blocks.map((block, idx) => (
-                    <div
-                      key={block.id}
-                      className={`p-3 rounded-xl border flex items-center justify-between transition ${
-                        block.visible
-                          ? 'bg-[#111827] border-gray-700'
-                          : 'bg-[#111827]/40 border-gray-800 opacity-60'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => handleToggleBlockVisibility(idx)}
-                          className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold transition ${
-                            block.visible ? 'bg-[#FF7A45] text-white' : 'bg-gray-800 text-gray-500 border border-gray-700'
-                          }`}
-                        >
-                          {block.visible ? '✓' : ''}
-                        </button>
-                        <div>
-                          <div className="text-xs font-bold text-white flex items-center gap-2">
-                            <span>#{idx + 1}</span>
-                            <span>{block.title}</span>
-                          </div>
-                          <span className="text-[10px] text-gray-500 font-mono">{block.id}</span>
-                        </div>
+                <div className="space-y-3">
+                  {config.rewards.map((rew, idx) => (
+                    <div key={rew.id} className="p-3 bg-[#111827] border border-gray-700 rounded-xl space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#FF7A45]">Hadiah #{idx + 1}</span>
+                        {config.rewards.length > 1 && (
+                          <button
+                            onClick={() =>
+                              setConfig({
+                                ...config,
+                                rewards: config.rewards.filter((r) => r.id !== rew.id),
+                              })
+                            }
+                            className="text-rose-400 hover:text-rose-300 text-xs font-bold"
+                          >
+                            Padam
+                          </button>
+                        )}
                       </div>
-
-                      <div className="flex items-center gap-1">
-                        <button
-                          disabled={idx === 0}
-                          onClick={() => handleMoveBlock(idx, 'up')}
-                          className="w-7 h-7 bg-gray-800 hover:bg-gray-700 disabled:opacity-30 rounded-lg text-xs font-bold text-gray-300 flex items-center justify-center transition cursor-pointer"
-                        >
-                          ▲
-                        </button>
-                        <button
-                          disabled={idx === config.blocks.length - 1}
-                          onClick={() => handleMoveBlock(idx, 'down')}
-                          className="w-7 h-7 bg-gray-800 hover:bg-gray-700 disabled:opacity-30 rounded-lg text-xs font-bold text-gray-300 flex items-center justify-center transition cursor-pointer"
-                        >
-                          ▼
-                        </button>
+                      <input
+                        type="text"
+                        value={rew.name}
+                        onChange={(e) => {
+                          const updated = [...config.rewards]
+                          updated[idx].name = e.target.value
+                          setConfig({ ...config, rewards: updated })
+                        }}
+                        placeholder="Nama Hadiah"
+                        className="w-full bg-[#1F2937] border border-gray-600 text-xs px-2.5 py-1.5 rounded-lg text-white"
+                      />
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-gray-400 shrink-0">Cop Diperlukan:</span>
+                        <input
+                          type="number"
+                          value={rew.stampsRequired}
+                          onChange={(e) => {
+                            const updated = [...config.rewards]
+                            updated[idx].stampsRequired = parseInt(e.target.value) || 1
+                            setConfig({ ...config, rewards: updated })
+                          }}
+                          className="w-20 bg-[#1F2937] border border-gray-600 text-xs px-2 py-1 rounded-lg text-white font-mono"
+                        />
                       </div>
                     </div>
                   ))}
@@ -766,12 +712,12 @@ export default function CardStudioPage() {
               </div>
             )}
 
-            {/* ── TAB 4: JSON DATA & EXPORT ── */}
+            {/* ── TAB 4: JSON EXPORT ── */}
             {activeTab === 'export' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-gray-300">
-                    Konfigurasi JSON (Data-Driven Engine)
+                    Konfigurasi JSON (Data-Driven Theme)
                   </span>
                   <button
                     onClick={handleCopyJson}
@@ -790,7 +736,7 @@ export default function CardStudioPage() {
                     onClick={handleReset}
                     className="text-xs font-semibold text-rose-400 hover:text-rose-300 transition"
                   >
-                    🔄 Reset Tetapan ke Lalai
+                    🔄 Reset ke Lalai
                   </button>
                   <button
                     onClick={handleSaveToLocalStorage}
@@ -804,349 +750,438 @@ export default function CardStudioPage() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: LIVE INTERACTIVE PHONE MOCKUP */}
+        {/* RIGHT COLUMN: REALISTIC LIVE /CARD REPLICA MOCKUP */}
         <div
-          className={`flex-1 bg-[#0B0F19] p-4 sm:p-8 flex items-center justify-center overflow-y-auto ${
+          className={`flex-1 bg-[#0B0F19] p-2 sm:p-6 flex items-center justify-center overflow-y-auto ${
             mobileViewTab === 'controls' ? 'hidden sm:flex' : 'flex'
           }`}
         >
-          {/* Phone Mockup Wrapper */}
-          <div className="w-full max-w-[380px] min-h-[720px] bg-black rounded-[44px] p-3 shadow-2xl border-4 border-gray-800 relative flex flex-col">
-            {/* Phone Speaker & Dynamic Island Notch */}
+          {/* Phone Mockup Frame */}
+          <div className="w-full max-w-[420px] min-h-[760px] max-h-[92vh] bg-black rounded-[46px] p-3 shadow-2xl border-4 border-gray-800 relative flex flex-col">
+            {/* Dynamic Island / Speaker */}
             <div className="w-28 h-4 bg-gray-900 rounded-full mx-auto mb-2 shrink-0 flex items-center justify-center">
               <div className="w-3 h-3 rounded-full bg-gray-800 mr-2" />
               <div className="w-8 h-1 bg-gray-700 rounded-full" />
             </div>
 
-            {/* Screen Viewport */}
+            {/* Screen Content Window */}
             <div
-              className="flex-1 rounded-[34px] overflow-y-auto p-4 flex flex-col gap-3 relative transition-colors duration-300"
+              className="flex-1 rounded-[36px] overflow-y-auto relative text-[#2B1B12] font-sans pb-8"
               style={{
                 backgroundColor: config.pageBgColor,
-                color: config.textColor,
-                ...getPatternStyle(),
+                backgroundImage: `radial-gradient(circle at 1px 1px, ${config.pageDotColor} 1px, transparent 1px)`,
+                backgroundSize: '20px 20px',
               }}
             >
-              {/* Dynamic Blocks Rendering based on config.blocks order */}
-              {config.blocks
-                .filter((b) => b.visible)
-                .map((block) => {
-                  switch (block.id) {
-                    case 'header':
-                      return (
-                        <div
-                          key={block.id}
-                          className="flex items-center justify-between py-1 border-b pb-2.5"
-                          style={{ borderColor: `${config.cardBorderColor}` }}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <div
-                              className="w-10 h-10 rounded-2xl p-1 flex items-center justify-center shrink-0 shadow-xs border"
-                              style={{
-                                backgroundColor: config.cardBgColor,
-                                borderColor: config.cardBorderColor,
-                              }}
-                            >
-                              <img
-                                src={config.logoUrl}
-                                alt="Logo"
-                                className="w-full h-full object-contain"
-                              />
-                            </div>
-                            <div>
-                              <h2 className="font-bold text-sm leading-tight">{config.storeName}</h2>
-                              <p className="text-[10px]" style={{ color: config.mutedTextColor }}>
-                                {config.storeTagline}
-                              </p>
-                            </div>
-                          </div>
-                          <span
-                            className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                            style={{
-                              backgroundColor: `${config.primaryColor}20`,
-                              color: config.primaryColor,
-                            }}
-                          >
-                            ⭐ VIP
-                          </span>
-                        </div>
-                      )
+              {/* 1. HERO HEADER (Exact live style) */}
+              <div
+                className="relative overflow-hidden rounded-b-[34px] px-4 pt-4 pb-6 text-center text-white"
+                style={{
+                  background: `linear-gradient(135deg, ${config.heroGradient1} 0%, ${config.heroGradient2} 55%, ${config.heroGradient3} 100%)`,
+                  boxShadow: `0 20px 36px -14px ${config.heroGradient1}60`,
+                }}
+              >
+                {/* Background decorative circles */}
+                <div className="absolute w-44 h-44 rounded-full bg-white/15 -top-20 -right-12 pointer-events-none" />
+                <div className="absolute w-32 h-32 rounded-full bg-white/10 -bottom-16 -left-8 pointer-events-none" />
 
-                    case 'banner':
+                <div className="relative z-10">
+                  {/* Topbar */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-1 bg-white/20 border border-white/40 rounded-full p-0.5 text-[11px] font-bold">
+                      <span className="bg-white text-[#FF5A45] px-2.5 py-1 rounded-full">MY</span>
+                      <span className="text-white/80 px-2 py-1">EN</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-8 h-8 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-[#FFEBC2]">
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                          <rect x="3" y="3" width="7" height="7" rx="1.2" />
+                          <rect x="14" y="3" width="7" height="7" rx="1.2" />
+                          <rect x="3" y="14" width="7" height="7" rx="1.2" />
+                          <path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v.01" />
+                        </svg>
+                      </div>
+                      <div
+                        onClick={() => setShowLocationModal(true)}
+                        className="w-8 h-8 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-white cursor-pointer"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                          <circle cx="12" cy="10" r="3" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Profile Avatar & Store Name */}
+                  <div className="flex flex-col items-center">
+                    <div className="w-18 h-18 rounded-full bg-white text-[#FF5A45] flex items-center justify-center p-2 shadow-lg border-3 border-white/60 mb-2 overflow-hidden">
+                      <img src={config.logoUrl} alt={config.storeName} className="w-full h-full object-contain" />
+                    </div>
+
+                    <div className="flex items-center gap-1.5 justify-center font-bold text-lg text-white font-serif">
+                      <span>{config.storeName}</span>
+                      {config.isVerified && (
+                        <img src="/green-checkmark-line-icon.svg" alt="Verified" className="w-4 h-4" />
+                      )}
+                    </div>
+
+                    {/* Social Media Icons Row */}
+                    <div className="flex gap-2 justify-center mt-2">
+                      {config.socialLinks.map((soc, idx) => (
+                        <div
+                          key={idx}
+                          className="w-6.5 h-6.5 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-white text-xs"
+                        >
+                          🔗
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Action Pill Row */}
+                    <div className="flex gap-2 justify-center mt-4 flex-wrap">
+                      <button
+                        onClick={() => setShowReviewModal(true)}
+                        className="inline-flex items-center gap-1.5 bg-white text-[#1B0F09] border border-[#F0DEC0] rounded-xl px-3 py-1.5 text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition"
+                      >
+                        <img src="/Google-Review.svg" alt="Review" className="w-3.5 h-3.5 object-contain" />
+                        <span>Review</span>
+                      </button>
+
+                      <button
+                        onClick={() => setShowHowToRedeemModal(true)}
+                        className="inline-flex items-center gap-1.5 bg-white text-[#1B0F09] border border-[#F0DEC0] rounded-xl px-3 py-1.5 text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition"
+                      >
+                        <span className="text-xs">ℹ️</span>
+                        <span>Cara Tebus</span>
+                      </button>
+
+                      <button
+                        onClick={() => setShowRewardsModal(true)}
+                        className="inline-flex items-center gap-1.5 bg-white text-[#1B0F09] border border-[#F0DEC0] rounded-xl px-3 py-1.5 text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition"
+                      >
+                        <span className="text-xs">🎁</span>
+                        <span>Ganjaran</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. CARD CONTENT (Exact Live Style) */}
+              <div className="p-4 pt-5">
+                {/* Stamp Card */}
+                <div
+                  className="rounded-[28px] p-5 shadow-sm border"
+                  style={{
+                    backgroundColor: config.cardBgColor,
+                    borderColor: config.cardBorderColor,
+                  }}
+                >
+                  {/* Card Head */}
+                  <div className="text-center mb-1">
+                    <div
+                      className="text-[11px] font-extrabold uppercase tracking-wider"
+                      style={{ color: config.tealColor }}
+                    >
+                      {isFull ? 'KAD 1 • PENUH' : 'KAD 1 • SEDANG DIISI'}
+                    </div>
+                    <div
+                      className="text-3xl font-bold font-serif leading-tight"
+                      style={{ color: config.primaryColor }}
+                    >
+                      {config.simulatedStamps}
+                      <small className="text-sm font-sans text-[#96806B]"> / {config.stampsRequired}</small>
+                    </div>
+                  </div>
+
+                  {/* Perforation line */}
+                  <div className="flex gap-1 justify-center my-3 opacity-50">
+                    {Array.from({ length: 15 }).map((_, pIdx) => (
+                      <span
+                        key={pIdx}
+                        className="w-1 h-1 rounded-full"
+                        style={{ backgroundColor: config.cardBorderColor }}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Stamp Grid (5 columns) */}
+                  <div className="grid grid-cols-5 gap-2.5 mb-4">
+                    {Array.from({ length: config.stampsRequired }).map((_, slotIdx) => {
+                      const slotNum = slotIdx + 1
+                      const filled = slotNum <= config.simulatedStamps
                       return (
                         <div
-                          key={block.id}
-                          className="p-3.5 rounded-2xl border shadow-xs text-left"
+                          key={slotNum}
+                          onClick={() =>
+                            setConfig({
+                              ...config,
+                              simulatedStamps: filled ? slotIdx : slotNum,
+                            })
+                          }
+                          className={`aspect-square rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                            filled ? 'scale-100 shadow-md' : 'opacity-40'
+                          }`}
                           style={{
-                            backgroundColor: config.cardBgColor,
-                            borderColor: config.cardBorderColor,
-                            borderRadius: config.borderRadius,
+                            background: filled
+                              ? `linear-gradient(145deg, ${config.primaryColor}, #E23F2E)`
+                              : 'rgba(255,178,56,0.08)',
+                            border: filled ? 'none' : `2px dashed ${config.cardBorderColor}`,
+                            color: filled ? '#ffffff' : '#D8B98C',
                           }}
                         >
-                          <div className="font-bold text-xs text-[#FF7A45] mb-0.5">
-                            {config.bannerTitle}
-                          </div>
-                          <div className="text-[11px]" style={{ color: config.mutedTextColor }}>
-                            {config.bannerSubtitle}
-                          </div>
+                          {filled ? (
+                            <img
+                              src={config.stampIcon}
+                              alt="Stamp"
+                              className="w-[52%] h-[52%] object-contain brightness-0 invert"
+                            />
+                          ) : (
+                            <span className="text-xs font-bold">{slotNum}</span>
+                          )}
                         </div>
                       )
+                    })}
+                  </div>
 
-                    case 'card':
-                      return (
-                        <div
-                          key={block.id}
-                          className="p-4.5 border shadow-md flex flex-col gap-3 relative overflow-hidden transition-all"
-                          style={{
-                            backgroundColor: config.cardBgColor,
-                            borderColor: config.cardBorderColor,
-                            borderRadius: config.borderRadius,
-                          }}
-                        >
-                          {/* Card Header */}
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <span
-                                className="text-[10px] font-extrabold uppercase tracking-wider block"
-                                style={{ color: config.primaryColor }}
-                              >
-                                Kad Ganjaran
-                              </span>
-                              <span className="font-bold text-xs">{config.storeName}</span>
-                            </div>
-                            <span
-                              className="font-mono font-bold text-xs px-2.5 py-1 rounded-xl"
-                              style={{
-                                backgroundColor: `${config.primaryColor}15`,
-                                color: config.primaryColor,
-                              }}
-                            >
-                              {config.simulatedStamps} / {config.stampsRequired} Cop
-                            </span>
-                          </div>
+                  {/* Progress Bar */}
+                  <div
+                    className="h-2 rounded-full overflow-hidden mb-3"
+                    style={{ backgroundColor: config.cardBorderColor }}
+                  >
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${percentFill}%`,
+                        background: `linear-gradient(90deg, ${config.primaryColor}, ${config.goldColor})`,
+                      }}
+                    />
+                  </div>
 
-                          {/* Stamp Slots Grid */}
-                          <div
-                            className="grid gap-2 py-2"
-                            style={{
-                              gridTemplateColumns: `repeat(${config.stampsRequired <= 6 ? 3 : 5}, minmax(0, 1fr))`,
-                            }}
-                          >
-                            {Array.from({ length: config.stampsRequired }).map((_, slotIdx) => {
-                              const isFilled = slotIdx < config.simulatedStamps
-                              return (
-                                <div
-                                  key={slotIdx}
-                                  className={`aspect-square rounded-2xl border-2 flex items-center justify-center transition-all ${
-                                    isFilled ? 'scale-100' : 'opacity-40'
-                                  }`}
-                                  style={{
-                                    borderColor: isFilled
-                                      ? config.primaryColor
-                                      : `${config.mutedTextColor}40`,
-                                    backgroundColor: isFilled
-                                      ? `${config.primaryColor}18`
-                                      : 'transparent',
-                                  }}
-                                >
-                                  {isFilled ? (
-                                    <img
-                                      src={config.stampIcon}
-                                      alt="Stamp"
-                                      className="w-5 h-5 object-contain"
-                                    />
-                                  ) : (
-                                    <span
-                                      className="text-xs font-mono font-bold"
-                                      style={{ color: config.mutedTextColor }}
-                                    >
-                                      {slotIdx + 1}
-                                    </span>
-                                  )}
-                                </div>
-                              )
-                            })}
-                          </div>
+                  {/* Status Text */}
+                  <div
+                    className="text-center text-xs font-bold leading-relaxed"
+                    style={{ color: config.tealColor }}
+                  >
+                    {isFull ? (
+                      <span>🎉 Tahniah! Kad penuh & sedia ditebus: {config.rewardDescription}</span>
+                    ) : (
+                      <span>
+                        Lagi <b style={{ color: config.primaryColor }}>{cardRemain}</b> cop untuk:{' '}
+                        {config.rewardDescription}
+                      </span>
+                    )}
+                  </div>
 
-                          {/* Reward footer inside card */}
-                          <div
-                            className="p-2.5 rounded-xl text-[11px] font-semibold flex items-center gap-2 border"
-                            style={{
-                              backgroundColor: `${config.primaryColor}0C`,
-                              borderColor: `${config.primaryColor}30`,
-                              color: config.textColor,
-                            }}
-                          >
-                            <span>🎁</span>
-                            <span className="truncate">{config.rewardDescription}</span>
-                          </div>
-                        </div>
-                      )
+                  {/* Pagination dot */}
+                  <div className="flex items-center justify-center gap-1.5 mt-3.5">
+                    <span
+                      className="w-5 h-2 rounded-full transition-all"
+                      style={{ backgroundColor: config.primaryColor }}
+                    />
+                  </div>
+                </div>
 
-                    case 'rewards':
-                      return (
-                        <div key={block.id} className="space-y-2">
-                          <div className="flex items-center justify-between text-xs font-bold px-1">
-                            <span>🎁 Ganjaran Tersedia</span>
-                            <span className="text-[10px]" style={{ color: config.primaryColor }}>
-                              {config.rewards.length} Hadiah
-                            </span>
-                          </div>
-                          <div className="space-y-1.5">
-                            {config.rewards.map((rew) => (
-                              <div
-                                key={rew.id}
-                                className="p-3 border rounded-xl flex items-center justify-between gap-2"
-                                style={{
-                                  backgroundColor: config.cardBgColor,
-                                  borderColor: config.cardBorderColor,
-                                  borderRadius: Math.max(12, config.borderRadius - 8),
-                                }}
-                              >
-                                <div className="min-w-0 flex-1">
-                                  <div className="font-bold text-xs truncate">{rew.name}</div>
-                                  <div
-                                    className="text-[10px] truncate"
-                                    style={{ color: config.mutedTextColor }}
-                                  >
-                                    {rew.desc}
-                                  </div>
-                                </div>
-                                <span
-                                  className="text-[10px] font-bold px-2 py-1 rounded-lg shrink-0"
-                                  style={{
-                                    backgroundColor: `${config.primaryColor}15`,
-                                    color: config.primaryColor,
-                                  }}
-                                >
-                                  {rew.stampsRequired} Cop
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )
+                {/* Updated Timestamp */}
+                <div className="text-center text-[10.5px] text-[#96806B] font-semibold mt-3">
+                  Kemaskini Terakhir: Baru-baru ini
+                </div>
 
-                    case 'google_review':
-                      return (
-                        <div
-                          key={block.id}
-                          className="p-3 border rounded-2xl flex items-center justify-between shadow-xs"
-                          style={{
-                            backgroundColor: config.cardBgColor,
-                            borderColor: config.cardBorderColor,
-                            borderRadius: config.borderRadius,
-                          }}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="text-base">⭐</span>
-                            <div>
-                              <div className="font-bold text-xs">Nilai {config.storeName}</div>
-                              <div
-                                className="text-[10px]"
-                                style={{ color: config.mutedTextColor }}
-                              >
-                                Ulasan 5-bintang di Google
-                              </div>
-                            </div>
-                          </div>
-                          <span
-                            className="px-2.5 py-1 text-[10px] font-bold rounded-lg text-white"
-                            style={{ backgroundColor: config.primaryColor }}
-                          >
-                            Review ↗
-                          </span>
-                        </div>
-                      )
-
-                    case 'instructions':
-                      return (
-                        <div
-                          key={block.id}
-                          className="p-3.5 border rounded-2xl text-[11px] space-y-1.5"
-                          style={{
-                            backgroundColor: config.cardBgColor,
-                            borderColor: config.cardBorderColor,
-                            borderRadius: config.borderRadius,
-                          }}
-                        >
-                          <div className="font-bold text-xs flex items-center gap-1.5 mb-1">
-                            <span>ℹ️</span>
-                            <span>Cara Tebus Ganjaran</span>
-                          </div>
-                          <div className="flex items-start gap-2" style={{ color: config.mutedTextColor }}>
-                            <span>1.</span>
-                            <span>Kumpul cop setiap kali pembelian di kaunter.</span>
-                          </div>
-                          <div className="flex items-start gap-2" style={{ color: config.mutedTextColor }}>
-                            <span>2.</span>
-                            <span>Tunjukkan emel / kod QR kepada staf untuk tebus hadiah percuma.</span>
-                          </div>
-                        </div>
-                      )
-
-                    case 'locations':
-                      return (
-                        <div key={block.id} className="space-y-1.5">
-                          <div className="font-bold text-xs px-1">📍 Lokasi Cawangan</div>
-                          {config.locations.map((loc, idx) => (
-                            <div
-                              key={idx}
-                              className="p-2.5 border rounded-xl flex items-center justify-between gap-2"
-                              style={{
-                                backgroundColor: config.cardBgColor,
-                                borderColor: config.cardBorderColor,
-                                borderRadius: Math.max(12, config.borderRadius - 8),
-                              }}
-                            >
-                              <div className="min-w-0">
-                                <div className="font-bold text-xs truncate">{loc.name}</div>
-                                <div
-                                  className="text-[10px] truncate"
-                                  style={{ color: config.mutedTextColor }}
-                                >
-                                  {loc.address}
-                                </div>
-                              </div>
-                              <span
-                                className="text-[10px] font-bold px-2 py-1 rounded-lg shrink-0 border"
-                                style={{
-                                  borderColor: config.cardBorderColor,
-                                  color: config.primaryColor,
-                                }}
-                              >
-                                Maps ↗
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )
-
-                    case 'socials':
-                      return (
-                        <div key={block.id} className="pt-1 pb-3 flex items-center justify-center gap-2">
-                          {config.socials.map((soc, idx) => (
-                            <span
-                              key={idx}
-                              className="px-2.5 py-1 rounded-xl text-[10px] font-bold border flex items-center gap-1"
-                              style={{
-                                backgroundColor: config.cardBgColor,
-                                borderColor: config.cardBorderColor,
-                                color: config.textColor,
-                              }}
-                            >
-                              <span>🔗</span>
-                              <span>{soc.platform}</span>
-                            </span>
-                          ))}
-                        </div>
-                      )
-
-                    default:
-                      return null
-                  }
-                })}
+                {/* Footer Brand */}
+                <div className="text-center mt-6">
+                  <div className="flex items-center justify-center gap-1.5 text-xs font-extrabold text-[#2B1B12] mb-1">
+                    <img src="/logo.svg" alt="LajuS" className="w-3.5 h-3.5 object-contain" />
+                    <span>LajuS</span>
+                  </div>
+                  <div className="text-[10px] text-[#96806B] underline flex items-center justify-center gap-2">
+                    <span>Dasar Privasi</span>
+                    <span>•</span>
+                    <span>Padam Akaun</span>
+                  </div>
+                </div>
+              </div>
             </div>
+
+            {/* ── MODALS PREVIEW IN MOCKUP ── */}
+            {/* 1. Cara Tebus Modal */}
+            {showHowToRedeemModal && (
+              <div
+                onClick={() => setShowHowToRedeemModal(false)}
+                className="absolute inset-3 bg-black/60 backdrop-blur-xs rounded-[36px] z-50 flex items-center justify-center p-4 anim-fade"
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full bg-[#FFFDF8] rounded-2xl p-5 border border-[#F0DEC0] shadow-xl text-left"
+                >
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-bold font-serif text-base text-[#1B0F09]">
+                      ℹ️ Cara Tebus Ganjaran
+                    </h3>
+                    <button
+                      onClick={() => setShowHowToRedeemModal(false)}
+                      className="w-6 h-6 rounded-full bg-black/5 flex items-center justify-center text-xs font-bold"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="space-y-2 text-xs text-[#5A4B3D]">
+                    <div className="flex items-start gap-2">
+                      <span className="w-5 h-5 rounded-full bg-[#FFB238] text-black font-bold flex items-center justify-center shrink-0">
+                        1
+                      </span>
+                      <span>Kumpul cop setiap kali pembelian di kaunter.</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="w-5 h-5 rounded-full bg-[#FFB238] text-black font-bold flex items-center justify-center shrink-0">
+                        2
+                      </span>
+                      <span>Bila kad penuh, beritahu staf kaunter untuk tebus hadiah percuma!</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowHowToRedeemModal(false)}
+                    className="w-full mt-4 py-2 bg-[#1C7A67] text-white text-xs font-bold rounded-xl"
+                  >
+                    Faham
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 2. Ganjaran Modal */}
+            {showRewardsModal && (
+              <div
+                onClick={() => setShowRewardsModal(false)}
+                className="absolute inset-3 bg-black/60 backdrop-blur-xs rounded-[36px] z-50 flex items-center justify-center p-4 anim-fade"
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full bg-[#FFFDF8] rounded-2xl p-5 border border-[#F0DEC0] shadow-xl text-left"
+                >
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-bold font-serif text-base text-[#1B0F09]">
+                      🎁 Katalog Hadiah
+                    </h3>
+                    <button
+                      onClick={() => setShowRewardsModal(false)}
+                      className="w-6 h-6 rounded-full bg-black/5 flex items-center justify-center text-xs font-bold"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="space-y-2 max-h-56 overflow-y-auto">
+                    {config.rewards.map((rew) => (
+                      <div
+                        key={rew.id}
+                        className="p-2.5 bg-white border border-[#F0DEC0] rounded-xl flex items-center justify-between gap-2"
+                      >
+                        <div className="min-w-0">
+                          <div className="font-bold text-xs truncate">{rew.name}</div>
+                          <div className="text-[10px] text-[#96806B] truncate">{rew.desc}</div>
+                        </div>
+                        <span className="text-[10px] font-bold px-2 py-1 rounded bg-[#FF7A45]/15 text-[#FF7A45] shrink-0">
+                          {rew.stampsRequired} Cop
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => setShowRewardsModal(false)}
+                    className="w-full mt-4 py-2 bg-[#1C7A67] text-white text-xs font-bold rounded-xl"
+                  >
+                    Tutup
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 3. Google Review Modal */}
+            {showReviewModal && (
+              <div
+                onClick={() => setShowReviewModal(false)}
+                className="absolute inset-3 bg-black/60 backdrop-blur-xs rounded-[36px] z-50 flex items-center justify-center p-4 anim-fade"
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full bg-[#FFFDF8] rounded-2xl p-5 border border-[#F0DEC0] shadow-xl text-center"
+                >
+                  <button
+                    onClick={() => setShowReviewModal(false)}
+                    className="absolute top-3 right-3 w-6 h-6 rounded-full bg-black/5 flex items-center justify-center text-xs font-bold"
+                  >
+                    ✕
+                  </button>
+                  <h3 className="font-bold font-serif text-base text-[#1B0F09] mb-1">
+                    ⭐ Nilai {config.storeName} di Google
+                  </h3>
+                  <p className="text-xs text-[#96806B] mb-3">
+                    Sentuh bintang untuk beri ulasan penilaian anda bagi {config.storeName}.
+                  </p>
+                  <div className="flex justify-center gap-1.5 text-2xl text-[#FFB238] mb-3">
+                    <span>★</span>
+                    <span>★</span>
+                    <span>★</span>
+                    <span>★</span>
+                    <span>★</span>
+                  </div>
+                  <button
+                    onClick={() => setShowReviewModal(false)}
+                    className="w-full py-2 bg-[#FF7A45] text-white text-xs font-bold rounded-xl"
+                  >
+                    Buka Google Review ↗
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 4. Lokasi Modal */}
+            {showLocationModal && (
+              <div
+                onClick={() => setShowLocationModal(false)}
+                className="absolute inset-3 bg-black/60 backdrop-blur-xs rounded-[36px] z-50 flex items-center justify-center p-4 anim-fade"
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full bg-[#FFFDF8] rounded-2xl p-5 border border-[#F0DEC0] shadow-xl text-left"
+                >
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-bold font-serif text-base text-[#1B0F09]">
+                      📍 Lokasi Kedai
+                    </h3>
+                    <button
+                      onClick={() => setShowLocationModal(false)}
+                      className="w-6 h-6 rounded-full bg-black/5 flex items-center justify-center text-xs font-bold"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {config.locations.map((loc, idx) => (
+                      <div key={idx} className="p-2.5 bg-white border border-[#F0DEC0] rounded-xl">
+                        <div className="font-bold text-xs">{loc.name}</div>
+                        <div className="text-[10px] text-[#96806B] mb-2">{loc.address}</div>
+                        <a
+                          href={loc.mapUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-block px-2.5 py-1 text-[10px] font-bold bg-[#FF7A45]/10 text-[#FF7A45] rounded-lg"
+                        >
+                          Buka di Google Maps ↗
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => setShowLocationModal(false)}
+                    className="w-full mt-4 py-2 bg-[#1C7A67] text-white text-xs font-bold rounded-xl"
+                  >
+                    Tutup
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
