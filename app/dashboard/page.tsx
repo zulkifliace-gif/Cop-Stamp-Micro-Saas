@@ -1016,16 +1016,6 @@ export default function CashierDashboard() {
     fetchCustomersList('')
   }
 
-  function handleSelectCustomerToRedeem(email: string) {
-    setShowCustomersModal(false)
-    setSearchEmail(email)
-    const searchSectionElem = document.getElementById('counter-claim-section')
-    if (searchSectionElem) {
-      searchSectionElem.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }
-    handleSearchCustomer(undefined, email)
-  }
-
   // 11. Cashier "Done Claim" Reward Action & Auto-Print Receipt
   async function handleRedeemReward() {
     if (!searchResult) return
@@ -2135,9 +2125,8 @@ export default function CashierDashboard() {
               className="bg-[#FAF2E2]/[0.06] hover:bg-[#FAF2E2]/[0.12] active:scale-95 border border-[#FAF2E2]/12 hover:border-[#E5A43B]/40 rounded-xl sm:rounded-2xl px-1.5 py-2.5 sm:p-3 text-center min-w-0 transition cursor-pointer group flex flex-col items-center justify-between"
               title={lang === 'en' ? 'Click to view active customers list' : 'Tekan untuk lihat senarai pelanggan'}
             >
-              <div className="text-[8px] xs:text-[9px] sm:text-[10px] font-space uppercase text-[#5E6F68] group-hover:text-[#E5A43B] font-bold leading-tight truncate flex items-center justify-center gap-1 w-full">
+              <div className="text-[8px] xs:text-[9px] sm:text-[10px] font-space uppercase text-[#5E6F68] group-hover:text-[#E5A43B] font-bold leading-tight truncate flex items-center justify-center w-full">
                 <span>{t.stats.customers}</span>
-                <span className="text-[9px] opacity-70 group-hover:opacity-100">🔍</span>
               </div>
               <div className="text-sm xs:text-base sm:text-xl font-fraunces font-bold text-[#E5A43B] mt-0.5 min-h-[22px] sm:min-h-[28px] flex items-center justify-center">
                 {statsLoading ? (
@@ -4324,19 +4313,24 @@ export default function CashierDashboard() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-[460px] bg-[#FAF2E2] text-[#1C2624] rounded-[28px] p-5 sm:p-6 shadow-2xl border border-[#E5A43B]/30 anim-scale max-h-[85vh] flex flex-col"
+            className="relative w-full max-w-[440px] bg-[#FFF7EA] text-[#2B1B12] rounded-[28px] p-5 sm:p-6 shadow-2xl border border-[#F0DEC0] anim-scale max-h-[85vh] flex flex-col font-jakarta"
+            style={{
+              backgroundColor: '#FFF7EA',
+              backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(43,27,18,0.055) 1px, transparent 1px)',
+              backgroundSize: '20px 20px',
+            }}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-[#E4D9BE]/60 shrink-0">
+            <div className="flex items-center justify-between pb-3 border-b border-[#F0DEC0] shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-[#E5A43B]/20 text-[#C77B1B] flex items-center justify-center text-xl font-bold">
+                <div className="w-9 h-9 rounded-2xl bg-[#FF7A45]/15 text-[#FF7A45] flex items-center justify-center text-lg font-bold">
                   👥
                 </div>
                 <div>
-                  <h3 className="font-fraunces font-bold text-base sm:text-lg text-[#0A1716] leading-tight">
+                  <h3 className="font-fraunces font-bold text-base sm:text-lg text-[#1B0F09] leading-tight">
                     {t.customersModal.title}
                   </h3>
-                  <p className="text-[11px] text-[#5E6F68] font-jakarta">
+                  <p className="text-[11px] text-[#96806B] font-jakarta">
                     {t.customersModal.subTitle(customersList.length)}
                   </p>
                 </div>
@@ -4344,7 +4338,7 @@ export default function CashierDashboard() {
               <button
                 type="button"
                 onClick={() => setShowCustomersModal(false)}
-                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-gray-500 hover:text-gray-800 text-lg font-bold transition cursor-pointer"
+                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-[#96806B] hover:text-[#2B1B12] text-lg font-bold transition cursor-pointer"
               >
                 &times;
               </button>
@@ -4362,9 +4356,9 @@ export default function CashierDashboard() {
                     fetchCustomersList(q)
                   }}
                   placeholder={t.customersModal.searchPlaceholder}
-                  className="w-full pl-8 pr-8 py-2.5 text-xs bg-white border border-[#E4D9BE] rounded-xl outline-none focus:ring-2 focus:ring-[#1E5E53] font-jakarta placeholder:text-gray-400 text-[#1C2624]"
+                  className="w-full pl-8 pr-8 py-2.5 text-xs bg-[#FFFDF8] border border-[#F0DEC0] rounded-xl outline-none focus:ring-2 focus:ring-[#FF7A45] font-jakarta placeholder:text-gray-400 text-[#2B1B12]"
                 />
-                <svg className="w-4 h-4 text-gray-400 absolute left-2.5 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <svg className="w-4 h-4 text-[#96806B] absolute left-2.5 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <circle cx="11" cy="11" r="8" />
                   <path d="m21 21-4.3-4.3" />
                 </svg>
@@ -4375,7 +4369,7 @@ export default function CashierDashboard() {
                       setCustomerSearchQuery('')
                       fetchCustomersList('')
                     }}
-                    className="absolute right-2.5 text-gray-400 hover:text-gray-600 text-xs font-bold p-1 cursor-pointer"
+                    className="absolute right-2.5 text-[#96806B] hover:text-[#2B1B12] text-xs font-bold p-1 cursor-pointer"
                   >
                     ✕
                   </button>
@@ -4386,91 +4380,46 @@ export default function CashierDashboard() {
             {/* Customers list content (scrollable) */}
             <div className="flex-1 overflow-y-auto space-y-2 py-2 pr-1 -mr-1">
               {isLoadingCustomers ? (
-                <div className="py-12 text-center text-xs text-[#5E6F68]">
-                  <div className="w-6 h-6 border-2 border-[#E5A43B] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                <div className="py-12 text-center text-xs text-[#96806B]">
+                  <div className="w-6 h-6 border-2 border-[#FF7A45] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                   <span>{t.customersModal.loading}</span>
                 </div>
               ) : customersList.length === 0 ? (
-                <div className="py-10 text-center text-xs text-[#5E6F68] px-4">
-                  <span className="text-3xl mb-1 block">🔍</span>
-                  <p className="font-semibold text-gray-700">
+                <div className="py-10 text-center text-xs text-[#96806B] px-4">
+                  <p className="font-semibold text-[#5A4B3D]">
                     {customerSearchQuery ? t.customersModal.noCustomersFound : t.customersModal.noCustomersYet}
                   </p>
                 </div>
               ) : (
-                customersList.map((customer) => {
-                  const isEligible = customer.totalStamps >= (stampsRequired || 10)
-                  return (
-                    <div
-                      key={customer.id}
-                      className="flex items-center justify-between p-3 bg-white hover:bg-[#FFF8EC] border border-[#E4D9BE]/80 rounded-2xl transition shadow-xs gap-2"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        {/* Avatar / Initials */}
-                        {customer.avatarUrl ? (
-                          <img
-                            src={customer.avatarUrl}
-                            alt={customer.name}
-                            className="w-9 h-9 rounded-full object-cover border border-[#E5A43B]/40 shrink-0"
-                          />
-                        ) : (
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#1E5E53] to-[#2D786B] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs uppercase">
-                            {customer.name?.slice(0, 2) || customer.maskedEmail?.slice(0, 2) || 'PL'}
-                          </div>
-                        )}
-
-                        {/* Customer details */}
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-mono font-bold text-xs text-[#1C2624] tracking-tight">
-                              {customer.maskedEmail}
-                            </span>
-                            {customer.name && customer.name !== customer.email && (
-                              <span className="text-[10px] text-gray-500 font-medium truncate max-w-[120px]">
-                                ({customer.name})
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#C77B1B]">
-                              <span>⚡</span>
-                              <span>{t.customersModal.accumulatedStamps(customer.totalStamps)}</span>
-                            </span>
-                            {customer.fullCards > 0 && (
-                              <span className="text-[9.5px] font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded-md">
-                                {t.customersModal.fullCards(customer.fullCards)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Action: Select to redeem */}
-                      <button
-                        type="button"
-                        onClick={() => handleSelectCustomerToRedeem(customer.email)}
-                        className={`text-[11px] font-bold px-3 py-1.5 rounded-xl transition cursor-pointer shrink-0 active:scale-95 flex items-center gap-1 ${
-                          isEligible
-                            ? 'bg-[#1E5E53] hover:bg-[#16483f] text-white shadow-xs'
-                            : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                        }`}
-                        title={t.customersModal.selectToRedeem}
-                      >
-                        <span>{isEligible ? '🎁' : '🔍'}</span>
-                        <span>{isEligible ? t.customersModal.readyToRedeem : 'Tebus'}</span>
-                      </button>
+                customersList.map((customer) => (
+                  <div
+                    key={customer.id}
+                    className="flex items-center justify-between p-3.5 bg-[#FFFDF8] border border-[#F0DEC0] rounded-2xl shadow-xs gap-3 hover:border-[#FF7A45]/40 transition"
+                  >
+                    {/* Email sahaja */}
+                    <div className="min-w-0 flex-1">
+                      <span className="font-mono font-bold text-xs text-[#2B1B12] tracking-tight truncate block">
+                        {customer.maskedEmail}
+                      </span>
                     </div>
-                  )
-                })
+
+                    {/* Jumlah cop sahaja (cth: terkumpul 5) */}
+                    <div className="shrink-0 flex items-center">
+                      <span className="text-xs font-bold text-[#FF7A45] bg-[#FF7A45]/10 px-2.5 py-1 rounded-xl whitespace-nowrap">
+                        {t.customersModal.accumulatedStamps(customer.totalStamps)}
+                      </span>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
 
             {/* Modal Footer */}
-            <div className="pt-3 border-t border-[#E4D9BE]/60 shrink-0">
+            <div className="pt-3 border-t border-[#F0DEC0] shrink-0">
               <button
                 type="button"
                 onClick={() => setShowCustomersModal(false)}
-                className="w-full py-2.5 bg-gray-200 hover:bg-gray-300 active:scale-98 text-[#1C2624] font-bold text-xs rounded-xl transition cursor-pointer"
+                className="w-full py-2.5 bg-[#FFFDF8] hover:bg-[#FCE7D2] border border-[#F0DEC0] active:scale-98 text-[#2B1B12] font-bold text-xs rounded-xl transition cursor-pointer shadow-xs"
               >
                 {t.customersModal.closeBtn}
               </button>
