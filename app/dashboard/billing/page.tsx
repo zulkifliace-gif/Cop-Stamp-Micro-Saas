@@ -28,6 +28,7 @@ function BillingContent() {
 
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly')
   const [isProcessing, setIsProcessing] = useState<boolean>(false)
+  const [isAndroidApp, setIsAndroidApp] = useState<boolean>(false)
   const [errorMsg, setErrorMsg] = useState<string>('')
   const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'info' | 'error' } | null>(null)
 
@@ -104,7 +105,61 @@ function BillingContent() {
         type: 'info',
       })
     }
-  }, [])
+
+    // Check if running in Android Native App with Google Play Billing
+    if (typeof window !== 'undefined' && (window as any).AndroidBilling?.isAvailable()) {
+      setIsAndroidApp(true)
+    }
+
+    if (typeof window !== 'undefined') {
+      ;(window as any).onGooglePlayPurchaseResult = async (status: string, data: any) => {
+        if (status === 'success') {
+          try {
+            setIsProcessing(true)
+            const parsed = typeof data === 'string' ? JSON.parse(data) : data
+            const res = await fetch('/api/billing/google-play/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(parsed),
+            })
+            const resData = await res.json()
+            if (res.ok) {
+              setPlanType('pro')
+              setSubscriptionStatus('active')
+              setToastMsg({
+                text:
+                  lang === 'en'
+                    ? '🎉 Google Play Subscription successful! Welcome to Pro.'
+                    : '🎉 Langganan Google Play berjaya! Selamat datang ke Pelan Pro.',
+                type: 'success',
+              })
+            } else {
+              setErrorMsg(resData.error || (lang === 'en' ? 'Google Play verification failed.' : 'Pengesahan Google Play gagal.'))
+            }
+          } catch (e: any) {
+            setErrorMsg(e.message || (lang === 'en' ? 'Error processing subscription.' : 'Ralat memproses langganan.'))
+          } finally {
+            setIsProcessing(false)
+          }
+        } else if (status === 'cancelled') {
+          setIsProcessing(false)
+          setToastMsg({
+            text: lang === 'en' ? 'Google Play payment was cancelled.' : 'Pembayaran Google Play dibatalkan.',
+            type: 'info',
+          })
+        } else {
+          setIsProcessing(false)
+          setErrorMsg(typeof data === 'string' ? data : (lang === 'en' ? 'Google Play payment error.' : 'Ralat pembayaran Google Play.'))
+        }
+      }
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        delete (window as any).onGooglePlayPurchaseResult
+      }
+    }
+  }, [lang])
 
   function switchLang(newLang: 'my' | 'en') {
     setLang(newLang)
@@ -151,6 +206,24 @@ function BillingContent() {
   async function handleCheckout(planChoice: 'monthly' | 'yearly') {
     setIsProcessing(true)
     setErrorMsg('')
+
+    // If running inside Android native app, trigger Google Play Billing
+    if (isAndroidApp) {
+      const productId = planChoice === 'yearly' ? 'lajus_pro_yearly' : 'lajus_pro_monthly'
+      const ab = (window as any).AndroidBilling
+      if (ab && typeof ab.launchPurchase === 'function') {
+        ab.launchPurchase(productId)
+      } else {
+        setErrorMsg(
+          lang === 'en'
+            ? 'Google Play Billing is not ready on this device.'
+            : 'Google Play Billing belum bersedia pada peranti anda.'
+        )
+        setIsProcessing(false)
+      }
+      return
+    }
+
     try {
       const res = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
@@ -550,6 +623,25 @@ function BillingContent() {
                 >
                   <span>{isProcessing ? (lang === 'en' ? 'Processing...' : 'Memproses...') : (lang === 'en' ? 'Manage Billing & Invoices (Stripe Portal) ↗' : 'Urus Langganan & Invois (Stripe Portal) ↗')}</span>
                 </button>
+              ) : isAndroidApp ? (
+                <button
+                  type="button"
+                  onClick={() => handleCheckout(billingCycle)}
+                  disabled={isProcessing}
+                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] hover:brightness-110 active:scale-[0.98] text-[#1A2422] font-jakarta font-black text-sm transition flex items-center justify-center gap-2.5 cursor-pointer shadow-[0_4px_20px_rgba(229,164,59,0.4)] hover:shadow-[0_4px_28px_rgba(229,164,59,0.55)] disabled:opacity-50"
+                >
+                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                    <path d="M3.609 1.814L13.793 12 3.61 22.186a2.38 2.38 0 0 1-.22-.968V2.782c0-.36.08-.697.22-.968z" fill="#00D3FE"/>
+                    <path d="M17.15 8.643l-3.357 3.357 3.357 3.357 3.79-2.155a1.868 1.868 0 0 0 0-3.238l-3.79-2.155z" fill="#FFCE00"/>
+                    <path d="M3.61 22.186L13.793 12l3.357 3.357-11.45 6.51c-.69.39-1.48.33-2.09-.04z" fill="#FF3A44"/>
+                    <path d="M13.793 12L3.609 1.814C4.22 1.444 5.01 1.384 5.7 1.774l11.45 6.51L13.793 12z" fill="#00E676"/>
+                  </svg>
+                  <span>
+                    {isProcessing
+                      ? (lang === 'en' ? 'Connecting to Google Play...' : 'Menghubungkan ke Google Play...')
+                      : (lang === 'en' ? 'Subscribe with Google Play ⚡' : 'Langgan melalui Google Play ⚡')}
+                  </span>
+                </button>
               ) : (
                 <button
                   type="button"
@@ -562,7 +654,9 @@ function BillingContent() {
               )}
 
               <p className="text-center text-[10.5px] text-[#8E9B95] mt-2.5">
-                {lang === 'en' ? 'Secure payments via Stripe • Cancel anytime' : 'Bayaran selamat melalui Stripe • Batal bila-bila masa'}
+                {isAndroidApp
+                  ? (lang === 'en' ? '1-Tap secure checkout via Google Play (Google Pay, Touch \'n Go, Telco, Card)' : 'Bayaran 1-klik selamat melalui Google Play (Google Pay, Touch \'n Go, Bil Telco, Kad)')
+                  : (lang === 'en' ? 'Secure payments via Stripe • Cancel anytime' : 'Bayaran selamat melalui Stripe • Batal bila-bila masa')}
               </p>
             </div>
           </div>
