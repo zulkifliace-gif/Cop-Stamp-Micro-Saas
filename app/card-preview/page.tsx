@@ -101,9 +101,18 @@ export default function LiveCardPreviewPage() {
           <span>← Kembali ke Card Studio</span>
         </Link>
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-gray-300 font-semibold hidden sm:inline">
-            Pratonton Halaman /card Penuh (4 Blok Tersuai)
-          </span>
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm('Tetapkan semula pratonton kepada reka bentuk asal seperti halaman /card live?')) {
+                setConfig(DEFAULT_LIVE_STUDIO_CONFIG)
+                localStorage.setItem('cop_card_studio_config', JSON.stringify(DEFAULT_LIVE_STUDIO_CONFIG))
+              }
+            }}
+            className="text-xs font-semibold bg-gray-800 hover:bg-gray-700 text-gray-200 px-2.5 py-1.5 rounded-lg transition cursor-pointer"
+          >
+            🔄 Reset Asal
+          </button>
           <Link
             href="/card"
             className="text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg transition"

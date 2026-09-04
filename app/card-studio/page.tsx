@@ -1212,9 +1212,11 @@ export default function CardStudioPage() {
   }
 
   const handleReset = () => {
-    if (confirm('Adakah anda pasti untuk menetapkan semula tetapan kepada reka bentuk asal?')) {
+    if (confirm('Adakah anda pasti untuk menetapkan semula tetapan kepada reka bentuk asal seperti halaman /card live?')) {
       setConfig(DEFAULT_LIVE_STUDIO_CONFIG)
-      localStorage.removeItem('cop_card_studio_config')
+      localStorage.setItem('cop_card_studio_config', JSON.stringify(DEFAULT_LIVE_STUDIO_CONFIG))
+      setSavedSuccess(true)
+      setTimeout(() => setSavedSuccess(false), 2500)
     }
   }
 
