@@ -6,8 +6,9 @@ import {
   LiveStudioConfig,
   DEFAULT_LIVE_STUDIO_CONFIG,
   sanitizeLiveConfig,
-  LiveBlockId,
-  LiveBlockConfig,
+  EditableBlockId,
+  EditableBlockConfig,
+  DEFAULT_4_BLOCKS,
 } from '../card-studio/page'
 
 function renderLiveSocialIcon(platform: string) {
@@ -63,19 +64,24 @@ export default function LiveCardPreviewPage() {
     }
   }, [])
 
-  const getBlock = (id: LiveBlockId): LiveBlockConfig => {
-    return config.blocks.find((b) => b.id === id) || DEFAULT_LIVE_STUDIO_CONFIG.blocks.find((b) => b.id === id)!
+  const getBlock = (id: EditableBlockId): EditableBlockConfig => {
+    return config.blocks?.find((b) => b.id === id) || DEFAULT_4_BLOCKS.find((b) => b.id === id)!
   }
 
-  const totalStamps = config.simulatedStamps
-  const reqStamps = config.stampsRequired
+  const heroBlock = getBlock('hero_header')
+  const profileBlock = getBlock('store_profile')
+  const cardBoxBlock = getBlock('stamp_card_box')
+  const progressBlock = getBlock('progress_bar')
+
+  const totalStamps = config.simulatedStamps || 4
+  const reqStamps = config.stampsRequired || 10
   const isFull = totalStamps >= reqStamps
   const remainStamps = Math.max(0, reqStamps - totalStamps)
   const percentFill = Math.min(100, Math.round((totalStamps / reqStamps) * 100))
 
   return (
     <div
-      className="min-h-screen text-[#2B1B12] font-jakarta"
+      className="min-h-screen text-[#2B1B12] font-sans antialiased"
       style={{
         backgroundColor: config.pageBgColor,
         backgroundImage: `radial-gradient(circle at 1px 1px, ${config.pageDotColor} 1px, transparent 1px)`,
@@ -92,7 +98,7 @@ export default function LiveCardPreviewPage() {
         </Link>
         <div className="flex items-center gap-2">
           <span className="text-[11px] text-gray-300 font-semibold hidden sm:inline">
-            Pratonton Halaman /card Penuh
+            Pratonton Halaman /card Penuh (4 Blok Tersuai)
           </span>
           <Link
             href="/card"
@@ -106,90 +112,94 @@ export default function LiveCardPreviewPage() {
       {/* CARD MAIN APP WRAPPER (430PX MAX WIDTH LIKE PRODUCTION) */}
       <div className="w-full max-w-[430px] mx-auto pb-12">
         {/* 1. HERO HEADER */}
-        {getBlock('hero_header').visible && (
+        {heroBlock.visible && (
           <div
             className="relative overflow-hidden pt-6 px-4 pb-6 transition-all"
             style={{
-              background: `linear-gradient(135deg, ${getBlock('hero_header').bgColor} 0%, ${getBlock('hero_header').bgColor2 || config.secondaryAccent} 100%)`,
-              borderRadius: `0 0 ${getBlock('hero_header').borderRadius}px ${getBlock('hero_header').borderRadius}px`,
-              boxShadow: getBlock('hero_header').shadowStyle === 'glow' ? `0 20px 36px -14px ${getBlock('hero_header').bgColor}77` : 'none',
+              background: `linear-gradient(135deg, ${heroBlock.bgColor} 0%, ${heroBlock.bgColor2 || config.secondaryAccent} 100%)`,
+              borderRadius: `0 0 ${heroBlock.borderRadius}px ${heroBlock.borderRadius}px`,
+              boxShadow: heroBlock.shadowStyle === 'glow' ? `0 20px 36px -14px ${heroBlock.bgColor}77` : 'none',
             }}
           >
             <div className="absolute w-[190px] h-[190px] rounded-full bg-white/15 -top-20 -right-12 pointer-events-none" />
             <div className="absolute w-[130px] h-[130px] rounded-full bg-white/10 -bottom-16 -left-10 pointer-events-none" />
 
-            {/* 2. TOPBAR */}
-            {getBlock('topbar').visible && (
-              <div className="relative z-10 flex items-center justify-between mb-4">
-                <div className="flex items-center gap-0.5 bg-white/20 border border-white/30 rounded-full p-0.5 backdrop-blur-xs">
-                  <button
-                    type="button"
-                    onClick={() => setActiveLang('my')}
-                    className={`text-[11.5px] font-bold px-3 py-1 rounded-full transition cursor-pointer ${
-                      activeLang === 'my' ? 'bg-white text-[#FF5A45]' : 'text-white/80'
-                    }`}
-                  >
-                    MY
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveLang('en')}
-                    className={`text-[11.5px] font-bold px-3 py-1 rounded-full transition cursor-pointer ${
-                      activeLang === 'en' ? 'bg-white text-[#FF5A45]' : 'text-white/80'
-                    }`}
-                  >
-                    EN
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setActiveModal('qr')}
-                    className="w-8 h-8 rounded-full bg-white/20 border border-white/30 text-amber-200 flex items-center justify-center hover:bg-white/30 transition cursor-pointer"
-                    title="Kod QR Pelanggan"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="w-4 h-4">
-                      <rect x="3" y="3" width="7" height="7" rx="1.2" />
-                      <rect x="14" y="3" width="7" height="7" rx="1.2" />
-                      <rect x="3" y="14" width="7" height="7" rx="1.2" />
-                      <path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v.01" />
-                    </svg>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveModal('locations')}
-                    className="w-8 h-8 rounded-full bg-white/20 border border-white/30 text-white flex items-center justify-center hover:bg-white/30 transition cursor-pointer"
-                    title="Lokasi Cawangan"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="w-4 h-4">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                      <circle cx="12" cy="10" r="3" />
-                    </svg>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => window.location.reload()}
-                    className="w-8 h-8 rounded-full bg-white/20 border border-white/30 text-white flex items-center justify-center hover:bg-white/30 transition cursor-pointer"
-                    title="Segarkan data"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="w-4 h-4">
-                      <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
-                    </svg>
-                  </button>
-                </div>
+            {/* 2. TOPBAR (Fixed Component) */}
+            <div className="relative z-10 flex items-center justify-between mb-4">
+              <div className="flex items-center gap-0.5 bg-white/20 border border-white/30 rounded-full p-0.5 backdrop-blur-xs">
+                <button
+                  type="button"
+                  onClick={() => setActiveLang('my')}
+                  className={`text-[11.5px] font-bold px-3 py-1 rounded-full transition cursor-pointer ${
+                    activeLang === 'my' ? 'bg-white text-[#FF5A45]' : 'text-white/80'
+                  }`}
+                >
+                  MY
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveLang('en')}
+                  className={`text-[11.5px] font-bold px-3 py-1 rounded-full transition cursor-pointer ${
+                    activeLang === 'en' ? 'bg-white text-[#FF5A45]' : 'text-white/80'
+                  }`}
+                >
+                  EN
+                </button>
               </div>
-            )}
 
-            {/* 3. STORE PROFILE */}
-            {getBlock('store_profile').visible && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveModal('qr')}
+                  className="w-8 h-8 rounded-full bg-white/20 border border-white/30 text-amber-200 flex items-center justify-center hover:bg-white/30 transition cursor-pointer"
+                  title="Kod QR Pelanggan"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="w-4 h-4">
+                    <rect x="3" y="3" width="7" height="7" rx="1.2" />
+                    <rect x="14" y="3" width="7" height="7" rx="1.2" />
+                    <rect x="3" y="14" width="7" height="7" rx="1.2" />
+                    <path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v.01" />
+                  </svg>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveModal('locations')}
+                  className="w-8 h-8 rounded-full bg-white/20 border border-white/30 text-white flex items-center justify-center hover:bg-white/30 transition cursor-pointer"
+                  title="Lokasi Cawangan"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="w-4 h-4">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => window.location.reload()}
+                  className="w-8 h-8 rounded-full bg-white/20 border border-white/30 text-white flex items-center justify-center hover:bg-white/30 transition cursor-pointer"
+                  title="Segarkan data"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="w-4 h-4">
+                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* 3. STORE PROFILE (Editable Block) */}
+            {profileBlock.visible && (
               <div className="relative z-10 flex flex-col items-center text-center">
-                <div className="w-20 h-20 rounded-full bg-white shadow-xl border-[3px] border-white/60 mb-2.5 overflow-hidden flex items-center justify-center shrink-0">
-                  {getBlock('store_profile').imageUrl ? (
+                <div
+                  className="w-20 h-20 rounded-full shadow-xl mb-2.5 overflow-hidden flex items-center justify-center shrink-0"
+                  style={{
+                    backgroundColor: profileBlock.bgColor || '#FFFFFF',
+                    border: `3px solid ${profileBlock.borderColor || 'rgba(255,255,255,0.6)'}`,
+                  }}
+                >
+                  {profileBlock.imageUrl ? (
                     <img
-                      src={getBlock('store_profile').imageUrl}
+                      src={profileBlock.imageUrl}
                       alt="Logo"
                       className="w-full h-full object-cover"
                     />
@@ -199,8 +209,11 @@ export default function LiveCardPreviewPage() {
                 </div>
 
                 <div className="flex items-center justify-center gap-1.5">
-                  <span className="font-serif font-bold text-xl text-white leading-tight">
-                    {getBlock('store_profile').title || config.storeName}
+                  <span
+                    className="font-serif font-bold text-xl leading-tight"
+                    style={{ color: profileBlock.extraText || profileBlock.textColor || '#FFFFFF' }}
+                  >
+                    {profileBlock.title || config.storeName}
                   </span>
                   <img
                     src="/green-checkmark-line-icon.svg"
@@ -211,516 +224,490 @@ export default function LiveCardPreviewPage() {
               </div>
             )}
 
-            {/* 4. SOCIAL LINKS */}
-            {getBlock('social_links').visible && (
-              <div className="relative z-10 flex items-center justify-center gap-2 mt-3">
-                {['whatsapp', 'instagram', 'tiktok', 'facebook'].map((plat) => (
-                  <button
-                    key={plat}
-                    type="button"
-                    onClick={() => alert(`Buka pautan ${plat}`)}
-                    className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 border border-white/30 flex items-center justify-center text-white transition cursor-pointer"
-                  >
-                    {renderLiveSocialIcon(plat)}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* 5. ACTION PILLS */}
-            {getBlock('action_pills').visible && (
-              <div className="relative z-10 flex items-center justify-center gap-2 mt-4 flex-wrap">
+            {/* 4. SOCIAL LINKS (Fixed Component) */}
+            <div className="relative z-10 flex items-center justify-center gap-2 mt-3">
+              {['whatsapp', 'instagram', 'tiktok', 'facebook'].map((plat) => (
                 <button
+                  key={plat}
                   type="button"
-                  onClick={() => setActiveModal('google_review')}
-                  className="bg-white hover:bg-amber-50 text-[#1B0F09] font-bold text-xs px-3.5 py-2 rounded-xl shadow-sm border border-[#F0DEC0] flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                  onClick={() => alert(`Pautan media sosial ${plat}`)}
+                  className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 border border-white/30 flex items-center justify-center text-white transition cursor-pointer"
                 >
-                  <img src="/Google-Review.svg" alt="Review" className="w-4 h-4 object-contain" />
-                  <span>Review</span>
+                  {renderLiveSocialIcon(plat)}
                 </button>
+              ))}
+            </div>
 
-                <button
-                  type="button"
-                  onClick={() => setActiveModal('how_to_redeem')}
-                  className="bg-white hover:bg-amber-50 text-[#1B0F09] font-bold text-xs px-3.5 py-2 rounded-xl shadow-sm border border-[#F0DEC0] flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 text-[#FF5A45]">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="16" x2="12" y2="12" />
-                    <line x1="12" y1="8" x2="12.01" y2="8" />
-                  </svg>
-                  <span>Cara Tebus</span>
-                </button>
+            {/* 5. ACTION PILLS (Fixed Component) */}
+            <div className="relative z-10 flex items-center justify-center gap-2 mt-4 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setActiveModal('google_review')}
+                className="bg-white hover:bg-amber-50 text-[#1B0F09] font-bold text-xs px-3.5 py-2 rounded-xl shadow-sm border border-[#F0DEC0] flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+              >
+                <img src="/Google-Review.svg" alt="Review" className="w-4 h-4 object-contain" />
+                <span>Review</span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => setActiveModal('rewards')}
-                  className="bg-white hover:bg-amber-50 text-[#1B0F09] font-bold text-xs px-3.5 py-2 rounded-xl shadow-sm border border-[#F0DEC0] flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="w-3.5 h-3.5 text-[#FF5A45]">
-                    <polyline points="20 12 20 22 4 22 4 12" />
-                    <rect x="2" y="7" width="20" height="5" />
-                    <line x1="12" y1="22" x2="12" y2="7" />
-                  </svg>
-                  <span>Ganjaran</span>
-                </button>
-              </div>
-            )}
+              <button
+                type="button"
+                onClick={() => setActiveModal('how_to_redeem')}
+                className="bg-white hover:bg-amber-50 text-[#1B0F09] font-bold text-xs px-3.5 py-2 rounded-xl shadow-sm border border-[#F0DEC0] flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 text-[#FF5A45]">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                <span>Cara Penebusan</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveModal('rewards')}
+                className="bg-white hover:bg-amber-50 text-[#1B0F09] font-bold text-xs px-3.5 py-2 rounded-xl shadow-sm border border-[#F0DEC0] flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5 text-amber-500">
+                  <path d="M20 12v10H4V12" />
+                  <path d="M2 7h20v5H2z" />
+                  <path d="M12 22V7" />
+                  <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+                  <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+                </svg>
+                <span>Ganjaran</span>
+              </button>
+            </div>
           </div>
         )}
 
-        {/* 6. CONTENT BELOW HERO */}
-        <div className="px-4 pt-4 space-y-3.5">
-          {/* 6.1 MULTI-STORE TABS */}
-          {getBlock('store_tabs').visible && (
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-              <button
-                type="button"
-                className="bg-[#FF5A45] text-white text-xs font-bold px-3.5 py-1.5 rounded-full shadow-xs shrink-0 flex items-center gap-1.5"
-              >
-                <span>{config.storeName}</span>
-                <span className="bg-white/30 text-white text-[10px] px-2 py-0.5 rounded-full">
-                  {totalStamps} cop
-                </span>
-              </button>
-              <button
-                type="button"
-                className="bg-[#FFFDF8] text-[#96806B] border border-[#F0DEC0] text-xs font-bold px-3.5 py-1.5 rounded-full shrink-0 flex items-center gap-1.5"
-              >
-                <span>Cawangan Bangi</span>
-                <span className="bg-[#FF5A45]/15 text-[#FF5A45] text-[10px] px-2 py-0.5 rounded-full">
-                  2 cop
-                </span>
-              </button>
-            </div>
-          )}
-
-          {/* 6.2 MAIN STAMP CARD CONTAINER */}
-          {getBlock('stamp_card_box').visible && (
+        {/* 6. STAMP CARD BOX (Editable Block) */}
+        {cardBoxBlock.visible && (
+          <div className="px-4 -mt-3 relative z-20">
             <div
-              className="p-6 text-[#2B1B12] transition-all"
+              className="p-5 relative transition-all"
               style={{
-                backgroundColor: getBlock('stamp_card_box').bgColor,
-                borderColor: getBlock('stamp_card_box').borderColor,
-                borderRadius: `${getBlock('stamp_card_box').borderRadius}px`,
+                backgroundColor: cardBoxBlock.bgColor || '#FFFDF8',
+                borderColor: cardBoxBlock.borderColor || '#F0DEC0',
                 borderWidth: '1px',
                 borderStyle: 'solid',
-                boxShadow: '0 10px 30px rgba(43,27,18,0.06)',
+                borderRadius: `${cardBoxBlock.borderRadius || 28}px`,
+                boxShadow:
+                  cardBoxBlock.shadowStyle === 'glow'
+                    ? '0 16px 36px -10px rgba(255,122,69,0.22)'
+                    : cardBoxBlock.shadowStyle === 'soft'
+                    ? '0 12px 32px -8px rgba(43,27,18,0.08)'
+                    : 'none',
               }}
             >
-              {/* 7. HEAD */}
-              {getBlock('stamp_card_head').visible && (
-                <div className="text-center mb-1">
-                  <div
-                    className="text-xs font-extrabold uppercase tracking-wider mb-0.5"
-                    style={{ color: getBlock('stamp_card_head').textColor }}
-                  >
-                    {isFull
-                      ? activeLang === 'en'
-                        ? 'CARD 1 • FULL'
-                        : 'KAD 1 • PENUH'
-                      : activeLang === 'en'
-                      ? 'CARD 1 • IN PROGRESS'
-                      : 'KAD 1 • SEDANG DIISI'}
-                  </div>
-                  <div
-                    className="font-serif font-bold text-4xl leading-none"
-                    style={{ color: getBlock('stamp_card_head').extraText || '#FF5A45' }}
-                  >
-                    {totalStamps} <small className="text-base font-normal text-[#96806B]">/ {reqStamps}</small>
-                  </div>
+              {/* VOUCHER HEADER */}
+              <div className="text-center mb-4">
+                <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500/15 to-orange-500/15 border border-amber-500/30 px-3 py-1 rounded-full mb-2">
+                  <span className="text-xs">🎁</span>
+                  <span className="text-[11px] font-extrabold text-amber-900 tracking-wide uppercase">
+                    Ganjaran Lengkap
+                  </span>
                 </div>
-              )}
+                <h3 className="font-serif font-black text-lg text-[#1B0F09] leading-snug">
+                  {config.rewardDesc || '1 Minuman Panas Percuma (Saiz Regular)'}
+                </h3>
+              </div>
 
-              {/* 8. PERFORATION */}
-              {getBlock('perforation_divider').visible && (
-                <div className="flex items-center justify-center gap-1.5 my-3.5 opacity-60">
-                  {Array.from({ length: 15 }).map((_, pIdx) => (
-                    <span
-                      key={pIdx}
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ backgroundColor: getBlock('perforation_divider').bgColor }}
-                    />
-                  ))}
-                </div>
-              )}
+              {/* PERFORATION DIVIDER LINE (Fixed Component) */}
+              <div className="relative my-4 flex items-center justify-center">
+                <div className="absolute -left-8 w-6 h-6 rounded-full bg-[#FFF7EA] border-r border-[#F0DEC0]" />
+                <div className="w-full border-b-2 border-dashed border-[#F0DEC0]" />
+                <div className="absolute -right-8 w-6 h-6 rounded-full bg-[#FFF7EA] border-l border-[#F0DEC0]" />
+              </div>
 
-              {/* 9. STAMP GRID (5-COLUMNS) */}
-              {getBlock('stamp_grid').visible && (
-                <div className="grid grid-cols-5 gap-2.5 my-3.5">
-                  {Array.from({ length: reqStamps }).map((_, sIdx) => {
-                    const slotNum = sIdx + 1
-                    const isStampFilled = slotNum <= totalStamps
+              {/* 5-COLUMN STAMP GRID (Fixed Component with simulation) */}
+              <div className="grid grid-cols-5 gap-2.5 my-4">
+                {Array.from({ length: reqStamps }).map((_, idx) => {
+                  const num = idx + 1
+                  const isStamped = num <= totalStamps
+                  const isLast = num === reqStamps
 
-                    return (
-                      <button
-                        key={slotNum}
-                        type="button"
-                        onClick={() => {
-                          setSelectedStampSlot(slotNum)
-                          setActiveModal('stamp_detail')
-                        }}
-                        className={`aspect-square rounded-full flex items-center justify-center transition active:scale-90 cursor-pointer ${
-                          isStampFilled ? 'shadow-md' : 'border-2 border-dashed'
-                        }`}
-                        style={{
-                          background: isStampFilled
-                            ? `linear-gradient(145deg, ${getBlock('stamp_grid').bgColor}, ${getBlock('stamp_grid').bgColor2 || '#E23F2E'})`
-                            : 'rgba(255,178,56,0.08)',
-                          borderColor: isStampFilled
-                            ? 'transparent'
-                            : getBlock('stamp_grid').borderColor,
-                          color: getBlock('stamp_grid').textColor,
-                        }}
-                        title={`Cop #${slotNum}`}
-                      >
-                        {isStampFilled ? (
+                  return (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => {
+                        setSelectedStampSlot(num)
+                        setActiveModal('stamp_detail')
+                      }}
+                      className={`aspect-square rounded-2xl flex flex-col items-center justify-center relative transition-all active:scale-95 cursor-pointer ${
+                        isStamped
+                          ? 'bg-gradient-to-br from-[#FFF7EA] to-[#FFE8D6] border-2 border-[#FF5A45] shadow-sm'
+                          : isLast
+                          ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/15 border-2 border-dashed border-amber-400/80'
+                          : 'bg-white/80 border-2 border-dashed border-[#F0DEC0] hover:border-amber-300'
+                      }`}
+                    >
+                      {isStamped ? (
+                        <div className="flex flex-col items-center">
                           <img
-                            src={getBlock('stamp_grid').imageUrl || '/icons/stamps/makanan.svg'}
+                            src={config.stampIcon || '/icons/stamps/makanan.svg'}
                             alt="Cop"
-                            className="w-[52%] h-[52%] object-contain"
-                            style={{ filter: 'brightness(0) invert(1)' }}
+                            className="w-6 h-6 object-contain drop-shadow-xs"
                           />
-                        ) : (
-                          <span className="font-bold text-sm">{slotNum}</span>
-                        )}
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
+                          <span className="text-[9px] font-black text-[#FF5A45] mt-0.5">#{num}</span>
+                        </div>
+                      ) : isLast ? (
+                        <div className="flex flex-col items-center text-amber-700">
+                          <span className="text-base">🎁</span>
+                          <span className="text-[9px] font-black mt-0.5">HADIAH</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs font-black text-[#8C7A6B]/50">{num}</span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
 
-              {/* 10. PROGRESS BAR */}
-              {getBlock('progress_bar').visible && (
-                <div
-                  className="h-2.5 rounded-full overflow-hidden my-3.5"
-                  style={{ backgroundColor: getBlock('progress_bar').bgColor }}
-                >
-                  <div
-                    className="h-full transition-all duration-500 rounded-full"
-                    style={{
-                      width: `${percentFill}%`,
-                      background: 'linear-gradient(90deg, #FF5A45, #FFB238)',
-                    }}
-                  />
-                </div>
-              )}
-
-              {/* 11. STATUS TEXT */}
-              {getBlock('status_text').visible && (
-                <div
-                  className="text-center font-bold text-xs sm:text-sm leading-snug my-2.5"
-                  style={{ color: getBlock('status_text').textColor }}
-                >
-                  {isFull ? (
-                    <span>🎉 Lengkap! Tebus ganjaran sekarang: <b>{config.rewardDesc}</b></span>
-                  ) : (
-                    <span>
-                      Lagi <b style={{ color: getBlock('status_text').extraText || '#E23F2E' }}>{remainStamps}</b> cop untuk: {config.rewardDesc}
+              {/* 7. PROGRESS BAR (Editable Block) */}
+              {progressBlock.visible && (
+                <div className="mt-4 pt-2">
+                  <div className="flex items-center justify-between text-xs font-bold mb-1.5">
+                    <span className="text-[#8C7A6B]">Kemajuan Cop</span>
+                    <span className="text-[#1B0F09]">
+                      <b style={{ color: progressBlock.textColor || '#FF5A45' }}>{totalStamps}</b> / {reqStamps} Cop ({percentFill}%)
                     </span>
-                  )}
+                  </div>
+
+                  <div
+                    className="w-full h-3.5 overflow-hidden p-0.5"
+                    style={{
+                      backgroundColor: progressBlock.bgColor || '#F0DEC0',
+                      borderRadius: `${progressBlock.borderRadius || 6}px`,
+                    }}
+                  >
+                    <div
+                      className="h-full transition-all duration-500 rounded-full"
+                      style={{
+                        width: `${percentFill}%`,
+                        background: `linear-gradient(90deg, ${progressBlock.textColor || '#FF5A45'} 0%, ${progressBlock.bgColor2 || '#FFB238'} 100%)`,
+                      }}
+                    />
+                  </div>
                 </div>
               )}
 
-              {/* 12. CARD DOTS */}
-              {getBlock('card_dots').visible && (
-                <div className="flex items-center justify-center gap-2 mt-4">
-                  <span className="w-6 h-2 rounded-full bg-[#FF5A45]" />
-                  <span className="w-2 h-2 rounded-full bg-[#F0DEC0]" />
+              {/* 8. STATUS TEXT & ACTIONS (Fixed Component) */}
+              <div className="mt-4 pt-3 border-t border-[#F0DEC0]/70 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="text-center sm:text-left">
+                  <p className="text-xs font-bold text-[#1B0F09]">
+                    {isFull ? '🎉 Tahniah! Kad anda telah penuh!' : `Kumpul ${remainStamps} cop lagi untuk tebus ganjaran.`}
+                  </p>
+                  <p className="text-[10px] text-[#8C7A6B]">Tunjukkan kad ini semasa membuat pesanan</p>
                 </div>
-              )}
-            </div>
-          )}
 
-          {/* 13. UPDATED TIMESTAMP */}
-          {getBlock('updated_timestamp').visible && (
-            <div
-              className="text-center font-semibold text-[11px]"
-              style={{ color: getBlock('updated_timestamp').textColor }}
-            >
-              Kemas kini: 8:45 PM, Hari Ini
-            </div>
-          )}
-
-          {/* 14. FOOTER BRAND */}
-          {getBlock('footer_brand').visible && (
-            <div className="text-center pt-3 space-y-1.5">
-              <div className="flex items-center justify-center gap-1.5 font-extrabold text-sm text-[#2B1B12]">
-                <img src="/logo.svg" alt="LajuS" className="w-4 h-4 object-contain" />
-                <span>LajuS</span>
-              </div>
-              <div className="flex items-center justify-center gap-2 text-xs text-[#96806B]">
-                <a href="#privacy" className="underline">Dasar Privasi</a>
-                <span>•</span>
-                <a href="#delete" className="underline text-red-500">Padam Akaun</a>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* INTERACTIVE MODAL OVERLAYS */}
-      {activeModal !== 'none' && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4"
-          onClick={() => setActiveModal('none')}
-        >
-          {/* HOW TO REDEEM */}
-          {activeModal === 'how_to_redeem' && (
-            <div
-              className="w-full max-w-sm bg-[#FFFDF8] text-[#2B1B12] rounded-3xl p-6 border border-[#F0DEC0] shadow-2xl relative"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                type="button"
-                onClick={() => setActiveModal('none')}
-                className="absolute top-4 right-4 w-7 h-7 rounded-full bg-black/5 text-gray-500 flex items-center justify-center font-bold text-sm cursor-pointer"
-              >
-                &times;
-              </button>
-              <div className="flex items-center gap-2 mb-2 font-serif font-bold text-xl text-[#1B0F09]">
-                <span>💡</span>
-                <span>Cara Mengumpul & Tebus</span>
-              </div>
-              <p className="text-xs text-[#96806B] mb-4">Ikuti 3 langkah mudah ini:</p>
-              <div className="space-y-3 text-xs text-[#3C2E24]">
-                <div className="flex gap-2.5">
-                  <span className="w-6 h-6 rounded-full bg-[#FFB238] text-black font-bold flex items-center justify-center shrink-0 text-xs">1</span>
-                  <span>Kumpul cop setiap kali pembelian di kaunter kedai.</span>
-                </div>
-                <div className="flex gap-2.5">
-                  <span className="w-6 h-6 rounded-full bg-[#FFB238] text-black font-bold flex items-center justify-center shrink-0 text-xs">2</span>
-                  <span>Bila kad penuh ({reqStamps}/{reqStamps}), tunjukkan skrin ini kepada kakitangan.</span>
-                </div>
-                <div className="flex gap-2.5">
-                  <span className="w-6 h-6 rounded-full bg-[#FFB238] text-black font-bold flex items-center justify-center shrink-0 text-xs">3</span>
-                  <span>Kakitangan sahkan dan serahkan ganjaran percuma anda serta-merta!</span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveModal('none')}
-                className="w-full mt-5 py-3 rounded-xl bg-[#1C7A67] text-white font-bold text-xs cursor-pointer"
-              >
-                Faham & Tutup
-              </button>
-            </div>
-          )}
-
-          {/* REWARDS */}
-          {activeModal === 'rewards' && (
-            <div
-              className="w-full max-w-sm bg-[#FFFDF8] text-[#2B1B12] rounded-3xl overflow-hidden border border-[#F0DEC0] shadow-2xl relative"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                type="button"
-                onClick={() => setActiveModal('none')}
-                className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur text-gray-700 flex items-center justify-center font-bold text-sm cursor-pointer shadow-sm"
-              >
-                &times;
-              </button>
-              <div className="h-52 bg-[#FFF7EA] flex items-center justify-center relative border-b border-[#F0DEC0]">
-                <span className="text-6xl">🎁</span>
-                <div className="absolute top-3.5 left-3.5 bg-[#FF5A45] text-white text-xs font-bold px-3 py-1 rounded-full">
-                  Perlu {reqStamps} Cop
-                </div>
-              </div>
-              <div className="p-5 text-center">
-                <h4 className="font-serif font-bold text-lg text-[#1B0F09] mb-1.5">
-                  {config.rewardDesc}
-                </h4>
-                <p className="text-xs text-[#96806B] mb-4">
-                  Tebus ganjaran istimewa ini sebaik sahaja kad anda mencukupi {reqStamps} cop penuh!
-                </p>
                 <button
                   type="button"
-                  onClick={() => setActiveModal('none')}
-                  className="w-full py-3 rounded-xl bg-[#1C7A67] text-white font-bold text-xs cursor-pointer"
+                  onClick={() => setActiveModal('qr')}
+                  className="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-bold bg-[#1B0F09] text-white hover:bg-black transition active:scale-95 cursor-pointer shrink-0 flex items-center justify-center gap-1.5"
                 >
-                  Tutup
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
+                    <rect x="3" y="3" width="7" height="7" rx="1.2" />
+                    <rect x="14" y="3" width="7" height="7" rx="1.2" />
+                    <rect x="3" y="14" width="7" height="7" rx="1.2" />
+                  </svg>
+                  <span>Dapatkan Cop</span>
                 </button>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* GOOGLE REVIEW */}
-          {activeModal === 'google_review' && (
-            <div
-              className="w-full max-w-sm bg-[#FFFDF8] text-[#2B1B12] rounded-3xl p-6 border border-[#F0DEC0] shadow-2xl text-center relative"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                type="button"
-                onClick={() => setActiveModal('none')}
-                className="absolute top-4 right-4 w-7 h-7 rounded-full bg-black/5 text-gray-500 flex items-center justify-center font-bold text-sm cursor-pointer"
-              >
-                &times;
-              </button>
-              <div className="font-serif font-bold text-lg text-[#1B0F09] mb-1">
-                ⭐ Nilai {config.storeName} di Google
-              </div>
-              <p className="text-xs text-[#96806B] mb-4">
-                Sentuh bintang untuk bantu beri ulasan bagi kedai ini.
-              </p>
-              <div className="flex items-center justify-center gap-2 text-3xl my-3">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => {
-                      setReviewRating(star)
-                      setTimeout(() => {
-                        alert(`Membuka Google Review bagi rating ${star} Bintang!`)
-                        setActiveModal('none')
-                      }, 400)
-                    }}
-                    className={`cursor-pointer transition-transform hover:scale-125 ${
-                      reviewRating >= star ? 'text-amber-400' : 'text-gray-300'
-                    }`}
-                  >
-                    ★
-                  </button>
-                ))}
-              </div>
-              <div className="text-xs text-[#96806B] mt-2 mb-4">
-                {reviewRating > 0 ? `Rating ${reviewRating} bintang dipilih!` : '5 bintang amat kami hargai!'}
+        {/* 9. CARD PAGINATION DOTS (Fixed Component) */}
+        <div className="flex items-center justify-center gap-1.5 my-4">
+          <div className="w-6 h-2 rounded-full bg-[#FF5A45]" />
+          <div className="w-2 h-2 rounded-full bg-[#F0DEC0]" />
+        </div>
+
+        {/* 10. TIMESTAMP & CADENCE INFO (Fixed Component) */}
+        <div className="text-center px-4 mb-4">
+          <div className="inline-flex items-center gap-1.5 bg-white/70 border border-[#F0DEC0] px-3 py-1 rounded-full text-[11px] font-semibold text-[#8C7A6B]">
+            <span>⏱️ Kemaskini Terakhir: Hari ini, 2:30 PM</span>
+          </div>
+        </div>
+
+        {/* 11. FOOTER (Fixed Component) */}
+        <footer className="px-4 text-center mt-6">
+          <div className="flex items-center justify-center gap-1.5 mb-1">
+            <img src="/logo.svg" alt="LajuS" className="w-4 h-4 object-contain opacity-70" />
+            <span className="text-xs font-bold text-[#8C7A6B]">Dikuasakan oleh LajuS Cop Stamp</span>
+          </div>
+          <p className="text-[10px] text-[#8C7A6B]/70">Kad Kesetiaan Digital Pintar untuk Peniaga</p>
+        </footer>
+      </div>
+
+      {/* ============================================================ */}
+      {/* AUTHENTIC INTERACTIVE MODALS                                 */}
+      {/* ============================================================ */}
+
+      {/* 1. MODAL: CARA PENEBUSAN */}
+      {activeModal === 'how_to_redeem' && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FFFDF8] border border-[#F0DEC0] w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">ℹ️</span>
+                <h4 className="font-serif font-black text-lg text-[#1B0F09]">Cara Penebusan</h4>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveModal('none')}
-                className="w-full py-2.5 rounded-xl bg-white border border-[#F0DEC0] text-[#5A4B3D] font-bold text-xs cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#F0DEC0]/50 hover:bg-[#F0DEC0] text-[#1B0F09] font-bold flex items-center justify-center transition cursor-pointer"
               >
-                Mungkin Nanti
+                ✕
               </button>
             </div>
-          )}
-
-          {/* LOCATIONS */}
-          {activeModal === 'locations' && (
-            <div
-              className="w-full max-w-sm bg-[#FFFDF8] text-[#2B1B12] rounded-3xl p-6 border border-[#F0DEC0] shadow-2xl relative"
-              onClick={(e) => e.stopPropagation()}
+            <div className="space-y-3 text-xs text-[#2B1B12] leading-relaxed">
+              <div className="flex gap-2.5 items-start">
+                <span className="w-5 h-5 rounded-full bg-[#FF5A45] text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
+                <p>Buat pembelian apa-apa minuman atau set bakeri di kaunter.</p>
+              </div>
+              <div className="flex gap-2.5 items-start">
+                <span className="w-5 h-5 rounded-full bg-[#FF5A45] text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">2</span>
+                <p>Tunjukkan Kod QR pelanggan anda kepada staf untuk diimbas.</p>
+              </div>
+              <div className="flex gap-2.5 items-start">
+                <span className="w-5 h-5 rounded-full bg-[#FF5A45] text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">3</span>
+                <p>Kumpul sehingga 10 cop dan tebus ganjaran minuman percuma serta-merta!</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveModal('none')}
+              className="mt-6 w-full py-2.5 bg-[#FF5A45] hover:bg-[#e04835] text-white rounded-xl font-bold text-xs transition cursor-pointer shadow-md"
             >
+              Faham & Tutup
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 2. MODAL: GANJARAN (REWARDS LIST) */}
+      {activeModal === 'rewards' && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FFFDF8] border border-[#F0DEC0] w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🎁</span>
+                <h4 className="font-serif font-black text-lg text-[#1B0F09]">Senarai Ganjaran</h4>
+              </div>
               <button
                 type="button"
                 onClick={() => setActiveModal('none')}
-                className="absolute top-4 right-4 w-7 h-7 rounded-full bg-black/5 text-gray-500 flex items-center justify-center font-bold text-sm cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#F0DEC0]/50 hover:bg-[#F0DEC0] text-[#1B0F09] font-bold flex items-center justify-center transition cursor-pointer"
               >
-                &times;
-              </button>
-              <div className="flex items-center gap-2 mb-1 font-serif font-bold text-lg text-[#1B0F09]">
-                <span>📍</span>
-                <span>Lokasi Cawangan</span>
-              </div>
-              <p className="text-xs text-[#96806B] mb-4">{config.storeName}</p>
-              <div className="bg-white p-4 rounded-2xl border border-[#F0DEC0] text-xs space-y-1.5 mb-4">
-                <div className="font-bold text-[#1B0F09]">Cawangan Utama</div>
-                <div className="text-gray-600">No. 12, Jalan Niaga 3, 43650 Bandar Baru Bangi, Selangor</div>
-              </div>
-              <button
-                type="button"
-                onClick={() => alert('Membuka Peta Google Maps')}
-                className="w-full py-3 rounded-xl bg-[#1C7A67] text-white font-bold text-xs cursor-pointer flex items-center justify-center gap-2"
-              >
-                <span>Buka di Google Maps</span>
-                <span>↗</span>
+                ✕
               </button>
             </div>
-          )}
-
-          {/* QR */}
-          {activeModal === 'qr' && (
-            <div
-              className="w-full max-w-sm bg-[#FFFDF8] text-[#2B1B12] rounded-3xl p-6 border border-[#F0DEC0] shadow-2xl text-center relative"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                type="button"
-                onClick={() => setActiveModal('none')}
-                className="absolute top-4 right-4 w-7 h-7 rounded-full bg-black/5 text-gray-500 flex items-center justify-center font-bold text-sm cursor-pointer"
-              >
-                &times;
-              </button>
-              <div className="font-serif font-bold text-lg text-[#1B0F09] mb-1">
-                📱 Kod QR Pelanggan
-              </div>
-              <p className="text-xs text-[#96806B] mb-4">
-                Tunjukkan kod QR ini kepada staf kedai untuk mengimbas cop.
-              </p>
-              <div className="w-40 h-40 mx-auto bg-white p-3 rounded-2xl border border-[#F0DEC0] flex items-center justify-center shadow-inner mb-4">
-                <div className="w-full h-full bg-gray-900 rounded-xl flex items-center justify-center text-white text-xs font-mono">
-                  [QR DEMO]
+            <div className="space-y-3">
+              <div className="p-3.5 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-xl shrink-0">
+                  ☕
+                </div>
+                <div>
+                  <h5 className="font-bold text-xs text-[#1B0F09]">{config.rewardDesc}</h5>
+                  <p className="text-[10px] text-amber-800">Perlu {reqStamps} Cop Keseluruhan</p>
                 </div>
               </div>
-              <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold py-2 px-3.5 rounded-xl mb-4">
-                pelanggan@gmail.com
+              <div className="p-3.5 bg-white border border-[#F0DEC0] rounded-2xl flex items-center gap-3 opacity-70">
+                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-xl shrink-0">
+                  🥐
+                </div>
+                <div>
+                  <h5 className="font-bold text-xs text-[#1B0F09]">Diskaun 20% Pastri Hari Lahir</h5>
+                  <p className="text-[10px] text-[#8C7A6B]">Ganjaran Ahli VIP Sahaja</p>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setActiveModal('none')}
-                className="w-full py-2.5 rounded-xl bg-[#1C7A67] text-white font-bold text-xs cursor-pointer"
-              >
-                Tutup
-              </button>
             </div>
-          )}
-
-          {/* STAMP DETAIL */}
-          {activeModal === 'stamp_detail' && (
-            <div
-              className="w-full max-w-sm bg-[#FFFDF8] text-[#2B1B12] rounded-3xl p-6 border border-[#F0DEC0] shadow-2xl text-center relative"
-              onClick={(e) => e.stopPropagation()}
+            <button
+              type="button"
+              onClick={() => setActiveModal('none')}
+              className="mt-6 w-full py-2.5 bg-[#1B0F09] text-white rounded-xl font-bold text-xs transition cursor-pointer"
             >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 3. MODAL: GOOGLE REVIEW */}
+      {activeModal === 'google_review' && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FFFDF8] border border-[#F0DEC0] w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center animate-in fade-in zoom-in-95 duration-150">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 mx-auto flex items-center justify-center mb-3">
+              <img src="/Google-Review.svg" alt="Google" className="w-7 h-7 object-contain" />
+            </div>
+            <h4 className="font-serif font-black text-lg text-[#1B0F09] mb-1">Beri Ulasan Kami</h4>
+            <p className="text-xs text-[#8C7A6B] mb-4">
+              Sokong <b>{config.storeName}</b> dengan meninggalkan ulasan 5-bintang di Google Maps!
+            </p>
+            <div className="flex items-center justify-center gap-2 mb-5">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setReviewRating(star)}
+                  className={`text-2xl transition hover:scale-125 cursor-pointer ${
+                    star <= reviewRating ? 'text-amber-400' : 'text-gray-300'
+                  }`}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setActiveModal('none')}
-                className="absolute top-4 right-4 w-7 h-7 rounded-full bg-black/5 text-gray-500 flex items-center justify-center font-bold text-sm cursor-pointer"
+                className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-[#1B0F09] rounded-xl font-bold text-xs transition cursor-pointer"
               >
-                &times;
+                Nanti Dulu
               </button>
-              <div
-                className="w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center shadow-md"
-                style={{
-                  background: selectedStampSlot <= totalStamps
-                    ? 'linear-gradient(145deg, #FF5A45, #E23F2E)'
-                    : '#F0DEC0',
+              <button
+                type="button"
+                onClick={() => {
+                  alert('Membuka halaman Google Review...')
+                  setActiveModal('none')
                 }}
+                className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs transition cursor-pointer shadow-md"
               >
-                <img
-                  src="/icons/stamps/makanan.svg"
-                  alt="Stamp"
-                  className="w-8 h-8 object-contain"
-                  style={{ filter: selectedStampSlot <= totalStamps ? 'brightness(0) invert(1)' : 'none' }}
-                />
-              </div>
-              <div className="font-serif font-bold text-lg text-[#1B0F09] mb-0.5">
-                Cop #{selectedStampSlot} — Kad 1
-              </div>
-              <p className="text-xs text-[#96806B] mb-4">{config.storeName}</p>
-              <div className="bg-white p-3.5 rounded-xl border border-[#F0DEC0] text-xs text-left space-y-1.5 mb-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Status:</span>
-                  <b className={selectedStampSlot <= totalStamps ? 'text-emerald-600' : 'text-gray-400'}>
-                    {selectedStampSlot <= totalStamps ? '✓ Telah Ditebus' : 'Belum Ditebus'}
-                  </b>
-                </div>
-                {selectedStampSlot <= totalStamps && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Tarikh:</span>
-                    <b>Hari Ini, 8:45 PM</b>
-                  </div>
-                )}
+                Beri Ulasan ↗
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. MODAL: LOKASI CAWANGAN */}
+      {activeModal === 'locations' && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FFFDF8] border border-[#F0DEC0] w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">📍</span>
+                <h4 className="font-serif font-black text-lg text-[#1B0F09]">Cawangan Kami</h4>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveModal('none')}
-                className="w-full py-2.5 rounded-xl bg-[#1C7A67] text-white font-bold text-xs cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#F0DEC0]/50 hover:bg-[#F0DEC0] text-[#1B0F09] font-bold flex items-center justify-center transition cursor-pointer"
               >
-                Tutup
+                ✕
               </button>
             </div>
-          )}
+            <div className="space-y-3">
+              <div className="p-3.5 bg-white border border-[#F0DEC0] rounded-2xl">
+                <h5 className="font-bold text-xs text-[#1B0F09] mb-1">Cawangan Utama (Bangsar)</h5>
+                <p className="text-[11px] text-[#8C7A6B] leading-relaxed mb-2.5">
+                  No 12, Jalan Telawi 3, Bangsar Baru, 59100 Kuala Lumpur.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => alert('Membuka Google Maps')}
+                    className="flex-1 py-1.5 bg-[#FFF7EA] text-[#FF5A45] border border-[#FF5A45]/30 rounded-lg text-[10px] font-bold transition hover:bg-[#FFE8D6] cursor-pointer"
+                  >
+                    Google Maps
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => alert('Membuka Waze')}
+                    className="flex-1 py-1.5 bg-[#FFF7EA] text-[#FF5A45] border border-[#FF5A45]/30 rounded-lg text-[10px] font-bold transition hover:bg-[#FFE8D6] cursor-pointer"
+                  >
+                    Waze
+                  </button>
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveModal('none')}
+              className="mt-5 w-full py-2.5 bg-[#1B0F09] text-white rounded-xl font-bold text-xs transition cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 5. MODAL: QR PELANGGAN */}
+      {activeModal === 'qr' && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FFFDF8] border border-[#F0DEC0] w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-serif font-black text-lg text-[#1B0F09]">Kod QR Anda</h4>
+              <button
+                type="button"
+                onClick={() => setActiveModal('none')}
+                className="w-8 h-8 rounded-full bg-[#F0DEC0]/50 hover:bg-[#F0DEC0] text-[#1B0F09] font-bold flex items-center justify-center transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-4 bg-white border-2 border-dashed border-[#F0DEC0] rounded-2xl inline-block mb-3">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=CARD-PREVIEW-CUSTOMER-01`}
+                alt="QR Code"
+                className="w-44 h-44 object-contain mx-auto"
+              />
+            </div>
+            <p className="text-xs font-bold text-[#1B0F09]">ID Ahli: #CS-88392</p>
+            <p className="text-[11px] text-[#8C7A6B] mt-1">Tunjukkan kod ini kepada juruwang semasa membuat bayaran.</p>
+            <button
+              type="button"
+              onClick={() => setActiveModal('none')}
+              className="mt-5 w-full py-2.5 bg-[#FF5A45] hover:bg-[#e04835] text-white rounded-xl font-bold text-xs transition cursor-pointer shadow-md"
+            >
+              Selesai
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 6. MODAL: DETAIL SLOT COP */}
+      {activeModal === 'stamp_detail' && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FFFDF8] border border-[#F0DEC0] w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center animate-in fade-in zoom-in-95 duration-150">
+            <div className="w-14 h-14 rounded-2xl bg-amber-100 mx-auto flex items-center justify-center mb-3">
+              {selectedStampSlot <= totalStamps ? (
+                <img
+                  src={config.stampIcon || '/icons/stamps/makanan.svg'}
+                  alt="Cop"
+                  className="w-9 h-9 object-contain"
+                />
+              ) : selectedStampSlot === reqStamps ? (
+                <span className="text-3xl">🎁</span>
+              ) : (
+                <span className="text-2xl font-black text-amber-800">#{selectedStampSlot}</span>
+              )}
+            </div>
+            <h4 className="font-serif font-black text-lg text-[#1B0F09] mb-1">
+              {selectedStampSlot <= totalStamps
+                ? `Cop #${selectedStampSlot} Diterima`
+                : selectedStampSlot === reqStamps
+                ? `Ganjaran #${selectedStampSlot}: ${config.rewardDesc}`
+                : `Slot Cop #${selectedStampSlot}`}
+            </h4>
+            <p className="text-xs text-[#8C7A6B] mb-5">
+              {selectedStampSlot <= totalStamps
+                ? 'Cop ini telah berjaya disahkan oleh juruwang.'
+                : selectedStampSlot === reqStamps
+                ? 'Lengkapkan cop untuk membuka penebusan ganjaran istimewa ini.'
+                : 'Buat pembelian untuk mendapatkan cop seterusnya.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => setActiveModal('none')}
+              className="w-full py-2.5 bg-[#1B0F09] text-white rounded-xl font-bold text-xs transition cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
         </div>
       )}
     </div>
