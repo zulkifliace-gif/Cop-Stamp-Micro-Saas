@@ -5,13 +5,14 @@ const config: CapacitorConfig = {
   appName: 'LajuS Merchant',
   webDir: 'public',
   server: {
-    url: 'https://www.lajuq.my/dashboard',
+    url: 'https://lajus.lajuq.my/dashboard',
     cleartext: false,
     androidScheme: 'https',
     allowNavigation: [
-      'www.lajuq.my',
-      'lajuq.my',
+      'lajus.lajuq.my',
       '*.lajuq.my',
+      'lajuq.my',
+      'www.lajuq.my',
       '*.supabase.co',
       'accounts.google.com',
       '*.google.com',
