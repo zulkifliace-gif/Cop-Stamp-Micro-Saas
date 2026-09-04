@@ -902,8 +902,12 @@ export default function CardStudioPage() {
   const [config, setConfig] = useState<LiveStudioConfig>(DEFAULT_LIVE_STUDIO_CONFIG)
   const [activeTab, setActiveTab] = useState<'blocks' | 'presets' | 'simulate'>('blocks')
   const [activeLang, setActiveLang] = useState<'my' | 'en'>('my')
-  const [selectedBlockId, setSelectedBlockId] = useState<EditableBlockId>('hero_header')
+  const [selectedBlockId, setSelectedBlockId] = useState<EditableBlockId | null>('hero_header')
   const [saveStatus, setSaveStatus] = useState<string>('')
+
+  const toggleBlock = (blockId: EditableBlockId) => {
+    setSelectedBlockId((prev) => (prev === blockId ? null : blockId))
+  }
 
   // Interactive preview modals
   const [activeModal, setActiveModal] = useState<
@@ -1516,8 +1520,8 @@ export default function CardStudioPage() {
                 {/* 1. HERO HEADER */}
                 <div className="bg-[#182032] border border-gray-800 rounded-2xl p-4 transition-all">
                   <div
-                    onClick={() => setSelectedBlockId('hero_header')}
-                    className="flex items-center justify-between cursor-pointer"
+                    onClick={() => toggleBlock('hero_header')}
+                    className="flex items-center justify-between cursor-pointer select-none"
                   >
                     <div className="flex items-center gap-2.5">
                       <span className="text-base">🌄</span>
@@ -1641,8 +1645,8 @@ export default function CardStudioPage() {
                 {/* 2. PROFILE KEDAI */}
                 <div className="bg-[#182032] border border-gray-800 rounded-2xl p-4 transition-all">
                   <div
-                    onClick={() => setSelectedBlockId('store_profile')}
-                    className="flex items-center justify-between cursor-pointer"
+                    onClick={() => toggleBlock('store_profile')}
+                    className="flex items-center justify-between cursor-pointer select-none"
                   >
                     <div className="flex items-center gap-2.5">
                       <span className="text-base">🏪</span>
@@ -1734,8 +1738,8 @@ export default function CardStudioPage() {
                 {/* 3. KOTAK KAD COP */}
                 <div className="bg-[#182032] border border-gray-800 rounded-2xl p-4 transition-all">
                   <div
-                    onClick={() => setSelectedBlockId('stamp_card_box')}
-                    className="flex items-center justify-between cursor-pointer"
+                    onClick={() => toggleBlock('stamp_card_box')}
+                    className="flex items-center justify-between cursor-pointer select-none"
                   >
                     <div className="flex items-center gap-2.5">
                       <span className="text-base">🗂️</span>
@@ -1810,8 +1814,8 @@ export default function CardStudioPage() {
                 {/* 4. BAR KEMAJUAN */}
                 <div className="bg-[#182032] border border-gray-800 rounded-2xl p-4 transition-all">
                   <div
-                    onClick={() => setSelectedBlockId('progress_bar')}
-                    className="flex items-center justify-between cursor-pointer"
+                    onClick={() => toggleBlock('progress_bar')}
+                    className="flex items-center justify-between cursor-pointer select-none"
                   >
                     <div className="flex items-center gap-2.5">
                       <span className="text-base">📊</span>
