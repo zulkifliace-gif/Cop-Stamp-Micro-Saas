@@ -7,6 +7,9 @@ import QRCode from 'qrcode'
 import { createClient } from '@/lib/supabase/client'
 import {
   connectBluetoothPrinter,
+  connectToNativeDevice,
+  getNativePairedDevices,
+  openNativeBluetoothSettings,
   printStampReceipt,
   printClaimReceipt,
   type BluetoothPrinterConnection,
@@ -181,6 +184,10 @@ export default function CashierDashboard() {
   const [isPrinting, setIsPrinting] = useState<boolean>(false)
   const [btToast, setBtToast] = useState<{ msg: string; type: 'info' | 'success' | 'error' } | null>(null)
   const [autoPrint, setAutoPrint] = useState<boolean>(true)
+  const [showBtModal, setShowBtModal] = useState<boolean>(false)
+  const [pairedBtDevices, setPairedBtDevices] = useState<Array<{ name: string; address: string }>>([])
+  const [isRefreshingBt, setIsRefreshingBt] = useState<boolean>(false)
+  const [connectingAddress, setConnectingAddress] = useState<string | null>(null)
 
   // Settings State
   const [showSettings, setShowSettings] = useState<boolean>(false)
@@ -793,6 +800,44 @@ export default function CashierDashboard() {
     setTimeout(() => setBtToast(null), 3500)
   }
 
+  function refreshNativeBtDevices() {
+    setIsRefreshingBt(true)
+    try {
+      const nb = typeof window !== 'undefined' ? (window as any).AndroidBluetooth : null
+      if (nb && typeof nb.hasPermission === 'function' && !nb.hasPermission()) {
+        nb.requestPermission()
+      }
+      const list = getNativePairedDevices()
+      setPairedBtDevices(list)
+    } catch (e) {
+      console.warn('Error fetching paired devices:', e)
+    } finally {
+      setIsRefreshingBt(false)
+    }
+  }
+
+  async function handleSelectNativeBtDevice(device: { name: string; address: string }) {
+    setConnectingAddress(device.address)
+    setIsConnectingBt(true)
+    try {
+      const conn = await connectToNativeDevice(device.address, device.name)
+      setBtPrinter(conn)
+      setShowBtModal(false)
+      showBtToast(`Printer disambung: ${conn.name}`, 'success')
+      playNotificationSound(0.7)
+    } catch (err: any) {
+      showBtToast(err.message || 'Gagal menyambung ke printer.', 'error')
+    } finally {
+      setConnectingAddress(null)
+      setIsConnectingBt(false)
+    }
+  }
+
+  function handleOpenBtSettings() {
+    openNativeBluetoothSettings()
+    showBtToast('Sila padankan (Pair) printer anda di Tetapan Bluetooth telefon, kemudian kembali ke aplikasi.', 'info')
+  }
+
   // 7. Bluetooth Thermal Printer Connect / Disconnect
   async function handleToggleBluetooth() {
     if (btPrinter) {
@@ -811,6 +856,23 @@ export default function CashierDashboard() {
       return
     }
 
+    // If running in Android APK:
+    if (typeof window !== 'undefined' && (window as any).AndroidBluetooth) {
+      const nb = (window as any).AndroidBluetooth
+      if (typeof nb.isBluetoothEnabled === 'function' && !nb.isBluetoothEnabled()) {
+        showBtToast('Sila hidupkan Bluetooth telefon anda terlebih dahulu.', 'error')
+        return
+      }
+      if (typeof nb.hasPermission === 'function' && !nb.hasPermission()) {
+        nb.requestPermission()
+        showBtToast('Sila berikan kebenaran Bluetooth pada peranti anda.', 'info')
+      }
+      refreshNativeBtDevices()
+      setShowBtModal(true)
+      return
+    }
+
+    // If on Web Browser (Chrome/Edge):
     setIsConnectingBt(true)
     try {
       const conn = await connectBluetoothPrinter()
@@ -5097,6 +5159,124 @@ export default function CashierDashboard() {
                 className="flex-1 py-2.5 px-3 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl transition active:scale-95 cursor-pointer shadow-xs disabled:opacity-50"
               >
                 {isDeletingTemplateId === deletingTemplateConfirm.id ? 'Memadam...' : 'Ya, Padam'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: PILIH PENCETAK BLUETOOTH (ANDROID APK) ── */}
+      {showBtModal && (
+        <div
+          onClick={() => setShowBtModal(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs anim-fade"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-md bg-[#162522] border border-[#FAF2E2]/20 text-[#FAF2E2] rounded-[28px] p-6 shadow-2xl anim-scale font-jakarta"
+          >
+            {/* MODAL HEADER */}
+            <div className="flex items-center justify-between pb-4 border-b border-[#FAF2E2]/10 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M6 9V2h12v7" />
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                    <path d="M6 14h12v8H6z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-[#FAF2E2]">Pilih Pencetak Bluetooth</h3>
+                  <p className="text-[11px] text-[#8E9B95]">Senarai peranti yang telah dipadankan (*paired*)</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowBtModal(false)}
+                className="w-8 h-8 rounded-full bg-[#FAF2E2]/10 hover:bg-[#FAF2E2]/20 flex items-center justify-center text-sm font-bold cursor-pointer transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* DEVICE LIST */}
+            <div className="max-h-64 overflow-y-auto space-y-2 mb-4 pr-1">
+              {pairedBtDevices.length === 0 ? (
+                <div className="text-center py-6 px-4 bg-[#0A1716]/60 rounded-2xl border border-[#FAF2E2]/10">
+                  <div className="w-12 h-12 rounded-full bg-amber-500/15 text-amber-300 flex items-center justify-center text-xl mx-auto mb-2.5">
+                    ⚠️
+                  </div>
+                  <p className="text-sm font-bold text-[#FAF2E2] mb-1">Tiada Pencetak Bluetooth Dijumpai</p>
+                  <p className="text-xs text-[#8E9B95] leading-relaxed mb-4">
+                    Sila pastikan printer anda dihidupkan dan telah di-<strong>Pair</strong> di dalam Tetapan Bluetooth Android telefon anda terlebih dahulu.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleOpenBtSettings}
+                    className="py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-bold text-xs transition cursor-pointer shadow-md inline-flex items-center gap-1.5"
+                  >
+                    <span>Buka Tetapan Bluetooth Telefon</span>
+                    <span>↗</span>
+                  </button>
+                </div>
+              ) : (
+                pairedBtDevices.map((dev) => {
+                  const isConnectingThis = connectingAddress === dev.address
+                  return (
+                    <button
+                      key={dev.address}
+                      type="button"
+                      onClick={() => handleSelectNativeBtDevice(dev)}
+                      disabled={isConnectingBt}
+                      className="w-full p-3.5 rounded-2xl bg-[#0A1716]/80 hover:bg-emerald-950/40 border border-[#FAF2E2]/10 hover:border-emerald-500/40 flex items-center justify-between transition cursor-pointer text-left group disabled:opacity-50"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-[#FAF2E2]/10 group-hover:bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M6 9V2h12v7" />
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                            <path d="M6 14h12v8H6z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="font-bold text-sm text-[#FAF2E2] group-hover:text-emerald-300 transition">
+                            {dev.name}
+                          </div>
+                          <div className="text-[10.5px] font-mono text-[#8E9B95]">{dev.address}</div>
+                        </div>
+                      </div>
+                      <div className="shrink-0">
+                        {isConnectingThis ? (
+                          <div className="w-5 h-5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <span className="text-xs font-bold text-emerald-400 group-hover:underline">
+                            Sambung →
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  )
+                })
+              )}
+            </div>
+
+            {/* FOOTER ACTIONS */}
+            <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#FAF2E2]/10 text-xs">
+              <button
+                type="button"
+                onClick={handleOpenBtSettings}
+                className="text-[11px] text-[#8E9B95] hover:text-[#FAF2E2] transition underline cursor-pointer"
+              >
+                + Padankan Printer Baharu
+              </button>
+              <button
+                type="button"
+                onClick={refreshNativeBtDevices}
+                disabled={isRefreshingBt}
+                className="py-2 px-3.5 rounded-xl bg-[#FAF2E2]/10 hover:bg-[#FAF2E2]/20 text-[#FAF2E2] text-[11px] font-bold transition cursor-pointer flex items-center gap-1.5"
+              >
+                <span className={isRefreshingBt ? 'animate-spin' : ''}>🔄</span>
+                <span>Muat Semula</span>
               </button>
             </div>
           </div>

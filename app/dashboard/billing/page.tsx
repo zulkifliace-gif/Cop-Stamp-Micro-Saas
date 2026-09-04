@@ -124,15 +124,27 @@ function BillingContent() {
             })
             const resData = await res.json()
             if (res.ok) {
-              setPlanType('pro')
-              setSubscriptionStatus('active')
-              setToastMsg({
-                text:
-                  lang === 'en'
-                    ? '🎉 Google Play Subscription successful! Welcome to Pro.'
-                    : '🎉 Langganan Google Play berjaya! Selamat datang ke Pelan Pro.',
-                type: 'success',
-              })
+              if (resData.type === 'card_topup') {
+                if (resData.newQuota !== undefined) {
+                  setPurchasedCardQuota(resData.newQuota)
+                } else {
+                  setPurchasedCardQuota(prev => prev + (resData.cardsAdded || 35))
+                }
+                setToastMsg({
+                  text: resData.message || (lang === 'en' ? '🎉 Card top-up successful!' : '🎉 Pembelian kad Google Play berjaya!'),
+                  type: 'success',
+                })
+              } else {
+                setPlanType('pro')
+                setSubscriptionStatus('active')
+                setToastMsg({
+                  text:
+                    lang === 'en'
+                      ? '🎉 Google Play Subscription successful! Welcome to Pro.'
+                      : '🎉 Langganan Google Play berjaya! Selamat datang ke Pelan Pro.',
+                  type: 'success',
+                })
+              }
             } else {
               setErrorMsg(resData.error || (lang === 'en' ? 'Google Play verification failed.' : 'Pengesahan Google Play gagal.'))
             }
@@ -192,6 +204,28 @@ function BillingContent() {
     if (cardCount < 35) return
     setIsProcessing(true)
     setErrorMsg('')
+
+    // If running in Android Native App, trigger Google Play In-App Billing
+    if (isAndroidApp) {
+      let productId = 'lajus_card_topup_35'
+      if (cardCount >= 200) productId = 'lajus_card_topup_200'
+      else if (cardCount >= 100) productId = 'lajus_card_topup_100'
+      else if (cardCount >= 50) productId = 'lajus_card_topup_50'
+
+      const ab = (window as any).AndroidBilling
+      if (ab && typeof ab.launchPurchase === 'function') {
+        ab.launchPurchase(productId)
+      } else {
+        setErrorMsg(
+          lang === 'en'
+            ? 'Google Play Billing is not ready on this device.'
+            : 'Google Play Billing belum bersedia pada peranti anda.'
+        )
+        setIsProcessing(false)
+      }
+      return
+    }
+
     try {
       const res = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
@@ -507,16 +541,38 @@ function BillingContent() {
                 type="button"
                 onClick={handleBuyCards}
                 disabled={isProcessing || cardCount < 35}
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:brightness-110 active:scale-[0.98] text-slate-950 font-jakarta font-black text-sm transition flex items-center justify-center gap-2 cursor-pointer shadow-[0_4px_20px_rgba(16,185,129,0.35)] disabled:opacity-50"
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:brightness-110 active:scale-[0.98] text-slate-950 font-jakarta font-black text-sm transition flex items-center justify-center gap-2.5 cursor-pointer shadow-[0_4px_20px_rgba(16,185,129,0.35)] disabled:opacity-50"
               >
-                <span>
-                  {isProcessing
-                    ? (lang === 'en' ? 'Connecting to Stripe...' : 'Menghubungkan ke Stripe...')
-                    : (lang === 'en' ? `Buy ${cardCount} Cards (RM ${(cardCount * cardRate).toFixed(2)}) ⚡` : `Beli ${cardCount} Kad (RM ${(cardCount * cardRate).toFixed(2)}) ⚡`)}
-                </span>
+                {isAndroidApp ? (
+                  <>
+                    <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                      <path d="M3.609 1.814L13.793 12 3.61 22.186a2.38 2.38 0 0 1-.22-.968V2.782c0-.36.08-.697.22-.968z" fill="#00D3FE"/>
+                      <path d="M17.15 8.643l-3.357 3.357 3.357 3.357 3.79-2.155a1.868 1.868 0 0 0 0-3.238l-3.79-2.155z" fill="#FFCE00"/>
+                      <path d="M3.61 22.186L13.793 12l3.357 3.357-11.45 6.51c-.69.39-1.48.33-2.09-.04z" fill="#FF3A44"/>
+                      <path d="M13.793 12L3.609 1.814C4.22 1.444 5.01 1.384 5.7 1.774l11.45 6.51L13.793 12z" fill="#00E676"/>
+                    </svg>
+                    <span>
+                      {isProcessing
+                        ? (lang === 'en' ? 'Connecting to Google Play...' : 'Menghubungkan ke Google Play...')
+                        : (lang === 'en'
+                            ? `Buy ${cardCount} Cards with Google Play ⚡`
+                            : `Beli ${cardCount} Kad via Google Play ⚡`)}
+                    </span>
+                  </>
+                ) : (
+                  <span>
+                    {isProcessing
+                      ? (lang === 'en' ? 'Connecting to Stripe...' : 'Menghubungkan ke Stripe...')
+                      : (lang === 'en'
+                          ? `Buy ${cardCount} Cards (RM ${(cardCount * cardRate).toFixed(2)}) ⚡`
+                          : `Beli ${cardCount} Kad (RM ${(cardCount * cardRate).toFixed(2)}) ⚡`)}
+                  </span>
+                )}
               </button>
               <p className="text-center text-[10.5px] text-[#8E9B95] mt-2.5">
-                {lang === 'en' ? 'One-time secure payment • Lifetime card quota' : 'Bayaran sekali sahaja • Kuota sah selamanya'}
+                {isAndroidApp
+                  ? (lang === 'en' ? '1-Tap secure payment via Google Play • Lifetime card quota' : 'Bayaran 1-klik selamat melalui Google Play • Kuota sah selamanya')
+                  : (lang === 'en' ? 'One-time secure payment via Stripe • Lifetime card quota' : 'Bayaran sekali sahaja via Stripe • Kuota sah selamanya')}
               </p>
             </div>
           </div>

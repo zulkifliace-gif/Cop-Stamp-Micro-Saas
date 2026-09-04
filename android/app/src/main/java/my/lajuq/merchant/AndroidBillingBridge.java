@@ -48,14 +48,19 @@ public class AndroidBillingBridge implements PurchasesUpdatedListener {
 
     private void queryProducts() {
         if (billingClient == null) return;
-        List<QueryProductDetailsParams.Product> productList = new ArrayList<>();
-        productList.add(
+        querySubsProducts();
+        queryInAppProducts();
+    }
+
+    private void querySubsProducts() {
+        List<QueryProductDetailsParams.Product> subsList = new ArrayList<>();
+        subsList.add(
             QueryProductDetailsParams.Product.newBuilder()
                 .setProductId("lajus_pro_monthly")
                 .setProductType(BillingClient.ProductType.SUBS)
                 .build()
         );
-        productList.add(
+        subsList.add(
             QueryProductDetailsParams.Product.newBuilder()
                 .setProductId("lajus_pro_yearly")
                 .setProductType(BillingClient.ProductType.SUBS)
@@ -63,13 +68,56 @@ public class AndroidBillingBridge implements PurchasesUpdatedListener {
         );
 
         QueryProductDetailsParams params = QueryProductDetailsParams.newBuilder()
-            .setProductList(productList)
+            .setProductList(subsList)
             .build();
 
         billingClient.queryProductDetailsAsync(params, (billingResult, productDetailsResult) -> {
             if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && productDetailsResult != null) {
-                productDetailsList.clear();
-                productDetailsList.addAll(productDetailsResult);
+                synchronized (productDetailsList) {
+                    productDetailsList.removeIf(p -> p.getProductType().equals(BillingClient.ProductType.SUBS));
+                    productDetailsList.addAll(productDetailsResult);
+                }
+            }
+        });
+    }
+
+    private void queryInAppProducts() {
+        List<QueryProductDetailsParams.Product> inAppList = new ArrayList<>();
+        inAppList.add(
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId("lajus_card_topup_35")
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build()
+        );
+        inAppList.add(
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId("lajus_card_topup_50")
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build()
+        );
+        inAppList.add(
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId("lajus_card_topup_100")
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build()
+        );
+        inAppList.add(
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId("lajus_card_topup_200")
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build()
+        );
+
+        QueryProductDetailsParams params = QueryProductDetailsParams.newBuilder()
+            .setProductList(inAppList)
+            .build();
+
+        billingClient.queryProductDetailsAsync(params, (billingResult, productDetailsResult) -> {
+            if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && productDetailsResult != null) {
+                synchronized (productDetailsList) {
+                    productDetailsList.removeIf(p -> p.getProductType().equals(BillingClient.ProductType.INAPP));
+                    productDetailsList.addAll(productDetailsResult);
+                }
             }
         });
     }
@@ -93,33 +141,44 @@ public class AndroidBillingBridge implements PurchasesUpdatedListener {
             }
 
             ProductDetails targetProduct = null;
-            for (ProductDetails pd : productDetailsList) {
-                if (pd.getProductId().equals(productId)) {
-                    targetProduct = pd;
-                    break;
+            synchronized (productDetailsList) {
+                for (ProductDetails pd : productDetailsList) {
+                    if (pd.getProductId().equals(productId)) {
+                        targetProduct = pd;
+                        break;
+                    }
                 }
             }
 
             if (targetProduct == null) {
-                notifyWeb("error", "Produk langganan (" + productId + ") sedang diselaraskan dengan Google Play Console.");
+                notifyWeb("error", "Produk (" + productId + ") sedang diselaraskan dengan Google Play Console.");
                 return;
             }
-
-            List<ProductDetails.SubscriptionOfferDetails> offers = targetProduct.getSubscriptionOfferDetails();
-            if (offers == null || offers.isEmpty()) {
-                notifyWeb("error", "Tiada pelan aktif dijumpai untuk produk ini.");
-                return;
-            }
-
-            String offerToken = offers.get(0).getOfferToken();
 
             List<BillingFlowParams.ProductDetailsParams> productDetailsParamsList = new ArrayList<>();
-            productDetailsParamsList.add(
-                BillingFlowParams.ProductDetailsParams.newBuilder()
-                    .setProductDetails(targetProduct)
-                    .setOfferToken(offerToken)
-                    .build()
-            );
+
+            if (targetProduct.getProductType().equals(BillingClient.ProductType.SUBS)) {
+                List<ProductDetails.SubscriptionOfferDetails> offers = targetProduct.getSubscriptionOfferDetails();
+                if (offers == null || offers.isEmpty()) {
+                    notifyWeb("error", "Tiada pelan langganan aktif dijumpai untuk produk ini.");
+                    return;
+                }
+
+                String offerToken = offers.get(0).getOfferToken();
+                productDetailsParamsList.add(
+                    BillingFlowParams.ProductDetailsParams.newBuilder()
+                        .setProductDetails(targetProduct)
+                        .setOfferToken(offerToken)
+                        .build()
+                );
+            } else {
+                // One-time INAPP product (Card topup)
+                productDetailsParamsList.add(
+                    BillingFlowParams.ProductDetailsParams.newBuilder()
+                        .setProductDetails(targetProduct)
+                        .build()
+                );
+            }
 
             BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder()
                 .setProductDetailsParamsList(productDetailsParamsList)
@@ -144,7 +203,23 @@ public class AndroidBillingBridge implements PurchasesUpdatedListener {
 
     private void handlePurchase(Purchase purchase) {
         if (purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
-            if (!purchase.isAcknowledged()) {
+            boolean isConsumable = false;
+            String primaryProductId = "";
+            for (String pId : purchase.getProducts()) {
+                if (pId.startsWith("lajus_card_topup")) {
+                    isConsumable = true;
+                }
+                primaryProductId = pId;
+            }
+
+            if (isConsumable) {
+                // Consume card top-up so it can be purchased repeatedly
+                ConsumeParams consumeParams = ConsumeParams.newBuilder()
+                    .setPurchaseToken(purchase.getPurchaseToken())
+                    .build();
+                billingClient.consumeAsync(consumeParams, (billingResult, outToken) -> {});
+            } else if (!purchase.isAcknowledged()) {
+                // Acknowledge subscription
                 AcknowledgePurchaseParams acknowledgePurchaseParams =
                     AcknowledgePurchaseParams.newBuilder()
                         .setPurchaseToken(purchase.getPurchaseToken())
@@ -156,6 +231,7 @@ public class AndroidBillingBridge implements PurchasesUpdatedListener {
                 JSONObject json = new JSONObject();
                 json.put("orderId", purchase.getOrderId());
                 json.put("purchaseToken", purchase.getPurchaseToken());
+                json.put("productId", primaryProductId);
                 json.put("products", new JSONArray(purchase.getProducts()));
                 json.put("purchaseTime", purchase.getPurchaseTime());
                 notifyWeb("success", json.toString());

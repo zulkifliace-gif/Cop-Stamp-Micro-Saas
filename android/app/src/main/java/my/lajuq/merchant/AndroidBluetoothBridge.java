@@ -52,18 +52,35 @@ public class AndroidBluetoothBridge {
 
     @JavascriptInterface
     public void requestPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            ActivityCompat.requestPermissions(activity, new String[]{
-                Manifest.permission.BLUETOOTH_CONNECT,
-                Manifest.permission.BLUETOOTH_SCAN
-            }, 101);
-        }
+        activity.runOnUiThread(() -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                ActivityCompat.requestPermissions(activity, new String[]{
+                    Manifest.permission.BLUETOOTH_CONNECT,
+                    Manifest.permission.BLUETOOTH_SCAN
+                }, 101);
+            }
+        });
+    }
+
+    @JavascriptInterface
+    public void openBluetoothSettings() {
+        activity.runOnUiThread(() -> {
+            try {
+                android.content.Intent intent = new android.content.Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS);
+                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                activity.startActivity(intent);
+            } catch (Exception ignored) {}
+        });
     }
 
     @JavascriptInterface
     public String getPairedDevices() {
         JSONArray array = new JSONArray();
         if (bluetoothAdapter == null) return array.toString();
+        if (!hasPermission()) {
+            requestPermission();
+            return array.toString();
+        }
         try {
             Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
             if (pairedDevices != null) {
@@ -83,8 +100,17 @@ public class AndroidBluetoothBridge {
     @JavascriptInterface
     public boolean connect(String address) {
         if (bluetoothAdapter == null) return false;
+        if (!hasPermission()) {
+            requestPermission();
+            return false;
+        }
         try {
             disconnect();
+            try {
+                if (bluetoothAdapter.isDiscovering()) {
+                    bluetoothAdapter.cancelDiscovery();
+                }
+            } catch (Exception ignored) {}
             BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
             socket = device.createRfcommSocketToServiceRecord(SPP_UUID);
             socket.connect();

@@ -177,6 +177,49 @@ async function sendToNativePrinter(data: Uint8Array): Promise<void> {
 /**
  * Connect to Bluetooth Thermal Printer (Native Android Bridge or Web Bluetooth)
  */
+export function getNativePairedDevices(): Array<{ name: string; address: string }> {
+  if (typeof window === 'undefined') return []
+  const nativeBridge = (window as any).AndroidBluetooth
+  if (!nativeBridge || typeof nativeBridge.getPairedDevices !== 'function') return []
+  try {
+    const json = nativeBridge.getPairedDevices()
+    const list = JSON.parse(json)
+    return Array.isArray(list) ? list : []
+  } catch {
+    return []
+  }
+}
+
+export function openNativeBluetoothSettings(): void {
+  if (typeof window === 'undefined') return
+  const nativeBridge = (window as any).AndroidBluetooth
+  if (nativeBridge && typeof nativeBridge.openBluetoothSettings === 'function') {
+    nativeBridge.openBluetoothSettings()
+  }
+}
+
+export async function connectToNativeDevice(address: string, name?: string): Promise<BluetoothPrinterConnection> {
+  if (typeof window === 'undefined') throw new Error('Window tidak tersedia.')
+  const nativeBridge = (window as any).AndroidBluetooth
+  if (!nativeBridge || typeof nativeBridge.connect !== 'function') {
+    throw new Error('Android Bluetooth bridge tidak dijumpai.')
+  }
+  if (!nativeBridge.isBluetoothEnabled()) {
+    throw new Error('Sila hidupkan Bluetooth telefon anda terlebih dahulu.')
+  }
+  const connected = nativeBridge.connect(address)
+  if (!connected) {
+    throw new Error(`Gagal menyambung ke "${name || address}". Pastikan pencetak dihidupkan, dalam jarak dekat, dan tidak disambung ke aplikasi lain.`)
+  }
+  return {
+    device: { name, address },
+    server: null,
+    characteristic: null,
+    name: name || 'Bluetooth Thermal Printer',
+    isNative: true,
+  }
+}
+
 export async function connectBluetoothPrinter(): Promise<BluetoothPrinterConnection> {
   // 1. Android Native Bluetooth Bridge (Inside Android APK)
   const nativeBridge = typeof window !== 'undefined' ? (window as any).AndroidBluetooth : null
@@ -189,14 +232,7 @@ export async function connectBluetoothPrinter(): Promise<BluetoothPrinterConnect
       throw new Error('Sila berikan kebenaran Bluetooth pada telefon anda dan cuba semula.')
     }
 
-    const pairedJson = nativeBridge.getPairedDevices()
-    let pairedDevices: Array<{ name: string; address: string }> = []
-    try {
-      pairedDevices = JSON.parse(pairedJson)
-    } catch {
-      pairedDevices = []
-    }
-
+    const pairedDevices = getNativePairedDevices()
     if (!pairedDevices || pairedDevices.length === 0) {
       throw new Error('Tiada printer Bluetooth dijumpai. Sila "Pair" printer anda dalam Tetapan Bluetooth Android terlebih dahulu.')
     }
@@ -207,18 +243,7 @@ export async function connectBluetoothPrinter(): Promise<BluetoothPrinterConnect
         /printer|pos|mpt|rpp|gooj|58|80|thermal|bt/i.test(d.name)
       ) || pairedDevices[0]
 
-    const connected = nativeBridge.connect(target.address)
-    if (!connected) {
-      throw new Error(`Gagal menyambung ke "${target.name}". Pastikan printer dihidupkan dan berdekatan.`)
-    }
-
-    return {
-      device: target,
-      server: null,
-      characteristic: null,
-      name: target.name || 'Bluetooth Printer',
-      isNative: true,
-    }
+    return connectToNativeDevice(target.address, target.name)
   }
 
   // 2. Web Bluetooth (Google Chrome / Edge)

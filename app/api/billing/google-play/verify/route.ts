@@ -37,7 +37,46 @@ export async function POST(req: NextRequest) {
 
     const storeId = staff.store_id
 
-    // Update store to Pro Plan active
+    // ── CARD TOP-UP PRODUCTS (e.g. lajus_card_topup_35) ─────────────────────
+    if (productId && productId.startsWith('lajus_card_topup')) {
+      const match = productId.match(/\d+$/)
+      const count = match ? parseInt(match[0], 10) : 35
+
+      // Fetch current store quota
+      const { data: storeData } = await admin
+        .from('stores')
+        .select('purchased_card_quota')
+        .eq('id', storeId)
+        .single()
+
+      const currentQuota = storeData?.purchased_card_quota || 0
+      const newQuota = currentQuota + count
+
+      const { error: topupError } = await admin
+        .from('stores')
+        .update({
+          purchased_card_quota: newQuota,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', storeId)
+
+      if (topupError) {
+        console.error('Error updating card quota:', topupError)
+        return NextResponse.json({ error: 'Gagal menambah kuota kad.' }, { status: 500 })
+      }
+
+      return NextResponse.json({
+        success: true,
+        type: 'card_topup',
+        cardsAdded: count,
+        newQuota,
+        message: `Pembelian Google Play berjaya! +${count} kad telah ditambah ke kedai anda.`,
+        orderId,
+        productId,
+      })
+    }
+
+    // ── PRO SUBSCRIPTION PLANS (Monthly / Yearly) ──────────────────────────
     const { error: updateError } = await admin
       .from('stores')
       .update({
@@ -53,6 +92,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      type: 'subscription',
       message: 'Langganan Google Play berjaya disahkan. Pelan Pro kini aktif!',
       planType: 'pro',
       orderId,
