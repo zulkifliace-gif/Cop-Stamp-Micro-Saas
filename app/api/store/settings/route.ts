@@ -374,64 +374,69 @@ export async function PUT(req: NextRequest) {
     const cleanStampIcon =
       typeof stampIcon === 'string' && stampIcon.trim()
         ? stampIcon.trim().slice(0, 100)
-        : '/icons/stamps/makanan.svg'
+        : stampIcon !== undefined
+        ? '/icons/stamps/makanan.svg'
+        : undefined
 
-    // Clean & limit rewards catalog (max 12 items)
-    const rawRewards = Array.isArray(rewards) ? rewards.slice(0, 12) : []
-    const cleanRewards = rawRewards.map((item: any, idx: number) => ({
-      id: String(item?.id || `rw_${idx}`),
-      name: String(item?.name || '').trim().slice(0, 80),
-      stampsRequired: Math.min(100, Math.max(1, Number(item?.stampsRequired) || 10)),
-      imageUrl: String(item?.imageUrl || '').trim().slice(0, 500),
-      description: String(item?.description || '').trim().slice(0, 250),
-    }))
+    // Clean & limit rewards catalog (max 12 items) if provided
+    const cleanRewards = Array.isArray(rewards)
+      ? rewards.slice(0, 12).map((item: any, idx: number) => ({
+          id: String(item?.id || `rw_${idx}`),
+          name: String(item?.name || '').trim().slice(0, 80),
+          stampsRequired: Math.min(100, Math.max(1, Number(item?.stampsRequired) || 10)),
+          imageUrl: String(item?.imageUrl || '').trim().slice(0, 500),
+          description: String(item?.description || '').trim().slice(0, 250),
+        }))
+      : undefined
 
-    // Clean & limit social links (max 10 items)
-    const rawSocialLinks = Array.isArray(socialLinks) ? socialLinks.slice(0, 10) : []
-    const cleanSocialLinks = rawSocialLinks.map((item: any) => ({
-      platform: String(item?.platform || 'instagram').trim().slice(0, 30),
-      url: String(item?.url || '').trim().slice(0, 300),
-    }))
+    // Clean & limit social links (max 10 items) if provided
+    const cleanSocialLinks = Array.isArray(socialLinks)
+      ? socialLinks.slice(0, 10).map((item: any) => ({
+          platform: String(item?.platform || 'instagram').trim().slice(0, 30),
+          url: String(item?.url || '').trim().slice(0, 300),
+        }))
+      : undefined
 
-    // Clean & limit store locations / outlets (max 20 items)
-    const rawLocations = Array.isArray(locations) ? locations.slice(0, 20) : []
-    const cleanLocations = (
-      await Promise.all(
-        rawLocations.map(async (item: any, idx: number) => {
-          const rawUrl = String(item?.url || '').trim().slice(0, 500)
-          const name = String(item?.name || `Cawangan #${idx + 1}`).trim().slice(0, 80)
-          let address = String(item?.address || '').trim().slice(0, 200)
+    // Clean & limit store locations / outlets (max 20 items) if provided
+    const cleanLocations = Array.isArray(locations)
+      ? (
+          await Promise.all(
+            locations.slice(0, 20).map(async (item: any, idx: number) => {
+              const rawUrl = String(item?.url || '').trim().slice(0, 500)
+              const name = String(item?.name || `Cawangan #${idx + 1}`).trim().slice(0, 80)
+              let address = String(item?.address || '').trim().slice(0, 200)
 
-          let coordinates = String(item?.coordinates || '').trim().slice(0, 80)
-          let embedUrl = String(item?.embedUrl || '').trim().slice(0, 500)
-          let embedQuery = String(item?.embedQuery || '').trim().slice(0, 150)
+              let coordinates = String(item?.coordinates || '').trim().slice(0, 80)
+              let embedUrl = String(item?.embedUrl || '').trim().slice(0, 500)
+              let embedQuery = String(item?.embedQuery || '').trim().slice(0, 150)
 
-          if (rawUrl) {
-            try {
-              const res = await resolveGoogleMapsLocation(rawUrl, address || name)
-              if (res.coordinates) coordinates = res.coordinates
-              if (res.embedUrl) embedUrl = res.embedUrl
-              if (res.placeName) {
-                embedQuery = res.placeName
-                if (!address) address = res.placeName
+              if (rawUrl) {
+                try {
+                  const res = await resolveGoogleMapsLocation(rawUrl, address || name)
+                  if (res.coordinates) coordinates = res.coordinates
+                  if (res.embedUrl) embedUrl = res.embedUrl
+                  if (res.placeName) {
+                    embedQuery = res.placeName
+                    if (!address) address = res.placeName
+                  }
+                } catch {}
               }
-            } catch {}
-          }
 
-          return {
-            id: String(item?.id || `loc_${idx}`),
-            name,
-            url: rawUrl,
-            address,
-            ...(coordinates ? { coordinates } : {}),
-            ...(embedUrl ? { embedUrl } : {}),
-            ...(embedQuery ? { embedQuery } : {}),
-          }
-        })
-      )
-    ).filter((loc: any) => loc.url || loc.name)
+              return {
+                id: String(item?.id || `loc_${idx}`),
+                name,
+                url: rawUrl,
+                address,
+                ...(coordinates ? { coordinates } : {}),
+                ...(embedUrl ? { embedUrl } : {}),
+                ...(embedQuery ? { embedQuery } : {}),
+              }
+            })
+          )
+        ).filter((loc: any) => loc.url || loc.name)
+      : undefined
 
-    // Clean & limit custom templates (Strictly max 3 items!)
+    // Clean & limit custom templates (Strictly max 3 items!) if provided
     const rawCustomTemplates = Array.isArray(customTemplates) ? customTemplates.slice(0, 3) : undefined
     const cleanCustomTemplates = rawCustomTemplates ? rawCustomTemplates.map((t: any, idx: number) => ({
       id: String(t?.id || `tpl_${Date.now()}_${idx}`),
@@ -449,12 +454,20 @@ export async function PUT(req: NextRequest) {
 
     const updatedRewardsPayload: any = {
       ...currentRewardsObj,
-      list: cleanRewards,
-      stampIcon: cleanStampIcon,
-      socialLinks: cleanSocialLinks,
-      locations: cleanLocations,
     }
 
+    if (cleanRewards !== undefined) {
+      updatedRewardsPayload.list = cleanRewards
+    }
+    if (cleanStampIcon !== undefined) {
+      updatedRewardsPayload.stampIcon = cleanStampIcon
+    }
+    if (cleanSocialLinks !== undefined) {
+      updatedRewardsPayload.socialLinks = cleanSocialLinks
+    }
+    if (cleanLocations !== undefined) {
+      updatedRewardsPayload.locations = cleanLocations
+    }
     if (cardTemplate !== undefined) {
       updatedRewardsPayload.cardTemplate = cardTemplate
     }
@@ -523,16 +536,16 @@ export async function PUT(req: NextRequest) {
       ? rawUpdatedRewards
       : Array.isArray(rawUpdatedRewards?.list)
       ? rawUpdatedRewards.list
-      : cleanRewards
+      : []
     const finalStampIcon =
       (typeof rawUpdatedRewards === 'object' && !Array.isArray(rawUpdatedRewards) && rawUpdatedRewards?.stampIcon) ||
-      cleanStampIcon
+      '/icons/stamps/makanan.svg'
     const finalSocialLinks =
       (typeof rawUpdatedRewards === 'object' && !Array.isArray(rawUpdatedRewards) && Array.isArray(rawUpdatedRewards?.socialLinks) && rawUpdatedRewards.socialLinks) ||
-      cleanSocialLinks
+      []
     const finalLocations =
       (typeof rawUpdatedRewards === 'object' && !Array.isArray(rawUpdatedRewards) && Array.isArray(rawUpdatedRewards?.locations) && rawUpdatedRewards.locations) ||
-      cleanLocations
+      []
     const finalCardTemplate =
       (typeof rawUpdatedRewards === 'object' && !Array.isArray(rawUpdatedRewards) && rawUpdatedRewards?.cardTemplate) ||
       null

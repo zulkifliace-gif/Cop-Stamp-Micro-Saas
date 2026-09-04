@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 
 export type EditableBlockId =
@@ -923,6 +923,393 @@ function renderLiveSocialIcon(platform: string) {
   }
 }
 
+interface CardStudioPhonePreviewProps {
+  config: LiveStudioConfig
+  activeLang: 'my' | 'en'
+  mobileView: 'editor' | 'preview'
+  onSetMobileView: (view: 'editor' | 'preview') => void
+}
+
+const CardStudioPhonePreview = React.memo(function CardStudioPhonePreview({
+  config,
+  activeLang,
+  mobileView,
+  onSetMobileView,
+}: CardStudioPhonePreviewProps) {
+  const getBlock = (id: EditableBlockId): EditableBlockConfig => {
+    return config.blocks.find((b) => b.id === id) || DEFAULT_4_BLOCKS.find((b) => b.id === id)!
+  }
+
+  const heroBlock = getBlock('hero_header')
+  const profileBlock = getBlock('store_profile')
+  const cardBoxBlock = getBlock('stamp_card_box')
+  const progressBlock = getBlock('progress_bar')
+
+  const activeFont = STORE_FONT_OPTIONS.find((f) => f.id === (profileBlock.fontId || 'fraunces')) || STORE_FONT_OPTIONS[0]
+  const currentFontFamily = activeFont.fontFamily
+
+  const totalStamps = config.simulatedStamps || 4
+  const reqStamps = config.stampsRequired || 10
+  const isFull = totalStamps >= reqStamps
+  const remainStamps = Math.max(0, reqStamps - totalStamps)
+  const percentFill = Math.min(100, Math.round((totalStamps / reqStamps) * 100))
+
+  return (
+    <main
+      className={`flex-1 bg-gradient-to-b from-[#F7F4EE] via-[#EFEBE2] to-[#E9E4D9] p-3 sm:p-5 md:p-6 lg:p-8 flex flex-col items-center justify-start md:justify-center overflow-y-auto ${
+        mobileView === 'editor' ? 'hidden md:flex' : 'flex'
+      }`}
+    >
+      <div className="mb-3 flex items-center justify-between w-full max-w-[380px] px-1">
+        <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-md px-3 sm:px-4 py-1.5 rounded-full border border-[#E2DAD0] text-[10px] sm:text-[11px] text-stone-600 font-semibold shadow-2xs">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>Paparan Visual Rupa Paras</span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onSetMobileView('editor')}
+          className="md:hidden flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-xs cursor-pointer transition"
+        >
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+          </svg>
+          <span>Ubah Reka Bentuk</span>
+        </button>
+      </div>
+
+      {/* REALISTIC COMPACT PHONE MOCKUP - FIXED NATURAL PROPORTIONS ACROSS ALL SCREENS */}
+      <div
+        className="w-full max-w-[350px] rounded-[34px] sm:rounded-[38px] shadow-2xl shadow-stone-900/15 overflow-hidden border-[7px] sm:border-[8px] border-[#1E2533] relative flex flex-col pointer-events-none select-none my-auto shrink-0"
+        style={{
+          backgroundColor: config.pageBgColor || '#FFF7EA',
+          backgroundImage: `radial-gradient(circle at 1px 1px, ${config.pageDotColor || 'rgba(43,27,18,0.055)'} 1px, transparent 1px)`,
+          backgroundSize: '20px 20px',
+        }}
+      >
+        {/* ISLAND / NOTCH */}
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-20 h-3 bg-[#1E2533] rounded-full z-40 pointer-events-none" />
+
+        {/* LIVE CARD DOM CONTAINER (DYNAMIC FULL-PAGE TYPOGRAPHY - DISPLAY ONLY) */}
+        <div
+          className="card-app pt-3.5 pointer-events-none select-none"
+          style={{
+            '--store-font': currentFontFamily,
+            '--card-font': currentFontFamily,
+          } as React.CSSProperties}
+        >
+          {/* 1. HERO HEADER */}
+          {heroBlock.visible && (
+            <div
+              className="hero"
+              style={{
+                background: `linear-gradient(135deg, ${heroBlock.bgColor || '#FF7A45'} 0%, ${heroBlock.bgColor2 || '#FFC24D'} 100%)`,
+                borderRadius: `0 0 ${heroBlock.borderRadius ?? 34}px ${heroBlock.borderRadius ?? 34}px`,
+                boxShadow: heroBlock.shadowStyle === 'glow' ? `0 20px 36px -14px ${heroBlock.bgColor || '#FF7A45'}77` : '0 20px 36px -14px rgba(226,63,46,0.45)',
+              }}
+            >
+              {/* PATTERN WATERMARK */}
+              <HeroHeaderPattern
+                pattern={heroBlock.pattern || 'bubbles'}
+                opacity={heroBlock.patternOpacity ?? 0.25}
+              />
+
+              <div className="hero-inner">
+                {/* TOPBAR */}
+                <div className="topbar">
+                  <div className="lang-toggle">
+                    <button
+                      type="button"
+                      className={activeLang === 'my' ? 'active' : ''}
+                    >
+                      MY
+                    </button>
+                    <button
+                      type="button"
+                      className={activeLang === 'en' ? 'active' : ''}
+                    >
+                      EN
+                    </button>
+                  </div>
+
+                  <div className="top-actions">
+                    <button
+                      type="button"
+                      className="icon-btn gold"
+                      title="Kod QR Pelanggan"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="7" height="7" rx="1.2" />
+                        <rect x="14" y="3" width="7" height="7" rx="1.2" />
+                        <rect x="3" y="14" width="7" height="7" rx="1.2" />
+                        <path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v.01" />
+                      </svg>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      title="Lokasi Cawangan"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      title="Segarkan data"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                      </svg>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      title="Log keluar"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. STORE PROFILE */}
+                {profileBlock.visible && (
+                  <div className="profile">
+                    {profileBlock.showLogo !== false && (
+                      <div
+                        className="avatar"
+                        style={{
+                          backgroundColor: profileBlock.bgColor || '#FFFFFF',
+                          borderColor: profileBlock.borderColor || 'rgba(255,255,255,0.55)',
+                        }}
+                      >
+                        {profileBlock.imageUrl ? (
+                          <img src={profileBlock.imageUrl} alt="Logo" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full p-2.5 bg-white flex items-center justify-center">
+                            <img src="/logo.svg" alt="LajuS" className="w-full h-full object-contain" />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="store-name">
+                      <span
+                        style={{
+                          color: profileBlock.textColor || '#FFFFFF',
+                        }}
+                      >
+                        {config.storeName}
+                      </span>
+                      <span className="verified-badge">
+                        <img src="/green-checkmark-line-icon.svg" alt="Verified" className="w-4 h-4 object-contain" />
+                      </span>
+                    </div>
+
+                    {/* SOCIALS */}
+                    <div className="socials">
+                      {['whatsapp', 'instagram', 'tiktok', 'facebook'].map((plat) => (
+                        <button
+                          key={plat}
+                          type="button"
+                          className="social-btn"
+                          title={plat}
+                        >
+                          {renderLiveSocialIcon(plat)}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* PILL ROW */}
+                    <div className="pill-row">
+                      <button
+                        type="button"
+                        className="pill-btn"
+                      >
+                        <img src="/Google-Review.svg" alt="Review" className="w-3.5 h-3.5 object-contain" />
+                        <span>Review</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="pill-btn"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="16" x2="12" y2="12" />
+                          <line x1="12" y1="8" x2="12.01" y2="8" />
+                        </svg>
+                        <span>Cara Tebus</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="pill-btn"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                          <polyline points="20 12 20 22 4 22 4 12" />
+                          <rect x="2" y="7" width="20" height="5" />
+                          <line x1="12" y1="22" x2="12" y2="7" />
+                          <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+                          <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+                        </svg>
+                        <span>Ganjaran</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 3. CONTENT & STAMP CARD BOX */}
+          <div className="card-content">
+            {cardBoxBlock.visible && (
+              <div
+                className="stamp-card relative overflow-hidden"
+                style={{
+                  backgroundColor: cardBoxBlock.bgColor || '#FFFDF8',
+                  borderColor: cardBoxBlock.borderColor || '#F0DEC0',
+                  borderRadius: `${cardBoxBlock.borderRadius || 28}px`,
+                  backdropFilter: (cardBoxBlock.cardStyle || 'kertas') === 'kaca' ? 'blur(22px) saturate(190%) contrast(105%)' : (cardBoxBlock.cardStyle || 'kertas') === 'air' ? 'blur(16px) saturate(140%)' : 'none',
+                  WebkitBackdropFilter: (cardBoxBlock.cardStyle || 'kertas') === 'kaca' ? 'blur(22px) saturate(190%) contrast(105%)' : (cardBoxBlock.cardStyle || 'kertas') === 'air' ? 'blur(16px) saturate(140%)' : 'none',
+                  boxShadow: cardBoxBlock.shadowStyle === 'glow'
+                    ? '0 16px 36px -10px rgba(255,122,69,0.22)'
+                    : (cardBoxBlock.cardStyle || 'kertas') === 'kaca'
+                    ? '0 24px 50px -12px rgba(0,0,0,0.22), inset 0 1.5px 2px rgba(255,255,255,0.85), inset 0 -1.5px 2px rgba(255,255,255,0.25)'
+                    : (cardBoxBlock.cardStyle || 'kertas') === 'kayu'
+                    ? '0 14px 32px -6px rgba(45,20,5,0.4), inset 0 2px 4px rgba(255,255,255,0.35), inset 0 -3px 6px rgba(40,15,0,0.4)'
+                    : (cardBoxBlock.cardStyle || 'kertas') === 'besi'
+                    ? '0 16px 36px -8px rgba(15,23,42,0.45), inset 0 2px 4px rgba(255,255,255,0.9), inset 0 -2px 5px rgba(0,0,0,0.35)'
+                    : (cardBoxBlock.cardStyle || 'kertas') === 'batu'
+                    ? '0 16px 36px -8px rgba(30,41,59,0.35), inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.2)'
+                    : (cardBoxBlock.cardStyle || 'kertas') === 'air'
+                    ? '0 18px 40px -8px rgba(0,188,212,0.35), inset 0 2px 6px rgba(255,255,255,0.9), inset 0 -2px 6px rgba(0,188,212,0.25)'
+                    : '0 14px 32px -8px rgba(43,27,18,0.08)',
+                }}
+              >
+                {/* MATERIAL TEXTURE OVERLAY */}
+                <CardBoxMaterialTexture cardStyle={cardBoxBlock.cardStyle || 'kertas'} />
+
+                {/* HEAD */}
+                <div className="stamp-card-head relative z-10">
+                  <div className="label">
+                    {isFull
+                      ? `${activeLang === 'en' ? 'CARD' : 'KAD'} 1 • ${activeLang === 'en' ? 'FULL' : 'PENUH'}`
+                      : `${activeLang === 'en' ? 'CARD' : 'KAD'} 1 • ${activeLang === 'en' ? 'IN PROGRESS' : 'SEDANG DIISI'}`}
+                  </div>
+                  <div className="count">
+                    {totalStamps}
+                    <small> / {reqStamps}</small>
+                  </div>
+                </div>
+
+                {/* PERFORATION DOTS */}
+                <div className="perforation relative z-10">
+                  {Array.from({ length: 15 }).map((_, pIdx) => (
+                    <span key={pIdx} />
+                  ))}
+                </div>
+
+                {/* 5-COLUMN STAMP GRID (IDENTICAL CIRCULAR 50% STAMPS) */}
+                <div className="stamp-grid relative z-10">
+                  {Array.from({ length: reqStamps }).map((_, slotIdx) => {
+                    const slotNum = slotIdx + 1
+                    const filled = slotNum <= totalStamps
+                    return (
+                      <div
+                        key={slotNum}
+                        className={`stamp ${filled ? 'filled' : 'empty'}`}
+                        title={filled ? `Cop #${slotNum} — Diperoleh` : `Cop #${slotNum} — Belum diperoleh`}
+                      >
+                        {filled ? (
+                          <img
+                            src={normalizeStampIcon(config.stampIcon)}
+                            alt="Cop Stamp"
+                            className="w-[52%] h-[52%] object-contain pointer-events-none"
+                            style={{ filter: 'brightness(0) invert(1)' }}
+                          />
+                        ) : (
+                          <span className="pointer-events-none">{slotNum}</span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* 4. PROGRESS BAR */}
+                <div className="relative z-10">
+                  <ProgressBarRenderer
+                    progressBlock={progressBlock}
+                    totalStamps={totalStamps}
+                    reqStamps={reqStamps}
+                    percentFill={percentFill}
+                  />
+                </div>
+
+                {/* STATUS TEXT */}
+                <div className="status-text relative z-10">
+                  {isFull ? (
+                    <span>🎉 {activeLang === 'en' ? `Card completed! Claim your reward: ${config.rewardDesc}` : `Kad lengkap! Tebus ganjaran anda: ${config.rewardDesc}`}</span>
+                  ) : remainStamps > 0 ? (
+                    <span>
+                      {activeLang === 'en' ? (
+                        <>
+                          <b>{remainStamps}</b> more stamp{remainStamps > 1 ? 's' : ''} for: {config.rewardDesc}
+                        </>
+                      ) : (
+                        <>
+                          Lagi <b>{remainStamps}</b> cop untuk: {config.rewardDesc}
+                        </>
+                      )}
+                    </span>
+                  ) : (
+                    <span>
+                      <b>Tahniah!</b> Kad cop anda telah penuh!
+                    </span>
+                  )}
+                </div>
+
+                {/* CARD DOTS PAGINATION */}
+                <div className="card-dots relative z-10">
+                  <div className={`dot ${isFull ? 'full' : ''} active`} />
+                  <div className="dot" />
+                </div>
+              </div>
+            )}
+
+            {/* UPDATED TIMESTAMP */}
+            <div className="updated-text">
+              {activeLang === 'en' ? 'Last updated: 10:30 PM, 4 Sep 2026' : 'Kemas kini terakhir: 10:30 PM, 4 Sep 2026'}
+            </div>
+
+            {/* FOOTER BRAND WITH OFFICIAL LAJUS LOGO */}
+            <div className="card-footer">
+              <div className="footer-brand">
+                <img src="/logo.svg" alt="LajuS" className="w-3.5 h-3.5 object-contain" />
+                <span>LajuS</span>
+              </div>
+              <div className="footer-links">
+                <span>{activeLang === 'en' ? 'Privacy Policy' : 'Dasar Privasi'}</span>
+                <span className="dot-sep">•</span>
+                <span>{activeLang === 'en' ? 'Delete Account' : 'Padam Akaun'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  )
+})
+
 export default function CardStudioPage() {
   const [config, setConfig] = useState<LiveStudioConfig>(DEFAULT_LIVE_STUDIO_CONFIG)
   const [activeTab, setActiveTab] = useState<'blocks' | 'presets' | 'simulate'>('blocks')
@@ -930,6 +1317,10 @@ export default function CardStudioPage() {
   const [selectedBlockId, setSelectedBlockId] = useState<EditableBlockId | null>('hero_header')
   const [saveStatus, setSaveStatus] = useState<string>('')
   const [mobileView, setMobileView] = useState<'editor' | 'preview'>('editor')
+
+  // Debounce refs for performance
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const statusTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Cloud & Template Management State
   const [storeId, setStoreId] = useState<string>('')
@@ -946,14 +1337,22 @@ export default function CardStudioPage() {
   const [modalSetAsLive, setModalSetAsLive] = useState<boolean>(true)
   const [modalError, setModalError] = useState<string>('')
 
-  const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
+  const showToast = useCallback((msg: string, type: 'success' | 'error' = 'success') => {
     setCloudToast({ msg, type })
     setTimeout(() => setCloudToast(null), 3500)
-  }
+  }, [])
 
-  const toggleBlock = (blockId: EditableBlockId) => {
+  const toggleBlock = useCallback((blockId: EditableBlockId) => {
     setSelectedBlockId((prev) => (prev === blockId ? null : blockId))
-  }
+  }, [])
+
+  // Clean up debounce timers on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+      if (statusTimeoutRef.current) clearTimeout(statusTimeoutRef.current)
+    }
+  }, [])
 
   // Load store settings and custom templates on mount
   useEffect(() => {
@@ -1022,24 +1421,34 @@ export default function CardStudioPage() {
     loadStudioData()
   }, [])
 
-  const saveConfig = (newConfig: LiveStudioConfig) => {
+  const saveConfig = useCallback((newConfig: LiveStudioConfig) => {
+    // 1. Immediate in-memory React state update for responsive UI
     setConfig(newConfig)
-    try {
-      localStorage.setItem('cop_card_studio_config', JSON.stringify(newConfig))
-      setSaveStatus('Draf dikemas kini')
-      setTimeout(() => setSaveStatus(''), 2000)
-    } catch (e) {
-      console.error('Failed to save config draft:', e)
+
+    // 2. Debounce writing to localStorage to prevent blocking the main thread
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
     }
-  }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      try {
+        localStorage.setItem('cop_card_studio_config', JSON.stringify(newConfig))
+        setSaveStatus('Draf dikemas kini')
+        if (statusTimeoutRef.current) clearTimeout(statusTimeoutRef.current)
+        statusTimeoutRef.current = setTimeout(() => setSaveStatus(''), 2000)
+      } catch (e) {
+        console.error('Failed to save config draft:', e)
+      }
+    }, 350)
+  }, [])
 
   // Open Save Modal
-  const handleOpenSaveModal = (forceLive = false) => {
+  const handleOpenSaveModal = useCallback((forceLive = false) => {
     setModalName(templateName || 'Templat Kad Saya')
     setModalSetAsLive(forceLive ? true : isLiveNow)
     setModalError('')
     setShowSaveModal(true)
-  }
+  }, [templateName, isLiveNow])
 
   // Save Template to Cloud (Supabase via /api/store/settings)
   const handleCloudSave = async (e?: React.FormEvent) => {
@@ -1123,76 +1532,129 @@ export default function CardStudioPage() {
     }
   }
 
-  const updateBlock = (blockId: EditableBlockId, partial: Partial<EditableBlockConfig>) => {
-    const updatedBlocks = config.blocks.map((b) => (b.id === blockId ? { ...b, ...partial } : b))
-    saveConfig({ ...config, blocks: updatedBlocks })
-  }
+  const updateBlock = useCallback((blockId: EditableBlockId, partial: Partial<EditableBlockConfig>) => {
+    setConfig((prevConfig) => {
+      const updatedBlocks = prevConfig.blocks.map((b) => (b.id === blockId ? { ...b, ...partial } : b))
+      const nextConfig = { ...prevConfig, blocks: updatedBlocks }
 
-  const applyPreset = (preset: ThemePreset) => {
-    const updatedBlocks: EditableBlockConfig[] = config.blocks.map((b) => {
-      if (b.id === 'hero_header') {
-        return {
-          ...b,
-          bgColor: preset.hero1,
-          bgColor2: preset.hero2,
-          pattern: preset.pattern,
-        }
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
       }
-      if (b.id === 'store_profile') {
-        return {
-          ...b,
-          fontId: preset.fontId,
+
+      saveTimeoutRef.current = setTimeout(() => {
+        try {
+          localStorage.setItem('cop_card_studio_config', JSON.stringify(nextConfig))
+          setSaveStatus('Draf dikemas kini')
+          if (statusTimeoutRef.current) clearTimeout(statusTimeoutRef.current)
+          statusTimeoutRef.current = setTimeout(() => setSaveStatus(''), 2000)
+        } catch (e) {
+          console.error('Failed to save config draft:', e)
         }
-      }
-      if (b.id === 'stamp_card_box') {
-        return {
-          ...b,
-          cardStyle: preset.cardStyle,
-          bgColor: preset.cardBg,
-          borderColor: preset.cardBorder,
-        }
-      }
-      if (b.id === 'progress_bar') {
-        return {
-          ...b,
-          progressStyle: preset.progressStyle,
-          bgColor: preset.progressFill1,
-          bgColor2: preset.progressFill2,
-        }
-      }
-      return b
+      }, 350)
+
+      return nextConfig
     })
+  }, [])
 
-    saveConfig({
-      ...config,
-      pageBgColor: preset.pageBg,
-      pageDotColor: preset.pageDot,
-      primaryColor: preset.hero1,
-      secondaryAccent: preset.hero2,
-      blocks: updatedBlocks,
+  const applyPreset = useCallback((preset: ThemePreset) => {
+    setConfig((prevConfig) => {
+      const updatedBlocks: EditableBlockConfig[] = prevConfig.blocks.map((b) => {
+        if (b.id === 'hero_header') {
+          return {
+            ...b,
+            bgColor: preset.hero1,
+            bgColor2: preset.hero2,
+            pattern: preset.pattern,
+          }
+        }
+        if (b.id === 'store_profile') {
+          return {
+            ...b,
+            fontId: preset.fontId,
+          }
+        }
+        if (b.id === 'stamp_card_box') {
+          return {
+            ...b,
+            cardStyle: preset.cardStyle,
+            bgColor: preset.cardBg,
+            borderColor: preset.cardBorder,
+          }
+        }
+        if (b.id === 'progress_bar') {
+          return {
+            ...b,
+            progressStyle: preset.progressStyle,
+            bgColor: preset.progressFill1,
+            bgColor2: preset.progressFill2,
+          }
+        }
+        return b
+      })
+
+      const nextConfig: LiveStudioConfig = {
+        ...prevConfig,
+        pageBgColor: preset.pageBg,
+        pageDotColor: preset.pageDot,
+        primaryColor: preset.hero1,
+        secondaryAccent: preset.hero2,
+        blocks: updatedBlocks,
+      }
+
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+      }
+
+      saveTimeoutRef.current = setTimeout(() => {
+        try {
+          localStorage.setItem('cop_card_studio_config', JSON.stringify(nextConfig))
+          setSaveStatus('Draf dikemas kini')
+          if (statusTimeoutRef.current) clearTimeout(statusTimeoutRef.current)
+          statusTimeoutRef.current = setTimeout(() => setSaveStatus(''), 2000)
+        } catch (e) {
+          console.error('Failed to save config draft:', e)
+        }
+      }, 350)
+
+      return nextConfig
     })
-  }
+  }, [])
 
-  const resetToDefault = () => {
+  const resetToDefault = useCallback(() => {
     if (confirm('Tetapkan semula semua tetapan kepada reka bentuk asal seperti live card?')) {
       setConfig(DEFAULT_LIVE_STUDIO_CONFIG)
-      localStorage.setItem('cop_card_studio_config', JSON.stringify(DEFAULT_LIVE_STUDIO_CONFIG))
-      setSaveStatus('Berjaya reset ke asal!')
-      setTimeout(() => setSaveStatus(''), 2000)
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+      try {
+        localStorage.setItem('cop_card_studio_config', JSON.stringify(DEFAULT_LIVE_STUDIO_CONFIG))
+        setSaveStatus('Berjaya reset ke asal!')
+        if (statusTimeoutRef.current) clearTimeout(statusTimeoutRef.current)
+        statusTimeoutRef.current = setTimeout(() => setSaveStatus(''), 2000)
+      } catch {}
     }
-  }
+  }, [])
 
-  const getBlock = (id: EditableBlockId): EditableBlockConfig => {
-    return config.blocks.find((b) => b.id === id) || DEFAULT_4_BLOCKS.find((b) => b.id === id)!
-  }
-
-  const heroBlock = getBlock('hero_header')
-  const profileBlock = getBlock('store_profile')
-  const cardBoxBlock = getBlock('stamp_card_box')
-  const progressBlock = getBlock('progress_bar')
+  const heroBlock = useMemo(
+    () => config.blocks.find((b) => b.id === 'hero_header') || DEFAULT_4_BLOCKS[0],
+    [config.blocks]
+  )
+  const profileBlock = useMemo(
+    () => config.blocks.find((b) => b.id === 'store_profile') || DEFAULT_4_BLOCKS[1],
+    [config.blocks]
+  )
+  const cardBoxBlock = useMemo(
+    () => config.blocks.find((b) => b.id === 'stamp_card_box') || DEFAULT_4_BLOCKS[2],
+    [config.blocks]
+  )
+  const progressBlock = useMemo(
+    () => config.blocks.find((b) => b.id === 'progress_bar') || DEFAULT_4_BLOCKS[3],
+    [config.blocks]
+  )
 
   // Selected global font (applied across the whole card page)
-  const activeFont = STORE_FONT_OPTIONS.find((f) => f.id === (profileBlock.fontId || 'fraunces')) || STORE_FONT_OPTIONS[0]
+  const activeFont = useMemo(
+    () => STORE_FONT_OPTIONS.find((f) => f.id === (profileBlock.fontId || 'fraunces')) || STORE_FONT_OPTIONS[0],
+    [profileBlock.fontId]
+  )
   const currentFontFamily = activeFont.fontFamily
 
   const totalStamps = config.simulatedStamps || 4
@@ -2436,356 +2898,12 @@ export default function CardStudioPage() {
         </aside>
 
         {/* RIGHT PANEL: LIVE EXACT PHONE MOCKUP (WARM SOOTHING DESK ATMOSPHERE) */}
-        <main className={`flex-1 bg-gradient-to-b from-[#F7F4EE] via-[#EFEBE2] to-[#E9E4D9] p-3 sm:p-5 md:p-6 lg:p-8 flex flex-col items-center justify-start md:justify-center overflow-y-auto ${
-          mobileView === 'editor' ? 'hidden md:flex' : 'flex'
-        }`}>
-          <div className="mb-3 flex items-center justify-between w-full max-w-[380px] px-1">
-            <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-md px-3 sm:px-4 py-1.5 rounded-full border border-[#E2DAD0] text-[10px] sm:text-[11px] text-stone-600 font-semibold shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Paparan Visual Rupa Paras</span>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setMobileView('editor')}
-              className="md:hidden flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-xs cursor-pointer transition"
-            >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 20h9" />
-                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-              </svg>
-              <span>Ubah Reka Bentuk</span>
-            </button>
-          </div>
-
-          {/* REALISTIC COMPACT PHONE MOCKUP - FIXED NATURAL PROPORTIONS ACROSS ALL SCREENS */}
-          <div
-            className="w-full max-w-[350px] rounded-[34px] sm:rounded-[38px] shadow-2xl shadow-stone-900/15 overflow-hidden border-[7px] sm:border-[8px] border-[#1E2533] relative flex flex-col pointer-events-none select-none my-auto shrink-0"
-            style={{
-              backgroundColor: config.pageBgColor || '#FFF7EA',
-              backgroundImage: `radial-gradient(circle at 1px 1px, ${config.pageDotColor || 'rgba(43,27,18,0.055)'} 1px, transparent 1px)`,
-              backgroundSize: '20px 20px',
-            }}
-          >
-            {/* ISLAND / NOTCH */}
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-20 h-3 bg-[#1E2533] rounded-full z-40 pointer-events-none" />
-
-            {/* LIVE CARD DOM CONTAINER (DYNAMIC FULL-PAGE TYPOGRAPHY - DISPLAY ONLY) */}
-            <div
-              className="card-app pt-3.5 pointer-events-none select-none"
-              style={{
-                '--store-font': currentFontFamily,
-                '--card-font': currentFontFamily,
-              } as React.CSSProperties}
-            >
-              {/* 1. HERO HEADER */}
-              {heroBlock.visible && (
-                <div
-                  className="hero"
-                  style={{
-                    background: `linear-gradient(135deg, ${heroBlock.bgColor || '#FF7A45'} 0%, ${heroBlock.bgColor2 || '#FFC24D'} 100%)`,
-                    borderRadius: `0 0 ${heroBlock.borderRadius ?? 34}px ${heroBlock.borderRadius ?? 34}px`,
-                    boxShadow: heroBlock.shadowStyle === 'glow' ? `0 20px 36px -14px ${heroBlock.bgColor || '#FF7A45'}77` : '0 20px 36px -14px rgba(226,63,46,0.45)',
-                  }}
-                >
-                  {/* PATTERN WATERMARK */}
-                  <HeroHeaderPattern
-                    pattern={heroBlock.pattern || 'bubbles'}
-                    opacity={heroBlock.patternOpacity ?? 0.25}
-                  />
-
-                  <div className="hero-inner">
-                    {/* TOPBAR */}
-                    <div className="topbar">
-                      <div className="lang-toggle">
-                        <button
-                          type="button"
-                          className={activeLang === 'my' ? 'active' : ''}
-                        >
-                          MY
-                        </button>
-                        <button
-                          type="button"
-                          className={activeLang === 'en' ? 'active' : ''}
-                        >
-                          EN
-                        </button>
-                      </div>
-
-                      <div className="top-actions">
-                        <button
-                          type="button"
-                          className="icon-btn gold"
-                          title="Kod QR Pelanggan"
-                        >
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="3" y="3" width="7" height="7" rx="1.2" />
-                            <rect x="14" y="3" width="7" height="7" rx="1.2" />
-                            <rect x="3" y="14" width="7" height="7" rx="1.2" />
-                            <path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20v.01" />
-                          </svg>
-                        </button>
-
-                        <button
-                          type="button"
-                          className="icon-btn"
-                          title="Lokasi Cawangan"
-                        >
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                            <circle cx="12" cy="10" r="3" />
-                          </svg>
-                        </button>
-
-                        <button
-                          type="button"
-                          className="icon-btn"
-                          title="Segarkan data"
-                        >
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
-                          </svg>
-                        </button>
-
-                        <button
-                          type="button"
-                          className="icon-btn"
-                          title="Log keluar"
-                        >
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                            <polyline points="16 17 21 12 16 7" />
-                            <line x1="21" y1="12" x2="9" y2="12" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* 2. STORE PROFILE */}
-                    {profileBlock.visible && (
-                      <div className="profile">
-                        {profileBlock.showLogo !== false && (
-                          <div
-                            className="avatar"
-                            style={{
-                              backgroundColor: profileBlock.bgColor || '#FFFFFF',
-                              borderColor: profileBlock.borderColor || 'rgba(255,255,255,0.55)',
-                            }}
-                          >
-                            {profileBlock.imageUrl ? (
-                              <img src={profileBlock.imageUrl} alt="Logo" className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full p-2.5 bg-white flex items-center justify-center">
-                                <img src="/logo.svg" alt="LajuS" className="w-full h-full object-contain" />
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        <div className="store-name">
-                          <span
-                            style={{
-                              color: profileBlock.textColor || '#FFFFFF',
-                            }}
-                          >
-                            {config.storeName}
-                          </span>
-                          <span className="verified-badge">
-                            <img src="/green-checkmark-line-icon.svg" alt="Verified" className="w-4 h-4 object-contain" />
-                          </span>
-                        </div>
-
-                        {/* SOCIALS */}
-                        <div className="socials">
-                          {['whatsapp', 'instagram', 'tiktok', 'facebook'].map((plat) => (
-                            <button
-                              key={plat}
-                              type="button"
-                              className="social-btn"
-                              title={plat}
-                            >
-                              {renderLiveSocialIcon(plat)}
-                            </button>
-                          ))}
-                        </div>
-
-                        {/* PILL ROW */}
-                        <div className="pill-row">
-                          <button
-                            type="button"
-                            className="pill-btn"
-                          >
-                            <img src="/Google-Review.svg" alt="Review" className="w-3.5 h-3.5 object-contain" />
-                            <span>Review</span>
-                          </button>
-                          <button
-                            type="button"
-                            className="pill-btn"
-                          >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                              <circle cx="12" cy="12" r="10" />
-                              <line x1="12" y1="16" x2="12" y2="12" />
-                              <line x1="12" y1="8" x2="12.01" y2="8" />
-                            </svg>
-                            <span>Cara Tebus</span>
-                          </button>
-                          <button
-                            type="button"
-                            className="pill-btn"
-                          >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                              <polyline points="20 12 20 22 4 22 4 12" />
-                              <rect x="2" y="7" width="20" height="5" />
-                              <line x1="12" y1="22" x2="12" y2="7" />
-                              <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
-                              <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
-                            </svg>
-                            <span>Ganjaran</span>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* 3. CONTENT & STAMP CARD BOX */}
-              <div className="card-content">
-                {cardBoxBlock.visible && (
-                  <div
-                    className="stamp-card relative overflow-hidden"
-                    style={{
-                      backgroundColor: cardBoxBlock.bgColor || '#FFFDF8',
-                      borderColor: cardBoxBlock.borderColor || '#F0DEC0',
-                      borderRadius: `${cardBoxBlock.borderRadius || 28}px`,
-                      backdropFilter: (cardBoxBlock.cardStyle || 'kertas') === 'kaca' ? 'blur(22px) saturate(190%) contrast(105%)' : (cardBoxBlock.cardStyle || 'kertas') === 'air' ? 'blur(16px) saturate(140%)' : 'none',
-                      WebkitBackdropFilter: (cardBoxBlock.cardStyle || 'kertas') === 'kaca' ? 'blur(22px) saturate(190%) contrast(105%)' : (cardBoxBlock.cardStyle || 'kertas') === 'air' ? 'blur(16px) saturate(140%)' : 'none',
-                      boxShadow: cardBoxBlock.shadowStyle === 'glow'
-                        ? '0 16px 36px -10px rgba(255,122,69,0.22)'
-                        : (cardBoxBlock.cardStyle || 'kertas') === 'kaca'
-                        ? '0 24px 50px -12px rgba(0,0,0,0.22), inset 0 1.5px 2px rgba(255,255,255,0.85), inset 0 -1.5px 2px rgba(255,255,255,0.25)'
-                        : (cardBoxBlock.cardStyle || 'kertas') === 'kayu'
-                        ? '0 14px 32px -6px rgba(45,20,5,0.4), inset 0 2px 4px rgba(255,255,255,0.35), inset 0 -3px 6px rgba(40,15,0,0.4)'
-                        : (cardBoxBlock.cardStyle || 'kertas') === 'besi'
-                        ? '0 16px 36px -8px rgba(15,23,42,0.45), inset 0 2px 4px rgba(255,255,255,0.9), inset 0 -2px 5px rgba(0,0,0,0.35)'
-                        : (cardBoxBlock.cardStyle || 'kertas') === 'batu'
-                        ? '0 16px 36px -8px rgba(30,41,59,0.35), inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.2)'
-                        : (cardBoxBlock.cardStyle || 'kertas') === 'air'
-                        ? '0 18px 40px -8px rgba(0,188,212,0.35), inset 0 2px 6px rgba(255,255,255,0.9), inset 0 -2px 6px rgba(0,188,212,0.25)'
-                        : '0 14px 32px -8px rgba(43,27,18,0.08)',
-                    }}
-                  >
-                    {/* MATERIAL TEXTURE OVERLAY */}
-                    <CardBoxMaterialTexture cardStyle={cardBoxBlock.cardStyle || 'kertas'} />
-
-                    {/* HEAD */}
-                    <div className="stamp-card-head relative z-10">
-                      <div className="label">
-                        {isFull
-                          ? `${activeLang === 'en' ? 'CARD' : 'KAD'} 1 • ${activeLang === 'en' ? 'FULL' : 'PENUH'}`
-                          : `${activeLang === 'en' ? 'CARD' : 'KAD'} 1 • ${activeLang === 'en' ? 'IN PROGRESS' : 'SEDANG DIISI'}`}
-                      </div>
-                      <div className="count">
-                        {totalStamps}
-                        <small> / {reqStamps}</small>
-                      </div>
-                    </div>
-
-                    {/* PERFORATION DOTS */}
-                    <div className="perforation relative z-10">
-                      {Array.from({ length: 15 }).map((_, pIdx) => (
-                        <span key={pIdx} />
-                      ))}
-                    </div>
-
-                    {/* 5-COLUMN STAMP GRID (IDENTICAL CIRCULAR 50% STAMPS) */}
-                    <div className="stamp-grid relative z-10">
-                      {Array.from({ length: reqStamps }).map((_, slotIdx) => {
-                        const slotNum = slotIdx + 1
-                        const filled = slotNum <= totalStamps
-                        return (
-                          <div
-                            key={slotNum}
-                            className={`stamp ${filled ? 'filled' : 'empty'}`}
-                            title={filled ? `Cop #${slotNum} — Diperoleh` : `Cop #${slotNum} — Belum diperoleh`}
-                          >
-                            {filled ? (
-                              <img
-                                src={normalizeStampIcon(config.stampIcon)}
-                                alt="Cop Stamp"
-                                className="w-[52%] h-[52%] object-contain pointer-events-none"
-                                style={{ filter: 'brightness(0) invert(1)' }}
-                              />
-                            ) : (
-                              <span className="pointer-events-none">{slotNum}</span>
-                            )}
-                          </div>
-                        )
-                      })}
-                    </div>
-
-                    {/* 4. PROGRESS BAR */}
-                    <div className="relative z-10">
-                      <ProgressBarRenderer
-                        progressBlock={progressBlock}
-                        totalStamps={totalStamps}
-                        reqStamps={reqStamps}
-                        percentFill={percentFill}
-                      />
-                    </div>
-
-                    {/* STATUS TEXT */}
-                    <div className="status-text relative z-10">
-                      {isFull ? (
-                        <span>🎉 {activeLang === 'en' ? `Card completed! Claim your reward: ${config.rewardDesc}` : `Kad lengkap! Tebus ganjaran anda: ${config.rewardDesc}`}</span>
-                      ) : remainStamps > 0 ? (
-                        <span>
-                          {activeLang === 'en' ? (
-                            <>
-                              <b>{remainStamps}</b> more stamp{remainStamps > 1 ? 's' : ''} for: {config.rewardDesc}
-                            </>
-                          ) : (
-                            <>
-                              Lagi <b>{remainStamps}</b> cop untuk: {config.rewardDesc}
-                            </>
-                          )}
-                        </span>
-                      ) : (
-                        <span>
-                          <b>Tahniah!</b> Kad cop anda telah penuh!
-                        </span>
-                      )}
-                    </div>
-
-                    {/* CARD DOTS PAGINATION */}
-                    <div className="card-dots relative z-10">
-                      <div className={`dot ${isFull ? 'full' : ''} active`} />
-                      <div className="dot" />
-                    </div>
-                  </div>
-                )}
-
-                {/* UPDATED TIMESTAMP */}
-                <div className="updated-text">
-                  {activeLang === 'en' ? 'Last updated: 10:30 PM, 4 Sep 2026' : 'Kemas kini terakhir: 10:30 PM, 4 Sep 2026'}
-                </div>
-
-                {/* FOOTER BRAND WITH OFFICIAL LAJUS LOGO */}
-                <div className="card-footer">
-                  <div className="footer-brand">
-                    <img src="/logo.svg" alt="LajuS" className="w-3.5 h-3.5 object-contain" />
-                    <span>LajuS</span>
-                  </div>
-                  <div className="footer-links">
-                    <span>{activeLang === 'en' ? 'Privacy Policy' : 'Dasar Privasi'}</span>
-                    <span className="dot-sep">•</span>
-                    <span>{activeLang === 'en' ? 'Delete Account' : 'Padam Akaun'}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
+        <CardStudioPhonePreview
+          config={config}
+          activeLang={activeLang}
+          mobileView={mobileView}
+          onSetMobileView={setMobileView}
+        />
       </div>
 
       {/* FLOATING CLOUD TOAST NOTIFICATION */}
