@@ -888,101 +888,65 @@ function BillingContent() {
                 </div>
               </div>
 
-              {/* Payment Options */}
-              <div className="space-y-3 mb-6">
-                {/* OPTION 1: FPX Online Banking (toyyibPay) */}
-                <label
+              {/* Payment Channel Tiles (Icon Sahaja - Bingkai Petak Bucu Tak Tajam) */}
+              <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+                {/* 1. FPX Online Banking */}
+                <button
+                  type="button"
                   onClick={() => setSelectedPaymentChannel('fpx')}
-                  className={`flex items-start gap-3.5 p-4 rounded-2xl border transition-all cursor-pointer ${
+                  className={`group relative flex flex-col items-center justify-center p-3 sm:p-4 aspect-square rounded-2xl border-2 transition-all cursor-pointer ${
                     selectedPaymentChannel === 'fpx'
-                      ? 'bg-[#1C7A67]/25 border-[#1FA96B] shadow-[0_0_15px_rgba(28,122,103,0.35)]'
-                      : 'bg-[#0A1716]/60 border-[#FAF2E2]/10 hover:border-[#FAF2E2]/25'
+                      ? 'bg-[#1C7A67]/20 border-[#1FA96B] shadow-[0_0_20px_rgba(31,169,107,0.35)] scale-[1.02]'
+                      : 'bg-[#0A1716]/80 border-[#FAF2E2]/15 hover:border-[#FAF2E2]/35 hover:bg-[#0A1716]'
                   }`}
+                  title="FPX Online Banking (toyyibPay)"
                 >
-                  <input
-                    type="radio"
-                    name="paymentChannel"
-                    checked={selectedPaymentChannel === 'fpx'}
-                    onChange={() => setSelectedPaymentChannel('fpx')}
-                    className="accent-[#1FA96B] w-4 h-4 mt-1 cursor-pointer"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-bold text-white flex items-center gap-1.5">
-                        🏦 FPX Online Banking
-                      </span>
-                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                        toyyibPay
-                      </span>
+                  {selectedPaymentChannel === 'fpx' && (
+                    <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[#1FA96B] text-black flex items-center justify-center text-[10px] font-black shadow">
+                      ✓
                     </div>
-                    <p className="text-[11px] text-[#8E9B95] leading-relaxed">
-                      {lang === 'en'
-                        ? 'Instant transfer from Maybank2u, CIMB Clicks, Bank Islam, RHB, Hong Leong, Public Bank, etc.'
-                        : 'Pindahan terus Maybank2u, CIMB Clicks, Bank Islam, RHB, Hong Leong, Public Bank, dll.'}
-                    </p>
+                  )}
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden flex items-center justify-center bg-white shadow-sm p-1.5 transition-transform group-hover:scale-105">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/fpx.svg" alt="FPX" className="w-full h-full object-contain" />
                   </div>
-                </label>
+                </button>
 
-                {/* OPTION 2: Touch 'n Go / DuitNow QR (toyyibPay) - OPEN SOON */}
+                {/* 2. Touch 'n Go (Open Soon) */}
                 <div
-                  className="flex items-start gap-3.5 p-4 rounded-2xl border transition-all opacity-60 bg-[#0A1716]/40 border-[#FAF2E2]/10 cursor-not-allowed select-none relative overflow-hidden"
+                  className="relative flex flex-col items-center justify-center p-3 sm:p-4 aspect-square rounded-2xl border-2 border-[#FAF2E2]/10 bg-[#0A1716]/40 opacity-40 cursor-not-allowed select-none"
+                  title={lang === 'en' ? 'Touch \'n Go (Open Soon)' : 'Touch \'n Go (Akan Datang)'}
                 >
-                  <input
-                    type="radio"
-                    name="paymentChannel"
-                    disabled
-                    checked={false}
-                    className="accent-[#00D3FE] w-4 h-4 mt-1 cursor-not-allowed opacity-40"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-bold text-[#FAF2E2]/75 flex items-center gap-1.5">
-                        📱 Touch &apos;n Go / DuitNow QR
-                      </span>
-                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                        {lang === 'en' ? 'Open Soon' : 'Akan Datang (Open Soon)'}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-[#8E9B95] leading-relaxed">
-                      {lang === 'en'
-                        ? 'Under DNQR merchant verification (7 days). Please use FPX Online Banking or Card for now.'
-                        : 'Sedang dalam proses pengesahan DNQR peniaga. Sila gunakan FPX Online Banking atau Kad buat masa ini.'}
-                    </p>
+                  <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[8.5px] font-bold uppercase tracking-wider">
+                    Soon
+                  </div>
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden flex items-center justify-center shadow-sm">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/Tng.svg" alt="Touch 'n Go" className="w-full h-full object-contain" />
                   </div>
                 </div>
 
-                {/* OPTION 3: Credit / Debit Card (Stripe) */}
-                <label
+                {/* 3. Stripe Card */}
+                <button
+                  type="button"
                   onClick={() => setSelectedPaymentChannel('stripe')}
-                  className={`flex items-start gap-3.5 p-4 rounded-2xl border transition-all cursor-pointer ${
+                  className={`group relative flex flex-col items-center justify-center p-3 sm:p-4 aspect-square rounded-2xl border-2 transition-all cursor-pointer ${
                     selectedPaymentChannel === 'stripe'
-                      ? 'bg-[#6366F1]/20 border-[#6366F1] shadow-[0_0_15px_rgba(99,102,241,0.3)]'
-                      : 'bg-[#0A1716]/60 border-[#FAF2E2]/10 hover:border-[#FAF2E2]/25'
+                      ? 'bg-[#6366F1]/20 border-[#6366F1] shadow-[0_0_20px_rgba(99,102,241,0.35)] scale-[1.02]'
+                      : 'bg-[#0A1716]/80 border-[#FAF2E2]/15 hover:border-[#FAF2E2]/35 hover:bg-[#0A1716]'
                   }`}
+                  title="Stripe (Visa / Mastercard)"
                 >
-                  <input
-                    type="radio"
-                    name="paymentChannel"
-                    checked={selectedPaymentChannel === 'stripe'}
-                    onChange={() => setSelectedPaymentChannel('stripe')}
-                    className="accent-[#6366F1] w-4 h-4 mt-1 cursor-pointer"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-bold text-white flex items-center gap-1.5">
-                        💳 Kad Kredit / Debit Antarabangsa
-                      </span>
-                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
-                        Stripe
-                      </span>
+                  {selectedPaymentChannel === 'stripe' && (
+                    <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[#6366F1] text-white flex items-center justify-center text-[10px] font-black shadow">
+                      ✓
                     </div>
-                    <p className="text-[11px] text-[#8E9B95] leading-relaxed">
-                      {lang === 'en'
-                        ? 'Visa, Mastercard, AMEX with auto-renewal support.'
-                        : 'Kad Visa, Mastercard dengan sokongan pembaharuan automatik.'}
-                    </p>
+                  )}
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden flex items-center justify-center shadow-sm transition-transform group-hover:scale-105">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/stripe.svg" alt="Stripe" className="w-full h-full object-contain" />
                   </div>
-                </label>
+                </button>
               </div>
 
               {/* Action Button */}
