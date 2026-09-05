@@ -451,9 +451,11 @@ export default function CashierDashboard() {
   }
 
   // 3. Fetch Paginated Activity List & Store Stats (10 items per page)
-  async function loadActivity(page = 1, currentStoreId = storeId) {
-    setLoadingActivity(true)
-    if (page === 1) setStatsLoading(true)
+  async function loadActivity(page = 1, currentStoreId = storeId, isBackground = false) {
+    if (!isBackground) {
+      setLoadingActivity(true)
+      if (page === 1 && !storeStats.totalCustomers) setStatsLoading(true)
+    }
     try {
       const targetStoreId = currentStoreId || storeId
       const url = targetStoreId
@@ -477,8 +479,10 @@ export default function CashierDashboard() {
     } catch (e) {
       console.error('Failed to load activity:', e)
     } finally {
-      setLoadingActivity(false)
-      setStatsLoading(false)
+      if (!isBackground) {
+        setLoadingActivity(false)
+        setStatsLoading(false)
+      }
     }
   }
 
@@ -486,29 +490,31 @@ export default function CashierDashboard() {
   useEffect(() => {
     if (!storeId) return
 
-    // A. Realtime subscription to stamp_tokens and stamp_redemptions
+    // A. Realtime subscription to stamp_tokens and stamp_redemptions (Instant push without polling load)
     const activityChannel = supabase
       .channel(`store-activity-stream-${storeId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'stamp_tokens', filter: `store_id=eq.${storeId}` },
         () => {
-          loadActivity(activityPage, storeId)
+          loadActivity(activityPage, storeId, true)
         }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'stamp_redemptions', filter: `store_id=eq.${storeId}` },
         () => {
-          loadActivity(activityPage, storeId)
+          loadActivity(activityPage, storeId, true)
         }
       )
       .subscribe()
 
-    // B. Periodic refresh every 15s to update expired states and stats live
+    // B. Smart background fallback (every 60s, only when merchant tab is actively visible)
     const interval = setInterval(() => {
-      loadActivity(activityPage, storeId)
-    }, 15000)
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        loadActivity(activityPage, storeId, true)
+      }
+    }, 60000)
 
     return () => {
       supabase.removeChannel(activityChannel)
