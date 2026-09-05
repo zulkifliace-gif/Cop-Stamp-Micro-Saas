@@ -32,6 +32,17 @@ function BillingContent() {
   const [errorMsg, setErrorMsg] = useState<string>('')
   const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'info' | 'error' } | null>(null)
 
+  // Payment Modal state (FPX, Touch 'n Go, Stripe)
+  const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false)
+  const [selectedPaymentChannel, setSelectedPaymentChannel] = useState<'fpx' | 'tng_qr' | 'stripe'>('fpx')
+  const [paymentTarget, setPaymentTarget] = useState<{
+    type: 'subscription' | 'card_topup'
+    planChoice?: 'monthly' | 'yearly'
+    cardCount?: number
+    title: string
+    priceRm: number
+  } | null>(null)
+
   useEffect(() => {
     const saved = localStorage.getItem('lajus_lang') as 'my' | 'en' | null
     if (saved === 'my' || saved === 'en') {
@@ -104,6 +115,59 @@ function BillingContent() {
         text: lang === 'en' ? 'Card top-up payment was cancelled.' : 'Pembayaran pembelian kad dibatalkan.',
         type: 'info',
       })
+    }
+
+    // Check toyyibPay return query params
+    const paymentParam = searchParams.get('payment')
+    const statusIdParam = searchParams.get('status_id')
+    const billCodeParam = searchParams.get('billcode')
+    const orderIdParam = searchParams.get('order_id')
+
+    if (paymentParam === 'toyyibpay' && billCodeParam) {
+      if (statusIdParam === '1') {
+        verifyToyyibpayBill(billCodeParam, statusIdParam, orderIdParam || undefined)
+      } else if (statusIdParam === '2') {
+        setToastMsg({
+          text: lang === 'en' ? 'Payment is still being processed by bank.' : 'Pembayaran toyyibPay sedang diproses oleh pihak bank.',
+          type: 'info',
+        })
+      } else if (statusIdParam === '3') {
+        setToastMsg({
+          text: lang === 'en' ? 'toyyibPay payment was cancelled or failed.' : 'Pembayaran toyyibPay dibatalkan atau tidak berjaya.',
+          type: 'info',
+        })
+      }
+    }
+
+    async function verifyToyyibpayBill(billCode: string, statusId: string, orderId?: string) {
+      try {
+        setIsProcessing(true)
+        const res = await fetch('/api/toyyibpay/verify-bill', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ billCode, statusId, orderId }),
+        })
+        const data = await res.json()
+        if (data.success) {
+          if (data.type === 'pro_subscription') {
+            setPlanType('pro')
+            setSubscriptionStatus('active')
+          } else if (data.type === 'card_topup') {
+            setPurchasedCardQuota(prev => prev + (data.cardsAdded || 0))
+          }
+          setToastMsg({
+            text: data.message || (lang === 'en' ? '🎉 toyyibPay payment successful!' : '🎉 Pembayaran toyyibPay berjaya!'),
+            type: 'success',
+          })
+          router.replace('/dashboard/billing')
+        } else {
+          setErrorMsg(data.message || (lang === 'en' ? 'Failed to verify toyyibPay payment.' : 'Gagal mengesahkan pembayaran toyyibPay.'))
+        }
+      } catch (e: any) {
+        console.error('Error verifying toyyibPay payment:', e)
+      } finally {
+        setIsProcessing(false)
+      }
     }
 
     // Check if running in Android Native App with Google Play Billing
@@ -202,7 +266,6 @@ function BillingContent() {
 
   async function handleBuyCards() {
     if (cardCount < 35) return
-    setIsProcessing(true)
     setErrorMsg('')
 
     // If running in Android Native App, trigger Google Play In-App Billing
@@ -221,33 +284,21 @@ function BillingContent() {
             ? 'Google Play Billing is not ready on this device.'
             : 'Google Play Billing belum bersedia pada peranti anda.'
         )
-        setIsProcessing(false)
       }
       return
     }
 
-    try {
-      const res = await fetch('/api/stripe/create-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'one_off_cards', cardCount }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.error || (lang === 'en' ? 'Failed to start card purchase.' : 'Gagal memulakan pembelian kad.'))
-      }
-      if (data.url) {
-        window.location.href = data.url
-      }
-    } catch (err: any) {
-      console.error('Card purchase error:', err)
-      setErrorMsg(err.message || (lang === 'en' ? 'Error connecting to payment processor.' : 'Ralat berlaku semasa menyambung ke pembayaran.'))
-      setIsProcessing(false)
-    }
+    // On Web, open Payment Method Selector Modal
+    setPaymentTarget({
+      type: 'card_topup',
+      cardCount,
+      priceRm: cardCount * cardRate,
+      title: lang === 'en' ? `Top-Up ${cardCount} Digital Cards` : `Tambah ${cardCount} Kad Cop Digital`,
+    })
+    setShowPaymentModal(true)
   }
 
   async function handleCheckout(planChoice: 'monthly' | 'yearly') {
-    setIsProcessing(true)
     setErrorMsg('')
 
     // If running inside Android native app, trigger Google Play Billing
@@ -262,26 +313,77 @@ function BillingContent() {
             ? 'Google Play Billing is not ready on this device.'
             : 'Google Play Billing belum bersedia pada peranti anda.'
         )
-        setIsProcessing(false)
       }
       return
     }
 
+    // On Web, open Payment Method Selector Modal
+    setPaymentTarget({
+      type: 'subscription',
+      planChoice,
+      priceRm: planChoice === 'yearly' ? proYearly : proMonthly,
+      title:
+        lang === 'en'
+          ? `Subscribe to Pro (${planChoice === 'yearly' ? 'Yearly' : 'Monthly'})`
+          : `Langgan Pelan Pro (${planChoice === 'yearly' ? 'Tahunan' : 'Bulanan'})`,
+    })
+    setShowPaymentModal(true)
+  }
+
+  async function handleExecutePayment() {
+    if (!paymentTarget) return
+    setIsProcessing(true)
+    setErrorMsg('')
+
     try {
-      const res = await fetch('/api/stripe/create-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: planChoice }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.error || (lang === 'en' ? 'Failed to start checkout.' : 'Gagal memulakan proses pembayaran.'))
-      }
-      if (data.url) {
-        window.location.href = data.url
+      if (selectedPaymentChannel === 'stripe') {
+        const payload: any = {}
+        if (paymentTarget.type === 'card_topup') {
+          payload.plan = 'one_off_cards'
+          payload.cardCount = paymentTarget.cardCount
+        } else {
+          payload.plan = paymentTarget.planChoice
+        }
+
+        const res = await fetch('/api/stripe/create-checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          throw new Error(data.error || (lang === 'en' ? 'Failed to start Stripe checkout.' : 'Gagal memulakan pembayaran Stripe.'))
+        }
+        if (data.url) {
+          window.location.href = data.url
+        }
+      } else {
+        // toyyibPay (fpx or tng_qr)
+        const payload: any = {
+          channel: selectedPaymentChannel,
+        }
+        if (paymentTarget.type === 'card_topup') {
+          payload.plan = 'one_off_cards'
+          payload.cardCount = paymentTarget.cardCount
+        } else {
+          payload.plan = paymentTarget.planChoice
+        }
+
+        const res = await fetch('/api/toyyibpay/create-bill', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          throw new Error(data.error || (lang === 'en' ? 'Failed to create toyyibPay bill.' : 'Gagal menjana bil toyyibPay.'))
+        }
+        if (data.url) {
+          window.location.href = data.url
+        }
       }
     } catch (err: any) {
-      console.error('Checkout error:', err)
+      console.error('Payment start error:', err)
       setErrorMsg(err.message || (lang === 'en' ? 'Error connecting to payment processor.' : 'Ralat berlaku semasa menyambung ke pembayaran.'))
       setIsProcessing(false)
     }
@@ -562,7 +664,7 @@ function BillingContent() {
                 ) : (
                   <span>
                     {isProcessing
-                      ? (lang === 'en' ? 'Connecting to Stripe...' : 'Menghubungkan ke Stripe...')
+                      ? (lang === 'en' ? 'Processing...' : 'Memproses...')
                       : (lang === 'en'
                           ? `Buy ${cardCount} Cards (RM ${(cardCount * cardRate).toFixed(2)}) ⚡`
                           : `Beli ${cardCount} Kad (RM ${(cardCount * cardRate).toFixed(2)}) ⚡`)}
@@ -572,7 +674,7 @@ function BillingContent() {
               <p className="text-center text-[10.5px] text-[#8E9B95] mt-2.5">
                 {isAndroidApp
                   ? (lang === 'en' ? '1-Tap secure payment via Google Play • Lifetime card quota' : 'Bayaran 1-klik selamat melalui Google Play • Kuota sah selamanya')
-                  : (lang === 'en' ? 'One-time secure payment via Stripe • Lifetime card quota' : 'Bayaran sekali sahaja via Stripe • Kuota sah selamanya')}
+                  : (lang === 'en' ? 'FPX, Touch \'n Go (toyyibPay) & Kad (Stripe) • Kuota sah selamanya' : 'FPX, Touch \'n Go (toyyibPay) & Kad (Stripe) • Kuota sah selamanya')}
               </p>
             </div>
           </div>
@@ -714,14 +816,14 @@ function BillingContent() {
                   disabled={isProcessing}
                   className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] hover:brightness-110 active:scale-[0.98] text-[#1A2422] font-jakarta font-black text-sm transition flex items-center justify-center gap-2 cursor-pointer shadow-[0_4px_20px_rgba(229,164,59,0.4)] hover:shadow-[0_4px_28px_rgba(229,164,59,0.55)] disabled:opacity-50"
                 >
-                  <span>{isProcessing ? (lang === 'en' ? 'Redirecting to Stripe...' : 'Menghubungkan ke Stripe...') : (lang === 'en' ? 'Subscribe to Pro Now ⚡' : 'Langgan Pelan Pro Sekarang ⚡')}</span>
+                  <span>{isProcessing ? (lang === 'en' ? 'Processing...' : 'Memproses...') : (lang === 'en' ? 'Subscribe to Pro Now ⚡' : 'Langgan Pelan Pro Sekarang ⚡')}</span>
                 </button>
               )}
 
               <p className="text-center text-[10.5px] text-[#8E9B95] mt-2.5">
                 {isAndroidApp
                   ? (lang === 'en' ? '1-Tap secure checkout via Google Play (Google Pay, Touch \'n Go, Telco, Card)' : 'Bayaran 1-klik selamat melalui Google Play (Google Pay, Touch \'n Go, Bil Telco, Kad)')
-                  : (lang === 'en' ? 'Secure payments via Stripe • Cancel anytime' : 'Bayaran selamat melalui Stripe • Batal bila-bila masa')}
+                  : (lang === 'en' ? 'FPX, Touch \'n Go (toyyibPay) & Kad (Stripe) • Batal bila-bila masa' : 'FPX, Touch \'n Go (toyyibPay) & Kad (Stripe) • Batal bila-bila masa')}
               </p>
             </div>
           </div>
@@ -738,6 +840,178 @@ function BillingContent() {
         <footer className="text-center text-[11px] text-[#FAF2E2]/40 font-space pb-6 border-t border-[#FAF2E2]/10 pt-6">
           © {new Date().getFullYear()} LajuS • {lang === 'en' ? 'All rights reserved.' : 'Hak cipta terpelihara.'}
         </footer>
+
+        {/* ── PAYMENT METHOD SELECTOR MODAL (FPX, TOUCH 'N GO, STRIPE) ── */}
+        {showPaymentModal && paymentTarget && (
+          <div
+            onClick={() => !isProcessing && setShowPaymentModal(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-[460px] bg-[#142321] border border-[#FAF2E2]/15 rounded-[28px] p-6 sm:p-7 shadow-2xl text-[#FAF2E2]"
+            >
+              {/* Header */}
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <span className="text-[10.5px] font-space uppercase font-bold tracking-wider text-[#E5A43B]">
+                    {lang === 'en' ? 'Choose Payment Channel' : 'Pilih Kaedah Pembayaran'}
+                  </span>
+                  <h3 className="font-fraunces text-xl font-bold text-[#FAF2E2] mt-0.5">
+                    {paymentTarget.title}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => !isProcessing && setShowPaymentModal(false)}
+                  disabled={isProcessing}
+                  className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-[#FAF2E2]/60 hover:text-white flex items-center justify-center font-bold text-sm cursor-pointer transition"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Amount Display */}
+              <div className="bg-[#0A1716] border border-[#FAF2E2]/10 rounded-2xl p-4 mb-5 flex items-center justify-between">
+                <div>
+                  <div className="text-[10.5px] text-[#8E9B95] uppercase font-space font-bold">
+                    {lang === 'en' ? 'Total Amount' : 'Jumlah Perlu Dibayar'}
+                  </div>
+                  <div className="text-xs text-[#FAF2E2]/70 mt-0.5">
+                    {paymentTarget.type === 'subscription'
+                      ? (paymentTarget.planChoice === 'yearly' ? 'Langganan 1 Tahun Pro' : 'Langganan 1 Bulan Pro')
+                      : `Tambah ${paymentTarget.cardCount} Kuota Kad Cop`}
+                  </div>
+                </div>
+                <div className="font-fraunces text-2xl sm:text-3xl font-black text-emerald-400">
+                  RM {paymentTarget.priceRm.toFixed(2)}
+                </div>
+              </div>
+
+              {/* Payment Options */}
+              <div className="space-y-3 mb-6">
+                {/* OPTION 1: FPX Online Banking (toyyibPay) */}
+                <label
+                  onClick={() => setSelectedPaymentChannel('fpx')}
+                  className={`flex items-start gap-3.5 p-4 rounded-2xl border transition-all cursor-pointer ${
+                    selectedPaymentChannel === 'fpx'
+                      ? 'bg-[#1C7A67]/25 border-[#1FA96B] shadow-[0_0_15px_rgba(28,122,103,0.35)]'
+                      : 'bg-[#0A1716]/60 border-[#FAF2E2]/10 hover:border-[#FAF2E2]/25'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="paymentChannel"
+                    checked={selectedPaymentChannel === 'fpx'}
+                    onChange={() => setSelectedPaymentChannel('fpx')}
+                    className="accent-[#1FA96B] w-4 h-4 mt-1 cursor-pointer"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-bold text-white flex items-center gap-1.5">
+                        🏦 FPX Online Banking
+                      </span>
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                        toyyibPay
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#8E9B95] leading-relaxed">
+                      {lang === 'en'
+                        ? 'Instant transfer from Maybank2u, CIMB Clicks, Bank Islam, RHB, Hong Leong, Public Bank, etc.'
+                        : 'Pindahan terus Maybank2u, CIMB Clicks, Bank Islam, RHB, Hong Leong, Public Bank, dll.'}
+                    </p>
+                  </div>
+                </label>
+
+                {/* OPTION 2: Touch 'n Go / DuitNow QR (toyyibPay) */}
+                <label
+                  onClick={() => setSelectedPaymentChannel('tng_qr')}
+                  className={`flex items-start gap-3.5 p-4 rounded-2xl border transition-all cursor-pointer ${
+                    selectedPaymentChannel === 'tng_qr'
+                      ? 'bg-[#00D3FE]/15 border-[#00D3FE] shadow-[0_0_15px_rgba(0,211,254,0.25)]'
+                      : 'bg-[#0A1716]/60 border-[#FAF2E2]/10 hover:border-[#FAF2E2]/25'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="paymentChannel"
+                    checked={selectedPaymentChannel === 'tng_qr'}
+                    onChange={() => setSelectedPaymentChannel('tng_qr')}
+                    className="accent-[#00D3FE] w-4 h-4 mt-1 cursor-pointer"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-bold text-white flex items-center gap-1.5">
+                        📱 Touch 'n Go / DuitNow QR
+                      </span>
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        toyyibPay
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#8E9B95] leading-relaxed">
+                      {lang === 'en'
+                        ? 'Scan QR with Touch \'n Go eWallet, MAE, GrabPay, Boost, or mobile banking.'
+                        : 'Imbas kod QR menggunakan Touch \'n Go eWallet, MAE, GrabPay, Boost, atau aplikasi bank.'}
+                    </p>
+                  </div>
+                </label>
+
+                {/* OPTION 3: Credit / Debit Card (Stripe) */}
+                <label
+                  onClick={() => setSelectedPaymentChannel('stripe')}
+                  className={`flex items-start gap-3.5 p-4 rounded-2xl border transition-all cursor-pointer ${
+                    selectedPaymentChannel === 'stripe'
+                      ? 'bg-[#6366F1]/20 border-[#6366F1] shadow-[0_0_15px_rgba(99,102,241,0.3)]'
+                      : 'bg-[#0A1716]/60 border-[#FAF2E2]/10 hover:border-[#FAF2E2]/25'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="paymentChannel"
+                    checked={selectedPaymentChannel === 'stripe'}
+                    onChange={() => setSelectedPaymentChannel('stripe')}
+                    className="accent-[#6366F1] w-4 h-4 mt-1 cursor-pointer"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-bold text-white flex items-center gap-1.5">
+                        💳 Kad Kredit / Debit Antarabangsa
+                      </span>
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                        Stripe
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#8E9B95] leading-relaxed">
+                      {lang === 'en'
+                        ? 'Visa, Mastercard, AMEX with auto-renewal support.'
+                        : 'Kad Visa, Mastercard dengan sokongan pembaharuan automatik.'}
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              {/* Action Button */}
+              <button
+                type="button"
+                onClick={handleExecutePayment}
+                disabled={isProcessing}
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#E5A43B] to-[#C77B1B] hover:brightness-110 active:scale-[0.98] text-[#1A2422] font-jakarta font-black text-sm transition flex items-center justify-center gap-2 cursor-pointer shadow-lg disabled:opacity-50"
+              >
+                <span>
+                  {isProcessing
+                    ? (lang === 'en' ? 'Connecting to payment gateway...' : 'Menyambung ke gerbang pembayaran...')
+                    : (lang === 'en'
+                        ? `Proceed to Payment (RM ${paymentTarget.priceRm.toFixed(2)}) →`
+                        : `Teruskan ke Pembayaran (RM ${paymentTarget.priceRm.toFixed(2)}) →`)}
+                </span>
+              </button>
+
+              <p className="text-center text-[10px] text-[#8E9B95] mt-3">
+                🔒 {lang === 'en' ? 'Official encrypted payment gateway.' : 'Gerbang pembayaran rasmi dengan enkripsi selamat.'}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
