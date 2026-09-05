@@ -674,7 +674,7 @@ function BillingContent() {
               <p className="text-center text-[10.5px] text-[#8E9B95] mt-2.5">
                 {isAndroidApp
                   ? (lang === 'en' ? '1-Tap secure payment via Google Play • Lifetime card quota' : 'Bayaran 1-klik selamat melalui Google Play • Kuota sah selamanya')
-                  : (lang === 'en' ? 'FPX, Touch \'n Go (toyyibPay) & Kad (Stripe) • Kuota sah selamanya' : 'FPX, Touch \'n Go (toyyibPay) & Kad (Stripe) • Kuota sah selamanya')}
+                  : (lang === 'en' ? 'FPX Online Banking (toyyibPay) & Kad (Stripe) • Kuota sah selamanya' : 'FPX Online Banking (toyyibPay) & Kad (Stripe) • Kuota sah selamanya')}
               </p>
             </div>
           </div>
@@ -823,7 +823,7 @@ function BillingContent() {
               <p className="text-center text-[10.5px] text-[#8E9B95] mt-2.5">
                 {isAndroidApp
                   ? (lang === 'en' ? '1-Tap secure checkout via Google Play (Google Pay, Touch \'n Go, Telco, Card)' : 'Bayaran 1-klik selamat melalui Google Play (Google Pay, Touch \'n Go, Bil Telco, Kad)')
-                  : (lang === 'en' ? 'FPX, Touch \'n Go (toyyibPay) & Kad (Stripe) • Batal bila-bila masa' : 'FPX, Touch \'n Go (toyyibPay) & Kad (Stripe) • Batal bila-bila masa')}
+                  : (lang === 'en' ? 'FPX Online Banking (toyyibPay) & Kad (Stripe) • Batal bila-bila masa' : 'FPX Online Banking (toyyibPay) & Kad (Stripe) • Batal bila-bila masa')}
               </p>
             </div>
           </div>
@@ -923,38 +923,33 @@ function BillingContent() {
                   </div>
                 </label>
 
-                {/* OPTION 2: Touch 'n Go / DuitNow QR (toyyibPay) */}
-                <label
-                  onClick={() => setSelectedPaymentChannel('tng_qr')}
-                  className={`flex items-start gap-3.5 p-4 rounded-2xl border transition-all cursor-pointer ${
-                    selectedPaymentChannel === 'tng_qr'
-                      ? 'bg-[#00D3FE]/15 border-[#00D3FE] shadow-[0_0_15px_rgba(0,211,254,0.25)]'
-                      : 'bg-[#0A1716]/60 border-[#FAF2E2]/10 hover:border-[#FAF2E2]/25'
-                  }`}
+                {/* OPTION 2: Touch 'n Go / DuitNow QR (toyyibPay) - OPEN SOON */}
+                <div
+                  className="flex items-start gap-3.5 p-4 rounded-2xl border transition-all opacity-60 bg-[#0A1716]/40 border-[#FAF2E2]/10 cursor-not-allowed select-none relative overflow-hidden"
                 >
                   <input
                     type="radio"
                     name="paymentChannel"
-                    checked={selectedPaymentChannel === 'tng_qr'}
-                    onChange={() => setSelectedPaymentChannel('tng_qr')}
-                    className="accent-[#00D3FE] w-4 h-4 mt-1 cursor-pointer"
+                    disabled
+                    checked={false}
+                    className="accent-[#00D3FE] w-4 h-4 mt-1 cursor-not-allowed opacity-40"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-bold text-white flex items-center gap-1.5">
-                        📱 Touch 'n Go / DuitNow QR
+                      <span className="text-sm font-bold text-[#FAF2E2]/75 flex items-center gap-1.5">
+                        📱 Touch &apos;n Go / DuitNow QR
                       </span>
-                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                        toyyibPay
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                        {lang === 'en' ? 'Open Soon' : 'Akan Datang (Open Soon)'}
                       </span>
                     </div>
                     <p className="text-[11px] text-[#8E9B95] leading-relaxed">
                       {lang === 'en'
-                        ? 'Scan QR with Touch \'n Go eWallet, MAE, GrabPay, Boost, or mobile banking.'
-                        : 'Imbas kod QR menggunakan Touch \'n Go eWallet, MAE, GrabPay, Boost, atau aplikasi bank.'}
+                        ? 'Under DNQR merchant verification (7 days). Please use FPX Online Banking or Card for now.'
+                        : 'Sedang dalam proses pengesahan DNQR peniaga. Sila gunakan FPX Online Banking atau Kad buat masa ini.'}
                     </p>
                   </div>
-                </label>
+                </div>
 
                 {/* OPTION 3: Credit / Debit Card (Stripe) */}
                 <label
