@@ -29,16 +29,16 @@ export async function ensureStripeProducts(): Promise<{
     }
   }
 
-  // 1. Find or create the main product
+  // 1. Find or create the Pro Subscription product
   let product: Stripe.Product | null = null
   const productList = await stripe.products.list({ active: true, limit: 100 })
   const foundProduct = productList.data.find(
-    (p) => p.name === 'LajuS Pro' || p.name === 'LajuS Loyalty' || p.metadata?.app === 'lajus'
+    (p) => (p.name === 'LajuS Pro' || p.name === 'LajuS Loyalty') && p.metadata?.tier !== 'one_off_card'
   )
 
   if (foundProduct) {
     product = foundProduct
-    console.log('[Stripe Setup] Found existing product:', product.id)
+    console.log('[Stripe Setup] Found existing Pro product:', product.id)
   } else {
     product = await stripe.products.create({
       name: 'LajuS Pro',
@@ -46,7 +46,7 @@ export async function ensureStripeProducts(): Promise<{
         'Pelan Pro LajuS - Sistem Loyalty Stamp Digital tanpa had pelanggan, QR resit, Bluetooth print, analitik & log aktiviti.',
       metadata: { app: 'lajus', tier: 'pro' },
     })
-    console.log('[Stripe Setup] Created new product:', product.id)
+    console.log('[Stripe Setup] Created new Pro product:', product.id)
   }
 
   const allPrices = await stripe.prices.list({ product: product.id, active: true, limit: 50 })
@@ -91,20 +91,40 @@ export async function ensureStripeProducts(): Promise<{
     console.log('[Stripe Setup] Created yearly price:', yearlyPrice.id)
   }
 
-  // 4. One-Off Card Unit Price for Web Stripe (RM0.50 = 50 cents / card, one-time payment)
+  // 4. Find or create the dedicated One-Off Cards Topup Product (RM0.50 / card, one-time payment)
+  let cardProduct: Stripe.Product | null = null
+  const foundCardProduct = productList.data.find(
+    (p) => p.name === 'Tambah Kuota Kad Digital LajuS (One-Off)' || p.metadata?.tier === 'one_off_card'
+  )
+
+  if (foundCardProduct) {
+    cardProduct = foundCardProduct
+    console.log('[Stripe Setup] Found existing card product:', cardProduct.id)
+  } else {
+    cardProduct = await stripe.products.create({
+      name: 'Tambah Kuota Kad Digital LajuS (One-Off)',
+      description:
+        'Pembelian kuota kad pelanggan digital (RM0.50 sekeping). Bayaran sekali sahaja tanpa sebarang caj bulanan & kuota sah selamanya.',
+      metadata: { app: 'lajus', tier: 'one_off_card' },
+    })
+    console.log('[Stripe Setup] Created new card product:', cardProduct.id)
+  }
+
+  const allCardPrices = await stripe.prices.list({ product: cardProduct.id, active: true, limit: 50 })
   let cardUnitPrice: Stripe.Price | null = null
-  const foundCardUnit = allPrices.data.find(
+  const foundCardUnit = allCardPrices.data.find(
     (p) => !p.recurring && p.unit_amount === 50 && p.currency === 'myr'
   )
+
   if (foundCardUnit) {
     cardUnitPrice = foundCardUnit
     console.log('[Stripe Setup] Found existing card unit price:', cardUnitPrice.id)
   } else {
     cardUnitPrice = await stripe.prices.create({
-      product: product.id,
+      product: cardProduct.id,
       unit_amount: 50,
       currency: 'myr',
-      nickname: 'Kad Cop Digital LajuS - RM0.50 Sekeping (One-Off)',
+      nickname: 'Kad Cop Digital LajuS - RM0.50 Sekeping (Sekali Bayar)',
       metadata: { plan: 'one_off_card', app: 'lajus' },
     })
     console.log('[Stripe Setup] Created card unit price:', cardUnitPrice.id)
