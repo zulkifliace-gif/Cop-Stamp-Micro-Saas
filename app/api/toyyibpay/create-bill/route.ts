@@ -94,8 +94,9 @@ export async function POST(req: NextRequest) {
     const returnUrl = `${origin}/dashboard/billing?payment=toyyibpay`
     const callbackUrl = `${origin}/api/toyyibpay/callback`
 
-    // Channel: '1' untuk FPX sahaja, '0' untuk semua saluran termasuk DuitNow QR
-    const paymentChannel = channel === 'fpx' ? '1' : '0'
+    // Channel: toyyibPay menggunakan '0' untuk saluran FPX Online Banking yang aktif pada akaun peniaga.
+    // Menggunakan '1' akan meminta kad kredit yang belum diaktifkan dan menyebabkan borang kosong.
+    const paymentChannel = '0'
 
     const customerName = user.user_metadata?.full_name || user.user_metadata?.name || storeName || 'Peniaga LajuS'
     const customerEmail = user.email || 'customer@lajus.my'
