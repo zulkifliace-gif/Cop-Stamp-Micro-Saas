@@ -16,8 +16,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Sila log masuk terlebih dahulu.' }, { status: 401 })
     }
 
-    const secretKey = process.env.TOYYIBPAY_SECRET_KEY
-    const categoryCode = process.env.TOYYIBPAY_CATEGORY_CODE
+    const secretKey =
+      process.env.TOYYIBPAY_SECRET_KEY || 'b3ymclys-1kx8-b0qg-kw9m-l1insgmnqqyu'
+    const categoryCode =
+      process.env.TOYYIBPAY_CATEGORY_CODE || 'cznw5lqw'
     const apiUrl = process.env.TOYYIBPAY_API_URL || 'https://toyyibpay.com'
 
     if (!secretKey || !categoryCode) {
@@ -84,7 +86,11 @@ export async function POST(req: NextRequest) {
     const cleanBillDesc = billDescription.slice(0, 100)
 
     // 3. Tentukan Return URL dan Callback Webhook URL
-    const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'https://lajus.lajuq.my'
+    const origin =
+      req.nextUrl?.origin ||
+      req.headers.get('origin') ||
+      process.env.NEXT_PUBLIC_APP_URL ||
+      'https://lajus.lajuq.my'
     const returnUrl = `${origin}/dashboard/billing?payment=toyyibpay`
     const callbackUrl = `${origin}/api/toyyibpay/callback`
 
