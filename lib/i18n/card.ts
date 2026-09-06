@@ -96,6 +96,7 @@ export interface CardTranslation {
   footer: {
     privacyPolicy: string
     deleteAccount: string
+    installApp: string
   }
 }
 
@@ -196,6 +197,7 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
     footer: {
       privacyPolicy: 'Dasar Privasi',
       deleteAccount: 'Padam Akaun',
+      installApp: 'Pasang ke Skrin Utama',
     },
   },
   en: {
@@ -294,6 +296,7 @@ export const I18N_CARD: Record<Lang, CardTranslation> = {
     footer: {
       privacyPolicy: 'Privacy Policy',
       deleteAccount: 'Delete Account',
+      installApp: 'Add to Home Screen',
     },
   },
 }

@@ -283,6 +283,62 @@ export default function CustomerCardPage() {
   const [reviewRating, setReviewRating] = useState<number>(0)
   const [rateHintText, setRateHintText] = useState<string>('')
 
+  // PWA Install on Home Screen State
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+  const [isInstalled, setIsInstalled] = useState<boolean>(false)
+  const [showInstallGuideModal, setShowInstallGuideModal] = useState<boolean>(false)
+  const [isIos, setIsIos] = useState<boolean>(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    // Detect standalone mode (already installed / homescreen)
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true
+    setIsInstalled(isStandalone)
+
+    // Detect iOS
+    const ua = window.navigator.userAgent.toLowerCase()
+    setIsIos(/iphone|ipad|ipod/.test(ua))
+
+    const handlePrompt = (e: Event) => {
+      e.preventDefault()
+      setDeferredPrompt(e)
+    }
+
+    const handleInstalled = () => {
+      setIsInstalled(true)
+      setDeferredPrompt(null)
+    }
+
+    window.addEventListener('beforeinstallprompt', handlePrompt)
+    window.addEventListener('appinstalled', handleInstalled)
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handlePrompt)
+      window.removeEventListener('appinstalled', handleInstalled)
+    }
+  }, [])
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      try {
+        deferredPrompt.prompt()
+        const choice = await deferredPrompt.userChoice
+        if (choice?.outcome === 'accepted') {
+          setIsInstalled(true)
+        }
+        setDeferredPrompt(null)
+      } catch (err) {
+        console.error('Install prompt error:', err)
+        setShowInstallGuideModal(true)
+      }
+    } else {
+      setShowInstallGuideModal(true)
+    }
+  }
+
   // Stamp circle touch/click detail popup modal state
   const [selectedStampDetail, setSelectedStampDetail] = useState<{
     slotNum: number
@@ -1217,6 +1273,37 @@ export default function CustomerCardPage() {
           color: var(--border-warm);
         }
 
+        .install-pwa-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: #ffffff;
+          border: 1px solid var(--border-warm);
+          color: var(--ink-strong);
+          border-radius: var(--r-full);
+          padding: 6px 14px;
+          font-size: 11px;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 2px 8px rgba(43,27,18,0.06);
+          transition: transform .15s, background .15s, box-shadow .15s, color .15s;
+          margin-bottom: 12px;
+        }
+        .install-pwa-btn:hover {
+          background: #FFF7EA;
+          color: var(--coral-deep);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(43,27,18,0.1);
+          border-color: var(--coral);
+        }
+        .install-pwa-btn:active {
+          transform: translateY(0);
+        }
+        .install-pwa-btn svg {
+          color: var(--coral);
+          flex-shrink: 0;
+        }
+
         /* Modals */
         .overlay {
           position: fixed;
@@ -1915,6 +2002,30 @@ export default function CustomerCardPage() {
 
               {/* 1. FOOTER BRAND WITH OFFICIAL LAJUS LOGO (REPLACES DOT PLACEHOLDER) */}
               <div className="card-footer">
+                {!isInstalled && (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={handleInstallClick}
+                      className="install-pwa-btn"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        style={{ width: 13, height: 13 }}
+                      >
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                        <line x1="12" y1="18" x2="12.01" y2="18" />
+                      </svg>
+                      <span>{t.footer.installApp}</span>
+                    </button>
+                  </div>
+                )}
+
                 <div className="footer-brand">
                   <img
                     src="/logo.svg"
@@ -2044,7 +2155,31 @@ export default function CustomerCardPage() {
               </div>
             </div>
 
-            <footer className="w-full text-center mt-6 flex items-center justify-center gap-1.5 opacity-40 text-[11px] font-space text-[#2B1B12]">
+            {!isInstalled && (
+              <div style={{ marginTop: 14 }}>
+                <button
+                  type="button"
+                  onClick={handleInstallClick}
+                  className="install-pwa-btn"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{ width: 13, height: 13 }}
+                  >
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                    <line x1="12" y1="18" x2="12.01" y2="18" />
+                  </svg>
+                  <span>{t.footer.installApp}</span>
+                </button>
+              </div>
+            )}
+
+            <footer className="w-full text-center mt-4 flex items-center justify-center gap-1.5 opacity-40 text-[11px] font-space text-[#2B1B12]">
               <img src="/logo.svg" alt="LajuS" className="w-3.5 h-3.5 object-contain" />
               <span>LajuS</span>
             </footer>
@@ -2590,6 +2725,147 @@ export default function CustomerCardPage() {
               onClick={() => setShowLocationsModal(false)}
             >
               {t.locationsModal.closeBtn}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 8. PWA HOMESCREEN INSTALL GUIDE MODAL */}
+      {showInstallGuideModal && (
+        <div className="overlay" onClick={() => setShowInstallGuideModal(false)}>
+          <div
+            className="modal"
+            style={{ maxWidth: 350, textAlign: 'center' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="modal-close"
+              onClick={() => setShowInstallGuideModal(false)}
+            >
+              &times;
+            </button>
+
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 18,
+                background: '#FFF7EA',
+                border: '1.5px solid #F0DEC0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 12px',
+                fontSize: 24,
+              }}
+            >
+              📲
+            </div>
+
+            <div className="modal-title" style={{ justifyContent: 'center', fontSize: 18 }}>
+              {lang === 'en' ? 'Add to Home Screen' : 'Pasang ke Skrin Utama'}
+            </div>
+
+            <div className="modal-sub" style={{ marginBottom: 14 }}>
+              {lang === 'en'
+                ? 'Access your digital stamp card instantly anytime like a mobile app.'
+                : 'Buka kad cop digital anda bila-bila masa dengan pantas seperti aplikasi telefon.'}
+            </div>
+
+            {isIos ? (
+              <div
+                style={{
+                  textAlign: 'left',
+                  background: '#fff',
+                  border: '1px solid var(--border-warm)',
+                  borderRadius: 16,
+                  padding: '14px 16px',
+                  marginBottom: 16,
+                }}
+              >
+                <div className="step-item" style={{ marginBottom: 12 }}>
+                  <span className="step-num">1</span>
+                  <span style={{ fontSize: 11.5 }}>
+                    {lang === 'en' ? (
+                      <>Tap the <b>Share (⎋)</b> button on Safari&apos;s bottom bar.</>
+                    ) : (
+                      <>Tekan butang <b>Kongsi (Share ⎋)</b> pada bar bawah pelayar Safari.</>
+                    )}
+                  </span>
+                </div>
+                <div className="step-item" style={{ marginBottom: 12 }}>
+                  <span className="step-num">2</span>
+                  <span style={{ fontSize: 11.5 }}>
+                    {lang === 'en' ? (
+                      <>Scroll down and select <b>Add to Home Screen (+)</b>.</>
+                    ) : (
+                      <>Skrol ke bawah dan pilih <b>Tambah ke Skrin Utama (+)</b>.</>
+                    )}
+                  </span>
+                </div>
+                <div className="step-item" style={{ marginBottom: 0 }}>
+                  <span className="step-num">3</span>
+                  <span style={{ fontSize: 11.5 }}>
+                    {lang === 'en' ? (
+                      <>Tap <b>Add</b> at the top-right corner. Done!</>
+                    ) : (
+                      <>Tekan <b>Tambah (Add)</b> di penjuru atas kanan. Siap!</>
+                    )}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div
+                style={{
+                  textAlign: 'left',
+                  background: '#fff',
+                  border: '1px solid var(--border-warm)',
+                  borderRadius: 16,
+                  padding: '14px 16px',
+                  marginBottom: 16,
+                }}
+              >
+                <div className="step-item" style={{ marginBottom: 12 }}>
+                  <span className="step-num">1</span>
+                  <span style={{ fontSize: 11.5 }}>
+                    {lang === 'en' ? (
+                      <>Tap the <b>three dots (⋮)</b> menu in your browser.</>
+                    ) : (
+                      <>Tekan menu <b>tiga titik (⋮)</b> di bucu atas pelayar anda.</>
+                    )}
+                  </span>
+                </div>
+                <div className="step-item" style={{ marginBottom: 12 }}>
+                  <span className="step-num">2</span>
+                  <span style={{ fontSize: 11.5 }}>
+                    {lang === 'en' ? (
+                      <>Select <b>Install App</b> or <b>Add to Home screen</b>.</>
+                    ) : (
+                      <>Pilih <b>Pasang Aplikasi</b> atau <b>Tambah ke Skrin Utama</b>.</>
+                    )}
+                  </span>
+                </div>
+                <div className="step-item" style={{ marginBottom: 0 }}>
+                  <span className="step-num">3</span>
+                  <span style={{ fontSize: 11.5 }}>
+                    {lang === 'en' ? (
+                      <>Confirm installation to add the stamp card icon to your phone.</>
+                    ) : (
+                      <>Sahkan pemasangan untuk letak ikon kad cop di skrin telefon anda.</>
+                    )}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <button
+              type="button"
+              className="modal-btn"
+              style={{ marginTop: 0 }}
+              onClick={() => setShowInstallGuideModal(false)}
+            >
+              {lang === 'en' ? 'Got It' : 'Faham'}
             </button>
           </div>
         </div>
