@@ -48,7 +48,7 @@ export default function PrivacyPolicyPage() {
             </h1>
             <div className="text-xs sm:text-sm text-slate-500 space-y-1">
               <p>
-                <strong>Tarikh Kuat Kuasa:</strong> 30 Ogos 2026
+                <strong>Tarikh Kuat Kuasa / Kemas Kini:</strong> 7 September 2026
               </p>
               <p>
                 <strong>Dikendalikan oleh:</strong> BOTZ GLOBAL SOLUTIONS (No. SSM: 202603077221 / TR0339427-P) (&quot;kami&quot;, &quot;syarikat&quot;)
@@ -165,9 +165,9 @@ export default function PrivacyPolicyPage() {
                         <td className="p-3">Paparan pada kad cop &amp; direktori kedai</td>
                       </tr>
                       <tr>
-                        <td className="p-3 font-semibold text-slate-800">Maklumat langganan &amp; bayaran</td>
+                        <td className="p-3 font-semibold text-slate-800">Maklumat langganan, kuota &amp; bayaran</td>
                         <td className="p-3">
-                          Diproses dan disimpan oleh <strong>Stripe</strong> (pemproses bayaran pihak ketiga) — kami tidak menyimpan butiran kad kredit/debit anda
+                          Diproses secara selamat oleh gerbang pembayaran pihak ketiga berlesen (<strong>toyyibPay</strong> untuk FPX/Online Banking Malaysia, <strong>Stripe</strong> untuk kad kredit/debit, atau <strong>Google Play</strong> bagi aplikasi Android). Kami tidak mengumpul atau menyimpan butiran akaun bank atau kad kredit anda.
                         </td>
                       </tr>
                     </tbody>
@@ -197,7 +197,8 @@ export default function PrivacyPolicyPage() {
                 <li>Mengoperasikan sistem kad cop kesetiaan digital (memberi, mengesan, dan menebus cop).</li>
                 <li>Menghantar pautan tuntutan cop melalui emel (jika mod emel dipilih oleh kedai).</li>
                 <li>Mengurus akaun log masuk dan akses papan pemuka staf mengikut peranan.</li>
-                <li>Memproses langganan Pelan Pro melalui Stripe.</li>
+                <li>Memproses langganan Pelan Pro dan pembelian kuota kad secara sekali bayar (<em>one-off payment</em>) melalui toyyibPay, Stripe, atau Google Play.</li>
+                <li>Mengesahkan dan mengekalkan hak akses atau kuota kekal yang dipautkan kepada akaun emel berdaftar pemilik kedai.</li>
                 <li>Menyediakan sokongan teknikal dan membaiki isu operasi.</li>
                 <li>Mematuhi kewajipan undang-undang yang berkenaan.</li>
               </ul>
@@ -230,9 +231,19 @@ export default function PrivacyPolicyPage() {
                       <td className="p-3">Semua data akaun, cop, dan kedai</td>
                     </tr>
                     <tr>
+                      <td className="p-3 font-semibold text-slate-800">toyyibPay</td>
+                      <td className="p-3">Pemprosesan bayaran FPX &amp; Online Banking (Malaysia)</td>
+                      <td className="p-3">Emel, nama, nombor telefon, nombor bil/pesanan (butiran perbankan dikendalikan sepenuhnya oleh portal bank anda)</td>
+                    </tr>
+                    <tr>
                       <td className="p-3 font-semibold text-slate-800">Stripe</td>
-                      <td className="p-3">Pemprosesan bayaran &amp; langganan</td>
-                      <td className="p-3">Emel, maklumat langganan (bukan butiran kad bayaran — Stripe kendalikan terus)</td>
+                      <td className="p-3">Pemprosesan bayaran kad &amp; langganan</td>
+                      <td className="p-3">Emel, rekod transaksi (bukan butiran kad bayaran — Stripe kendalikan terus)</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-semibold text-slate-800">Google Play Billing</td>
+                      <td className="p-3">Pemprosesan pembayaran dalam aplikasi (Android In-App Purchase)</td>
+                      <td className="p-3">ID Pesanan Google, token pengesahan pembelian Google Play</td>
                     </tr>
                     <tr>
                       <td className="p-3 font-semibold text-slate-800">Resend</td>
@@ -255,7 +266,33 @@ export default function PrivacyPolicyPage() {
             {/* Section 5 */}
             <section className="space-y-3">
               <h2 className="text-lg sm:text-xl font-bold text-slate-900 border-b border-slate-100 pb-2">
-                5. Cookies dan Storan Tempatan (Log Masuk Automatik)
+                5. Polisi Pembayaran Sekali Bayar (One-Off Payment) &amp; Akses Kekal Pada Emel
+              </h2>
+              <div className="space-y-3 text-slate-600">
+                <p>
+                  Bagi perniagaan yang membuat pembelian kuota kad melalui <strong>Pelan Tambah Kuota Kad (One-Off Payment)</strong>, polisi berikut terpakai:
+                </p>
+                <ul className="list-disc pl-5 space-y-2">
+                  <li>
+                    <strong className="text-slate-800">Pautan Kekal Kepada Akaun Emel Berdaftar:</strong> Kuota kad yang dibeli adalah sah untuk digunakan selama-lamanya (<em>lifetime validity</em>) dan dipautkan secara kekal kepada <strong>alamat emel akaun pemilik kedai yang didaftarkan semasa transaksi pembelian</strong>.
+                  </li>
+                  <li>
+                    <strong className="text-slate-800">Bukan Lesen Perisian Boleh Pindah Milik:</strong> Pembelian ini merupakan peningkatan kuota perkhidmatan digital (<em>cloud quota</em>) pada akaun berkenaan, dan <strong>BUKAN merupakan lesen perisian fizikal atau kunci produk (software license key) yang boleh dipindah milik</strong>, dijual semula, dipindahkan, atau ditukar kepada akaun emel pihak ketiga yang lain.
+                  </li>
+                  <li>
+                    <strong className="text-slate-800">Tiada Caj Berulang Tersembunyi:</strong> Pembayaran bagi pelan tambah kuota adalah bayaran tunggal (<em>one-off payment</em>). Tiada sebarang potongan automatik bulanan, tahunan, atau caj tersembunyi (<em>no recurring subscription fees</em>).
+                  </li>
+                  <li>
+                    <strong className="text-slate-800">Pelan Langganan Pro (Pilihan Berasingan):</strong> Bagi pemilik kedai yang memilih untuk melanggan Pelan Pro (kuota pelanggan tanpa had &amp; fungsi hantar cop melalui emel), pembayaran adalah berasaskan langganan berulang (bulanan atau tahunan) dan boleh diurus atau dibatalkan bila-bila masa melalui portal Stripe atau Google Play.
+                  </li>
+                </ul>
+              </div>
+            </section>
+
+            {/* Section 6 */}
+            <section className="space-y-3">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900 border-b border-slate-100 pb-2">
+                6. Cookies dan Storan Tempatan (Log Masuk Automatik)
               </h2>
               <p className="text-slate-600">
                 Perkhidmatan ini menyimpan token sesi log masuk di dalam penyimpanan tempatan pelayar (<em>browser local storage</em>) anda. Ini membolehkan anda kekal log masuk tanpa perlu memasukkan emel/kata laluan setiap kali melawat semula.
@@ -267,23 +304,23 @@ export default function PrivacyPolicyPage() {
               </ul>
             </section>
 
-            {/* Section 6 */}
+            {/* Section 7 */}
             <section className="space-y-3">
               <h2 className="text-lg sm:text-xl font-bold text-slate-900 border-b border-slate-100 pb-2">
-                6. Tempoh Penyimpanan Data
+                7. Tempoh Penyimpanan Data
               </h2>
               <p className="text-slate-600">
-                Kami menyimpan data anda selagi akaun anda aktif, atau selagi diperlukan untuk tujuan yang dinyatakan dalam dasar ini. Anda boleh memohon pemadaman data pada bila-bila masa (lihat Seksyen 7).
+                Kami menyimpan data anda selagi akaun anda aktif, atau selagi diperlukan untuk tujuan yang dinyatakan dalam dasar ini. Anda boleh memohon pemadaman data pada bila-bila masa (lihat Seksyen 8).
               </p>
               <p className="text-slate-600">
                 Token cop yang tidak dituntut akan luput secara automatik selepas <strong>30 minit</strong> dan ditanda sebagai &quot;expired&quot; dalam sistem.
               </p>
             </section>
 
-            {/* Section 7 */}
+            {/* Section 8 */}
             <section className="space-y-3">
               <h2 className="text-lg sm:text-xl font-bold text-slate-900 border-b border-slate-100 pb-2">
-                7. Hak Anda Di Bawah Akta Perlindungan Data Peribadi 2010 (PDPA)
+                8. Hak Anda Di Bawah Akta Perlindungan Data Peribadi 2010 (PDPA)
               </h2>
               <p className="text-slate-600">
                 Sebagai individu yang datanya kami proses, anda berhak untuk:
@@ -298,14 +335,14 @@ export default function PrivacyPolicyPage() {
                 Untuk memohon pemadaman akaun anda, sila log masuk dan pergi ke <strong>Tetapan → Padam Akaun Saya</strong> (untuk pemilik/staf) atau di bahagian bawah halaman <strong>Kad Cop Pelanggan</strong>.
               </p>
               <p className="text-slate-600">
-                Untuk permohonan lain berkaitan hak data peribadi anda, sila hubungi kami melalui butiran di Seksyen 9.
+                Untuk permohonan lain berkaitan hak data peribadi anda, sila hubungi kami melalui butiran di Seksyen 10.
               </p>
             </section>
 
-            {/* Section 8 */}
+            {/* Section 9 */}
             <section className="space-y-3">
               <h2 className="text-lg sm:text-xl font-bold text-slate-900 border-b border-slate-100 pb-2">
-                8. Keselamatan Data
+                9. Keselamatan Data
               </h2>
               <p className="text-slate-600">
                 Kami mengambil langkah-langkah munasabah untuk melindungi data anda, termasuk:
@@ -313,17 +350,17 @@ export default function PrivacyPolicyPage() {
               <ul className="list-disc pl-5 space-y-1.5 text-slate-600">
                 <li>Kawalan akses berasaskan peranan (<em>Row Level Security</em>) pada peringkat pangkalan data PostgreSQL Supabase.</li>
                 <li>Kunci transaksi atomik untuk mengelakkan manipulasi data (contohnya had bilangan pelanggan, tuntutan cop berganda).</li>
-                <li>Pengesahan tandatangan kriptografi untuk komunikasi bayaran (Stripe webhook).</li>
+                <li>Pengesahan tandatangan kriptografi &amp; komunikasi selamat untuk status pembayaran (toyyibPay callback, Stripe webhook &amp; Google Play API).</li>
               </ul>
               <p className="text-slate-600">
                 Walau bagaimanapun, tiada sistem yang 100% selamat sepenuhnya daripada risiko. Kami akan memaklumkan pengguna terjejas sekiranya berlaku kebocoran data yang ketara, mengikut keperluan undang-undang.
               </p>
             </section>
 
-            {/* Section 9 */}
+            {/* Section 10 */}
             <section className="space-y-3">
               <h2 className="text-lg sm:text-xl font-bold text-slate-900 border-b border-slate-100 pb-2">
-                9. Hubungi Kami
+                10. Hubungi Kami
               </h2>
               <p className="text-slate-600">
                 Sebarang pertanyaan mengenai Dasar Privasi ini atau permohonan berkaitan data peribadi anda, sila hubungi:
@@ -340,16 +377,16 @@ export default function PrivacyPolicyPage() {
               </div>
             </section>
 
-            {/* Section 10 */}
+            {/* Section 11 */}
             <section className="space-y-3">
               <h2 className="text-lg sm:text-xl font-bold text-slate-900 border-b border-slate-100 pb-2">
-                10. Perubahan Kepada Dasar Ini
+                11. Perubahan Kepada Dasar Ini
               </h2>
               <p className="text-slate-600">
                 Kami mungkin mengemas kini Dasar Privasi ini dari semasa ke semasa. Sebarang perubahan ketara akan dimaklumkan melalui Perkhidmatan atau emel yang berdaftar.
               </p>
               <p className="text-xs text-slate-500 pt-2 italic">
-                Kemas kini terakhir: 30 Ogos 2026
+                Kemas kini terakhir: 7 September 2026
               </p>
             </section>
           </div>
