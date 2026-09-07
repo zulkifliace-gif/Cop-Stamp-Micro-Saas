@@ -2,17 +2,17 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    id: '/dashboard',
-    name: 'LajuS Dashboard',
-    short_name: 'LajuS',
-    description: 'Sistem Cop Stamp Digital & Kaunter Juruwang Kedai',
-    start_url: '/dashboard',
+    id: '/card',
+    name: 'LajuS — Kad Cop Digital',
+    short_name: 'Kad Cop',
+    description: 'Kad Cop Stamp Digital & Loyalty Pelanggan Kedai',
+    start_url: '/card',
     scope: '/',
     display: 'standalone',
-    background_color: '#0A1716',
-    theme_color: '#E5A43B',
+    background_color: '#1B0F09',
+    theme_color: '#FF5A45',
     orientation: 'portrait-primary',
-    categories: ['business', 'productivity', 'utilities'],
+    categories: ['lifestyle', 'shopping', 'utilities'],
     icons: [
       {
         src: '/icons/icon-192x192.png',

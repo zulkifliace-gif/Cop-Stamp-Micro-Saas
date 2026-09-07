@@ -1,5 +1,5 @@
-// LajuS Dashboard Service Worker
-const CACHE_NAME = 'lajus-dashboard-v1';
+// LajuS Card & Dashboard Service Worker
+const CACHE_NAME = 'lajus-card-v2';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

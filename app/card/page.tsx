@@ -386,7 +386,10 @@ export default function CustomerCardPage() {
 
       if (session?.user) {
         const params = new URLSearchParams(window.location.search)
-        const initialStoreId = params.get('storeId') || undefined
+        const initialStoreId =
+          params.get('storeId') ||
+          (typeof window !== 'undefined' ? localStorage.getItem('lajus_last_store_id') : null) ||
+          undefined
         fetchLoyalty(initialStoreId)
       }
     }
@@ -399,7 +402,10 @@ export default function CustomerCardPage() {
       setUser(currentUser)
       if (event === 'SIGNED_IN' && currentUser) {
         const params = new URLSearchParams(window.location.search)
-        const initialStoreId = params.get('storeId') || undefined
+        const initialStoreId =
+          params.get('storeId') ||
+          (typeof window !== 'undefined' ? localStorage.getItem('lajus_last_store_id') : null) ||
+          undefined
         fetchLoyalty(initialStoreId)
       } else if (event === 'SIGNED_OUT') {
         setUser(null)
@@ -419,8 +425,11 @@ export default function CustomerCardPage() {
       if (res.ok) {
         const data = await res.json()
         const stores = Array.isArray(data.allStores) ? data.allStores : []
-        setAllStores(stores)
-        setActiveStoreId(data.activeStoreId || (stores[0]?.storeId || ''))
+        const resolvedStoreId = data.activeStoreId || (stores[0]?.storeId || '')
+        setActiveStoreId(resolvedStoreId)
+        if (resolvedStoreId && typeof window !== 'undefined') {
+          try { localStorage.setItem('lajus_last_store_id', resolvedStoreId) } catch {}
+        }
 
         const stamps = data.totalStamps || 0
         const req = data.stampsRequired || 10
