@@ -168,6 +168,18 @@ export default function CashierDashboard() {
   const [customerEmail, setCustomerEmail] = useState<string>('')
   const [isGenerating, setIsGenerating] = useState<boolean>(false)
   const [genError, setGenError] = useState<string>('')
+  const [isFocusMode, setIsFocusMode] = useState<boolean>(false)
+
+  // Exit focus mode with Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFocusMode) {
+        setIsFocusMode(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isFocusMode])
 
   // Result State
   const [generatedToken, setGeneratedToken] = useState<string | null>(null)
@@ -1954,7 +1966,9 @@ export default function CashierDashboard() {
   }
 
   return (
-    <div className="relative z-10 w-full max-w-[560px] md:max-w-[680px] lg:max-w-[760px] mx-auto px-4 sm:px-6 pt-5 sm:pt-6 pb-16 font-jakarta text-[#2B1B12]">
+    <div className={`relative z-10 w-full max-w-[560px] md:max-w-[680px] lg:max-w-[760px] mx-auto px-4 sm:px-6 font-jakarta text-[#2B1B12] transition-all duration-500 ease-in-out ${
+      isFocusMode ? 'pt-6 sm:pt-10 pb-8 min-h-[85vh] flex flex-col justify-center' : 'pt-5 sm:pt-6 pb-16'
+    }`}>
       {/* SCOPED COMPONENT STYLES MATCHING /card */}
       <style dangerouslySetInnerHTML={{ __html: `
         body {
@@ -1966,7 +1980,11 @@ export default function CashierDashboard() {
       `}} />
 
       {/* TOPBAR */}
-      <div className="flex items-center justify-between gap-2 mb-5 sm:mb-[22px]">
+      <div className={`flex items-center justify-between gap-2 transition-all duration-500 ease-in-out origin-top ${
+        isFocusMode
+          ? 'opacity-0 pointer-events-none -translate-y-8 scale-95 max-h-0 overflow-hidden mb-0 py-0 -z-10'
+          : 'opacity-100 translate-y-0 scale-100 mb-5 sm:mb-[22px] z-20'
+      }`}>
         <div className="flex items-center gap-2.5 sm:gap-[11px] min-w-0">
           <div className="w-9 h-9 sm:w-[38px] sm:h-[38px] rounded-full overflow-hidden bg-[#FF7A45] flex items-center justify-center shadow-xs border border-[#F0DEC0] shrink-0">
             {logoUrl ? (
@@ -2334,7 +2352,13 @@ export default function CashierDashboard() {
       ) : (
         /* 3. CASHIER COUNTER / STATS / REWARD SEARCH / SETTINGS / ACTIVITY */
         <>
-          {/* PLAN STATUS BADGE + DYNAMIC CUSTOMER QUOTA BAR */}
+          {/* UPPER DASHBOARD SECTIONS (QUOTA, STATS, CLAIM SEARCH) */}
+          <div className={`transition-all duration-500 ease-in-out origin-top ${
+            isFocusMode
+              ? 'opacity-0 pointer-events-none -translate-y-8 scale-95 max-h-0 overflow-hidden mb-0 py-0 -z-10'
+              : 'opacity-100 translate-y-0 scale-100 max-h-[2600px] z-10'
+          }`}>
+            {/* PLAN STATUS BADGE + DYNAMIC CUSTOMER QUOTA BAR */}
           {(() => {
             const isPro = planType === 'pro' && subscriptionStatus === 'active'
             const totalCustomers = storeStats.totalCustomers
@@ -2723,17 +2747,76 @@ export default function CashierDashboard() {
               )}
             </div>
           </div>
+        </div>
 
           {/* MAIN COUNTER OR SETTINGS */}
           {!showSettings ? (
-            <div id="counterSection" className="mb-6">
-              <div className="font-space text-[10.5px] tracking-[0.14em] uppercase text-[#96806B] mb-2.5 font-bold">
-                {t.generator.title}
+            <div id="counterSection" className={`transition-all duration-500 ease-in-out ${
+              isFocusMode ? 'mb-0 z-30' : 'mb-6 z-10'
+            }`}>
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="font-space text-[10.5px] tracking-[0.14em] uppercase text-[#96806B] font-bold flex items-center gap-2">
+                  <span>{t.generator.title}</span>
+                  {isFocusMode && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9.5px] font-bold bg-[#1C7A67] text-white shadow-xs tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
+                      {lang === 'en' ? 'FOCUS MODE' : 'MOD FOKUS'}
+                    </span>
+                  )}
+                </div>
               </div>
 
-              <div className="bg-[#FFFDF8] text-[#2B1B12] rounded-[24px] p-[24px] shadow-xl border border-[#F0DEC0]">
-                <div className="font-fraunces font-semibold text-[20px] mb-5 text-[#2B1B12]">
-                  {t.generator.question}
+              <div className={`bg-[#FFFDF8] text-[#2B1B12] rounded-[24px] p-[24px] shadow-xl border border-[#F0DEC0] relative transition-all duration-500 ease-in-out ${
+                isFocusMode ? 'shadow-[0_20px_50px_rgba(43,27,18,0.18)] ring-4 ring-[#1C7A67]/20 scale-[1.01]' : ''
+              }`}>
+                {/* Header with Question & Focus Button at kanan bucu atas */}
+                <div className="flex items-start justify-between gap-3 mb-5">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-fraunces font-semibold text-[20px] text-[#2B1B12] leading-tight">
+                      {t.generator.question}
+                    </div>
+                    <div className="text-[11.5px] text-[#96806B] mt-1 font-normal line-clamp-1">
+                      {t.generator.desc}
+                    </div>
+                  </div>
+
+                  {/* FOCUS TOGGLE BUTTON DI KANAN BUCU ATAS */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!isFocusMode) setShowSettings(false)
+                      setIsFocusMode(!isFocusMode)
+                    }}
+                    title={isFocusMode ? `${t.generator.exitFocusModeTitle} (Esc)` : t.generator.focusModeTitle}
+                    className={`p-2 sm:px-3 sm:py-2 rounded-xl border font-bold text-xs flex items-center gap-1.5 transition-all duration-300 cursor-pointer active:scale-95 shrink-0 ${
+                      isFocusMode
+                        ? 'bg-[#1C7A67] hover:bg-[#0F5C4C] text-white border-[#1C7A67] shadow-md ring-2 ring-[#1C7A67]/30'
+                        : 'bg-[#FFF7EA] hover:bg-[#FCE7D2] text-[#6B5A4E] hover:text-[#2B1B12] border-[#F0DEC0] shadow-xs'
+                    }`}
+                    aria-label="Toggle Focus Mode"
+                  >
+                    {isFocusMode ? (
+                      <>
+                        <svg className="w-4 h-4 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M8 3v3a2 2 0 0 1-2 2H3" />
+                          <path d="M21 8h-3a2 2 0 0 1-2-2V3" />
+                          <path d="M3 16h3a2 2 0 0 1 2 2v3" />
+                          <path d="M16 21v-3a2 2 0 0 1 2-2h3" />
+                        </svg>
+                        <span className="hidden xs:inline text-[11px] font-semibold">{t.generator.exitFocusModeTitle.split(' ')[0] || (lang === 'en' ? 'Exit' : 'Keluar')}</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+                          <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+                          <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+                          <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+                        </svg>
+                        <span className="hidden xs:inline text-[11px] font-semibold">Focus</span>
+                      </>
+                    )}
+                  </button>
                 </div>
 
                 {/* STEPPER */}
@@ -4222,7 +4305,11 @@ export default function CashierDashboard() {
           )}
 
           {/* ACTIVITY LOG (COLLAPSIBLE DROPDOWN WITH EXPORT DOWNLOAD) */}
-          <div className="border border-[#F0DEC0] bg-[#FFFDF8] rounded-[24px] p-4 sm:p-5 shadow-xs transition-all mb-6">
+          <div className={`border border-[#F0DEC0] bg-[#FFFDF8] rounded-[24px] p-4 sm:p-5 shadow-xs transition-all duration-500 ease-in-out origin-bottom ${
+            isFocusMode
+              ? 'opacity-0 pointer-events-none translate-y-8 scale-95 max-h-0 overflow-hidden mb-0 py-0 -z-10'
+              : 'opacity-100 translate-y-0 scale-100 max-h-[3500px] mb-6 z-10'
+          }`}>
             <div className="flex items-center justify-between gap-2">
               <button
                 type="button"
@@ -5439,7 +5526,11 @@ export default function CashierDashboard() {
       )}
 
       {/* Dashboard Footer Subtext */}
-      <div className="mt-8 text-center text-[11px] text-[#96806B] font-space flex items-center justify-center gap-2">
+      <div className={`text-center text-[11px] text-[#96806B] font-space flex items-center justify-center gap-2 transition-all duration-500 ease-in-out origin-bottom ${
+        isFocusMode
+          ? 'opacity-0 pointer-events-none translate-y-4 scale-95 max-h-0 overflow-hidden mt-0 py-0'
+          : 'opacity-100 translate-y-0 scale-100 mt-8'
+      }`}>
         <span>© {new Date().getFullYear()} LajuS</span>
         <span>•</span>
         <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#96806B] hover:text-[#FF7A45] underline transition">

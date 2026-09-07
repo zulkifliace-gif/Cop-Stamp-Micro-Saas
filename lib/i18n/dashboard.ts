@@ -136,6 +136,8 @@ export interface DashboardTranslation {
     largeQrScanPrompt: string
     claimedAnimationTitle: string
     claimedSuccessMsg: string
+    focusModeTitle: string
+    exitFocusModeTitle: string
   }
   settings: {
     title: string
@@ -400,6 +402,8 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       largeQrScanPrompt: 'Pelanggan imbas untuk terima cop stamp',
       claimedAnimationTitle: 'Cop Berjaya Diterima!',
       claimedSuccessMsg: 'Pelanggan telah berjaya menebus cop.',
+      focusModeTitle: 'Mod Fokus Kaunter',
+      exitFocusModeTitle: 'Keluar Mod Fokus',
     },
     settings: {
       title: 'Tetapan Kedai',
@@ -662,6 +666,8 @@ export const I18N_DASHBOARD: Record<Lang, DashboardTranslation> = {
       largeQrScanPrompt: 'Customer scans to collect digital stamps',
       claimedAnimationTitle: 'Stamps Claimed Successfully!',
       claimedSuccessMsg: 'Customer has claimed their stamps.',
+      focusModeTitle: 'Counter Focus Mode',
+      exitFocusModeTitle: 'Exit Focus Mode',
     },
     settings: {
       title: 'Store Settings',
